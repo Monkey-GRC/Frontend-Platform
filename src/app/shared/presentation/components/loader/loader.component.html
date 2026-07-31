@@ -1,0 +1,86 @@
+@switch (type) {
+
+@case ('monkey') {
+<!-- 🐵 MONKEY LOADER - Estilo corporativo -->
+<div class="flex flex-col items-center justify-center h-[calc(100vh-5rem)] text-center space-y-6">
+    <div class="relative w-36 h-36 flex items-center justify-center">
+
+        <!-- Brillo de fondo -->
+        <div class="absolute inset-0 rounded-2xl bg-blue-400/10 blur-2xl animate-pulse"></div>
+
+        <!-- Círculo giratorio degradado -->
+        <div class="w-full h-full relative flex items-center justify-center">
+            <div
+                class="absolute inset-0 rounded-2xl bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 animate-spin-slow blur-sm">
+            </div>
+
+            <!-- Contenedor interno -->
+            <div
+                class="absolute inset-1 bg-gray-50 dark:bg-gray-900 rounded-xl flex items-center justify-center overflow-hidden shadow-[0_0_10px_#3b82f655]">
+                <!-- Logo en el centro -->
+                <img src="images/logos/logo-azul.webp" alt="Monkey Logo" class="w-16 h-16 object-contain z-10" />
+
+                <!-- Efecto de brillo pulsante -->
+                <div
+                    class="absolute inset-0 bg-linear-to-t from-transparent via-blue-400/10 to-transparent animate-pulse">
+                </div>
+            </div>
+        </div>
+
+        <!-- Puntos decorativos -->
+        <div class="absolute -top-1 -left-1 w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+        <div class="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-ping delay-100"></div>
+        <div class="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 rounded-full animate-ping delay-200"></div>
+        <div class="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-600 rounded-full animate-ping delay-300"></div>
+    </div>
+
+    <!-- Texto debajo -->
+    <p class="text-blue-700 dark:text-blue-300 text-lg font-semibold tracking-wide animate-pulse">
+        {{ text }}
+    </p>
+</div>
+}
+
+@case ('dashboard') {
+<!-- 📊 Skeleton estilo Dashboard -->
+<div class="flex flex-col justify-center animate-pulse w-full max-w-6xl mx-auto p-6 space-y-6
+               h-[calc(100vh-5rem)] overflow-y-auto">
+    <!-- Header -->
+    <div class="h-8 w-1/3 bg-gray-300 rounded"></div>
+
+    <!-- Filtros -->
+    <div class="flex space-x-4">
+        <div class="h-10 w-40 bg-gray-300 rounded"></div>
+        <div class="h-10 w-40 bg-gray-300 rounded"></div>
+        <div class="h-10 w-40 bg-gray-300 rounded"></div>
+    </div>
+
+    <!-- Tarjetas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        @for (card of cards; track card) {
+        <div class="h-28 bg-gray-300 rounded-xl"></div>
+        }
+    </div>
+
+    <!-- Gráfica -->
+    <div class="h-72 bg-gray-300 rounded-xl"></div>
+
+    <!-- Tabla -->
+    <div class="space-y-3">
+        @for (row of rows; track row) {
+        <div class="h-8 bg-gray-300 rounded"></div>
+        }
+    </div>
+</div>
+}
+
+@default {
+<!-- ⚙️ Loader por defecto -->
+<div class="flex flex-col items-center justify-center min-h-[150px]
+               h-[calc(100vh-5rem)]">
+    <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="mt-4 text-gray-600 dark:text-gray-300">{{ text }}</p>
+</div>
+}
+
+}
