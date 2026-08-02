@@ -1,0 +1,42 @@
+<div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
+  <div class="mb-5">
+    <h1 class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90">
+      Perfil de la empresa
+    </h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      Cuéntanos un poco sobre tu infraestructura.
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
+    <div>
+      <label for="business_type" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Tipo de negocio
+      </label>
+      <select id="business_type" formControlName="business_type"
+        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+        <option [ngValue]="null" disabled>Selecciona una opción</option>
+        @for (type of businessTypes; track type) {
+          <option [ngValue]="type">{{ type }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label for="server_count" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Cantidad de servidores
+      </label>
+      <input id="server_count" type="number" formControlName="server_count" min="0"
+        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+    </div>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-error-500">{{ errorMessage() }}</p>
+    }
+
+    <button type="submit" [disabled]="loading()"
+      class="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-60">
+      {{ loading() ? 'Guardando...' : 'Continuar' }}
+    </button>
+  </form>
+</div>
