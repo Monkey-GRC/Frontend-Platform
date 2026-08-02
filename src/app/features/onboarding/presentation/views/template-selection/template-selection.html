@@ -1,0 +1,41 @@
+<div class="flex min-h-screen items-center justify-center bg-gray-50 p-6 dark:bg-gray-900">
+  <div class="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800">
+    <div class="mb-6">
+      <h1 class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90">
+        Elige un template de seguridad
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Adopta uno de nuestros templates maestros o crea el tuyo propio.
+      </p>
+    </div>
+
+    <div class="mb-6 flex gap-2">
+      <button type="button" (click)="mode.set('adopt')"
+        class="rounded-lg px-4 py-2 text-sm font-medium"
+        [class.bg-brand-500]="mode() === 'adopt'"
+        [class.text-white]="mode() === 'adopt'"
+        [class.bg-gray-100]="mode() !== 'adopt'"
+        [class.text-gray-700]="mode() !== 'adopt'">
+        Adoptar template
+      </button>
+      <button type="button" (click)="mode.set('create')"
+        class="rounded-lg px-4 py-2 text-sm font-medium"
+        [class.bg-brand-500]="mode() === 'create'"
+        [class.text-white]="mode() === 'create'"
+        [class.bg-gray-100]="mode() !== 'create'"
+        [class.text-gray-700]="mode() !== 'create'">
+        Crear propio
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mb-4 text-sm text-error-500">{{ errorMessage() }}</p>
+    }
+
+    @if (mode() === 'adopt') {
+      <app-master-template-list [templates]="masterTemplates()" [adoptingId]="adoptingId()" (adopt)="adopt($event)" />
+    } @else {
+      <app-create-template-form [loading]="creating()" (create)="create($event)" />
+    }
+  </div>
+</div>

@@ -1,0 +1,171 @@
+<div class="min-h-screen bg-gray-50 p-6 dark:bg-gray-900">
+  <div class="mx-auto max-w-3xl">
+    <div class="mb-6">
+      <h1 class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90">Construye tu template</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Agrega controles, riesgos y motivos. Cuando termines, finaliza para ir al dashboard.
+      </p>
+    </div>
+
+    <div class="mb-6 flex gap-2">
+      @for (tab of sections; track tab) {
+        <button type="button" (click)="section.set(tab)"
+          class="rounded-lg px-4 py-2 text-sm font-medium"
+          [class.bg-brand-500]="section() === tab"
+          [class.text-white]="section() === tab"
+          [class.bg-gray-100]="section() !== tab"
+          [class.text-gray-700]="section() !== tab">
+          {{ tab }}
+        </button>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mb-4 text-sm text-error-500">{{ errorMessage() }}</p>
+    }
+
+    @if (section() === 'controls') {
+      <div class="rounded-2xl bg-white p-6 shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800">
+        <form [formGroup]="controlForm" (ngSubmit)="createControl()" class="space-y-4">
+          <input formControlName="name" placeholder="Nombre"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+          <textarea formControlName="description" placeholder="Descripción" rows="2"
+            class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"></textarea>
+          <input formControlName="objective" placeholder="Objetivo"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+
+          <div class="grid grid-cols-2 gap-4">
+            <select formControlName="type"
+              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+              <option value="MANUAL">MANUAL</option>
+              <option value="AUTOMATIC">AUTOMATIC</option>
+              <option value="HYBRID">HYBRID</option>
+            </select>
+            <select formControlName="os"
+              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+              <option value="UBUNTU">UBUNTU</option>
+              <option value="WINDOWS">WINDOWS</option>
+            </select>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+            <div class="mb-3 flex gap-2">
+              <input [formControl]="checklistSearchForm.controls.search" placeholder="Buscar checks CIS..."
+                class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+              <button type="button" (click)="searchChecklist()"
+                class="shrink-0 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:bg-white/5 dark:text-gray-300">
+                Buscar
+              </button>
+            </div>
+            <div class="max-h-48 space-y-1 overflow-y-auto custom-scrollbar">
+              @for (item of checklistResults(); track item.checkId) {
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" [checked]="selectedChecklistIds().has(item.checkId)"
+                    (change)="toggleChecklistItem(item.checkId)" />
+                  {{ item.title }}
+                </label>
+              } @empty {
+                <p class="text-sm text-gray-400">Sin resultados.</p>
+              }
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="savingControl()"
+            class="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60">
+            {{ savingControl() ? 'Guardando...' : 'Agregar control' }}
+          </button>
+        </form>
+
+        <div class="mt-6 space-y-2">
+          @for (control of controls(); track control.id) {
+            <div class="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">{{ control.name }}</div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (section() === 'risks') {
+      <div class="rounded-2xl bg-white p-6 shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800">
+        <form [formGroup]="riskForm" (ngSubmit)="createRisk()" class="space-y-4">
+          <input formControlName="name" placeholder="Nombre"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+          <textarea formControlName="description" placeholder="Descripción" rows="2"
+            class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"></textarea>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Impacto (1-5)</label>
+              <input type="number" formControlName="impact" min="1" max="5"
+                class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Probabilidad (1-5)</label>
+              <input type="number" formControlName="probability" min="1" max="5"
+                class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+            </div>
+          </div>
+          <button type="submit" [disabled]="savingRisk()"
+            class="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60">
+            {{ savingRisk() ? 'Guardando...' : 'Agregar riesgo' }}
+          </button>
+        </form>
+
+        <div class="mt-6 space-y-2">
+          @for (risk of risks(); track risk.id) {
+            <div class="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">{{ risk.name }}</div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (section() === 'reasons') {
+      <div class="rounded-2xl bg-white p-6 shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800">
+        <form [formGroup]="reasonForm" (ngSubmit)="createReason()" class="space-y-4">
+          <input formControlName="name" placeholder="Nombre"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+          <textarea formControlName="description" placeholder="Descripción" rows="2"
+            class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"></textarea>
+
+          <div>
+            <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-400">Vincular riesgos</p>
+            <div class="space-y-1">
+              @for (risk of risks(); track risk.id) {
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" [checked]="selectedRiskIds().has(risk.id)" (change)="toggleRiskLink(risk.id)" />
+                  {{ risk.name }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <div>
+            <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-400">Vincular controles</p>
+            <div class="space-y-1">
+              @for (control of controls(); track control.id) {
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" [checked]="selectedControlIds().has(control.id)" (change)="toggleControlLink(control.id)" />
+                  {{ control.name }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="savingReason()"
+            class="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60">
+            {{ savingReason() ? 'Guardando...' : 'Agregar motivo' }}
+          </button>
+        </form>
+
+        <div class="mt-6 space-y-2">
+          @for (reason of reasons(); track reason.id) {
+            <div class="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">{{ reason.name }}</div>
+          }
+        </div>
+      </div>
+    }
+
+    <button type="button" (click)="finish()"
+      class="mt-6 flex w-full items-center justify-center rounded-lg bg-gray-800 px-4 py-3 text-sm font-medium text-white hover:bg-gray-900 dark:bg-white/10">
+      Finalizar y ver dashboard
+    </button>
+  </div>
+</div>
