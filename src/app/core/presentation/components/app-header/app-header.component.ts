@@ -1,8 +1,9 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ThemeToggleButtonComponent } from '@core/presentation/components/app-header/theme-toggle/theme-toggle-button.component';
 import { SidebarService } from '@core/domain/services/sidebar.service';
+import { AuthService } from '@features/auth/domain/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +16,9 @@ import { SidebarService } from '@core/domain/services/sidebar.service';
   templateUrl: './app-header.component.html',
 })
 export class AppHeaderComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   isApplicationMenuOpen = false;
   readonly isMobileOpen$;
 
@@ -22,6 +26,13 @@ export class AppHeaderComponent {
 
   constructor(public sidebarService: SidebarService) {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: () => this.router.navigateByUrl('/signin'),
+      error: () => this.router.navigateByUrl('/signin'),
+    });
   }
 
   handleToggle() {

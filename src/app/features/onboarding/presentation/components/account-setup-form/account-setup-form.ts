@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OnboardingService } from '@features/onboarding/domain/services/onboarding.service';
-import { AuthService } from '@features/auth/domain/services/auth.service';
 import { RegistrationSessionService } from '@core/domain/services/registration-session.service';
+import { SessionService } from '@core/domain/services/session.service';
+import { TenantCredentialsService } from '@core/domain/services/tenant-credentials.service';
 
 function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password')?.value;
@@ -21,7 +22,8 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
 export class AccountSetupForm {
   private readonly fb = inject(FormBuilder);
   private readonly onboardingService = inject(OnboardingService);
-  private readonly authService = inject(AuthService);
+  private readonly sessionService = inject(SessionService);
+  private readonly tenantCredentials = inject(TenantCredentialsService);
   private readonly registrationSession = inject(RegistrationSessionService);
   private readonly router = inject(Router);
 
@@ -50,11 +52,10 @@ export class AccountSetupForm {
       return;
     }
 
-    const apiKey = this.registrationSession.apiKey();
-    if (!apiKey) {
-      this.router.navigateByUrl('/register');
-      return;
-    }
+    const onboardingCode = this.registrationSession.onboardingCode()!;
+    const templateId = this.registrationSession.templateId() ?? undefined;
+    const businessType = this.registrationSession.businessType() ?? undefined;
+    const serverCount = this.registrationSession.serverCount() ?? undefined;
 
     this.loading.set(true);
     this.errorMessage.set(null);
@@ -62,24 +63,38 @@ export class AccountSetupForm {
     const { email, password } = this.form.getRawValue();
     const username = email.split('@')[0];
 
-    this.onboardingService.createAdmin({ api_key: apiKey, email, username, password }).subscribe({
-      next: () => {
-        this.authService.login({ identifier: username, password, api_key: apiKey }).subscribe({
-          next: () => {
-            this.loading.set(false);
-            this.registrationSession.clear();
-            this.router.navigateByUrl('/onboarding/company-profile');
-          },
-          error: () => {
-            this.loading.set(false);
-            this.router.navigateByUrl('/signin');
-          },
-        });
-      },
-      error: () => {
-        this.loading.set(false);
-        this.errorMessage.set('No se pudo crear la cuenta. Verifica los datos ingresados.');
-      },
-    });
+    this.onboardingService
+      .complete({
+        onboarding_code: onboardingCode,
+        template_id: templateId,
+        email,
+        username,
+        password,
+        business_type: businessType,
+        server_count: serverCount,
+      })
+      .subscribe({
+        next: (result) => {
+          // client_identifier/client_key nunca se muestran al usuario — se
+          // guardan en silencio y de ahí en adelante viajan solos como
+          // headers en cada request (ver tenantCredentialsInterceptor).
+          this.tenantCredentials.save(result.client_identifier, result.client_key);
+          this.sessionService.setAuthenticated();
+          this.registrationSession.clear();
+          this.router.navigateByUrl('/');
+        },
+        error: (error) => {
+          this.loading.set(false);
+          if (error.status === 401) {
+            this.errorMessage.set('Código de onboarding inválido.');
+          } else if (error.status === 409) {
+            this.errorMessage.set('Este tenant ya fue activado, inicia sesión normalmente.');
+          } else if (error.status === 410) {
+            this.errorMessage.set('El código expiró, pide a soporte que te genere uno nuevo.');
+          } else {
+            this.errorMessage.set('Ocurrió un error, intenta de nuevo.');
+          }
+        },
+      });
   }
 }

@@ -7,6 +7,15 @@ export interface MasterTemplate {
   scope?: string;
 }
 
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface TemplateRiskSummary {
+  id: string;
+  name: string;
+  code: string;
+  level: RiskLevel;
+}
+
 export interface Template {
   id: string;
   name: string;
@@ -14,6 +23,7 @@ export interface Template {
   description?: string;
   objective?: string;
   scope?: string;
+  risks?: TemplateRiskSummary[];
 }
 
 export interface CreateTemplateDto {
@@ -44,14 +54,25 @@ export interface CreateControlDto {
   checklist?: ChecklistItem[];
 }
 
+export interface ControlCheckLink {
+  id: string;
+  check_id: string;
+  title: string;
+  os: OperatingSystem;
+}
+
 export interface Control {
   id: string;
   name: string;
+  code: string;
   description?: string;
   objective?: string;
-  type?: ControlType;
-  os?: OperatingSystem;
-  checklist?: ChecklistItem[];
+  type: ControlType;
+  checks: ControlCheckLink[];
+}
+
+export interface UpdateRiskDto {
+  templateId?: string | null;
 }
 
 export interface CreateRiskDto {
@@ -65,10 +86,21 @@ export interface CreateRiskDto {
 export interface Risk {
   id: string;
   name: string;
+  code: string;
   description?: string;
   impact: number;
   probability: number;
-  templateId?: string;
+  level: RiskLevel;
+}
+
+export interface ReasonSummary {
+  id: string;
+  name: string;
+  code: string;
+}
+
+export interface RiskDetail extends Risk {
+  reasons: ReasonSummary[];
 }
 
 export interface CreateReasonDto {
@@ -79,7 +111,13 @@ export interface CreateReasonDto {
 export interface Reason {
   id: string;
   name: string;
+  code: string;
   description?: string;
+}
+
+export interface ReasonDetail extends Reason {
+  risks: { id: string; name: string; code: string; level: RiskLevel }[];
+  controls: Control[];
 }
 
 export interface LinkRisksDto {

@@ -16,10 +16,10 @@ export class RegisterForm {
   private readonly router = inject(Router);
 
   readonly form = this.fb.nonNullable.group({
-    api_key: ['', Validators.required],
+    onboarding_code: ['', Validators.required],
   });
 
-  hasError(name: 'api_key', key: string): boolean {
+  hasError(name: 'onboarding_code', key: string): boolean {
     const control = this.form.get(name);
     return !!control && control.touched && control.hasError(key);
   }
@@ -30,7 +30,7 @@ export class RegisterForm {
       return;
     }
 
-    this.registrationSession.setApiKey(this.form.getRawValue().api_key);
-    this.router.navigateByUrl('/onboarding/account');
+    this.registrationSession.setOnboardingCode(this.form.getRawValue().onboarding_code.trim());
+    this.router.navigateByUrl('/onboarding/characterization');
   }
 }

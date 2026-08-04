@@ -31,20 +31,20 @@
             <!-- Title -->
             <h1
                 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2 text-primary dark:text-white text-center md:text-left">
-                Ingresa tu API Key
+                Ingresa tu código de onboarding
             </h1>
 
             <p class="text-xs md:text-sm text-gray-400 text-center md:text-left">
-                La API Key identifica a tu organización. Te la comparte tu administrador de Monkey.
+                El código de onboarding identifica a tu organización. Te lo comparte tu administrador de Monkey y expira a los 7 días.
             </p>
 
             <!-- Form Fields -->
             <div class="mt-8 md:mt-10 space-y-5 md:space-y-6">
 
-                <!-- API Key -->
+                <!-- Onboarding code -->
                 <div class="relative">
                     <label class="block text-xs font-medium text-gray-400 mb-2">
-                        API Key
+                        Código de onboarding
                     </label>
 
                     <span
@@ -52,14 +52,14 @@
                         <span class="material-symbols-rounded text-[20px] md:text-[22px] leading-none">key</span>
                     </span>
 
-                    <input formControlName="api_key" type="text" placeholder="Tu API Key"
+                    <input formControlName="onboarding_code" type="text" placeholder="Tu código de onboarding"
                         class="bg-gray-100 dark:bg-[#162036] dark:text-white focus:bg-white dark:focus:bg-[#0E1525]
               w-full pl-10 pr-3 h-11 md:pl-12 md:h-12 text-sm md:text-base rounded-lg border border-gray-300 dark:border-gray-700
               focus:border-primary/60 transition" />
 
-                    @if (hasError('api_key','required')) {
+                    @if (hasError('onboarding_code','required')) {
                     <p class="mt-1.5 text-xs text-error-500">
-                        El API Key es obligatorio.
+                        El código de onboarding es obligatorio.
                     </p>
                     }
                 </div>

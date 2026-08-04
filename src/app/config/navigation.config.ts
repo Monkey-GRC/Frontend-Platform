@@ -27,14 +27,14 @@ export const NAV_ITEMS: NavItem[] = [
     {
         icon: 'dashboard',
         name: "Dashboard",
+        path: "/",
         section: "Menu",
-        subItems: [
-            {
-                name: "Ecommerce",
-                path: "/",
-                section: "Menu"
-            },
-        ],
+    },
+    {
+        icon: 'shield',
+        name: "Templates",
+        path: "/templates",
+        section: "Menu",
     },
 ];
 
