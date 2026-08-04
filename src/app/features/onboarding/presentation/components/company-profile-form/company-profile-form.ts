@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OnboardingService } from '@features/onboarding/domain/services/onboarding.service';
@@ -11,7 +11,7 @@ import { BusinessType } from '@features/onboarding/domain/models/onboarding.mode
   styleUrl: './company-profile-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CompanyProfileForm {
+export class CompanyProfileForm implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly onboardingService = inject(OnboardingService);
   private readonly router = inject(Router);
@@ -25,6 +25,15 @@ export class CompanyProfileForm {
     business_type: [null as BusinessType | null, Validators.required],
     server_count: [null as number | null, [Validators.required, Validators.min(0)]],
   });
+
+  ngOnInit(): void {
+    this.onboardingService.getCompanyProfile().subscribe((profile) => {
+      this.form.patchValue({
+        business_type: profile.business_type ?? null,
+        server_count: profile.server_count ?? null,
+      });
+    });
+  }
 
   submit(): void {
     if (this.form.invalid) {
@@ -43,7 +52,7 @@ export class CompanyProfileForm {
     }).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigateByUrl('/onboarding/templates');
+        this.router.navigateByUrl('/');
       },
       error: () => {
         this.loading.set(false);

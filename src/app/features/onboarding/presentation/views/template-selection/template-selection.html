@@ -5,37 +5,25 @@
         Elige un template de seguridad
       </h1>
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        Adopta uno de nuestros templates maestros o crea el tuyo propio.
+        Elige el framework de cumplimiento con el que quieres empezar. Podrás editarlo libremente después.
       </p>
-    </div>
-
-    <div class="mb-6 flex gap-2">
-      <button type="button" (click)="mode.set('adopt')"
-        class="rounded-lg px-4 py-2 text-sm font-medium"
-        [class.bg-brand-500]="mode() === 'adopt'"
-        [class.text-white]="mode() === 'adopt'"
-        [class.bg-gray-100]="mode() !== 'adopt'"
-        [class.text-gray-700]="mode() !== 'adopt'">
-        Adoptar template
-      </button>
-      <button type="button" (click)="mode.set('create')"
-        class="rounded-lg px-4 py-2 text-sm font-medium"
-        [class.bg-brand-500]="mode() === 'create'"
-        [class.text-white]="mode() === 'create'"
-        [class.bg-gray-100]="mode() !== 'create'"
-        [class.text-gray-700]="mode() !== 'create'">
-        Crear propio
-      </button>
     </div>
 
     @if (errorMessage()) {
       <p class="mb-4 text-sm text-error-500">{{ errorMessage() }}</p>
     }
 
-    @if (mode() === 'adopt') {
-      <app-master-template-list [templates]="masterTemplates()" [adoptingId]="adoptingId()" (adopt)="adopt($event)" />
-    } @else {
-      <app-create-template-form [loading]="creating()" (create)="create($event)" />
-    }
+    <app-master-template-list [templates]="masterTemplates()" [adoptingId]="selectingId()" (adopt)="select($event)" />
+
+    <div class="mt-6 flex items-center gap-3">
+      <span class="h-px w-full bg-gray-200 dark:bg-gray-700"></span>
+      <span class="shrink-0 text-xs text-gray-400">o</span>
+      <span class="h-px w-full bg-gray-200 dark:bg-gray-700"></span>
+    </div>
+
+    <button type="button" (click)="skip()"
+      class="mt-6 flex w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">
+      Prefiero crear mi propio template más adelante
+    </button>
   </div>
 </div>

@@ -9,6 +9,6 @@ export const authGuard: CanActivateFn = () => {
 
   return authService.validate().pipe(
     map(() => true),
-    catchError(() => of(router.createUrlTree(['/signin'])))
+    catchError(() => of(router.createUrlTree(['/register'])))
   );
 };

@@ -1,188 +1,255 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ChecklistService } from '@features/templates/domain/services/checklist.service';
-import { ControlService } from '@features/templates/domain/services/control.service';
+import { forkJoin } from 'rxjs';
+import { TemplateService } from '@features/templates/domain/services/template.service';
 import { RiskService } from '@features/templates/domain/services/risk.service';
 import { ReasonService } from '@features/templates/domain/services/reason.service';
-import {
-  ChecklistItem,
-  Control,
-  ControlType,
-  OperatingSystem,
-  Reason,
-  Risk,
-} from '@features/templates/domain/models/template.models';
+import { ControlService } from '@features/templates/domain/services/control.service';
+import { Control, Reason, Risk, RiskDetail, ReasonDetail, Template } from '@features/templates/domain/models/template.models';
+import { ComboboxOption, CreateEntityPayload, EntityCombobox } from '@features/templates/presentation/components/entity-combobox/entity-combobox';
+import { LoaderComponent } from '@shared/presentation/components/loader/loader.component';
 
 @Component({
   selector: 'app-template-builder',
-  imports: [ReactiveFormsModule],
+  imports: [EntityCombobox, LoaderComponent],
   templateUrl: './template-builder.html',
   styleUrl: './template-builder.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TemplateBuilder {
-  private readonly fb = inject(FormBuilder);
+export class TemplateBuilder implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly checklistService = inject(ChecklistService);
-  private readonly controlService = inject(ControlService);
+  private readonly templateService = inject(TemplateService);
   private readonly riskService = inject(RiskService);
   private readonly reasonService = inject(ReasonService);
+  private readonly controlService = inject(ControlService);
 
-  readonly templateId = this.route.snapshot.paramMap.get('id') ?? '';
-  readonly section = signal<'controls' | 'risks' | 'reasons'>('controls');
-  readonly sections = ['controls', 'risks', 'reasons'] as const;
+  private readonly templateId = this.route.snapshot.paramMap.get('id')!;
 
-  readonly controls = signal<Control[]>([]);
-  readonly risks = signal<Risk[]>([]);
-  readonly reasons = signal<Reason[]>([]);
-
-  readonly checklistResults = signal<ChecklistItem[]>([]);
-  readonly selectedChecklistIds = signal<Set<string>>(new Set());
-  readonly savingControl = signal(false);
-  readonly savingRisk = signal(false);
-  readonly savingReason = signal(false);
-  readonly selectedRiskIds = signal<Set<string>>(new Set());
-  readonly selectedControlIds = signal<Set<string>>(new Set());
+  readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly template = signal<Template | null>(null);
 
-  readonly controlForm = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    description: [''],
-    objective: [''],
-    type: ['AUTOMATIC' as ControlType],
-    os: ['UBUNTU' as OperatingSystem],
+  readonly allRisks = signal<Risk[]>([]);
+  readonly allReasons = signal<Reason[]>([]);
+  readonly allControls = signal<Control[]>([]);
+
+  readonly selectedRiskId = signal<string | null>(null);
+  readonly selectedRisk = signal<RiskDetail | null>(null);
+  readonly loadingRisk = signal(false);
+  readonly creatingRisk = signal(false);
+
+  readonly selectedReasonId = signal<string | null>(null);
+  readonly selectedReason = signal<ReasonDetail | null>(null);
+  readonly loadingReason = signal(false);
+  readonly creatingReason = signal(false);
+
+  readonly creatingControl = signal(false);
+  readonly expandedControlId = signal<string | null>(null);
+
+  readonly riskPool = computed<ComboboxOption[]>(() => {
+    const linkedIds = new Set((this.template()?.risks ?? []).map((r) => r.id));
+    return this.allRisks()
+      .filter((r) => !linkedIds.has(r.id))
+      .map((r) => ({ id: r.id, label: r.name, sublabel: r.code }));
   });
 
-  readonly checklistSearchForm = this.fb.nonNullable.group({
-    search: [''],
+  readonly reasonPool = computed<ComboboxOption[]>(() => {
+    const linkedIds = new Set((this.selectedRisk()?.reasons ?? []).map((r) => r.id));
+    return this.allReasons()
+      .filter((r) => !linkedIds.has(r.id))
+      .map((r) => ({ id: r.id, label: r.name, sublabel: r.code }));
   });
 
-  readonly riskForm = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    description: [''],
-    impact: [3, [Validators.required, Validators.min(1), Validators.max(5)]],
-    probability: [3, [Validators.required, Validators.min(1), Validators.max(5)]],
+  readonly controlPool = computed<ComboboxOption[]>(() => {
+    const linkedIds = new Set((this.selectedReason()?.controls ?? []).map((c) => c.id));
+    return this.allControls()
+      .filter((c) => !linkedIds.has(c.id))
+      .map((c) => ({ id: c.id, label: c.name, sublabel: c.code }));
   });
 
-  readonly reasonForm = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    description: [''],
-  });
+  ngOnInit(): void {
+    this.loadTemplate();
+    this.loadPools();
+  }
 
-  searchChecklist(): void {
-    const os = this.controlForm.controls.os.value;
-    const search = this.checklistSearchForm.controls.search.value;
-    this.checklistService.search(os, search || undefined).subscribe({
-      next: (items) => this.checklistResults.set(items),
-      error: () => this.errorMessage.set('No se pudo cargar el catálogo de checks.'),
+  private loadTemplate(): void {
+    this.isLoading.set(true);
+    this.templateService.getById(this.templateId).subscribe({
+      next: (template) => {
+        this.template.set(template);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.errorMessage.set('No se pudo cargar el template.');
+      },
     });
   }
 
-  toggleChecklistItem(checkId: string): void {
-    const current = new Set(this.selectedChecklistIds());
-    if (current.has(checkId)) {
-      current.delete(checkId);
-    } else {
-      current.add(checkId);
-    }
-    this.selectedChecklistIds.set(current);
+  private loadPools(): void {
+    forkJoin({
+      risks: this.riskService.getAll(),
+      reasons: this.reasonService.getAll(),
+      controls: this.controlService.getAll(),
+    }).subscribe(({ risks, reasons, controls }) => {
+      this.allRisks.set(risks);
+      this.allReasons.set(reasons);
+      this.allControls.set(controls);
+    });
   }
 
-  createControl(): void {
-    if (this.controlForm.invalid) {
-      this.controlForm.markAllAsTouched();
-      return;
-    }
+  goBack(): void {
+    this.router.navigateByUrl('/templates');
+  }
 
-    this.savingControl.set(true);
-    this.errorMessage.set(null);
+  // ---- Columna 1: riesgos ----
 
-    const checklist = this.checklistResults()
-      .filter((item) => this.selectedChecklistIds().has(item.checkId))
-      .map((item) => ({ checkId: item.checkId, title: item.title }));
-
-    this.controlService.create({ ...this.controlForm.getRawValue(), checklist }).subscribe({
-      next: (control) => {
-        this.controls.update((list) => [...list, control]);
-        this.controlForm.reset({ type: 'AUTOMATIC', os: 'UBUNTU', name: '', description: '', objective: '' });
-        this.selectedChecklistIds.set(new Set());
-        this.checklistResults.set([]);
-        this.savingControl.set(false);
+  selectRisk(id: string): void {
+    if (this.selectedRiskId() === id) return;
+    this.selectedRiskId.set(id);
+    this.selectedReasonId.set(null);
+    this.selectedReason.set(null);
+    this.expandedControlId.set(null);
+    this.loadingRisk.set(true);
+    this.riskService.getById(id).subscribe({
+      next: (risk) => {
+        this.selectedRisk.set(risk);
+        this.loadingRisk.set(false);
       },
       error: () => {
-        this.savingControl.set(false);
+        this.loadingRisk.set(false);
+        this.errorMessage.set('No se pudo cargar el riesgo.');
+      },
+    });
+  }
+
+  linkRisk(riskId: string): void {
+    this.riskService.update(riskId, { templateId: this.templateId }).subscribe(() => {
+      this.loadTemplate();
+      this.loadPools();
+    });
+  }
+
+  createRisk(payload: CreateEntityPayload): void {
+    this.creatingRisk.set(true);
+    this.riskService
+      .create({ name: payload.name, impact: payload.impact ?? 3, probability: payload.probability ?? 3, templateId: this.templateId })
+      .subscribe({
+        next: () => {
+          this.creatingRisk.set(false);
+          this.loadTemplate();
+          this.loadPools();
+        },
+        error: () => {
+          this.creatingRisk.set(false);
+          this.errorMessage.set('No se pudo crear el riesgo.');
+        },
+      });
+  }
+
+  // ---- Columna 2: causas ----
+
+  selectReason(id: string): void {
+    if (this.selectedReasonId() === id) return;
+    this.selectedReasonId.set(id);
+    this.expandedControlId.set(null);
+    this.loadingReason.set(true);
+    this.reasonService.getById(id).subscribe({
+      next: (reason) => {
+        this.selectedReason.set(reason);
+        this.loadingReason.set(false);
+      },
+      error: () => {
+        this.loadingReason.set(false);
+        this.errorMessage.set('No se pudo cargar la causa.');
+      },
+    });
+  }
+
+  private refreshSelectedRisk(): void {
+    const riskId = this.selectedRiskId();
+    if (!riskId) return;
+    this.riskService.getById(riskId).subscribe((risk) => this.selectedRisk.set(risk));
+  }
+
+  linkReason(reasonId: string): void {
+    const riskId = this.selectedRiskId();
+    if (!riskId) return;
+    this.reasonService.linkRisks(reasonId, { riskIds: [riskId] }).subscribe(() => {
+      this.refreshSelectedRisk();
+      this.loadPools();
+    });
+  }
+
+  createReason(payload: CreateEntityPayload): void {
+    const riskId = this.selectedRiskId();
+    if (!riskId) return;
+    this.creatingReason.set(true);
+    this.reasonService.create({ name: payload.name }).subscribe({
+      next: (reason) => {
+        this.reasonService.linkRisks(reason.id, { riskIds: [riskId] }).subscribe({
+          next: () => {
+            this.creatingReason.set(false);
+            this.refreshSelectedRisk();
+            this.loadPools();
+          },
+          error: () => {
+            this.creatingReason.set(false);
+            this.errorMessage.set('No se pudo vincular la causa al riesgo.');
+          },
+        });
+      },
+      error: () => {
+        this.creatingReason.set(false);
+        this.errorMessage.set('No se pudo crear la causa.');
+      },
+    });
+  }
+
+  // ---- Columna 3: controles ----
+
+  toggleControl(id: string): void {
+    this.expandedControlId.update((current) => (current === id ? null : id));
+  }
+
+  private refreshSelectedReason(): void {
+    const reasonId = this.selectedReasonId();
+    if (!reasonId) return;
+    this.reasonService.getById(reasonId).subscribe((reason) => this.selectedReason.set(reason));
+  }
+
+  linkControl(controlId: string): void {
+    const reasonId = this.selectedReasonId();
+    if (!reasonId) return;
+    this.reasonService.linkControls(reasonId, { controlIds: [controlId] }).subscribe(() => {
+      this.refreshSelectedReason();
+      this.loadPools();
+    });
+  }
+
+  createControl(payload: CreateEntityPayload): void {
+    const reasonId = this.selectedReasonId();
+    if (!reasonId) return;
+    this.creatingControl.set(true);
+    this.controlService.create({ name: payload.name }).subscribe({
+      next: (control) => {
+        this.reasonService.linkControls(reasonId, { controlIds: [control.id] }).subscribe({
+          next: () => {
+            this.creatingControl.set(false);
+            this.refreshSelectedReason();
+            this.loadPools();
+          },
+          error: () => {
+            this.creatingControl.set(false);
+            this.errorMessage.set('No se pudo vincular el control a la causa.');
+          },
+        });
+      },
+      error: () => {
+        this.creatingControl.set(false);
         this.errorMessage.set('No se pudo crear el control.');
       },
     });
-  }
-
-  createRisk(): void {
-    if (this.riskForm.invalid) {
-      this.riskForm.markAllAsTouched();
-      return;
-    }
-
-    this.savingRisk.set(true);
-    this.errorMessage.set(null);
-
-    this.riskService.create({ ...this.riskForm.getRawValue(), templateId: this.templateId }).subscribe({
-      next: (risk) => {
-        this.risks.update((list) => [...list, risk]);
-        this.riskForm.reset({ name: '', description: '', impact: 3, probability: 3 });
-        this.savingRisk.set(false);
-      },
-      error: () => {
-        this.savingRisk.set(false);
-        this.errorMessage.set('No se pudo crear el riesgo.');
-      },
-    });
-  }
-
-  toggleRiskLink(id: string): void {
-    const current = new Set(this.selectedRiskIds());
-    current.has(id) ? current.delete(id) : current.add(id);
-    this.selectedRiskIds.set(current);
-  }
-
-  toggleControlLink(id: string): void {
-    const current = new Set(this.selectedControlIds());
-    current.has(id) ? current.delete(id) : current.add(id);
-    this.selectedControlIds.set(current);
-  }
-
-  createReason(): void {
-    if (this.reasonForm.invalid) {
-      this.reasonForm.markAllAsTouched();
-      return;
-    }
-
-    this.savingReason.set(true);
-    this.errorMessage.set(null);
-
-    this.reasonService.create(this.reasonForm.getRawValue()).subscribe({
-      next: (reason) => {
-        const riskIds = Array.from(this.selectedRiskIds());
-        const controlIds = Array.from(this.selectedControlIds());
-
-        this.reasonService.linkRisks(reason.id, { riskIds }).subscribe();
-        this.reasonService.linkControls(reason.id, { controlIds }).subscribe();
-
-        this.reasons.update((list) => [...list, reason]);
-        this.reasonForm.reset({ name: '', description: '' });
-        this.selectedRiskIds.set(new Set());
-        this.selectedControlIds.set(new Set());
-        this.savingReason.set(false);
-      },
-      error: () => {
-        this.savingReason.set(false);
-        this.errorMessage.set('No se pudo crear el motivo.');
-      },
-    });
-  }
-
-  finish(): void {
-    this.router.navigateByUrl('/');
   }
 }

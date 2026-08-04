@@ -11,6 +11,12 @@ export class ControlService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/controls`;
 
+  getAll(): Observable<Control[]> {
+    return this.http
+      .get<ApiResponse<Control[]>>(this.baseUrl)
+      .pipe(unwrapData());
+  }
+
   create(dto: CreateControlDto): Observable<Control> {
     return this.http
       .post<ApiResponse<Control>>(this.baseUrl, dto)
