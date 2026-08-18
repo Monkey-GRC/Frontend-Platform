@@ -1,0 +1,29 @@
+<div class="flex min-h-screen items-center justify-center bg-gray-50 p-6 dark:bg-gray-900">
+  <div class="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800">
+    <div class="mb-6">
+      <h1 class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90">
+        Elige un template de seguridad
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Elige el framework de cumplimiento con el que quieres empezar. Podrás editarlo libremente después.
+      </p>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="mb-4 text-sm text-error-500">{{ errorMessage() }}</p>
+    }
+
+    <app-master-template-list [templates]="masterTemplates()" [adoptingId]="selectingId()" (adopt)="select($event)" />
+
+    <div class="mt-6 flex items-center gap-3">
+      <span class="h-px w-full bg-gray-200 dark:bg-gray-700"></span>
+      <span class="shrink-0 text-xs text-gray-400">o</span>
+      <span class="h-px w-full bg-gray-200 dark:bg-gray-700"></span>
+    </div>
+
+    <button type="button" (click)="skip()"
+      class="mt-6 flex w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">
+      Prefiero crear mi propio template más adelante
+    </button>
+  </div>
+</div>

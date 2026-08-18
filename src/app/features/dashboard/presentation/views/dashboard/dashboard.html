@@ -1,0 +1,268 @@
+@if (isLoading()) {
+<app-loader type="dashboard" text="Cargando dashboard..." />
+} @else if (wazuhUnavailable()) {
+<div class="glass-card flex flex-col items-center gap-2 py-10 text-center">
+    <span class="material-symbols-outlined text-4xl text-warning-500">cloud_off</span>
+    <p class="text-sm text-gray-600 dark:text-gray-300">
+        Wazuh no disponible. Intenta nuevamente más tarde.
+    </p>
+    <button class="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500 dark:hover:bg-primary-600 transition-all duration-200"
+        (click)="readDashboard()">
+        <span class="material-symbols-outlined text-base">refresh</span>
+        Reintentar
+    </button>
+</div>
+} @else if (loadError()) {
+<div class="glass-card flex flex-col items-center gap-2 py-10 text-center">
+    <span class="material-symbols-outlined text-4xl text-error-500">error</span>
+    <p class="text-sm text-gray-600 dark:text-gray-300">{{ loadError() }}</p>
+    <button class="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-500 dark:hover:bg-primary-600 transition-all duration-200"
+        (click)="readDashboard()">
+        <span class="material-symbols-outlined text-base">refresh</span>
+        Reintentar
+    </button>
+</div>
+} @else {
+<div class="transition-colors duration-200 animation">
+    <div class="max-w-full mx-auto space-y-6 p-4">
+
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="space-y-1">
+                <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white">
+                    Dashboard de cumplimiento
+                </h1>
+                <p class="text-sm text-gray-600 dark:text-gray-300 max-w-xl">
+                    Estado de cumplimiento del marco por control según los resultados de los checks
+                </p>
+            </div>
+            <button class="inline-flex items-center justify-center gap-2 rounded-lg
+                   bg-primary px-4 py-2.5 text-sm font-medium text-white
+                   hover:bg-primary-500 dark:hover:bg-primary-600 transition-all duration-200
+                   w-full sm:w-auto shadow-sm hover:shadow-md" (click)="readDashboard()">
+                <span class="material-symbols-outlined text-base">refresh</span>
+                Actualizar
+            </button>
+        </div>
+
+        @if (summary(); as data) {
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="glass-card flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">verified_user</span>
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Cumplimiento del marco
+                    </span>
+                </div>
+                <span class="text-4xl font-semibold" [class]="getComplianceColor(data.frameworkCompliance)">
+                    @if (data.frameworkCompliance !== null) {
+                    {{ data.frameworkCompliance }}%
+                    } @else {
+                    —
+                    }
+                </span>
+                <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-800">
+                    <div class="h-2 rounded-full transition-all duration-500"
+                        [class]="getComplianceBarColor(data.frameworkCompliance)"
+                        [style.width.%]="data.frameworkCompliance ?? 0"></div>
+                </div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                    sobre los controles ya evaluados (automáticos y manuales)
+                </span>
+            </div>
+
+            <div class="glass-card flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">checklist</span>
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Cobertura de la evaluación
+                    </span>
+                </div>
+                <span class="text-4xl font-semibold text-gray-900 dark:text-white">
+                    {{ data.controlsEvaluated }} / {{ data.controlsTotal }}
+                </span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                    controles con al menos un resultado (el resto está pendiente de evaluar)
+                </span>
+            </div>
+
+            <div class="glass-card flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">fact_check</span>
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Controles que cumplen
+                    </span>
+                </div>
+                <span class="text-4xl font-semibold text-gray-900 dark:text-white">
+                    {{ compliantControlsLabel() }}
+                </span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                    controles al 100% sobre el total del framework
+                </span>
+            </div>
+
+            <div class="glass-card flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">report</span>
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Hallazgos abiertos
+                    </span>
+                </div>
+                <span class="text-4xl font-semibold"
+                    [class]="data.openFindings > 0 ? 'text-error-600 dark:text-error-400' : 'text-success-600 dark:text-success-400'">
+                    {{ data.openFindings }}
+                </span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                    checks fallidos pendientes de remediación (automáticos y manuales)
+                </span>
+            </div>
+        </div>
+        }
+
+        <div class="glass-card p-5 sm:p-6 flex flex-col gap-4">
+            <div class="space-y-1">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Detalle por control
+                </h2>
+                <p class="text-sm text-gray-600 dark:text-gray-300">
+                    Porcentaje de cumplimiento y resultado de los checks de cada control
+                </p>
+            </div>
+
+            @if (controls().length === 0) {
+            <div class="flex flex-col items-center justify-center gap-2 py-10 text-center">
+                <span class="material-symbols-outlined text-4xl text-gray-400">monitoring</span>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    No hay datos de cumplimiento disponibles todavía
+                </p>
+            </div>
+            } @else {
+            <div class="flex flex-col divide-y divide-gray-100 dark:divide-gray-800">
+                @for (control of controls(); track control.id) {
+                <div class="py-3">
+                    <button class="w-full flex flex-col gap-3 sm:flex-row sm:items-center text-left"
+                        (click)="onToggleControl(control)">
+                        <div class="flex-1 min-w-0 flex items-center gap-3">
+                            <span class="material-symbols-outlined text-gray-400 transition-transform duration-200"
+                                [class.rotate-180]="expandedControlId() === control.id">expand_more</span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {{ control.code }} — {{ control.name }}
+                                    <span class="ml-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400 align-middle">
+                                        {{ control.type }}
+                                    </span>
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ control.checksPassed }} aprobados ·
+                                    {{ control.checksFailed }} fallidos ·
+                                    {{ control.checksNotApplicable }} no aplican
+                                    @if (control.checksPending > 0) {
+                                    · {{ control.checksPending }} pendientes de evaluar
+                                    }
+                                    · {{ control.checksTotal }} en total
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 sm:w-64">
+                            <div class="h-2 flex-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                                <div class="h-2 rounded-full transition-all duration-500"
+                                    [class]="getComplianceBarColor(control.compliance)"
+                                    [style.width.%]="control.compliance ?? 0"></div>
+                            </div>
+                            <span class="w-14 text-right text-sm font-semibold"
+                                [class]="getComplianceColor(control.compliance)">
+                                @if (control.compliance !== null) {
+                                {{ control.compliance }}%
+                                } @else {
+                                —
+                                }
+                            </span>
+                        </div>
+                    </button>
+
+                    @if (expandedControlId() === control.id) {
+                    <div class="mt-3 ml-9 rounded-lg bg-gray-50 dark:bg-white/5 p-4 animation flex flex-col gap-3">
+                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                            {{ control.description || 'Este control no tiene descripción registrada' }}
+                        </p>
+
+                        @if (control.type !== 'AUTOMATIC') {
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Checks manuales</p>
+                            <app-manual-checklist [controlId]="control.id" mode="manage" />
+                        </div>
+                        }
+
+                        @if (control.type !== 'MANUAL') {
+                        @if (loadingChecksId() === control.id) {
+                        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                            <span class="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                            Cargando detalle de checks...
+                        </div>
+                        } @else if (checksError()[control.id]) {
+                        <p class="text-sm text-error-500">{{ checksError()[control.id] }}</p>
+                        } @else if (checksByControl()[control.id]; as checks) {
+                        <div class="flex flex-col gap-1.5">
+                            @for (check of checks; track check.checkId) {
+                            <div class="rounded-lg bg-white dark:bg-gray-800/60 overflow-hidden">
+                                <button type="button"
+                                    class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left"
+                                    (click)="onToggleCheck(check.checkId)">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="material-symbols-outlined text-base"
+                                            [class]="getResultBadge(check.result).iconClasses">
+                                            {{ getResultBadge(check.result).icon }}
+                                        </span>
+                                        <span class="text-sm text-gray-700 dark:text-gray-200 truncate">
+                                            {{ check.title }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <span class="text-xs text-gray-400 dark:text-gray-500">
+                                            {{ check.checkId }} · {{ check.os }}
+                                        </span>
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                            [class]="getResultBadge(check.result).badgeClasses">
+                                            {{ getResultBadge(check.result).label }}
+                                        </span>
+                                        <span class="material-symbols-outlined text-base text-gray-400 transition-transform"
+                                            [class.rotate-180]="expandedCheckId() === check.checkId">expand_more</span>
+                                    </div>
+                                </button>
+
+                                @if (expandedCheckId() === check.checkId) {
+                                <div class="px-3 pb-3 flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-300 border-t border-gray-100 dark:border-white/5 pt-2">
+                                    @if (check.description) {
+                                    <p><span class="font-medium text-gray-700 dark:text-gray-200">Qué evalúa:</span> {{ check.description }}</p>
+                                    }
+                                    @if (check.rationale) {
+                                    <p><span class="font-medium text-gray-700 dark:text-gray-200">Por qué importa:</span> {{ check.rationale }}</p>
+                                    }
+                                    @if (!check.description && !check.rationale) {
+                                    <p class="text-gray-400 dark:text-gray-500">Sin explicación registrada para este check.</p>
+                                    }
+                                    @if (check.result === 'failed') {
+                                    <div class="rounded-md bg-error-50 dark:bg-error-500/10 px-3 py-2">
+                                        <p class="font-medium text-error-700 dark:text-error-400">Solución</p>
+                                        <p class="text-error-700/90 dark:text-error-300">
+                                            {{ check.remediation || 'No hay remediación registrada para este check todavía.' }}
+                                        </p>
+                                    </div>
+                                    }
+                                </div>
+                                }
+                            </div>
+                            }
+                        </div>
+                        }
+                        }
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </div>
+
+    </div>
+</div>
+}
