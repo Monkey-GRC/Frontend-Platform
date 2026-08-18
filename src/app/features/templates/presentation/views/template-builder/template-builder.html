@@ -117,6 +117,7 @@
 
             @if (expandedControlId() === control.id) {
             <div class="px-4 pb-4 pl-6 border-l-2 border-brand-200 dark:border-brand-500/30 ml-4 space-y-1.5">
+              @if (control.type !== 'MANUAL') {
               @for (check of control.checks; track check.id) {
               <div class="flex items-center gap-2 rounded-md bg-gray-50 dark:bg-white/5 px-3 py-2 text-xs">
                 <span class="material-symbols-outlined text-sm text-gray-400">check_circle</span>
@@ -124,7 +125,12 @@
                 <span class="ml-auto text-gray-400 shrink-0">{{ check.os }}</span>
               </div>
               } @empty {
-              <p class="text-xs text-gray-400 py-1">Este control no tiene checks asociados (control manual).</p>
+              <p class="text-xs text-gray-400 py-1">Este control no tiene checks CIS asociados.</p>
+              }
+              }
+
+              @if (control.type !== 'AUTOMATIC') {
+              <app-manual-checklist [controlId]="control.id" mode="view" />
               }
             </div>
             }

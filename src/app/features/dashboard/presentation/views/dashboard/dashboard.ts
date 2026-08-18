@@ -10,10 +10,11 @@ import {
 } from '@features/dashboard/domain/models/dashboard.models';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { LoaderComponent } from '@shared/presentation/components/loader/loader.component';
+import { ManualChecklist } from '@features/templates/presentation/components/manual-checklist/manual-checklist';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [LoaderComponent],
+  imports: [LoaderComponent, ManualChecklist],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +32,7 @@ export class Dashboard implements OnInit {
   readonly checksByControl = signal<Record<string, ControlCheckDetail[]>>({});
   readonly checksError = signal<Record<string, string>>({});
   readonly loadingChecksId = signal<string | null>(null);
+  readonly expandedCheckId = signal<string | null>(null);
 
   readonly compliantControlsLabel = computed(() => {
     const data = this.summary();
@@ -73,8 +75,9 @@ export class Dashboard implements OnInit {
   onToggleControl(control: DashboardControl): void {
     const isClosing = this.expandedControlId() === control.id;
     this.expandedControlId.set(isClosing ? null : control.id);
+    this.expandedCheckId.set(null);
 
-    if (isClosing || this.checksByControl()[control.id] || this.checksError()[control.id]) {
+    if (isClosing || control.type === 'MANUAL' || this.checksByControl()[control.id] || this.checksError()[control.id]) {
       return;
     }
 
@@ -96,6 +99,10 @@ export class Dashboard implements OnInit {
         this.loadingChecksId.set(null);
       },
     });
+  }
+
+  onToggleCheck(checkId: string): void {
+    this.expandedCheckId.update((current) => (current === checkId ? null : checkId));
   }
 
   getResultBadge(result: CheckResult): { icon: string; iconClasses: string; badgeClasses: string; label: string } {

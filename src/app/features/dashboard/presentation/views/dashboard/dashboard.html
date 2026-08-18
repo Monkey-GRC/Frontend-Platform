@@ -45,7 +45,7 @@
         </div>
 
         @if (summary(); as data) {
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="glass-card flex flex-col gap-2">
                 <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary">verified_user</span>
@@ -65,11 +65,24 @@
                         [class]="getComplianceBarColor(data.frameworkCompliance)"
                         [style.width.%]="data.frameworkCompliance ?? 0"></div>
                 </div>
-                @if (data.frameworkCompliance === null) {
                 <span class="text-sm text-gray-500 dark:text-gray-400">
-                    Sin resultados de evaluación todavía
+                    sobre los controles ya evaluados (automáticos y manuales)
                 </span>
-                }
+            </div>
+
+            <div class="glass-card flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">checklist</span>
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        Cobertura de la evaluación
+                    </span>
+                </div>
+                <span class="text-4xl font-semibold text-gray-900 dark:text-white">
+                    {{ data.controlsEvaluated }} / {{ data.controlsTotal }}
+                </span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                    controles con al menos un resultado (el resto está pendiente de evaluar)
+                </span>
             </div>
 
             <div class="glass-card flex flex-col gap-2">
@@ -83,7 +96,7 @@
                     {{ compliantControlsLabel() }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-gray-400">
-                    controles al 100% sobre los controles automáticos evaluados
+                    controles al 100% sobre el total del framework
                 </span>
             </div>
 
@@ -99,7 +112,7 @@
                     {{ data.openFindings }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-gray-400">
-                    checks fallidos pendientes de remediación
+                    checks fallidos pendientes de remediación (automáticos y manuales)
                 </span>
             </div>
         </div>
@@ -134,12 +147,18 @@
                             <div class="min-w-0">
                                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
                                     {{ control.code }} — {{ control.name }}
+                                    <span class="ml-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400 align-middle">
+                                        {{ control.type }}
+                                    </span>
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     {{ control.checksPassed }} aprobados ·
                                     {{ control.checksFailed }} fallidos ·
-                                    {{ control.checksNotApplicable }} no aplican ·
-                                    {{ control.checksTotal }} en total
+                                    {{ control.checksNotApplicable }} no aplican
+                                    @if (control.checksPending > 0) {
+                                    · {{ control.checksPending }} pendientes de evaluar
+                                    }
+                                    · {{ control.checksTotal }} en total
                                 </p>
                             </div>
                         </div>
@@ -166,6 +185,14 @@
                             {{ control.description || 'Este control no tiene descripción registrada' }}
                         </p>
 
+                        @if (control.type !== 'AUTOMATIC') {
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Checks manuales</p>
+                            <app-manual-checklist [controlId]="control.id" mode="manage" />
+                        </div>
+                        }
+
+                        @if (control.type !== 'MANUAL') {
                         @if (loadingChecksId() === control.id) {
                         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                             <span class="material-symbols-outlined animate-spin text-base">progress_activity</span>
@@ -176,28 +203,57 @@
                         } @else if (checksByControl()[control.id]; as checks) {
                         <div class="flex flex-col gap-1.5">
                             @for (check of checks; track check.checkId) {
-                            <div class="flex items-center justify-between gap-3 rounded-lg bg-white dark:bg-gray-800/60 px-3 py-2">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <span class="material-symbols-outlined text-base"
-                                        [class]="getResultBadge(check.result).iconClasses">
-                                        {{ getResultBadge(check.result).icon }}
-                                    </span>
-                                    <span class="text-sm text-gray-700 dark:text-gray-200 truncate">
-                                        {{ check.title }}
-                                    </span>
+                            <div class="rounded-lg bg-white dark:bg-gray-800/60 overflow-hidden">
+                                <button type="button"
+                                    class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left"
+                                    (click)="onToggleCheck(check.checkId)">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="material-symbols-outlined text-base"
+                                            [class]="getResultBadge(check.result).iconClasses">
+                                            {{ getResultBadge(check.result).icon }}
+                                        </span>
+                                        <span class="text-sm text-gray-700 dark:text-gray-200 truncate">
+                                            {{ check.title }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <span class="text-xs text-gray-400 dark:text-gray-500">
+                                            {{ check.checkId }} · {{ check.os }}
+                                        </span>
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                            [class]="getResultBadge(check.result).badgeClasses">
+                                            {{ getResultBadge(check.result).label }}
+                                        </span>
+                                        <span class="material-symbols-outlined text-base text-gray-400 transition-transform"
+                                            [class.rotate-180]="expandedCheckId() === check.checkId">expand_more</span>
+                                    </div>
+                                </button>
+
+                                @if (expandedCheckId() === check.checkId) {
+                                <div class="px-3 pb-3 flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-300 border-t border-gray-100 dark:border-white/5 pt-2">
+                                    @if (check.description) {
+                                    <p><span class="font-medium text-gray-700 dark:text-gray-200">Qué evalúa:</span> {{ check.description }}</p>
+                                    }
+                                    @if (check.rationale) {
+                                    <p><span class="font-medium text-gray-700 dark:text-gray-200">Por qué importa:</span> {{ check.rationale }}</p>
+                                    }
+                                    @if (!check.description && !check.rationale) {
+                                    <p class="text-gray-400 dark:text-gray-500">Sin explicación registrada para este check.</p>
+                                    }
+                                    @if (check.result === 'failed') {
+                                    <div class="rounded-md bg-error-50 dark:bg-error-500/10 px-3 py-2">
+                                        <p class="font-medium text-error-700 dark:text-error-400">Solución</p>
+                                        <p class="text-error-700/90 dark:text-error-300">
+                                            {{ check.remediation || 'No hay remediación registrada para este check todavía.' }}
+                                        </p>
+                                    </div>
+                                    }
                                 </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <span class="text-xs text-gray-400 dark:text-gray-500">
-                                        {{ check.checkId }} · {{ check.os }}
-                                    </span>
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                                        [class]="getResultBadge(check.result).badgeClasses">
-                                        {{ getResultBadge(check.result).label }}
-                                    </span>
-                                </div>
+                                }
                             </div>
                             }
                         </div>
+                        }
                         }
                     </div>
                     }

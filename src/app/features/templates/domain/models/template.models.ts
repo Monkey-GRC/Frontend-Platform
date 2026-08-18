@@ -71,6 +71,61 @@ export interface Control {
   checks: ControlCheckLink[];
 }
 
+export type ManualCheckStatus = 'PENDING' | 'PASSED' | 'FAILED' | 'NOT_APPLICABLE';
+
+export interface ManualCheckUserSummary {
+  id: string;
+  name: string | null;
+  last_name: string | null;
+  username: string;
+}
+
+export interface ManualCheckEvidence {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  storageKey: string;
+  uploadedAt: string;
+  uploadedBy: ManualCheckUserSummary | null;
+}
+
+export interface ManualCheckEvidenceWithUrl extends ManualCheckEvidence {
+  downloadUrl: string;
+}
+
+export interface ManualCheckItem {
+  id: string;
+  controlId: string;
+  title: string;
+  description: string | null;
+  remediation: string | null;
+  status: ManualCheckStatus;
+  notes: string | null;
+  evaluatedAt: string | null;
+  evaluatedBy: ManualCheckUserSummary | null;
+  createdAt: string;
+  updatedAt: string;
+  evidence: ManualCheckEvidence[];
+}
+
+export interface CreateManualCheckDto {
+  title: string;
+  description?: string;
+  remediation?: string;
+}
+
+export interface UpdateManualCheckDto {
+  title?: string;
+  description?: string;
+  remediation?: string;
+}
+
+export interface SetManualCheckStatusDto {
+  status: ManualCheckStatus;
+  notes?: string;
+}
+
 export interface UpdateRiskDto {
   templateId?: string | null;
 }
