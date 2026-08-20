@@ -1,0 +1,143 @@
+<div class="space-y-2">
+
+  @if (errorMessage()) {
+  <p class="text-xs text-error-500">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+  <p class="text-xs text-gray-400 py-1">Cargando checks manuales…</p>
+  } @else {
+
+  @for (item of items(); track item.id) {
+  <div class="rounded-md bg-gray-50 dark:bg-white/5 overflow-hidden">
+    <button type="button" (click)="toggle(item)"
+      class="w-full text-left px-3 py-2 flex items-center justify-between gap-2">
+      <span class="text-xs text-gray-700 dark:text-gray-200 truncate">{{ item.title }}</span>
+      <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium shrink-0"
+        [class]="statusClasses(item.status)">
+        {{ statusLabel(item.status) }}
+      </span>
+    </button>
+
+    @if (expandedId() === item.id) {
+    <div class="px-3 pb-3 flex flex-col gap-2 text-xs text-gray-600 dark:text-gray-300 border-t border-gray-200 dark:border-white/10 pt-2">
+
+      @if (item.description) {
+      <p><span class="font-medium text-gray-700 dark:text-gray-200">Qué se verifica:</span> {{ item.description }}</p>
+      }
+
+      @if (mode === 'manage') {
+      <div class="flex flex-wrap gap-1.5">
+        @for (option of statusOptions; track option.value) {
+        <button type="button" (click)="setStatus(item, option.value)"
+          class="rounded-full px-2.5 py-1 text-[11px] font-medium border"
+          [class.border-brand-500]="item.status === option.value"
+          [class.border-gray-200]="item.status !== option.value"
+          [class.dark:border-white/10]="item.status !== option.value"
+          [class]="item.status === option.value ? statusClasses(option.value) : 'text-gray-500 dark:text-gray-400'">
+          {{ option.label }}
+        </button>
+        }
+      </div>
+      }
+
+      @if (item.status === 'FAILED') {
+      <div class="rounded-md bg-error-50 dark:bg-error-500/10 px-2.5 py-2">
+        <p class="font-medium text-error-700 dark:text-error-400">Solución</p>
+        <p class="text-error-700/90 dark:text-error-300">
+          {{ item.remediation || 'No hay remediación registrada para este check.' }}
+        </p>
+      </div>
+      }
+
+      @if (mode === 'manage') {
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] text-gray-500 dark:text-gray-400">Observaciones</label>
+        <textarea rows="2"
+          class="w-full rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800/60 px-2 py-1 text-xs text-gray-700 dark:text-gray-200"
+          [ngModel]="notesDraft()[item.id] || ''"
+          (ngModelChange)="updateNotesDraft(item.id, $event)"></textarea>
+        <button type="button" (click)="saveNotes(item)"
+          class="self-start text-[11px] text-brand-600 dark:text-brand-400 hover:underline">
+          Guardar observaciones
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-1.5 pt-1 border-t border-gray-200 dark:border-white/10">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-medium text-gray-700 dark:text-gray-200">Evidencia</span>
+          <label class="text-[11px] text-brand-600 dark:text-brand-400 hover:underline cursor-pointer">
+            @if (uploadingId() === item.id) { Subiendo… } @else { + Adjuntar archivo }
+            <input type="file" class="hidden" [disabled]="uploadingId() === item.id"
+              (change)="onFileSelected(item, $event)" />
+          </label>
+        </div>
+
+        @if (storageUnavailable()) {
+        <p class="text-[11px] text-warning-600 dark:text-warning-400">
+          El almacenamiento de evidencia todavía no está configurado (pendiente de conexión con MinIO).
+        </p>
+        }
+
+        @if (evidenceLoadingId() === item.id) {
+        <p class="text-[11px] text-gray-400">Cargando evidencia…</p>
+        } @else {
+        @for (file of evidenceByCheck()[item.id]; track file.id) {
+        <div class="flex items-center justify-between gap-2 rounded-md bg-white dark:bg-gray-800/60 px-2 py-1.5">
+          <a [href]="file.downloadUrl" target="_blank" rel="noopener"
+            class="text-[11px] text-gray-700 dark:text-gray-200 truncate hover:underline">
+            {{ file.fileName }}
+          </a>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-[10px] text-gray-400">{{ formatSize(file.sizeBytes) }}</span>
+            <button type="button" (click)="removeEvidence(item, file.id)"
+              class="text-[11px] text-error-500 hover:underline">Borrar</button>
+          </div>
+        </div>
+        } @empty {
+        <p class="text-[11px] text-gray-400">Sin archivos adjuntos.</p>
+        }
+        }
+      </div>
+      }
+
+      @if (mode === 'view') {
+      <button type="button" (click)="remove(item)"
+        class="self-start text-[11px] text-error-500 hover:underline pt-1">
+        Eliminar check
+      </button>
+      }
+    </div>
+    }
+  </div>
+  } @empty {
+  <p class="text-xs text-gray-400 py-1">Este control no tiene checks manuales todavía.</p>
+  }
+
+  @if (mode === 'view') {
+  @if (creatingNew()) {
+  <div class="rounded-md border border-dashed border-gray-300 dark:border-white/15 p-2.5 flex flex-col gap-1.5">
+    <input type="text" placeholder="Título del check…" [(ngModel)]="newTitle"
+      class="w-full rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800/60 px-2 py-1 text-xs text-gray-700 dark:text-gray-200" />
+    <textarea rows="2" placeholder="Qué se debe verificar (opcional)" [(ngModel)]="newDescription"
+      class="w-full rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800/60 px-2 py-1 text-xs text-gray-700 dark:text-gray-200"></textarea>
+    <textarea rows="2" placeholder="Qué hacer si falla (opcional)" [(ngModel)]="newRemediation"
+      class="w-full rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800/60 px-2 py-1 text-xs text-gray-700 dark:text-gray-200"></textarea>
+    <div class="flex gap-2 justify-end">
+      <button type="button" (click)="cancelCreate()" class="text-[11px] text-gray-500 dark:text-gray-400">Cancelar</button>
+      <button type="button" (click)="confirmCreate()" [disabled]="savingNew() || !newTitle.trim()"
+        class="text-[11px] font-medium text-brand-600 dark:text-brand-400 disabled:opacity-50">
+        @if (savingNew()) { Guardando… } @else { Guardar check }
+      </button>
+    </div>
+  </div>
+  } @else {
+  <button type="button" (click)="startCreate()"
+    class="text-[11px] font-medium text-brand-600 dark:text-brand-400 hover:underline">
+    + Agregar check manual
+  </button>
+  }
+  }
+
+  }
+</div>

@@ -7,11 +7,12 @@ import { ReasonService } from '@features/templates/domain/services/reason.servic
 import { ControlService } from '@features/templates/domain/services/control.service';
 import { Control, Reason, Risk, RiskDetail, ReasonDetail, Template } from '@features/templates/domain/models/template.models';
 import { ComboboxOption, CreateEntityPayload, EntityCombobox } from '@features/templates/presentation/components/entity-combobox/entity-combobox';
+import { ManualChecklist } from '@features/templates/presentation/components/manual-checklist/manual-checklist';
 import { LoaderComponent } from '@shared/presentation/components/loader/loader.component';
 
 @Component({
   selector: 'app-template-builder',
-  imports: [EntityCombobox, LoaderComponent],
+  imports: [EntityCombobox, ManualChecklist, LoaderComponent],
   templateUrl: './template-builder.html',
   styleUrl: './template-builder.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
