@@ -182,3 +182,64 @@ export interface LinkRisksDto {
 export interface LinkControlsDto {
   controlIds: string[];
 }
+
+export interface TemplateTreeCheck {
+  check_id: string;
+  title: string;
+  os: OperatingSystem;
+  soc2_code: string | null;
+  cis_code: string | null;
+  pci_dss_code: string | null;
+  soc2_code_inferred: string | null;
+  soc2_mapping_source: string | null;
+  soc2_mapping_confidence: string | null;
+  soc2_mapping_citation: string | null;
+}
+
+export interface TemplateTreeManualCheck {
+  id: string;
+  title: string;
+  description: string | null;
+  remediation: string | null;
+  status: ManualCheckStatus;
+}
+
+export interface TemplateTreeControl {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  objective: string | null;
+  type: ControlType;
+  checks: TemplateTreeCheck[];
+  manual_checks: TemplateTreeManualCheck[];
+}
+
+export interface TemplateTreeReason {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  controls: TemplateTreeControl[];
+}
+
+export interface TemplateTreeRisk {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  impact: number;
+  probability: number;
+  level: RiskLevel;
+  reasons: TemplateTreeReason[];
+}
+
+export interface TemplateFullTree {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  objective: string | null;
+  scope: string | null;
+  risks: TemplateTreeRisk[];
+}

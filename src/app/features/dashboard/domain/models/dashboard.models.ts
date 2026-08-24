@@ -4,9 +4,25 @@ export interface DashboardSummary {
   controlsEvaluated: number;
   controlsTotal: number;
   openFindings: number;
+  serversEvaluated: number;
 }
 
 export type DashboardControlType = 'MANUAL' | 'AUTOMATIC' | 'HYBRID';
+
+export interface DashboardServerCompliance {
+  assetId: string;
+  assetCode: string;
+  assetName: string;
+  os: string;
+  osName: string | null;
+  osVersion: string | null;
+  status: string;
+  compliance: number | null;
+  checksTotal: number;
+  checksPassed: number;
+  checksFailed: number;
+  checksNotApplicable: number;
+}
 
 export interface DashboardControl {
   id: string;

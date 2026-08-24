@@ -4,9 +4,9 @@
 <div class="max-w-4xl mx-auto space-y-6 p-4">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div class="space-y-1">
-      <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white">Mis templates</h1>
+      <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white">Cumplimiento</h1>
       <p class="text-sm text-gray-600 dark:text-gray-300 max-w-xl">
-        El template de cumplimiento de tu tenant: sus riesgos, causas y controles.
+        Frameworks activos y su estado de cumplimiento.
       </p>
     </div>
     @if (templates().length > 0) {
@@ -25,7 +25,7 @@
   @if (templates().length > 0) {
   <div class="rounded-2xl bg-white shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800">
     @for (template of templates(); track template.id) {
-    <button type="button" (click)="build(template.id)"
+    <button type="button" (click)="open(template)"
       class="w-full flex items-center justify-between gap-4 p-5 text-left hover:bg-gray-50 dark:hover:bg-white/5">
       <div class="min-w-0">
         <p class="font-medium text-gray-800 dark:text-white/90">{{ template.name }}</p>

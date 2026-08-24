@@ -43,8 +43,9 @@ export class TemplateList implements OnInit {
     });
   }
 
-  build(templateId: string): void {
-    this.router.navigateByUrl(`/templates/${templateId}/build`);
+  open(template: Template): void {
+    const hasContent = (template.risks?.length ?? 0) > 0;
+    this.router.navigateByUrl(hasContent ? `/templates/${template.id}` : `/templates/${template.id}/build`);
   }
 
   create(dto: CreateTemplateDto): void {
