@@ -32,8 +32,14 @@ export const NAV_ITEMS: NavItem[] = [
     },
     {
         icon: 'shield',
-        name: "Templates",
+        name: "Cumplimiento",
         path: "/templates",
+        section: "Menu",
+    },
+    {
+        icon: 'dns',
+        name: "Activos",
+        path: "/assets",
         section: "Menu",
     },
 ];

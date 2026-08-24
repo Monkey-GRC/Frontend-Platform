@@ -6,6 +6,10 @@ import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layo
 import { Dashboard } from '@features/dashboard/presentation/views/dashboard/dashboard';
 import { TemplateList } from '@features/templates/presentation/views/template-list/template-list';
 import { TemplateBuilder } from '@features/templates/presentation/views/template-builder/template-builder';
+import { TemplateView } from '@features/templates/presentation/views/template-view/template-view';
+import { TemplateCompliance } from '@features/templates/presentation/views/template-compliance/template-compliance';
+import { AssetList } from '@features/assets/presentation/views/asset-list/asset-list';
+import { AssetDetail } from '@features/assets/presentation/views/asset-detail/asset-detail';
 import { Characterization } from '@features/onboarding/presentation/views/characterization/characterization';
 import { TemplateSelection } from '@features/onboarding/presentation/views/template-selection/template-selection';
 import { AccountSetup } from '@features/onboarding/presentation/views/account-setup/account-setup';
@@ -31,8 +35,24 @@ export const routes: Routes = [
         component: TemplateList,
       },
       {
+        path: 'templates/:id',
+        component: TemplateCompliance,
+      },
+      {
+        path: 'templates/:id/grc',
+        component: TemplateView,
+      },
+      {
         path: 'templates/:id/build',
         component: TemplateBuilder,
+      },
+      {
+        path: 'assets',
+        component: AssetList,
+      },
+      {
+        path: 'assets/:id',
+        component: AssetDetail,
       },
     ]
   },
