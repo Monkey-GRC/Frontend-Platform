@@ -115,6 +115,27 @@ export class TemplateCompliance implements OnInit {
     return cleaned || null;
   }
 
+  /** "CC 1" a partir de "(CC1.1-CC1.5)" en la descripción del riesgo -- solo el numero mayor, sin sub-criterio. */
+  categoryCcLabel(description: string | null): string | null {
+    if (!description) return null;
+    const match = description.match(/([A-Z]+)(\d+)(\.\d+)?/);
+    return match ? `${match[1]} ${match[2]}` : null;
+  }
+
+  /** Sub-criterio (ej. "CC1.1") derivado de los checks reales del control -- nunca inventado.
+   * Si el control no tiene checks (manual puro) o tiene mas de un CC distinto, no se muestra nada. */
+  controlCcLabel(control: TemplateTreeControl): string | null {
+    const codes = new Set<string>();
+    for (const check of control.checks) {
+      const raw = check.soc2_code ?? check.soc2_code_inferred;
+      if (!raw) continue;
+      for (const match of raw.match(/[A-Z]+\d+(\.\d+)?/g) ?? []) {
+        codes.add(match);
+      }
+    }
+    return codes.size === 1 ? [...codes][0] : null;
+  }
+
   readinessLabel(percent: number | null): string {
     if (percent === null) return 'Sin evaluar todavía';
     if (percent >= 90) return 'Preparado';
