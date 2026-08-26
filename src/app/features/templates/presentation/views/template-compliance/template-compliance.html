@@ -22,13 +22,6 @@
           {{ t.name }}
         </h1>
       </div>
-      @if (t.description) {
-      <p
-        class="text-sm text-gray-600 dark:text-gray-300 max-w-2xl line-clamp-1"
-      >
-        {{ t.description }}
-      </p>
-      }
     </div>
     <button
       type="button"
@@ -104,15 +97,22 @@
         (click)="toggleCategory(category.risk.id)"
         class="w-full flex items-start justify-between gap-4 p-5 text-left hover:bg-gray-50 dark:hover:bg-white/5"
       >
-        <div class="min-w-0">
-          <span class="font-medium text-gray-800 dark:text-white/90"
-            >{{ category.risk.name }}</span
-          >
-          @if (categoryDescription(category.risk.description); as desc) {
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            {{ desc }}
-          </p>
+        <div class="min-w-0 flex items-start gap-3">
+          @if (categoryCcLabel(category.risk.description); as cc) {
+          <span class="shrink-0 mt-0.5 inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] font-mono font-medium text-gray-500 dark:text-gray-400">
+            {{ cc }}
+          </span>
           }
+          <div class="min-w-0">
+            <span class="font-medium text-gray-800 dark:text-white/90"
+              >{{ category.risk.name }}</span
+            >
+            @if (categoryDescription(category.risk.description); as desc) {
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {{ desc }}
+            </p>
+            }
+          </div>
         </div>
         <div class="flex items-center gap-3 shrink-0">
           <span class="text-xs font-medium text-gray-500 dark:text-gray-400"
@@ -141,9 +141,11 @@
           >
             <div class="min-w-0 space-y-1.5 flex-1">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-[11px] font-mono text-gray-400"
-                  >{{ control.code }}</span
-                >
+                @if (controlCcLabel(control); as cc) {
+                <span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] font-mono font-medium text-gray-500 dark:text-gray-400">
+                  {{ cc }}
+                </span>
+                }
                 <span
                   class="text-sm font-medium text-gray-800 dark:text-white/90"
                   >{{ control.name }}</span
