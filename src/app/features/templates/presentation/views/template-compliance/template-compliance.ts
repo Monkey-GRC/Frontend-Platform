@@ -3,36 +3,39 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { TemplateService } from '@features/templates/domain/services/template.service';
-import {
-  TemplateFullTree,
-  TemplateTreeControl,
-  TemplateTreeRisk,
-} from '@features/templates/domain/models/template.models';
+import { Template } from '@features/templates/domain/models/template.models';
+import { ManualChecklist } from '@features/templates/presentation/components/manual-checklist/manual-checklist';
 import { DashboardService } from '@features/dashboard/domain/services/dashboard.service';
 import {
   ControlChecksDetail,
+  ControlCheckDetail,
   DashboardControl,
   DashboardSummary,
 } from '@features/dashboard/domain/models/dashboard.models';
 import { LoaderComponent } from '@shared/presentation/components/loader/loader.component';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-
-interface CategoryView {
-  risk: TemplateTreeRisk;
-  controls: TemplateTreeControl[];
-  controlsOk: number;
-  controlsTotal: number;
-}
+import {
+  DimensionSlot,
+  fillAllDimensions,
+  getDimensionMeta,
+  getDimensionSlotBadgeClasses,
+  getDimensionSlotBadgeLabel,
+  getDimensionSlotCardClasses,
+  getDimensionSlotIconWrapClasses,
+  getPercentBarClass,
+  getPercentTextClass,
+} from '@shared/domain/utils/dimension-display.util';
 
 @Component({
   selector: 'app-template-compliance',
-  imports: [LoaderComponent, DecimalPipe],
+  imports: [LoaderComponent, DecimalPipe, ManualChecklist],
   templateUrl: './template-compliance.html',
   styleUrl: './template-compliance.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,93 +50,42 @@ export class TemplateCompliance implements OnInit {
 
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
-  readonly template = signal<TemplateFullTree | null>(null);
+  readonly template = signal<Template | null>(null);
   readonly summary = signal<DashboardSummary | null>(null);
-  readonly complianceByControlId = signal<Map<string, DashboardControl>>(
-    new Map()
-  );
-  readonly categories = signal<CategoryView[]>([]);
+  readonly allControls = signal<DashboardControl[]>([]);
 
-  readonly expandedCategoryIds = signal<Set<string>>(new Set());
-  readonly expandedControlIds = signal<Set<string>>(new Set());
-  readonly checksByControlId = signal<Map<string, ControlChecksDetail>>(
-    new Map()
+  /** Solo los controles que NO cumplen al 100% (incluye "sin evaluar" = null) — filosofía de excepción. */
+  readonly failingControls = computed(() =>
+    this.allControls().filter((c) => c.compliance !== 100),
   );
+
+  readonly expandedControlIds = signal<Set<string>>(new Set());
+  readonly expandedDimensionKeys = signal<Set<string>>(new Set());
+  readonly checksByControlId = signal<Map<string, ControlChecksDetail>>(new Map());
   readonly loadingChecksControlId = signal<string | null>(null);
 
   ngOnInit(): void {
     this.isLoading.set(true);
     forkJoin({
-      template: this.templateService.getFullTree(this.templateId),
-      summaryResp: this.dashboardService.readSummary(),
-      controlsResp: this.dashboardService.readControls(),
+      template: this.templateService.getById(this.templateId),
+      summaryResp: this.dashboardService.readSummary(this.templateId),
+      controlsResp: this.dashboardService.readControls(this.templateId),
     }).subscribe({
       next: ({ template, summaryResp, controlsResp }) => {
         this.template.set(template);
-        this.summary.set(
-          (summaryResp as SuccessResponse<DashboardSummary>).data ?? null
-        );
-
-        const byId = new Map<string, DashboardControl>();
-        for (const control of (
-          controlsResp as SuccessResponse<DashboardControl[]>
-        ).data ?? []) {
-          byId.set(control.id, control);
-        }
-        this.complianceByControlId.set(byId);
-
-        this.categories.set(this.buildCategories(template.risks));
+        this.summary.set((summaryResp as SuccessResponse<DashboardSummary>).data ?? null);
+        this.allControls.set((controlsResp as SuccessResponse<DashboardControl[]>).data ?? []);
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set(
-          'No se pudo cargar el estado de cumplimiento de este framework.'
-        );
+        this.errorMessage.set('No se pudo cargar el estado de cumplimiento de este framework.');
         this.isLoading.set(false);
       },
     });
   }
 
-  private buildCategories(risks: TemplateTreeRisk[]): CategoryView[] {
-    return risks.map((risk) => {
-      const controls = risk.reasons.flatMap((reason) => reason.controls);
-      const controlsOk = controls.filter(
-        (c) => this.complianceFor(c.id)?.compliance === 100
-      ).length;
-      return {
-        risk,
-        controls,
-        controlsOk,
-        controlsTotal: controls.length,
-      };
-    });
-  }
-
-  categoryDescription(description: string | null): string | null {
-    if (!description) return null;
-    const cleaned = description.replace(/\s*\([A-Z]+\d+(\.\d+)?(-[A-Z]*\d+(\.\d+)?)?\)\.?/, '').trim();
-    return cleaned || null;
-  }
-
-  /** "CC 1" a partir de "(CC1.1-CC1.5)" en la descripción del riesgo -- solo el numero mayor, sin sub-criterio. */
-  categoryCcLabel(description: string | null): string | null {
-    if (!description) return null;
-    const match = description.match(/([A-Z]+)(\d+)(\.\d+)?/);
-    return match ? `${match[1]} ${match[2]}` : null;
-  }
-
-  /** Sub-criterio (ej. "CC1.1") derivado de los checks reales del control -- nunca inventado.
-   * Si el control no tiene checks (manual puro) o tiene mas de un CC distinto, no se muestra nada. */
-  controlCcLabel(control: TemplateTreeControl): string | null {
-    const codes = new Set<string>();
-    for (const check of control.checks) {
-      const raw = check.soc2_code ?? check.soc2_code_inferred;
-      if (!raw) continue;
-      for (const match of raw.match(/[A-Z]+\d+(\.\d+)?/g) ?? []) {
-        codes.add(match);
-      }
-    }
-    return codes.size === 1 ? [...codes][0] : null;
+  dimensionSlotsFor(control: DashboardControl): DimensionSlot[] {
+    return fillAllDimensions(control.dimensions);
   }
 
   readinessLabel(percent: number | null): string {
@@ -157,37 +109,7 @@ export class TemplateCompliance implements OnInit {
     return 'bg-error-500';
   }
 
-  complianceFor(controlId: string): DashboardControl | undefined {
-    return this.complianceByControlId().get(controlId);
-  }
-
-  compliancePercentLabel(controlId: string): string {
-    const compliance = this.complianceFor(controlId)?.compliance;
-    return compliance === null || compliance === undefined
-      ? 'Sin evaluar'
-      : `${Math.round(compliance)}%`;
-  }
-
-  complianceBarClass(controlId: string): string {
-    const compliance = this.complianceFor(controlId)?.compliance;
-    if (compliance === null || compliance === undefined)
-      return 'bg-gray-300 dark:bg-gray-600';
-    if (compliance >= 100) return 'bg-success-500';
-    if (compliance >= 60) return 'bg-warning-500';
-    return 'bg-error-500';
-  }
-
-  toggleCategory(riskId: string): void {
-    const next = new Set(this.expandedCategoryIds());
-    next.has(riskId) ? next.delete(riskId) : next.add(riskId);
-    this.expandedCategoryIds.set(next);
-  }
-
-  isCategoryExpanded(riskId: string): boolean {
-    return this.expandedCategoryIds().has(riskId);
-  }
-
-  toggleControl(control: TemplateTreeControl): void {
+  toggleControl(control: DashboardControl): void {
     const next = new Set(this.expandedControlIds());
     if (next.has(control.id)) {
       next.delete(control.id);
@@ -203,9 +125,9 @@ export class TemplateCompliance implements OnInit {
       next: (resp) => {
         const data = (resp as SuccessResponse<ControlChecksDetail>).data;
         if (data) {
-          const next = new Map(this.checksByControlId());
-          next.set(control.id, data);
-          this.checksByControlId.set(next);
+          const map = new Map(this.checksByControlId());
+          map.set(control.id, data);
+          this.checksByControlId.set(map);
         }
         this.loadingChecksControlId.set(null);
       },
@@ -219,15 +141,27 @@ export class TemplateCompliance implements OnInit {
     return this.expandedControlIds().has(controlId);
   }
 
-  controlTypeLabel(type: string): string {
-    switch (type) {
-      case 'AUTOMATIC':
-        return 'Validación automática';
-      case 'HYBRID':
-        return 'Híbrido';
-      default:
-        return 'Evidencia manual';
-    }
+  private dimensionKey(controlId: string, dimension: string): string {
+    return `${controlId}::${dimension}`;
+  }
+
+  toggleDimension(controlId: string, slot: DimensionSlot): void {
+    if (!slot.data) return; // "No aplica" no se expande
+    const key = this.dimensionKey(controlId, slot.dimension);
+    const next = new Set(this.expandedDimensionKeys());
+    next.has(key) ? next.delete(key) : next.add(key);
+    this.expandedDimensionKeys.set(next);
+  }
+
+  isDimensionExpanded(controlId: string, dimension: string): boolean {
+    return this.expandedDimensionKeys().has(this.dimensionKey(controlId, dimension));
+  }
+
+  /** Checks fallidos de ESTA dimensión, para el control ya cargado (solo dimensiones con checks automáticos, ej. Servidor). */
+  failingChecksFor(controlId: string, dimension: string): ControlCheckDetail[] {
+    const detail = this.checksByControlId().get(controlId);
+    if (!detail) return [];
+    return detail.checks.filter((c) => c.dimension === dimension && c.result === 'failed');
   }
 
   checkResultLabel(result: string): string {
@@ -241,18 +175,15 @@ export class TemplateCompliance implements OnInit {
     }
   }
 
-  checkResultClass(result: string): string {
-    switch (result) {
-      case 'passed':
-        return 'text-success-600 dark:text-success-400';
-      case 'failed':
-        return 'text-error-600 dark:text-error-400';
-      default:
-        return 'text-gray-400 dark:text-gray-500';
-    }
+  goToPlantilla(): void {
+    this.router.navigateByUrl(`/plantilla/${this.templateId}`);
   }
 
-  goToGrc(): void {
-    this.router.navigateByUrl(`/templates/${this.templateId}/grc`);
-  }
+  readonly getDimensionMeta = getDimensionMeta;
+  readonly getDimensionSlotCardClasses = getDimensionSlotCardClasses;
+  readonly getDimensionSlotIconWrapClasses = getDimensionSlotIconWrapClasses;
+  readonly getDimensionSlotBadgeClasses = getDimensionSlotBadgeClasses;
+  readonly getDimensionSlotBadgeLabel = getDimensionSlotBadgeLabel;
+  readonly getPercentBarClass = getPercentBarClass;
+  readonly getPercentTextClass = getPercentTextClass;
 }

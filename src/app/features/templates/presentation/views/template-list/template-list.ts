@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, of, switchMap } from 'rxjs';
 import { TemplateService } from '@features/templates/domain/services/template.service';
 import { CreateTemplateDto, Template } from '@features/templates/domain/models/template.models';
 import { CreateTemplateForm } from '@features/templates/presentation/components/create-template-form/create-template-form';
@@ -8,6 +8,7 @@ import { DashboardService } from '@features/dashboard/domain/services/dashboard.
 import { DashboardSummary } from '@features/dashboard/domain/models/dashboard.models';
 import { LoaderComponent } from '@shared/presentation/components/loader/loader.component';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
+import { getPercentBarClass, getPercentTextClass } from '@shared/domain/utils/dimension-display.util';
 
 @Component({
   selector: 'app-template-list',
@@ -20,13 +21,20 @@ export class TemplateList implements OnInit {
   private readonly templateService = inject(TemplateService);
   private readonly dashboardService = inject(DashboardService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  /** 'compliance' (default, /templates) muestra evaluación; 'structure' (/plantilla) solo navega a la estructura cruda. */
+  private readonly mode = (this.route.snapshot.data['mode'] as 'compliance' | 'structure') ?? 'compliance';
+  readonly isStructureMode = this.mode === 'structure';
 
   readonly isLoading = signal(false);
   readonly templates = signal<Template[]>([]);
-  readonly summary = signal<DashboardSummary | null>(null);
+  readonly complianceByTemplateId = signal<Map<string, number | null>>(new Map());
   readonly showCreateForm = signal(false);
   readonly creating = signal(false);
   readonly errorMessage = signal<string | null>(null);
+
+  readonly getPercentBarClass = getPercentBarClass;
+  readonly getPercentTextClass = getPercentTextClass;
 
   ngOnInit(): void {
     this.readTemplates();
@@ -36,40 +44,41 @@ export class TemplateList implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    forkJoin({
-      templates: this.templateService.getAll(),
-      summaryResp: this.dashboardService.readSummary(),
-    }).subscribe({
-      next: ({ templates, summaryResp }) => {
-        this.templates.set(templates);
-        this.summary.set((summaryResp as SuccessResponse<DashboardSummary>).data ?? null);
-        this.isLoading.set(false);
-        this.showCreateForm.set(templates.length === 0);
-      },
-      error: () => {
-        this.isLoading.set(false);
-        this.errorMessage.set('No se pudieron cargar tus templates.');
-      },
-    });
+    this.templateService
+      .getAll()
+      .pipe(
+        switchMap((templates) =>
+          templates.length && !this.isStructureMode
+            ? forkJoin({ templates: of(templates), summaryResp: this.dashboardService.readSummary(templates[0].id) })
+            : forkJoin({ templates: of(templates), summaryResp: of(null) }),
+        ),
+      )
+      .subscribe({
+        next: ({ templates, summaryResp }) => {
+          this.templates.set(templates);
+          const summary = (summaryResp as SuccessResponse<DashboardSummary> | null)?.data ?? null;
+          const byId = new Map<string, number | null>();
+          for (const t of summary?.contractedTemplates ?? []) byId.set(t.id, t.compliance);
+          this.complianceByTemplateId.set(byId);
+          this.isLoading.set(false);
+          this.showCreateForm.set(templates.length === 0);
+        },
+        error: () => {
+          this.isLoading.set(false);
+          this.errorMessage.set('No se pudieron cargar tus templates.');
+        },
+      });
   }
 
-  readinessLabel(): string {
-    const percent = this.summary()?.frameworkCompliance ?? null;
-    if (percent === null) return 'Sin evaluar todavía';
-    if (percent >= 90) return 'Preparado';
-    if (percent >= 50) return 'Casi listo';
-    return 'Requiere trabajo';
-  }
-
-  readinessDotClass(): string {
-    const percent = this.summary()?.frameworkCompliance ?? null;
-    if (percent === null) return 'bg-gray-300 dark:bg-gray-600';
-    if (percent >= 90) return 'bg-success-500';
-    if (percent >= 50) return 'bg-warning-500';
-    return 'bg-error-500';
+  complianceFor(templateId: string): number | null {
+    return this.complianceByTemplateId().get(templateId) ?? null;
   }
 
   open(template: Template): void {
+    if (this.isStructureMode) {
+      this.router.navigateByUrl(`/plantilla/${template.id}`);
+      return;
+    }
     const hasContent = (template.risks?.length ?? 0) > 0;
     this.router.navigateByUrl(hasContent ? `/templates/${template.id}` : `/templates/${template.id}/build`);
   }

@@ -42,6 +42,12 @@ export const NAV_ITEMS: NavItem[] = [
         path: "/assets",
         section: "Menu",
     },
+    {
+        icon: 'account_tree',
+        name: "Plantilla",
+        path: "/plantilla",
+        section: "Menu",
+    },
 ];
 
 // Mapeo de iconos para secciones cuando el sidebar está colapsado
