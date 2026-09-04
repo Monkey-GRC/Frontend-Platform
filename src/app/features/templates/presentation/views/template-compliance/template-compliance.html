@@ -6,223 +6,167 @@
 </div>
 } @else if (template(); as t) {
 <div class="max-w-5xl mx-auto space-y-6 p-4">
-  <div
-    class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
-  >
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
     <div class="space-y-1">
       <div class="flex items-center gap-2">
-        <span
-          class="inline-flex items-center rounded-full bg-success-50 dark:bg-success-500/10 px-2.5 py-1 text-xs font-medium text-success-700 dark:text-success-400"
-        >
+        <span class="inline-flex items-center rounded-full bg-success-50 dark:bg-success-500/10 px-2.5 py-1 text-xs font-medium text-success-700 dark:text-success-400">
           Activo
         </span>
-        <h1
-          class="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white"
-        >
+        <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white">
           {{ t.name }}
         </h1>
       </div>
     </div>
-    <button
-      type="button"
-      (click)="goToGrc()"
-      class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 w-full sm:w-auto shrink-0"
-    >
+    <button type="button" (click)="goToPlantilla()"
+      class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 w-full sm:w-auto shrink-0">
       <span class="material-symbols-outlined text-base">account_tree</span>
-      Ver framework GRC
+      Ver plantilla
     </button>
   </div>
 
   @if (summary(); as s) {
-  <div
-    class="rounded-2xl bg-white shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800 p-6"
-  >
-    <div
-      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-    >
+  <div class="rounded-2xl bg-white shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800 p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div class="flex items-center gap-3">
-        <span
-          [class]="'h-3 w-3 rounded-full ' + readinessDotClass(s.frameworkCompliance)"
-        ></span>
+        <span [class]="'h-3 w-3 rounded-full ' + readinessDotClass(s.frameworkCompliance)"></span>
         <div>
-          <p
-            [class]="'text-xl font-semibold ' + readinessClass(s.frameworkCompliance)"
-          >
+          <p [class]="'text-xl font-semibold ' + readinessClass(s.frameworkCompliance)">
             {{ readinessLabel(s.frameworkCompliance) }}
           </p>
           <p class="text-xs text-gray-500 dark:text-gray-400">
-            @if (s.frameworkCompliance !== null) { {{ s.frameworkCompliance |
-            number:'1.0-0' }}% de tus controles pasan hoy } @else { Todavía no
-            hay servidores conectados para evaluar }
+            @if (s.frameworkCompliance !== null) { {{ s.frameworkCompliance | number:'1.0-0' }}% de tus controles pasan hoy } @else { Todavía no hay servidores conectados para evaluar }
           </p>
         </div>
       </div>
       <div class="flex gap-6">
         <div>
-          <p class="text-lg font-semibold text-gray-900 dark:text-white">
-            {{ s.controlsCompliant }}/{{ s.controlsTotal }}
-          </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            controles al día
-          </p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ s.controlsCompliant }}/{{ s.controlsTotal }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">controles al día</p>
         </div>
         <div>
-          <p class="text-lg font-semibold text-error-600 dark:text-error-400">
-            {{ s.openFindings }}
-          </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            hallazgos abiertos
-          </p>
+          <p class="text-lg font-semibold text-error-600 dark:text-error-400">{{ s.openFindings }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">hallazgos abiertos</p>
         </div>
         <div>
-          <p class="text-lg font-semibold text-gray-900 dark:text-white">
-            {{ s.serversEvaluated }}
-          </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            servidores evaluados
-          </p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ s.serversEvaluated }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">servidores evaluados</p>
         </div>
       </div>
     </div>
   </div>
   }
 
-  <div class="space-y-3">
-    @for (category of categories(); track category.risk.id) {
-    <div
-      class="rounded-2xl bg-white shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800 overflow-hidden"
-    >
-      <button
-        type="button"
-        (click)="toggleCategory(category.risk.id)"
-        class="w-full flex items-start justify-between gap-4 p-5 text-left hover:bg-gray-50 dark:hover:bg-white/5"
-      >
-        <div class="min-w-0 flex items-start gap-3">
-          @if (categoryCcLabel(category.risk.description); as cc) {
-          <span class="shrink-0 mt-0.5 inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] font-mono font-medium text-gray-500 dark:text-gray-400">
-            {{ cc }}
+  <div class="rounded-2xl bg-white shadow-theme-md dark:bg-gray-900 dark:border dark:border-gray-800 overflow-hidden">
+    <div class="p-5 border-b border-gray-100 dark:border-gray-800">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-white/90">Controles que no cumplen</h2>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        Los controles al 100% no aparecen aquí — solo lo que necesita atención.
+      </p>
+    </div>
+    <div class="divide-y divide-gray-100 dark:divide-gray-800">
+      @for (control of failingControls(); track control.id) {
+      <div>
+        <button type="button" (click)="toggleControl(control)"
+          class="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5">
+          <div class="min-w-0 space-y-1.5 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-sm font-medium text-gray-800 dark:text-white/90">{{ control.name }}</span>
+              <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-gray-300">
+                {{ control.code }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 max-w-sm">
+              <div class="h-1.5 flex-1 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                <div class="h-full rounded-full" [class]="control.compliance !== null ? getPercentBarClass(control.compliance) : 'bg-gray-300 dark:bg-gray-600'"
+                  [style.width.%]="control.compliance ?? 0"></div>
+              </div>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 shrink-0">
+                {{ control.compliance !== null ? (control.compliance | number:'1.0-0') + '%' : 'Sin evaluar' }}
+              </span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-gray-400 shrink-0 text-lg">
+            {{ isControlExpanded(control.id) ? 'expand_less' : 'expand_more' }}
           </span>
-          }
-          <div class="min-w-0">
-            <span class="font-medium text-gray-800 dark:text-white/90"
-              >{{ category.risk.name }}</span
-            >
-            @if (categoryDescription(category.risk.description); as desc) {
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              {{ desc }}
-            </p>
+        </button>
+
+        @if (isControlExpanded(control.id)) {
+        <div class="border-t border-gray-100 dark:border-gray-800 p-4 pl-6 space-y-2">
+          <p class="text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1">Cumplimiento por dimensión</p>
+          @for (slot of dimensionSlotsFor(control); track slot.dimension) {
+          <div class="rounded-lg overflow-hidden">
+            <button type="button" (click)="toggleDimension(control.id, slot)" [disabled]="!slot.data"
+              class="w-full flex items-center gap-2.5 p-2.5 rounded-lg text-left" [class]="getDimensionSlotCardClasses(slot)"
+              [class.cursor-default]="!slot.data">
+              <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded" [class]="getDimensionSlotIconWrapClasses(slot)">
+                <span class="material-symbols-outlined text-sm">{{ getDimensionMeta(slot.dimension).icon }}</span>
+              </div>
+              <span class="text-xs font-medium text-gray-800 dark:text-white/90 min-w-0 flex-1">
+                {{ getDimensionMeta(slot.dimension).label }}
+              </span>
+              <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium shrink-0" [class]="getDimensionSlotBadgeClasses(slot)">
+                {{ getDimensionSlotBadgeLabel(slot) }}
+              </span>
+              @if (slot.data) {
+              <span class="w-9 text-right text-xs font-semibold shrink-0" [class]="getPercentTextClass(slot.data.compliance)">
+                {{ slot.data.compliance }}%
+              </span>
+              <span class="material-symbols-outlined text-gray-400 text-base shrink-0">
+                {{ isDimensionExpanded(control.id, slot.dimension) ? 'expand_less' : 'expand_more' }}
+              </span>
+              }
+            </button>
+
+            @if (slot.data && isDimensionExpanded(control.id, slot.dimension)) {
+            <div class="p-3 pl-11 space-y-3 bg-gray-50/50 dark:bg-white/5">
+              @if (slot.data.type === 'MANUAL') {
+              <app-manual-checklist [controlId]="control.id" mode="manage" />
+              } @else if (loadingChecksControlId() === control.id) {
+              <p class="text-xs text-gray-400 dark:text-gray-500">Cargando checks...</p>
+              } @else {
+                @for (check of failingChecksFor(control.id, slot.dimension); track check.checkId) {
+                <div class="rounded-lg bg-white dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800 p-3 space-y-2 text-xs">
+                  <div class="flex items-start gap-2">
+                    <span class="material-symbols-outlined text-sm shrink-0 text-error-600 dark:text-error-400">cancel</span>
+                    <span class="font-medium text-gray-800 dark:text-white/90">{{ check.title }}</span>
+                  </div>
+                  @if (check.description) {
+                  <p class="text-gray-600 dark:text-gray-300"><span class="font-medium">Qué evalúa:</span> {{ check.description }}</p>
+                  }
+                  @if (check.rationale) {
+                  <p class="text-gray-600 dark:text-gray-300"><span class="font-medium">Por qué importa:</span> {{ check.rationale }}</p>
+                  }
+                  @if (check.remediation) {
+                  <p class="text-gray-600 dark:text-gray-300"><span class="font-medium">Cómo remediar:</span> {{ check.remediation }}</p>
+                  }
+                  @if (check.failingAssets.length > 0) {
+                  <div class="rounded-md bg-error-50/60 dark:bg-error-500/10 px-2 py-1.5">
+                    <p class="text-[11px] font-medium text-error-700 dark:text-error-400">
+                      Servidores que incumplen ({{ check.failingAssets.length }})
+                    </p>
+                    @for (asset of check.failingAssets; track asset.assetId) {
+                    <p class="text-[11px] text-gray-600 dark:text-gray-300">{{ asset.name }}</p>
+                    }
+                  </div>
+                  }
+                </div>
+                } @empty {
+                <p class="text-xs text-gray-400 dark:text-gray-500 italic">Sin hallazgos en esta dimensión.</p>
+                }
+              }
+            </div>
             }
           </div>
-        </div>
-        <div class="flex items-center gap-3 shrink-0">
-          <span class="text-xs font-medium text-gray-500 dark:text-gray-400"
-            >{{ category.controlsOk }}/{{ category.controlsTotal }} controles al
-            día</span
-          >
-          <span
-            class="material-symbols-outlined text-gray-400 dark:text-gray-500"
-          >
-            {{ isCategoryExpanded(category.risk.id) ? 'expand_less' :
-            'expand_more' }}
-          </span>
-        </div>
-      </button>
-
-      @if (isCategoryExpanded(category.risk.id)) {
-      <div
-        class="border-t border-gray-100 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800"
-      >
-        @for (control of category.controls; track control.id) {
-        <div>
-          <button
-            type="button"
-            (click)="toggleControl(control)"
-            class="w-full flex items-center justify-between gap-3 p-4 pl-8 text-left hover:bg-gray-50 dark:hover:bg-white/5"
-          >
-            <div class="min-w-0 space-y-1.5 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                @if (controlCcLabel(control); as cc) {
-                <span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] font-mono font-medium text-gray-500 dark:text-gray-400">
-                  {{ cc }}
-                </span>
-                }
-                <span
-                  class="text-sm font-medium text-gray-800 dark:text-white/90"
-                  >{{ control.name }}</span
-                >
-                <span
-                  class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-gray-300"
-                >
-                  {{ controlTypeLabel(control.type) }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2 max-w-sm">
-                <div
-                  class="h-1.5 flex-1 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden"
-                >
-                  <div
-                    [class]="'h-full rounded-full ' + complianceBarClass(control.id)"
-                    [style.width.%]="complianceFor(control.id)?.compliance ?? 0"
-                  ></div>
-                </div>
-                <span
-                  class="text-xs font-medium text-gray-500 dark:text-gray-400 shrink-0"
-                  >{{ compliancePercentLabel(control.id) }}</span
-                >
-              </div>
-            </div>
-            <span
-              class="material-symbols-outlined text-gray-400 shrink-0 text-lg"
-            >
-              {{ isControlExpanded(control.id) ? 'expand_less' : 'expand_more'
-              }}
-            </span>
-          </button>
-
-          @if (isControlExpanded(control.id)) {
-          <div
-            class="border-t border-gray-100 dark:border-gray-800 p-4 pl-12 space-y-2"
-          >
-            @if (loadingChecksControlId() === control.id) {
-            <p class="text-xs text-gray-400 dark:text-gray-500">
-              Cargando checks...
-            </p>
-            } @else if (checksByControlId().get(control.id); as detail) { @for
-            (check of detail.checks; track check.checkId) {
-            <div class="flex items-start gap-2 text-xs">
-              <span
-                [class]="'material-symbols-outlined text-sm shrink-0 ' + checkResultClass(check.result)"
-              >
-                {{ check.result === 'passed' ? 'check_circle' : check.result ===
-                'failed' ? 'cancel' : 'remove_circle' }}
-              </span>
-              <div class="min-w-0">
-                <span class="text-gray-700 dark:text-gray-300"
-                  >{{ check.title }}</span
-                >
-                <span
-                  [class]="'ml-2 font-medium ' + checkResultClass(check.result)"
-                  >{{ checkResultLabel(check.result) }}</span
-                >
-              </div>
-            </div>
-            } @empty {
-            <p class="text-xs text-gray-400 dark:text-gray-500 italic">
-              Este control todavía no tiene checks automáticos asociados.
-            </p>
-            } }
-          </div>
           }
         </div>
-        } @empty {
-        <p class="p-4 pl-8 text-xs text-gray-400 dark:text-gray-500 italic">
-          Esta categoría todavía no tiene controles vinculados.
-        </p>
         }
       </div>
+      } @empty {
+      <p class="p-6 text-sm text-gray-400 dark:text-gray-500 italic text-center">
+        Todos los controles cumplen al 100%.
+      </p>
       }
     </div>
-    }
   </div>
 </div>
 }

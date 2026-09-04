@@ -10,16 +10,16 @@ export class DashboardService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/dashboard`;
 
-  readSummary(): Observable<ApiResponse<DashboardSummary>> {
-    return this.http.get<ApiResponse<DashboardSummary>>(`${this.baseUrl}/summary`);
+  readSummary(templateId: string): Observable<ApiResponse<DashboardSummary>> {
+    return this.http.get<ApiResponse<DashboardSummary>>(`${this.baseUrl}/summary`, { params: { templateId } });
   }
 
-  readControls(): Observable<ApiResponse<DashboardControl[]>> {
-    return this.http.get<ApiResponse<DashboardControl[]>>(`${this.baseUrl}/controls`);
+  readControls(templateId: string): Observable<ApiResponse<DashboardControl[]>> {
+    return this.http.get<ApiResponse<DashboardControl[]>>(`${this.baseUrl}/controls`, { params: { templateId } });
   }
 
-  readServers(): Observable<ApiResponse<DashboardServerCompliance[]>> {
-    return this.http.get<ApiResponse<DashboardServerCompliance[]>>(`${this.baseUrl}/servers`);
+  readServers(templateId: string): Observable<ApiResponse<DashboardServerCompliance[]>> {
+    return this.http.get<ApiResponse<DashboardServerCompliance[]>>(`${this.baseUrl}/servers`, { params: { templateId } });
   }
 
   readControlChecks(id: string): Observable<ApiResponse<ControlChecksDetail>> {

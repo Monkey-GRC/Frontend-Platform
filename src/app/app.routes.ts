@@ -33,6 +33,7 @@ export const routes: Routes = [
       {
         path: 'templates',
         component: TemplateList,
+        data: { mode: 'compliance' },
       },
       {
         path: 'templates/:id',
@@ -40,11 +41,20 @@ export const routes: Routes = [
       },
       {
         path: 'templates/:id/grc',
-        component: TemplateView,
+        redirectTo: 'plantilla/:id',
       },
       {
         path: 'templates/:id/build',
         component: TemplateBuilder,
+      },
+      {
+        path: 'plantilla',
+        component: TemplateList,
+        data: { mode: 'structure' },
+      },
+      {
+        path: 'plantilla/:id',
+        component: TemplateView,
       },
       {
         path: 'assets',

@@ -1,9 +1,16 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TemplateService } from '@features/templates/domain/services/template.service';
-import { TemplateFullTree, TemplateTreeCheck } from '@features/templates/domain/models/template.models';
+import { TemplateFullTree, TemplateTreeCheck, TemplateTreeControl, TemplateTreeReason, TemplateTreeRisk } from '@features/templates/domain/models/template.models';
 import { LoaderComponent } from '@shared/presentation/components/loader/loader.component';
 
+/**
+ * Vista puramente informativa de la estructura Riesgo->Causa->Control->Check
+ * de un framework (sin evaluación, sin colores de pass/fail) — columnas
+ * tipo Miller/Finder: cada nivel abre una columna nueva a la derecha. Los
+ * Checks de un control NO abren columna nueva: se expanden debajo del
+ * control, dentro de la misma columna de Controles.
+ */
 @Component({
   selector: 'app-template-view',
   imports: [LoaderComponent],
@@ -21,14 +28,27 @@ export class TemplateView implements OnInit {
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly template = signal<TemplateFullTree | null>(null);
-  readonly expandedRiskIds = signal<Set<string>>(new Set());
+
+  readonly selectedRiskId = signal<string | null>(null);
+  readonly selectedReasonId = signal<string | null>(null);
   readonly expandedControlIds = signal<Set<string>>(new Set());
+
+  readonly selectedRisk = computed<TemplateTreeRisk | null>(() => {
+    const id = this.selectedRiskId();
+    return this.template()?.risks.find((r) => r.id === id) ?? null;
+  });
+
+  readonly selectedReason = computed<TemplateTreeReason | null>(() => {
+    const id = this.selectedReasonId();
+    return this.selectedRisk()?.reasons.find((r) => r.id === id) ?? null;
+  });
 
   ngOnInit(): void {
     this.isLoading.set(true);
     this.templateService.getFullTree(this.templateId).subscribe({
       next: (template) => {
         this.template.set(template);
+        if (template.risks.length === 1) this.selectRisk(template.risks[0]);
         this.isLoading.set(false);
       },
       error: () => {
@@ -38,14 +58,16 @@ export class TemplateView implements OnInit {
     });
   }
 
-  toggleRisk(riskId: string): void {
-    const next = new Set(this.expandedRiskIds());
-    next.has(riskId) ? next.delete(riskId) : next.add(riskId);
-    this.expandedRiskIds.set(next);
+  selectRisk(risk: TemplateTreeRisk): void {
+    this.selectedRiskId.set(risk.id);
+    this.selectedReasonId.set(null);
+    this.expandedControlIds.set(new Set());
+    if (risk.reasons.length === 1) this.selectedReasonId.set(risk.reasons[0].id);
   }
 
-  isRiskExpanded(riskId: string): boolean {
-    return this.expandedRiskIds().has(riskId);
+  selectReason(reason: TemplateTreeReason): void {
+    this.selectedReasonId.set(reason.id);
+    this.expandedControlIds.set(new Set());
   }
 
   toggleControl(controlId: string): void {
@@ -56,10 +78,6 @@ export class TemplateView implements OnInit {
 
   isControlExpanded(controlId: string): boolean {
     return this.expandedControlIds().has(controlId);
-  }
-
-  edit(): void {
-    this.router.navigateByUrl(`/templates/${this.templateId}/build`);
   }
 
   goToCompliance(): void {
@@ -83,27 +101,7 @@ export class TemplateView implements OnInit {
     }
   }
 
-  ccGroups(checks: TemplateTreeCheck[]): string[] {
-    const groups = new Set<string>();
-    for (const check of checks) {
-      const code = this.effectiveSoc2Code(check);
-      if (!code) continue;
-      for (const match of code.match(/[A-Z]+\d+(\.\d+)?/g) ?? []) {
-        groups.add(match);
-      }
-    }
-    return Array.from(groups).sort();
-  }
-
   effectiveSoc2Code(check: TemplateTreeCheck): string | null {
     return check.soc2_code ?? check.soc2_code_inferred;
-  }
-
-  isCheckMappingConfirmed(check: TemplateTreeCheck): boolean {
-    return !!check.soc2_code;
-  }
-
-  isCheckMappingProposed(check: TemplateTreeCheck): boolean {
-    return !check.soc2_code && !!check.soc2_code_inferred;
   }
 }

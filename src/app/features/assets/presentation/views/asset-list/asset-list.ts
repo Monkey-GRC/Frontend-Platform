@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of, switchMap } from 'rxjs';
 import { AssetService } from '@features/assets/domain/services/asset.service';
 import { Asset } from '@features/assets/domain/models/asset.model';
 import { DashboardService } from '@features/dashboard/domain/services/dashboard.service';
 import { DashboardServerCompliance } from '@features/dashboard/domain/models/dashboard.models';
+import { TemplateService } from '@features/templates/domain/services/template.service';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { LoaderComponent } from '@shared/presentation/components/loader/loader.component';
 
@@ -19,6 +20,7 @@ import { LoaderComponent } from '@shared/presentation/components/loader/loader.c
 export class AssetList implements OnInit {
   private readonly assetService = inject(AssetService);
   private readonly dashboardService = inject(DashboardService);
+  private readonly templateService = inject(TemplateService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
@@ -46,7 +48,13 @@ export class AssetList implements OnInit {
     this.errorMessage.set(null);
     forkJoin({
       assetsResp: this.assetService.getAll(),
-      serversResp: this.dashboardService.readServers(),
+      serversResp: this.templateService.getAll().pipe(
+        switchMap((templates) =>
+          templates.length
+            ? this.dashboardService.readServers(templates[0].id)
+            : of({ statusCode: 200, message: '', data: [] } as SuccessResponse<DashboardServerCompliance[]>),
+        ),
+      ),
     }).subscribe({
       next: ({ assetsResp, serversResp }) => {
         this.assets.set(assetsResp);
