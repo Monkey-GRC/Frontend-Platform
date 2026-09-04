@@ -27,7 +27,12 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          # script_stop: si un comando del script falla, el step (y el job)
+          # deben fallar de verdad — sin esto, appleboy/ssh-action reporta
+          # "success" aunque el build de Docker truene por dentro.
+          script_stop: true
           script: |
+            set -e
             cd /home/ubuntu/monkey-dev
             docker compose build frontend-platform
             docker compose up -d frontend-platform
