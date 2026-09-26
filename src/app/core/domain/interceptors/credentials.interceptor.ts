@@ -13,9 +13,7 @@ export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
 
   const isPublicRequest =
     req.url.includes('/auth/login') ||
-    req.url.includes('/auth/validate') ||
-    req.url.includes('/onboarding/master-templates') ||
-    req.url.includes('/onboarding/complete');
+    req.url.includes('/auth/validate');
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {

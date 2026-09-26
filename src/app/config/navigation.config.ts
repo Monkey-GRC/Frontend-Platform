@@ -23,31 +23,8 @@ export interface SectionIcon {
 
 // Configuración de items de navegación
 export const NAV_ITEMS: NavItem[] = [
-    // Sección "Menu"
-    {
-        icon: 'dashboard',
-        name: "Dashboard",
-        path: "/",
-        section: "Menu",
-    },
-    {
-        icon: 'shield',
-        name: "Cumplimiento",
-        path: "/templates",
-        section: "Menu",
-    },
-    {
-        icon: 'dns',
-        name: "Activos",
-        path: "/assets",
-        section: "Menu",
-    },
-    {
-        icon: 'account_tree',
-        name: "Plantilla",
-        path: "/plantilla",
-        section: "Menu",
-    },
+    // Vacío a propósito: los items se agregan cuando existan los 3 componentes
+    // del onboarding y el dashboard reconstruido.
 ];
 
 // Mapeo de iconos para secciones cuando el sidebar está colapsado
