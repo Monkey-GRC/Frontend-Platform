@@ -31,6 +31,10 @@ export class RegisterForm {
     }
 
     this.registrationSession.setOnboardingCode(this.form.getRawValue().onboarding_code.trim());
-    this.router.navigateByUrl('/onboarding/characterization');
+
+    // TODO (MD-71): validar la clave contra el backend, crear la cuenta
+    // admin_empresa y dejar la sesion abierta; de ahi se entra al Componente 1
+    // del onboarding (MD-74). El destino queda sin definir hasta que exista.
+
   }
 }

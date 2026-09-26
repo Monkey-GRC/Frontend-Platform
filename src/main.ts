@@ -20,7 +20,7 @@ import { AppComponent } from './app/app.component';
 //     } else if (typeof options === 'object') {
 //       options.passive = false;
 //     }
-//   }
+//   }  
 
 //   return originalAddEventListener.call(this, type, listener, options);
 // };
