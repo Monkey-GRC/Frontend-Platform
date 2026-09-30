@@ -48,3 +48,6 @@ Thumbs.db
 *.mov
 *.wmv
 
+
+# Cache del compilador de Angular
+/.angular/cache

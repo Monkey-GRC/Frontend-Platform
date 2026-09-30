@@ -11,8 +11,18 @@ export const routes: Routes = [
     component: AppLayoutComponent,
     canActivate: [authGuard],
     children: [
-      // Aqui entran los 3 componentes del onboarding (MD-74, MD-78, MD-85)
+      // Bienvenida provisional. Aquí entran los 3 componentes del onboarding (MD-74, MD-78, MD-85)
       // y el dashboard cuando se reconstruya.
+      {
+        path: '',
+        loadComponent: () => import('@features/home/presentation/views/home/home').then(m => m.Home),
+        pathMatch: 'full',
+      },
+      // Componente 1 del onboarding: el cliente cuenta de qué trata su empresa.
+      {
+        path: 'onboarding',
+        loadComponent: () => import('@features/onboarding/presentation/views/organizational-context/organizational-context').then(m => m.OrganizationalContextView),
+      },
     ]
   },
   // auth pages
