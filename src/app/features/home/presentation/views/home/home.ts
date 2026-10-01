@@ -17,4 +17,5 @@ export class Home {
   readonly nextStep = computed(() => this.session.onboarding()?.next_step ?? null);
   readonly pendingCompanyContext = computed(() => this.nextStep() === 'organizational_context');
   readonly pendingService = computed(() => this.nextStep() === 'service_context');
+  readonly pendingTechnicalControl = computed(() => this.nextStep() === 'technical_control');
 }

@@ -41,4 +41,8 @@ export type CatalogName =
   | 'trust_criterion'
   | 'subservice_type'
   | 'expected_availability'
-  | 'previous_certification';
+  | 'previous_certification'
+  // Componente 3 — el control técnico
+  | 'deployment_scenario'
+  | 'asset_criticality'
+  | 'schedule_frequency';

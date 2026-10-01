@@ -67,6 +67,8 @@ export interface ServiceListItem {
   is_complete: boolean;
   frameworks: { code: string; status: string }[];
   catalog: { status: 'ready' | 'processing'; cloned_controls: number };
+  // Componente 3: ya hay escenario de despliegue y scope declarados.
+  technical_control: { deployment_scenario: string | null; has_scope: boolean; is_complete: boolean };
   created_at: string;
 }
 

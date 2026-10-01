@@ -32,6 +32,11 @@ export const routes: Routes = [
         path: 'services/new',
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
       },
+      // Componente 3 del onboarding: el control técnico de un servicio.
+      {
+        path: 'services/:id/technical-control',
+        loadComponent: () => import('@features/technical-control/presentation/views/technical-control/technical-control').then(m => m.TechnicalControlView),
+      },
       {
         path: 'services/:id',
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),

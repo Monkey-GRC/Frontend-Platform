@@ -87,10 +87,26 @@
               Preparando tu catálogo…
             </span>
             }
+            @if (!item.technical_control.is_complete) {
+            <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+              <span class="material-symbols-rounded text-[16px]">pending</span>
+              Falta el control técnico
+            </span>
+            }
           </div>
         </div>
 
-        <div class="flex shrink-0 items-center gap-2">
+        <div class="flex min-w-0 max-w-full flex-wrap items-center gap-2">
+          @if (confirming() !== item.id) {
+          <a [routerLink]="['/services', item.id, 'technical-control']"
+            class="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition"
+            [class]="item.technical_control.is_complete
+              ? 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
+              : 'bg-primary text-white shadow hover:opacity-90'">
+            <span class="material-symbols-rounded text-[18px]">{{ item.technical_control.is_complete ? 'cable' : 'bolt' }}</span>
+            {{ item.technical_control.is_complete ? 'Mis sistemas' : 'Conectar mis sistemas' }}
+          </a>
+          }
           @if (confirming() === item.id) {
           <span class="text-sm text-gray-600 dark:text-gray-300">¿Eliminar?</span>
           <button type="button" (click)="remove(item)" [disabled]="deleting() === item.id"

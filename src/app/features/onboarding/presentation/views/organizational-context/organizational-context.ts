@@ -225,10 +225,12 @@ export class OrganizationalContextView implements OnInit {
         next: () => {
           if (this.userId) this.drafts.clear(this.userId);
           this.alreadySaved.set(true);
-          // Vuelve a pedir la sesión para que el siguiente paso del onboarding quede al día.
-          this.auth.validate().subscribe();
-          this.stage.set('done');
-          this.scrollTop();
+          // Primero se refresca la sesión (el siguiente paso lo calcula el backend) y luego se muestra
+          // «¡Listo!»: así Inicio nunca enseña por un instante el paso anterior.
+          this.auth.validate().subscribe(() => {
+            this.stage.set('done');
+            this.scrollTop();
+          });
         },
         error: (error) => {
           this.stage.set('form');

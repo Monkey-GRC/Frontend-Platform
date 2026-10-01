@@ -293,10 +293,12 @@ export class ServiceFormView implements OnInit {
       next: (service) => {
         if (this.userId) this.drafts.clear(this.userId);
         this.saved.set(service);
-        // Vuelve a pedir la sesión para que el siguiente paso del onboarding quede al día.
-        this.auth.validate().subscribe();
-        this.stage.set('done');
-        this.scrollTop();
+        // Primero se refresca la sesión (el siguiente paso del onboarding lo calcula el backend) y
+        // solo después se muestra «¡Listo!»: así Inicio nunca enseña por un instante el paso anterior.
+        this.auth.validate().subscribe(() => {
+          this.stage.set('done');
+          this.scrollTop();
+        });
       },
       error: (error) => {
         this.stage.set('form');

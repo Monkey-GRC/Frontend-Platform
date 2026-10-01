@@ -1,0 +1,226 @@
+<section class="mx-auto w-full max-w-3xl pb-10">
+
+  @switch (stage()) {
+
+  @case ('loading') {
+  <div class="space-y-4 animate-pulse" aria-busy="true" aria-label="Cargando">
+    <div class="h-4 w-40 rounded bg-gray-200 dark:bg-gray-800"></div>
+    <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800"></div>
+    <div class="rounded-2xl border border-gray-200 p-8 dark:border-gray-800">
+      <div class="h-7 w-2/3 rounded bg-gray-200 dark:bg-gray-800"></div>
+      <div class="mt-8 h-28 rounded-xl bg-gray-100 dark:bg-gray-800/60"></div>
+    </div>
+  </div>
+  }
+
+  @case ('error') {
+  <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <span class="material-symbols-rounded text-4xl text-gray-400">cloud_off</span>
+    <h1 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white">No pudimos cargar esta pantalla</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Revisa tu conexión e inténtalo de nuevo.</p>
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+      <button type="button" (click)="load()"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
+        <span class="material-symbols-rounded text-[18px]">refresh</span>
+        Reintentar
+      </button>
+      <a routerLink="/services" class="text-sm font-medium text-primary hover:underline">Volver a mis servicios</a>
+    </div>
+  </div>
+  }
+
+  @default {
+  <header class="mb-6">
+    <p class="text-xs font-medium uppercase tracking-wide text-primary">Control técnico</p>
+    <h1 class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ service()?.name }}</h1>
+    <ol class="mt-5 flex items-center gap-2">
+      @for (s of steps; track s.key; let i = $index) {
+      <li class="flex flex-1 items-center gap-2">
+        <button type="button" (click)="goTo(i)" [attr.aria-current]="i === step() ? 'step' : null"
+          class="flex items-center gap-2 text-xs transition"
+          [class]="i === step() ? 'font-semibold text-primary' : i < step() ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'">
+          <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px]"
+            [class]="i < step() ? 'border-primary bg-primary text-white' : i === step() ? 'border-primary text-primary' : 'border-gray-300 dark:border-gray-700'">
+            @if (i < step()) {
+            <span class="material-symbols-rounded text-[14px]">check</span>
+            } @else {
+            {{ i + 1 }}
+            }
+          </span>
+          <span class="hidden sm:inline">{{ s.label }}</span>
+        </button>
+        @if (i < steps.length - 1) {
+        <span class="h-px flex-1 bg-gray-200 dark:bg-gray-800"></span>
+        }
+      </li>
+      }
+    </ol>
+  </header>
+
+  @switch (step()) {
+
+  <!-- ---------- 1. Dónde vive ---------- -->
+  @case (0) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-10 dark:border-gray-800 dark:bg-white/[0.03]">
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">cloud_sync</span>
+    </span>
+    <h2 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">¿Dónde vive tu servicio?</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Según lo que elijas, te mostramos solo las conexiones que aplican. Podrás cambiarlo después.
+    </p>
+    <div class="mt-8 grid gap-3">
+      @for (s of scenarios(); track s.value) {
+      <button type="button" (click)="pickScenario(s.value)" [attr.aria-pressed]="scenario() === s.value"
+        class="flex items-start gap-4 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        [class]="scenario() === s.value ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-gray-200 hover:border-primary/50 dark:border-gray-700'">
+        <span class="material-symbols-rounded mt-0.5 text-primary">{{ scenarioIcon[s.value] }}</span>
+        <span>
+          <span class="block text-sm font-semibold text-gray-900 dark:text-white">{{ s.label }}</span>
+          <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ scenarioHelp[s.value] }}</span>
+        </span>
+      </button>
+      }
+    </div>
+    @if (showHints() && !scenario()) {
+    <p class="mt-3 text-xs text-error-500">Elige una opción para continuar.</p>
+    }
+  </div>
+  }
+
+  <!-- ---------- 2. Cuánto tienes ---------- -->
+  @case (1) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-10 dark:border-gray-800 dark:bg-white/[0.03]">
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">inventory</span>
+    </span>
+    <h2 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">¿Cuánto tienes, más o menos?</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Un número aproximado está bien. Si no tienes de alguno, déjalo en blanco. Luego comparamos con lo que se conecte.
+    </p>
+    <div class="mt-8 grid gap-5 sm:grid-cols-2">
+      @for (f of scopeFields; track f.key) {
+      <div>
+        <label [for]="'scope-' + f.key" class="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span class="material-symbols-rounded text-[18px] text-primary">{{ f.icon }}</span>
+          {{ f.label }}
+        </label>
+        <p class="mb-2 text-xs text-gray-400">{{ f.help }}</p>
+        <input [id]="'scope-' + f.key" type="text" inputmode="numeric" autocomplete="off" placeholder="0"
+          [value]="counts()[f.key]" (input)="setCount(f.key, $any($event.target))"
+          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+      </div>
+      }
+    </div>
+    @if (showHints() && !scopeValid()) {
+    <p class="mt-3 text-xs text-error-500">Escribe solo números.</p>
+    }
+  </div>
+  }
+
+  <!-- ---------- 3. Conectar ---------- -->
+  @default {
+  @if (probeMode() === 'simulated') {
+  <p class="mb-4 flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+    <span class="material-symbols-rounded text-[18px]">science</span>
+    <span><strong>Modo demostración.</strong> Las conexiones se comprueban de forma simulada: no se está evaluando ningún sistema real.</span>
+  </p>
+  } @else {
+  <p class="mb-4 flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+    <span class="material-symbols-rounded text-[18px]">info</span>
+    <span>La evaluación automática aún no está disponible en tu cuenta. Puedes registrar tus sistemas ahora y comprobar la conexión cuando se habilite.</span>
+  </p>
+  }
+
+  <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="flex items-start gap-4">
+      <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+        <span class="material-symbols-rounded">task_alt</span>
+      </span>
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Ya tienes lo esencial</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Ahora conecta tus sistemas para que Monkey los evalúe sola. Puedes hacerlo ahora o más tarde, cuando tengas los accesos a la mano.
+        </p>
+      </div>
+    </div>
+
+    @if (connectedRows().length > 0) {
+    <ul class="mt-6 divide-y divide-gray-100 rounded-xl border border-gray-100 dark:divide-gray-800 dark:border-gray-800">
+      @for (row of connectedRows(); track row.label) {
+      <li class="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+        <span class="text-gray-700 dark:text-gray-300">{{ row.label }}</span>
+        <span class="text-gray-500 dark:text-gray-400">
+          Dijiste <strong class="text-gray-900 dark:text-white">{{ row.declared }}</strong> · conectados
+          <strong class="text-gray-900 dark:text-white">{{ row.connected }}</strong>
+        </span>
+      </li>
+      }
+    </ul>
+    }
+  </div>
+
+  <div class="mt-6 space-y-3">
+    @for (a of assets(); track a.id) {
+    <app-asset-card [asset]="a" [connectionLabel]="connectionLabel(a.connection_category)" [probeMode]="probeMode()"
+      [frequencies]="frequenciesFor(a.connection_category)" (changed)="onChanged($event)" />
+    }
+  </div>
+
+  <div class="mt-6">
+    @if (connecting()) {
+    <app-connect-asset-form [capabilities]="state()!.applicable_capabilities" [service]="service()!"
+      [otherServices]="otherServices()" [criticalities]="criticalities()"
+      (created)="onCreated($event)" (cancelled)="connecting.set(false)" />
+    } @else {
+    <button type="button" (click)="connecting.set(true)"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-primary/50 px-5 py-4 text-sm font-medium text-primary transition hover:bg-primary/5 sm:w-auto">
+      <span class="material-symbols-rounded text-[20px]">add</span>
+      {{ assets().length === 0 ? 'Conectar mi primer sistema' : 'Conectar otro sistema' }}
+    </button>
+    }
+  </div>
+  }
+  }
+
+  @if (saveError()) {
+  <div class="mt-6 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/20" role="alert">
+    <span class="material-symbols-rounded text-[18px]">error</span>
+    <span>{{ saveError() }}</span>
+  </div>
+  }
+
+  <!-- Navegación -->
+  <div class="mt-8 flex items-center justify-between gap-3">
+    @if (step() > 0) {
+    <button type="button" (click)="goTo(step() - 1)" [disabled]="saving()"
+      class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+      <span class="material-symbols-rounded text-[18px]">arrow_back</span>
+      Atrás
+    </button>
+    } @else {
+    <a routerLink="/services" class="text-sm font-medium text-gray-500 hover:underline">Lo haré más tarde</a>
+    }
+
+    @if (step() < 2) {
+    <button type="button" (click)="next()" [disabled]="saving()"
+      class="group inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90 disabled:opacity-60">
+      @if (saving()) {
+      <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
+      Guardando…
+      } @else {
+      Siguiente
+      <span class="material-symbols-rounded text-[18px] transition group-hover:translate-x-0.5">arrow_forward</span>
+      }
+    </button>
+    } @else {
+    <button type="button" (click)="finish()"
+      class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90">
+      {{ assets().length === 0 ? 'Terminar por ahora' : 'Terminar' }}
+      <span class="material-symbols-rounded text-[20px]">check</span>
+    </button>
+    }
+  </div>
+  }
+  }
+</section>
