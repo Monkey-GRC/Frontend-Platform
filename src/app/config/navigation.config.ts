@@ -25,7 +25,8 @@ export interface SectionIcon {
 export const NAV_ITEMS: NavItem[] = [
     { icon: 'home', name: 'Inicio', path: '/', section: 'Menu' },
     { icon: 'apartment', name: 'Mi empresa', path: '/onboarding', section: 'Menu' },
-    // Se suman los demás componentes del onboarding y el dashboard cuando existan.
+    { icon: 'inventory_2', name: 'Mis servicios', path: '/services', section: 'Menu' },
+    // Se suman el control técnico y el dashboard cuando existan.
 ];
 
 // Mapeo de iconos para secciones cuando el sidebar está colapsado

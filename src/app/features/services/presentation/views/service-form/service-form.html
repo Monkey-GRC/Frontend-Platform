@@ -1,0 +1,582 @@
+<section class="mx-auto w-full max-w-3xl pb-10">
+
+  @if (needsCompany()) {
+  <!-- ===================== Primero la empresa ===================== -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+    <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <span class="material-symbols-rounded text-3xl">apartment</span>
+    </span>
+    <h1 class="mt-4 text-xl font-semibold text-gray-900 dark:text-white">Primero cuéntanos sobre tu empresa</h1>
+    <p class="mx-auto mt-2 max-w-md text-sm text-gray-500 dark:text-gray-400">
+      Un servicio siempre pertenece a una empresa. Son unas preguntas sencillas y luego vuelves aquí.
+    </p>
+    <a routerLink="/onboarding"
+      class="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90">
+      Contar sobre mi empresa
+      <span class="material-symbols-rounded text-[20px]">arrow_forward</span>
+    </a>
+  </div>
+  } @else {
+
+  @switch (stage()) {
+
+  <!-- ===================== Cargando ===================== -->
+  @case ('loading') {
+  <div class="space-y-4 animate-pulse" aria-busy="true" aria-label="Cargando">
+    <div class="h-4 w-40 rounded bg-gray-200 dark:bg-gray-800"></div>
+    <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800"></div>
+    <div class="rounded-2xl border border-gray-200 p-8 dark:border-gray-800">
+      <div class="h-7 w-2/3 rounded bg-gray-200 dark:bg-gray-800"></div>
+      <div class="mt-3 h-4 w-1/2 rounded bg-gray-100 dark:bg-gray-800/60"></div>
+      <div class="mt-8 h-28 rounded-xl bg-gray-100 dark:bg-gray-800/60"></div>
+    </div>
+  </div>
+  }
+
+  <!-- ===================== Error al cargar ===================== -->
+  @case ('error') {
+  <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <span class="material-symbols-rounded text-4xl text-gray-400">cloud_off</span>
+    <h1 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white">No pudimos cargar el formulario</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Revisa tu conexión e inténtalo de nuevo. Lo que hayas escrito no se perdió.
+    </p>
+    <button type="button" (click)="load()"
+      class="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
+      <span class="material-symbols-rounded text-[18px]">refresh</span>
+      Reintentar
+    </button>
+  </div>
+  }
+
+  <!-- ===================== Terminado ===================== -->
+  @case ('done') {
+  <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm md:p-12 dark:border-gray-800 dark:bg-white/[0.03]">
+    <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+      <span class="material-symbols-rounded text-4xl">task_alt</span>
+    </span>
+    <h1 class="mt-6 text-2xl font-semibold text-gray-900 md:text-3xl dark:text-white">
+      {{ editing() ? '¡Listo! Actualizamos tu servicio' : '¡Listo! Tu servicio ya está declarado' }}
+    </h1>
+    <p class="mx-auto mt-3 max-w-md text-sm text-gray-500 md:text-base dark:text-gray-400">
+      <strong class="text-gray-800 dark:text-gray-200">{{ saved()?.name }}</strong>
+      {{ editing() ? 'quedó al día.' : 'ya tiene su catálogo de cumplimiento preparado.' }}
+    </p>
+
+    @if (saved(); as s) {
+    <dl class="mx-auto mt-8 grid max-w-md grid-cols-2 gap-3 text-left">
+      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+        <dt class="text-xs text-gray-500 dark:text-gray-400">Requisitos que te aplican</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ s.catalog.applicable_requirements }}</dd>
+      </div>
+      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+        <dt class="text-xs text-gray-500 dark:text-gray-400">Controles preparados</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ s.catalog.cloned_controls }}</dd>
+      </div>
+    </dl>
+    <p class="mx-auto mt-4 max-w-md text-xs text-gray-400">
+      Es tu propia copia: más adelante podrás ajustarla a cómo trabaja tu empresa sin afectar a nadie más.
+    </p>
+    }
+
+    <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+      <a routerLink="/"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:opacity-90 transition">
+        Continuar
+        <span class="material-symbols-rounded text-[20px]">arrow_forward</span>
+      </a>
+      <button type="button" (click)="addAnother()"
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+        <span class="material-symbols-rounded text-[18px]">add</span>
+        Declarar otro servicio
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- ===================== Asistente ===================== -->
+  @default {
+
+  @if (step() < reviewStep) {
+  <!-- Encabezado: dónde va y cuánto falta -->
+  <header class="mb-6">
+    <div class="flex items-center justify-between text-sm">
+      <span class="font-medium text-gray-900 dark:text-white">Paso {{ step() + 1 }} de {{ steps.length }}</span>
+      <span class="text-gray-400">{{ steps[step()].label }}</span>
+    </div>
+    <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800" role="progressbar"
+      [attr.aria-valuenow]="step() + 1" aria-valuemin="1" [attr.aria-valuemax]="steps.length">
+      <div class="h-full rounded-full bg-primary transition-all duration-500"
+        [style.width.%]="((step() + 1) / steps.length) * 100"></div>
+    </div>
+    <ol class="mt-4 hidden justify-between sm:flex">
+      @for (s of steps; track s.key; let i = $index) {
+      <li class="flex items-center gap-2 text-xs"
+        [class]="i === step() ? 'font-semibold text-primary' : i < step() ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'">
+        <span class="flex h-6 w-6 items-center justify-center rounded-full border text-[11px]"
+          [class]="i < step() ? 'border-primary bg-primary text-white' : i === step() ? 'border-primary text-primary' : 'border-gray-300 dark:border-gray-700'">
+          @if (i < step()) {
+          <span class="material-symbols-rounded text-[14px]">check</span>
+          } @else {
+          {{ i + 1 }}
+          }
+        </span>
+        {{ s.label }}
+      </li>
+      }
+    </ol>
+  </header>
+  }
+
+  <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-10 dark:border-gray-800 dark:bg-white/[0.03]">
+
+    @switch (step()) {
+
+    <!-- ---------- 1. Tu servicio ---------- -->
+    @case (0) {
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">inventory_2</span>
+    </span>
+    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">Cuéntanos sobre tu servicio</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Es el servicio que vas a someter a auditoría. Si tienes varios, los declaras uno por uno.
+    </p>
+
+    <div class="mt-8 space-y-7">
+      <div>
+        <label for="name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Cómo se llama? <span class="text-error-500">*</span>
+        </label>
+        <input id="name" type="text" [value]="draft().name" maxlength="200" autocomplete="off"
+          (input)="setText('name', $any($event.target).value)" placeholder="Por ejemplo: Plataforma de facturación"
+          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        @if (showHints() && !draft().name.trim()) {
+        <p class="mt-1.5 text-xs text-error-500">Ponle un nombre a tu servicio.</p>
+        }
+      </div>
+
+      <div>
+        <label for="description" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Qué hace? <span class="text-error-500">*</span>
+        </label>
+        <textarea id="description" rows="4" [value]="draft().description"
+          (input)="setText('description', $any($event.target).value)"
+          placeholder="Por ejemplo: Soporte de primer y segundo nivel para clientes corporativos, las 24 horas."
+          class="w-full resize-none rounded-lg border border-gray-300 bg-white p-4 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
+        <div class="mt-1.5 flex items-start justify-between gap-4 text-xs">
+          <span [class]="showHints() && !draft().description.trim() ? 'text-error-500' : 'text-gray-400'">
+            {{ showHints() && !draft().description.trim() ? 'Cuéntanos brevemente qué hace.' : 'Con tus propias palabras, en una o dos frases.' }}
+          </span>
+          <span class="shrink-0 text-gray-400">{{ draft().description.length }} / {{ textMax }}</span>
+        </div>
+      </div>
+
+      <div>
+        <label for="scope" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Qué incluye la auditoría? <span class="text-error-500">*</span>
+        </label>
+        <textarea id="scope" rows="4" [value]="draft().scope_statement"
+          (input)="setText('scope_statement', $any($event.target).value)"
+          placeholder="Por ejemplo: A quiénes se presta, desde dónde y qué parte del servicio queremos que se revise."
+          class="w-full resize-none rounded-lg border border-gray-300 bg-white p-4 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
+        <div class="mt-1.5 flex items-start justify-between gap-4 text-xs">
+          <span [class]="showHints() && !draft().scope_statement.trim() ? 'text-error-500' : 'text-gray-400'">
+            {{ showHints() && !draft().scope_statement.trim() ? 'Dinos qué debería cubrir la auditoría.' : 'Es el alcance: lo que queda dentro de la revisión.' }}
+          </span>
+          <span class="shrink-0 text-gray-400">{{ draft().scope_statement.length }} / {{ textMax }}</span>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ---------- 2. Tus clientes ---------- -->
+    @case (1) {
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">groups</span>
+    </span>
+    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">¿Qué tipo de servicio es y a quién se lo das?</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Elige lo que más se parezca; no tiene que ser exacto.</p>
+
+    <div class="mt-8 space-y-8">
+      <div>
+        <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+          Tipo de servicio <span class="text-error-500">*</span>
+        </p>
+        <app-option-chips [options]="options(catalogs()!.type)" [selected]="draft().type ? [draft().type!] : []"
+          ariaLabel="Tipo de servicio" (picked)="pick('type', $event)" />
+        @if (showHints() && !draft().type) {
+        <p class="mt-2 text-xs text-error-500">Elige el tipo de servicio para continuar.</p>
+        }
+      </div>
+
+      <div>
+        <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿A qué sectores les prestas el servicio? <span class="text-error-500">*</span>
+        </p>
+        <p class="mb-3 text-xs text-gray-400">Puedes elegir más de uno.</p>
+        <app-option-chips [options]="options(catalogs()!.industries)" [selected]="draft().industries_served"
+          [multiple]="true" ariaLabel="Sectores a los que atiendes" (picked)="toggle('industries_served', $event)" />
+        @if (showHints() && draft().industries_served.length === 0) {
+        <p class="mt-2 text-xs text-error-500">Elige al menos un sector.</p>
+        }
+      </div>
+
+      <div>
+        <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Cuántos clientes activos tiene este servicio? <span class="font-normal text-gray-400">(opcional)</span>
+        </p>
+        <p class="mb-3 text-xs text-gray-400">Puedes saltarte esta pregunta.</p>
+        <app-option-chips [options]="options(catalogs()!.clientCount)"
+          [selected]="draft().active_client_count ? [draft().active_client_count!] : []"
+          ariaLabel="Clientes activos" (picked)="pick('active_client_count', $event)" />
+      </div>
+    </div>
+    }
+
+    <!-- ---------- 3. Datos y alcance ---------- -->
+    @case (2) {
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">database</span>
+    </span>
+    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">¿Dónde opera y qué datos maneja?</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Puedes elegir más de una opción en cada pregunta.</p>
+
+    <div class="mt-8 space-y-8">
+      <div>
+        <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿En qué países se presta el servicio? <span class="text-error-500">*</span>
+        </p>
+        <app-option-chips [options]="countryMain()" [selected]="draft().countries" [multiple]="true"
+          ariaLabel="Países" (picked)="toggle('countries', $event)" />
+        <div class="mt-2.5">
+          <app-option-chips [options]="countryRegions()" [selected]="draft().countries" [multiple]="true"
+            ariaLabel="Regiones" (picked)="toggle('countries', $event)" />
+        </div>
+        @if (showHints() && draft().countries.length === 0) {
+        <p class="mt-2 text-xs text-error-500">Elige al menos un país o región.</p>
+        }
+      </div>
+
+      <div>
+        <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Qué tipo de datos maneja? <span class="text-error-500">*</span>
+        </p>
+        <app-option-chips [options]="options(catalogs()!.dataTypes)" [selected]="draft().data_types" [multiple]="true"
+          ariaLabel="Tipos de datos" (picked)="toggle('data_types', $event)" />
+        @if (showHints() && draft().data_types.length === 0) {
+        <p class="mt-2 text-xs text-error-500">Elige al menos un tipo de dato.</p>
+        }
+      </div>
+
+      <div>
+        <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Qué disponibilidad esperan tus clientes? <span class="text-error-500">*</span>
+        </p>
+        <app-option-chips [options]="options(catalogs()!.availability)"
+          [selected]="draft().expected_availability ? [draft().expected_availability!] : []"
+          ariaLabel="Disponibilidad esperada" (picked)="pick('expected_availability', $event)" />
+        @if (showHints() && !draft().expected_availability) {
+        <p class="mt-2 text-xs text-error-500">Elige una opción para continuar.</p>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- ---------- 4. Marco ---------- -->
+    @case (3) {
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">verified_user</span>
+    </span>
+    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">¿Qué quieres demostrarle a tus clientes?</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Al elegir el marco, te dejamos listo tu catálogo de controles. No tienes que armar nada a mano.
+    </p>
+
+    <div class="mt-8 space-y-8">
+      <div>
+        <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+          Marco de cumplimiento <span class="text-error-500">*</span>
+        </p>
+        <div class="grid gap-3">
+          @for (f of catalogs()!.frameworks; track f.code) {
+          <button type="button" (click)="toggleFramework(f.code)" [attr.aria-pressed]="draft().framework_codes.includes(f.code)"
+            class="flex items-start gap-4 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            [class]="draft().framework_codes.includes(f.code)
+              ? 'border-primary bg-primary/5 dark:bg-primary/10'
+              : 'border-gray-200 hover:border-primary/50 dark:border-gray-700'">
+            <span class="material-symbols-rounded mt-0.5 text-primary">
+              {{ draft().framework_codes.includes(f.code) ? 'check_circle' : 'radio_button_unchecked' }}
+            </span>
+            <span>
+              <span class="block text-sm font-semibold text-gray-900 dark:text-white">{{ f.label }}</span>
+              <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ f.description }}</span>
+            </span>
+          </button>
+          }
+        </div>
+        @if (showHints() && draft().framework_codes.length === 0) {
+        <p class="mt-2 text-xs text-error-500">Elige el marco para continuar.</p>
+        }
+      </div>
+
+      <div>
+        <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">¿Qué aspectos cubre la auditoría?</p>
+          <button type="button" (click)="toggleFullCoverage()"
+            class="inline-flex items-center gap-1.5 rounded-full border border-primary/40 px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-primary/5">
+            <span class="material-symbols-rounded text-[16px]">{{ fullCoverage() ? 'remove_done' : 'done_all' }}</span>
+            {{ fullCoverage() ? 'Quitar cobertura completa' : 'Cobertura completa sugerida por Monkey' }}
+          </button>
+        </div>
+        <p class="mb-3 text-xs text-gray-400">La seguridad siempre va incluida. Suma los demás según lo que prometes a tus clientes.</p>
+        <div class="grid gap-3 sm:grid-cols-2">
+          @for (c of catalogs()!.trustCriteria; track c.value) {
+          <button type="button" (click)="toggleCriterion(c.value)" [attr.aria-pressed]="draft().trust_criteria.includes(c.value)"
+            [disabled]="c.value === security"
+            class="flex items-start gap-3 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-default"
+            [class]="draft().trust_criteria.includes(c.value)
+              ? 'border-primary bg-primary/5 dark:bg-primary/10'
+              : 'border-gray-200 hover:border-primary/50 dark:border-gray-700'">
+            <span class="material-symbols-rounded mt-0.5 text-primary">
+              {{ c.value === security ? 'lock' : draft().trust_criteria.includes(c.value) ? 'check_circle' : 'radio_button_unchecked' }}
+            </span>
+            <span>
+              <span class="block text-sm font-semibold text-gray-900 dark:text-white">
+                {{ c.label }}
+                @if (c.value === security) {
+                <span class="ml-1 text-xs font-normal text-gray-400">(siempre incluida)</span>
+                }
+              </span>
+              <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ criterionHelp[c.value] }}</span>
+            </span>
+          </button>
+          }
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ---------- 5. Proveedores ---------- -->
+    @case (4) {
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">cloud</span>
+    </span>
+    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">¿Dónde corre tu servicio?</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Los proveedores en los que te apoyas (la nube o tu propio centro de datos). Elige todos los que uses.
+    </p>
+
+    <div class="mt-8 space-y-6">
+      <div>
+        <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+          Proveedores de infraestructura <span class="text-error-500">*</span>
+        </p>
+        <app-option-chips [options]="subserviceChips()" [selected]="selectedSubserviceTypes()" [multiple]="true"
+          ariaLabel="Proveedores" (picked)="toggleSubservice($event)" />
+        @if (showHints() && draft().subservices.length === 0) {
+        <p class="mt-2 text-xs text-error-500">Elige al menos una opción.</p>
+        }
+      </div>
+
+      @if (draft().subservices.length > 0) {
+      <div class="space-y-4">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Más detalle <span class="font-normal text-gray-400">(opcional, puedes dejarlo en blanco)</span>
+        </p>
+        @for (s of draft().subservices; track s.type) {
+        <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+          <p class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ labelOf(catalogs()!.subserviceTypes, s.type) }}</p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <input type="text" [value]="s.provider" maxlength="200" aria-label="Nombre del proveedor"
+              (input)="setSubserviceText(s.type, 'provider', $any($event.target).value)" placeholder="Nombre del proveedor"
+              class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+            <input type="text" [value]="s.service_provided" maxlength="300" aria-label="Qué servicio te presta"
+              (input)="setSubserviceText(s.type, 'service_provided', $any($event.target).value)" placeholder="¿Qué servicio te presta?"
+              class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+          </div>
+          <input type="text" [value]="s.responsibility" maxlength="1000" aria-label="De qué se encarga"
+            (input)="setSubserviceText(s.type, 'responsibility', $any($event.target).value)"
+            placeholder="¿De qué se encarga el proveedor? (por ejemplo: la disponibilidad de la infraestructura)"
+            class="mt-3 h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }
+
+    <!-- ---------- 6. Cumplimiento ---------- -->
+    @case (5) {
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">gavel</span>
+    </span>
+    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">Últimos datos de tu servicio</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Con esto cerramos y te dejamos tu catálogo listo.</p>
+
+    <div class="mt-8 space-y-8">
+      <div>
+        <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Qué leyes de protección de datos aplican a este servicio? <span class="text-error-500">*</span>
+        </p>
+        <p class="mb-3 text-xs text-gray-400">Elige todas las que apliquen. Si ninguna, elige «Ninguna».</p>
+        <app-option-chips [options]="regulationChips()" [selected]="draft().regulation_codes" [multiple]="true"
+          ariaLabel="Regulaciones" (picked)="toggle('regulation_codes', $event)" />
+        @if (showHints() && draft().regulation_codes.length === 0) {
+        <p class="mt-2 text-xs text-error-500">Elige al menos una opción (o «Ninguna»).</p>
+        }
+      </div>
+
+      <div>
+        <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Ya has tenido alguna certificación? <span class="font-normal text-gray-400">(opcional)</span>
+        </p>
+        <p class="mb-3 text-xs text-gray-400">Puedes saltarte esta pregunta.</p>
+        <app-option-chips [options]="options(catalogs()!.certifications)"
+          [selected]="draft().previous_certification ? [draft().previous_certification!] : []"
+          ariaLabel="Certificación previa" (picked)="pick('previous_certification', $event)" />
+      </div>
+
+      <div>
+        <label for="system-description" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Enlace a la descripción de tu sistema <span class="text-error-500">*</span>
+        </label>
+        <p class="mb-3 text-xs text-gray-400">
+          El documento que explica cómo funciona tu servicio. Pega el enlace donde lo tengas guardado.
+        </p>
+        <input id="system-description" type="url" [value]="draft().system_description_url" maxlength="2000"
+          autocomplete="off" (input)="setUrl($any($event.target).value)"
+          placeholder="https://tuempresa.com/descripcion-del-sistema.pdf"
+          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        @if (urlInvalid() || (showHints() && !draft().system_description_url.trim())) {
+        <p class="mt-1.5 text-xs text-error-500">Escribe un enlace completo que empiece por https://</p>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- ---------- Revisión ---------- -->
+    @default {
+    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="material-symbols-rounded">fact_check</span>
+    </span>
+    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">
+      {{ editing() ? 'Esto es lo que sabemos de tu servicio' : 'Revisa tu servicio' }}
+    </h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{ editing() ? 'Toca «Editar» en lo que quieras cambiar.' : 'Si todo está bien, guárdalo y preparamos tu catálogo. Podrás editarlo después.' }}
+    </p>
+
+    <dl class="mt-8 divide-y divide-gray-100 dark:divide-gray-800">
+      <div class="flex items-start justify-between gap-4 py-4">
+        <div class="min-w-0">
+          <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Servicio</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><strong>{{ draft().name }}</strong></dd>
+          <dd class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ draft().description }}</dd>
+          <dd class="mt-1 text-sm text-gray-600 dark:text-gray-400">Alcance: {{ draft().scope_statement }}</dd>
+        </div>
+        <button type="button" (click)="goTo(0)" class="shrink-0 text-sm font-medium text-primary hover:underline">Editar</button>
+      </div>
+
+      <div class="flex items-start justify-between gap-4 py-4">
+        <div class="min-w-0">
+          <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Clientes</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ labelOf(catalogs()!.type, draft().type) }}</dd>
+          <dd class="mt-1 text-sm text-gray-600 dark:text-gray-400">Sectores: {{ labelsOf(catalogs()!.industries, draft().industries_served) }}</dd>
+          @if (draft().active_client_count) {
+          <dd class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ labelOf(catalogs()!.clientCount, draft().active_client_count) }} clientes activos</dd>
+          }
+        </div>
+        <button type="button" (click)="goTo(1)" class="shrink-0 text-sm font-medium text-primary hover:underline">Editar</button>
+      </div>
+
+      <div class="flex items-start justify-between gap-4 py-4">
+        <div class="min-w-0">
+          <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Datos y alcance</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white">Países: {{ labelsOf(catalogs()!.countries, draft().countries) }}</dd>
+          <dd class="mt-1 text-sm text-gray-600 dark:text-gray-400">Datos: {{ labelsOf(catalogs()!.dataTypes, draft().data_types) }}</dd>
+          <dd class="mt-1 text-sm text-gray-600 dark:text-gray-400">Disponibilidad: {{ labelOf(catalogs()!.availability, draft().expected_availability) }}</dd>
+        </div>
+        <button type="button" (click)="goTo(2)" class="shrink-0 text-sm font-medium text-primary hover:underline">Editar</button>
+      </div>
+
+      <div class="flex items-start justify-between gap-4 py-4">
+        <div class="min-w-0">
+          <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Marco</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ frameworkLabels() }}</dd>
+          <dd class="mt-1 text-sm text-gray-600 dark:text-gray-400">Cubre: {{ labelsOf(catalogs()!.trustCriteria, draft().trust_criteria) }}</dd>
+        </div>
+        <button type="button" (click)="goTo(3)" class="shrink-0 text-sm font-medium text-primary hover:underline">Editar</button>
+      </div>
+
+      <div class="flex items-start justify-between gap-4 py-4">
+        <div class="min-w-0">
+          <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Proveedores</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ labelsOf(catalogs()!.subserviceTypes, selectedSubserviceTypes()) }}</dd>
+        </div>
+        <button type="button" (click)="goTo(4)" class="shrink-0 text-sm font-medium text-primary hover:underline">Editar</button>
+      </div>
+
+      <div class="flex items-start justify-between gap-4 py-4">
+        <div class="min-w-0">
+          <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Cumplimiento</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white">Te aplican: {{ regulationLabels() }}</dd>
+          @if (draft().previous_certification) {
+          <dd class="mt-1 text-sm text-gray-600 dark:text-gray-400">Certificación previa: {{ labelOf(catalogs()!.certifications, draft().previous_certification) }}</dd>
+          }
+          <dd class="mt-1 break-all text-sm text-gray-600 dark:text-gray-400">Descripción del sistema: {{ draft().system_description_url }}</dd>
+        </div>
+        <button type="button" (click)="goTo(5)" class="shrink-0 text-sm font-medium text-primary hover:underline">Editar</button>
+      </div>
+    </dl>
+    }
+    }
+
+    @if (saveError()) {
+    <div class="mt-6 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/20" role="alert">
+      <span class="material-symbols-rounded text-[18px]">error</span>
+      <span>{{ saveError() }}</span>
+    </div>
+    }
+
+    <!-- Navegación -->
+    <div class="mt-10 flex items-center justify-between gap-3">
+      @if (step() > 0) {
+      <button type="button" (click)="back()" [disabled]="stage() === 'saving'"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+        <span class="material-symbols-rounded text-[18px]">arrow_back</span>
+        Atrás
+      </button>
+      } @else {
+      <span></span>
+      }
+
+      @if (step() < reviewStep) {
+      <button type="button" (click)="next()"
+        class="group inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90">
+        {{ step() === steps.length - 1 ? 'Revisar' : 'Siguiente' }}
+        <span class="material-symbols-rounded text-[18px] transition group-hover:translate-x-0.5">arrow_forward</span>
+      </button>
+      } @else {
+      <button type="button" (click)="save()" [disabled]="stage() === 'saving' || !allValid()"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
+        @if (stage() === 'saving') {
+        <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
+        {{ editing() ? 'Guardando…' : 'Preparando tu catálogo…' }}
+        } @else {
+        <span class="material-symbols-rounded text-[20px]">check</span>
+        {{ editing() ? 'Guardar cambios' : 'Guardar y preparar mi catálogo' }}
+        }
+      </button>
+      }
+    </div>
+  </div>
+
+  @if (!editing() && step() < reviewStep) {
+  <p class="mt-4 text-center text-xs text-gray-400">
+    Guardamos tu avance en este navegador: si te interrumpen, retomas donde ibas.
+  </p>
+  }
+  }
+  }
+  }
+</section>

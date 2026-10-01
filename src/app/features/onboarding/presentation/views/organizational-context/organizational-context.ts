@@ -6,6 +6,7 @@ import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 import { CatalogOption, RegulationOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
+import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import {
   OrganizationalContextDraft,
   draftFromContext,
@@ -13,7 +14,6 @@ import {
 } from '../../../domain/models/organizational-context.models';
 import { OnboardingDraftService } from '../../../domain/services/onboarding-draft.service';
 import { OnboardingService } from '../../../domain/services/onboarding.service';
-import { ChipOption, OptionChips } from '../../components/option-chips/option-chips';
 
 interface Catalogs {
   size: CatalogOption[];

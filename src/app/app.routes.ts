@@ -23,6 +23,19 @@ export const routes: Routes = [
         path: 'onboarding',
         loadComponent: () => import('@features/onboarding/presentation/views/organizational-context/organizational-context').then(m => m.OrganizationalContextView),
       },
+      // Componente 2 del onboarding: los servicios de la empresa. `new` va antes que `:id`.
+      {
+        path: 'services',
+        loadComponent: () => import('@features/services/presentation/views/services-list/services-list').then(m => m.ServicesListView),
+      },
+      {
+        path: 'services/new',
+        loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
+      },
+      {
+        path: 'services/:id',
+        loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
+      },
     ]
   },
   // auth pages
