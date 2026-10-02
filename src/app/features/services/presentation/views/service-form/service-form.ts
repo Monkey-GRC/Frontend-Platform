@@ -154,7 +154,7 @@ export class ServiceFormView implements OnInit {
       subserviceTypes: this.catalogService.options('subservice_type'),
       certifications: this.catalogService.options('previous_certification'),
       regulations: this.catalogService.regulations(),
-      // Solo los marcos que la empresa tiene contratados (D43).
+      // Solo los marcos que la empresa tiene contratados (D47).
       frameworks: this.catalogService.contractedFrameworks(),
     }).subscribe({
       next: ({ service, ...catalogs }) => {
