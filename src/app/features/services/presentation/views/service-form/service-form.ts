@@ -154,7 +154,8 @@ export class ServiceFormView implements OnInit {
       subserviceTypes: this.catalogService.options('subservice_type'),
       certifications: this.catalogService.options('previous_certification'),
       regulations: this.catalogService.regulations(),
-      frameworks: this.catalogService.frameworks(),
+      // Solo los marcos que la empresa tiene contratados (D43).
+      frameworks: this.catalogService.contractedFrameworks(),
     }).subscribe({
       next: ({ service, ...catalogs }) => {
         this.catalogs.set(catalogs);
@@ -226,7 +227,11 @@ export class ServiceFormView implements OnInit {
     this.patch({ trust_criteria: this.fullCoverage() ? [SECURITY] : [...ALL_TRUST_CRITERIA] });
   }
 
+  // Con un solo marco contratado (hoy, SOC 2) no hay nada que decidir: va fijo y no se puede quitar.
+  readonly frameworkLocked = computed(() => (this.catalogs()?.frameworks.length ?? 0) === 1);
+
   toggleFramework(code: string): void {
+    if (this.frameworkLocked()) return;
     const list = this.draft().framework_codes;
     this.patch({ framework_codes: list.includes(code) ? list.filter((c) => c !== code) : [...list, code] });
   }
@@ -306,6 +311,11 @@ export class ServiceFormView implements OnInit {
         if (code === 'SERVICE_NAME_TAKEN') {
           this.saveError.set('Ya tienes un servicio con ese nombre. Elige otro para distinguirlos.');
           this.step.set(0);
+          return;
+        }
+        if (code === 'FRAMEWORK_NOT_CONTRACTED') {
+          this.saveError.set(apiErrorMessage(error, 'Tu empresa aún no tiene contratado ese marco. Escríbenos y lo habilitamos.'));
+          this.step.set(3);
           return;
         }
         if (code === 'ORGANIZATION_NOT_DECLARED') {

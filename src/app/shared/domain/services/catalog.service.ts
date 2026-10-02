@@ -25,6 +25,14 @@ export class CatalogService {
     return this.items<FrameworkOption>('frameworks');
   }
 
+  // Los marcos que Monkey Admin contrató para la empresa del cliente (D43). A diferencia de las demás
+  // listas, depende de quién esté en sesión: no se guarda en caché entre sesiones.
+  contractedFrameworks(): Observable<FrameworkOption[]> {
+    return this.http
+      .get<SuccessResponse<{ items: FrameworkOption[] }>>(`${this.baseUrl}/contracted-frameworks`)
+      .pipe(map((res) => res.data?.items ?? []));
+  }
+
   private items<T>(name: string): Observable<T[]> {
     let request = this.cache.get(name);
     if (!request) {

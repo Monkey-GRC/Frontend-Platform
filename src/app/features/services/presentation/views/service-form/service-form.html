@@ -312,18 +312,29 @@
         <div class="grid gap-3">
           @for (f of catalogs()!.frameworks; track f.code) {
           <button type="button" (click)="toggleFramework(f.code)" [attr.aria-pressed]="draft().framework_codes.includes(f.code)"
-            class="flex items-start gap-4 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            [disabled]="frameworkLocked()"
+            class="flex items-start gap-4 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-default"
             [class]="draft().framework_codes.includes(f.code)
               ? 'border-primary bg-primary/5 dark:bg-primary/10'
               : 'border-gray-200 hover:border-primary/50 dark:border-gray-700'">
             <span class="material-symbols-rounded mt-0.5 text-primary">
-              {{ draft().framework_codes.includes(f.code) ? 'check_circle' : 'radio_button_unchecked' }}
+              {{ frameworkLocked() ? 'lock' : draft().framework_codes.includes(f.code) ? 'check_circle' : 'radio_button_unchecked' }}
             </span>
             <span>
-              <span class="block text-sm font-semibold text-gray-900 dark:text-white">{{ f.label }}</span>
+              <span class="block text-sm font-semibold text-gray-900 dark:text-white">
+                {{ f.label }}
+                @if (frameworkLocked()) {
+                <span class="ml-1 text-xs font-normal text-gray-400">(incluido en tu contrato)</span>
+                }
+              </span>
               <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ f.description }}</span>
             </span>
           </button>
+          } @empty {
+          <p class="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            <span class="material-symbols-rounded text-[18px]">info</span>
+            Tu empresa aún no tiene un marco contratado. Escríbenos y lo habilitamos para que puedas continuar.
+          </p>
           }
         </div>
         @if (showHints() && draft().framework_codes.length === 0) {
