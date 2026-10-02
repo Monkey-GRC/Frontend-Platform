@@ -1,0 +1,166 @@
+<div class="rounded-2xl border border-primary/30 bg-white p-6 shadow-sm dark:bg-white/[0.03]">
+
+  @if (stage() === 'type') {
+  <!-- ---------- ¿Qué quieres conectar? ---------- -->
+  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">¿Qué quieres conectar?</h3>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Elige el tipo de sistema. Solo te mostramos lo que aplica a tu servicio.</p>
+  <div class="mt-5 grid gap-3">
+    @for (c of capabilities(); track c.catalog_code) {
+    <button type="button" (click)="choose(c.catalog_code)"
+      class="flex items-start gap-4 rounded-xl border border-gray-200 p-4 text-left transition hover:border-primary/60 hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-gray-700">
+      <span class="material-symbols-rounded mt-0.5 text-primary">add_circle</span>
+      <span>
+        <span class="block text-sm font-semibold text-gray-900 dark:text-white">{{ c.category }}</span>
+        <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ c.method }}</span>
+        <span class="mt-1 block text-xs text-gray-400">Necesitarás: {{ c.required_permissions.join(' · ') }}</span>
+      </span>
+    </button>
+    }
+  </div>
+  <button type="button" (click)="cancelled.emit()" class="mt-5 text-sm font-medium text-gray-500 hover:underline">Cancelar</button>
+
+  } @else {
+  <!-- ---------- Datos del sistema ---------- -->
+  <button type="button" (click)="back()" class="mb-3 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-primary">
+    <span class="material-symbols-rounded text-[18px]">arrow_back</span>
+    Cambiar el tipo
+  </button>
+  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ selected()?.category }}</h3>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ selected()?.method }}</p>
+
+  <p class="mt-4 flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs text-gray-600 dark:bg-gray-900 dark:text-gray-400">
+    <span class="material-symbols-rounded text-[18px] text-primary">lock</span>
+    Monkey solo lee, nunca modifica nada. Tus credenciales se guardan cifradas y no se vuelven a mostrar.
+  </p>
+
+  <div class="mt-6 space-y-6">
+    <div>
+      <label for="asset-name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        ¿Cómo lo llamas? <span class="text-error-500">*</span>
+      </label>
+      <input id="asset-name" type="text" [value]="name()" maxlength="200" autocomplete="off"
+        (input)="name.set($any($event.target).value)" placeholder="Por ejemplo: Servidor de la aplicación"
+        class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+      @if (showHints() && !name().trim()) {
+      <p class="mt-1.5 text-xs text-error-500">Ponle un nombre para reconocerlo después.</p>
+      }
+    </div>
+
+    <div>
+      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Plataforma <span class="text-error-500">*</span></p>
+      <app-option-chips [options]="platformChips()" [selected]="platform() ? [platform()!] : []"
+        ariaLabel="Plataforma" (picked)="platform.set($event)" />
+      @if (showHints() && !platform()) {
+      <p class="mt-2 text-xs text-error-500">Elige la plataforma.</p>
+      }
+    </div>
+
+    @if (usesAgentChoice()) {
+    <div>
+      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">¿Cómo nos conectamos?</p>
+      <app-option-chips [options]="methodChips" [selected]="[method()]" ariaLabel="Forma de conexión"
+        (picked)="method.set($event === 'ssh' ? 'ssh' : 'agent')" />
+    </div>
+    }
+
+    @if (agentOnly()) {
+    <p class="flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+      <span class="material-symbols-rounded text-[18px]">info</span>
+      {{ agentNote }}
+    </p>
+    }
+
+    @for (f of credentialFields(); track f.key) {
+    <div>
+      <label [for]="'cred-' + f.key" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ f.label }} <span class="text-error-500">*</span>
+      </label>
+      @if (f.help) {
+      <p class="mb-2 text-xs text-gray-400">{{ f.help }}</p>
+      }
+      @if (f.multiline) {
+      <textarea [id]="'cred-' + f.key" rows="4" autocomplete="off" spellcheck="false"
+        [value]="secrets()[f.key] ?? ''" (input)="setSecret(f.key, $any($event.target).value)"
+        class="w-full resize-none rounded-lg border border-gray-300 bg-white p-3 font-mono text-xs text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
+      } @else {
+      <input [id]="'cred-' + f.key" [type]="f.secret ? 'password' : 'text'" autocomplete="off" spellcheck="false"
+        [value]="secrets()[f.key] ?? ''" (input)="setSecret(f.key, $any($event.target).value)"
+        class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+      }
+      @if (fieldError(f.key); as e) {
+      <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
+      } @else if (showHints() && !(secrets()[f.key] ?? '').trim()) {
+      <p class="mt-1.5 text-xs text-error-500">Este dato es necesario para conectar.</p>
+      }
+    </div>
+    }
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label for="asset-ip" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Dirección IP <span class="font-normal text-gray-400">(opcional)</span>
+        </label>
+        <input id="asset-ip" type="text" [value]="ip()" autocomplete="off" (input)="ip.set($any($event.target).value)"
+          placeholder="10.20.3.14"
+          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        @if (fieldError('ip_address'); as e) {
+        <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
+        }
+      </div>
+      <div>
+        <label for="asset-location" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          ¿Dónde está? <span class="font-normal text-gray-400">(opcional)</span>
+        </label>
+        <input id="asset-location" type="text" [value]="location()" maxlength="200" autocomplete="off"
+          (input)="location.set($any($event.target).value)" placeholder="Por ejemplo: Azure East US"
+          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+      </div>
+    </div>
+
+    <div>
+      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">¿Qué tan importante es para tu servicio?</p>
+      <app-option-chips [options]="criticalityChips()" [selected]="[criticality()]" ariaLabel="Importancia"
+        (picked)="criticality.set($event)" />
+    </div>
+
+    @if (otherServices().length > 0) {
+    <div>
+      <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">¿También da soporte a otros servicios?</p>
+      <p class="mb-3 text-xs text-gray-400">Así no lo registras dos veces. Es opcional.</p>
+      <div class="space-y-2">
+        @for (s of otherServices(); track s.id) {
+        <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300">
+          <input type="checkbox" [checked]="extraServiceIds().includes(s.id)" (change)="toggleService(s.id)" class="h-4 w-4" />
+          {{ s.name }}
+        </label>
+        }
+      </div>
+    </div>
+    }
+  </div>
+
+  @if (error()) {
+  <div class="mt-6 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/20" role="alert">
+    <span class="material-symbols-rounded text-[18px]">error</span>
+    <span>{{ error() }}</span>
+  </div>
+  }
+
+  <div class="mt-8 flex items-center justify-between gap-3">
+    <button type="button" (click)="cancelled.emit()" [disabled]="saving()"
+      class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+      Cancelar
+    </button>
+    <button type="button" (click)="submit()" [disabled]="saving()"
+      class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90 disabled:opacity-60">
+      @if (saving()) {
+      <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
+      Guardando…
+      } @else {
+      <span class="material-symbols-rounded text-[20px]">add</span>
+      Registrar sistema
+      }
+    </button>
+  </div>
+  }
+</div>

@@ -23,8 +23,10 @@ export interface SectionIcon {
 
 // Configuración de items de navegación
 export const NAV_ITEMS: NavItem[] = [
-    // Vacío a propósito: los items se agregan cuando existan los 3 componentes
-    // del onboarding y el dashboard reconstruido.
+    { icon: 'home', name: 'Inicio', path: '/', section: 'Menu' },
+    { icon: 'apartment', name: 'Mi empresa', path: '/onboarding', section: 'Menu' },
+    { icon: 'inventory_2', name: 'Mis servicios', path: '/services', section: 'Menu' },
+    // Se suman el control técnico y el dashboard cuando existan.
 ];
 
 // Mapeo de iconos para secciones cuando el sidebar está colapsado

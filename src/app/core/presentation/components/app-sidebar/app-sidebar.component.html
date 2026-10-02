@@ -147,7 +147,7 @@
               } @else {
               <!-- Item simple (sin submenú) -->
               @if (item.path) {
-              <a [routerLink]="item.path" routerLinkActive="menu-item-active" class="menu-item group"
+              <a [routerLink]="item.path" routerLinkActive="menu-item-active" [routerLinkActiveOptions]="{ exact: true }" class="menu-item group"
                 [ngClass]="{ 'menu-item-inactive': !isActive(item.path) }">
                 <!-- Google Symbols Icon -->
                 <span class="menu-item-icon-size">

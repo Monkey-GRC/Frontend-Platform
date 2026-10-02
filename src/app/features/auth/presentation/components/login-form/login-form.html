@@ -32,7 +32,7 @@
             </h1>
 
             <p class="text-xs md:text-sm text-gray-400 text-center md:text-left">
-                Usa el usuario o correo y la contraseña que elegiste al activar tu cuenta.
+                Usa el correo y la contraseña que elegiste al activar tu cuenta.
             </p>
 
             <!-- Form Fields -->
@@ -41,23 +41,28 @@
                 <!-- Identifier -->
                 <div class="relative">
                     <label class="block text-xs font-medium text-gray-400 mb-2">
-                        Usuario o correo
+                        Correo electrónico
                     </label>
 
                     <span
                         class="pointer-events-none absolute left-3 top-9 md:top-10 inline-flex items-center text-gray-500">
-                        <span class="material-symbols-rounded text-[20px] md:text-[22px] leading-none">person</span>
+                        <span class="material-symbols-rounded text-[20px] md:text-[22px] leading-none">mail</span>
                     </span>
 
-                    <input formControlName="identifier" type="text" autocomplete="username"
-                        placeholder="tu@empresa.com o usuario"
+                    <input formControlName="email" type="email" autocomplete="email"
+                        placeholder="tu@empresa.com"
                         class="bg-gray-100 dark:bg-[#162036] dark:text-white focus:bg-white dark:focus:bg-[#0E1525]
               w-full pl-10 pr-3 h-11 md:pl-12 md:h-12 text-sm md:text-base rounded-lg border border-gray-300 dark:border-gray-700
               focus:border-primary/60 transition" />
 
-                    @if (hasError('identifier','required')) {
+                    @if (hasError('email','required')) {
                     <p class="mt-1.5 text-xs text-error-500">
                         Este campo es obligatorio.
+                    </p>
+                    }
+                    @if (hasError('email','email')) {
+                    <p class="mt-1.5 text-xs text-error-500">
+                        Ingresa un correo válido.
                     </p>
                     }
                 </div>
@@ -124,7 +129,7 @@
 
                 <p class="text-[11px] md:text-xs text-gray-500 mt-4 text-center md:text-left">
                     ¿Todavía no activaste tu cuenta?
-                    <a routerLink="/register" class="text-primary underline">Actívala con tu código de onboarding</a>.
+                    <a routerLink="/register" class="text-primary underline">Actívala con tu clave de acceso</a>.
                 </p>
             </div>
 

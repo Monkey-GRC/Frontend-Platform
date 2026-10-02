@@ -11,8 +11,36 @@ export const routes: Routes = [
     component: AppLayoutComponent,
     canActivate: [authGuard],
     children: [
-      // Aqui entran los 3 componentes del onboarding (MD-74, MD-78, MD-85)
+      // Bienvenida provisional. Aquí entran los 3 componentes del onboarding (MD-74, MD-78, MD-85)
       // y el dashboard cuando se reconstruya.
+      {
+        path: '',
+        loadComponent: () => import('@features/home/presentation/views/home/home').then(m => m.Home),
+        pathMatch: 'full',
+      },
+      // Componente 1 del onboarding: el cliente cuenta de qué trata su empresa.
+      {
+        path: 'onboarding',
+        loadComponent: () => import('@features/onboarding/presentation/views/organizational-context/organizational-context').then(m => m.OrganizationalContextView),
+      },
+      // Componente 2 del onboarding: los servicios de la empresa. `new` va antes que `:id`.
+      {
+        path: 'services',
+        loadComponent: () => import('@features/services/presentation/views/services-list/services-list').then(m => m.ServicesListView),
+      },
+      {
+        path: 'services/new',
+        loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
+      },
+      // Componente 3 del onboarding: el control técnico de un servicio.
+      {
+        path: 'services/:id/technical-control',
+        loadComponent: () => import('@features/technical-control/presentation/views/technical-control/technical-control').then(m => m.TechnicalControlView),
+      },
+      {
+        path: 'services/:id',
+        loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
+      },
     ]
   },
   // auth pages
