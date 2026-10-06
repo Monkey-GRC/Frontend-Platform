@@ -15,12 +15,14 @@ export interface RegulationOption {
   label: string;
 }
 
-// Un marco que se puede contratar (hoy solo SOC 2).
+// Un marco que Monkey ofrece. `available`: ya tiene catálogo y se puede contratar (hoy solo SOC 2);
+// `coming_soon`: oferta comercial, todavía no se puede elegir (D50).
 export interface FrameworkOption {
   code: string;
   name: string;
   description: string;
   label: string;
+  availability: 'available' | 'coming_soon';
 }
 
 export type CatalogName =

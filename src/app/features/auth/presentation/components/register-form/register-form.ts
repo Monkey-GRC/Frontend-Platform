@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
+import { AccessKeyLookup } from '@features/auth/domain/models/auth.models';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 
 // Política de contraseña del backend (modelo-datos.md §5.3): 12+ con mayúscula, minúscula,
@@ -19,10 +20,12 @@ const passwordsMatch = (group: AbstractControl): ValidationErrors | null =>
     ? null
     : { passwordMismatch: true };
 
-type FieldName = 'code' | 'email' | 'name' | 'last_name' | 'password' | 'password_confirmation';
+type FieldName = 'code' | 'password' | 'password_confirmation';
 
-// Activación de la cuenta (primer y único uso de la clave de acceso). Crea la cuenta del
-// administrador de la empresa; desde ahí se entra siempre con correo y contraseña.
+// Activación de la cuenta (primer y único uso de la clave de acceso), en dos pasos (D51):
+//   1. Solo el código. Con él se muestran la empresa y el correo que Monkey registró.
+//   2. Esos datos quedan fijos; lo único que se escribe es la contraseña y su confirmación.
+// El administrador se identifica por su correo: no se le pide nombre ni apellido.
 @Component({
   selector: 'app-register-form',
   imports: [ReactiveFormsModule, RouterLink],
@@ -35,35 +38,80 @@ export class RegisterForm {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
+  readonly step = signal<1 | 2>(1);
+  // Lo que Monkey fijó para esta empresa; solo existe en el paso 2.
+  readonly lookup = signal<AccessKeyLookup | null>(null);
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   // Errores por campo que devuelve el backend (422), para mostrarlos bajo cada input.
   readonly serverErrors = signal<Partial<Record<FieldName, string>>>({});
 
-  readonly form = this.fb.nonNullable.group(
+  readonly codeForm = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.maxLength(32)]],
+  });
+
+  readonly passwordForm = this.fb.nonNullable.group(
     {
-      code: ['', [Validators.required, Validators.maxLength(32)]],
-      email: ['', [Validators.required, Validators.email]],
-      name: ['', [Validators.required, Validators.maxLength(100)]],
-      last_name: ['', [Validators.required, Validators.maxLength(100)]],
       password: ['', [Validators.required, Validators.pattern(STRONG_PASSWORD)]],
       password_confirmation: ['', Validators.required],
     },
     { validators: passwordsMatch },
   );
 
-  hasError(name: FieldName, key: string): boolean {
-    const control = this.form.get(name);
+  hasCodeError(key: string): boolean {
+    const control = this.codeForm.get('code');
+    return !!control && control.touched && control.hasError(key);
+  }
+
+  hasPasswordError(name: 'password' | 'password_confirmation', key: string): boolean {
+    const control = this.passwordForm.get(name);
     return !!control && control.touched && control.hasError(key);
   }
 
   get passwordMismatch(): boolean {
-    return !!this.form.get('password_confirmation')?.touched && this.form.hasError('passwordMismatch');
+    return (
+      !!this.passwordForm.get('password_confirmation')?.touched && this.passwordForm.hasError('passwordMismatch')
+    );
   }
 
+  // Paso 1: comprueba el código. No lo gasta: solo trae la empresa y el correo.
+  continue(): void {
+    if (this.codeForm.invalid) {
+      this.codeForm.markAllAsTouched();
+      return;
+    }
+    this.loading.set(true);
+    this.errorMessage.set(null);
+    this.serverErrors.set({});
+
+    this.authService.lookupAccessKey(this.codeForm.getRawValue().code.trim()).subscribe({
+      next: (found) => {
+        this.loading.set(false);
+        this.lookup.set(found);
+        this.step.set(2);
+      },
+      error: (error) => {
+        this.loading.set(false);
+        this.errorMessage.set(apiErrorMessage(error, 'No pudimos comprobar la clave. Intenta de nuevo.'));
+      },
+    });
+  }
+
+  // Volver al paso 1 para corregir el código.
+  changeCode(): void {
+    this.lookup.set(null);
+    this.passwordForm.reset();
+    this.errorMessage.set(null);
+    this.serverErrors.set({});
+    this.step.set(1);
+  }
+
+  // Paso 2: crea la cuenta con la contraseña. El correo es el que fijó Monkey, no se edita.
   submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    const found = this.lookup();
+    if (!found) return;
+    if (this.passwordForm.invalid) {
+      this.passwordForm.markAllAsTouched();
       return;
     }
 
@@ -71,14 +119,11 @@ export class RegisterForm {
     this.errorMessage.set(null);
     this.serverErrors.set({});
 
-    const { code, email, name, last_name, password } = this.form.getRawValue();
     this.authService
       .redeem({
-        code: code.trim(),
-        email: email.trim().toLowerCase(),
-        name: name.trim(),
-        last_name: last_name.trim(),
-        password,
+        code: this.codeForm.getRawValue().code.trim(),
+        email: found.admin_email,
+        password: this.passwordForm.getRawValue().password,
       })
       .subscribe({
         next: (payload) => {

@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, forkJoin, of } from 'rxjs';
+import { Observable, catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { AuthService } from '@features/auth/domain/services/auth.service';
-import { CatalogOption, FrameworkOption, RegulationOption } from '@shared/domain/models/catalog.models';
+import { CatalogOption, FrameworkOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import {
@@ -16,6 +16,7 @@ import {
   emptyServiceDraft,
   inputFromDraft,
   isHttpUrl,
+  systemDescriptionFileError,
 } from '../../../domain/models/service.models';
 import { ServiceDraftService } from '../../../domain/services/service-draft.service';
 import { ServiceService } from '../../../domain/services/service.service';
@@ -30,8 +31,9 @@ interface Catalogs {
   trustCriteria: CatalogOption[];
   subserviceTypes: CatalogOption[];
   certifications: CatalogOption[];
-  regulations: RegulationOption[];
+  // Todos los marcos que Monkey ofrece (gancho comercial); `contracted` son los que esta empresa puede elegir (D50).
   frameworks: FrameworkOption[];
+  contracted: FrameworkOption[];
 }
 
 // Las 6 pantallas del Componente 2 (contexto del servicio) y una de revisión. Agrupan los 16
@@ -45,23 +47,44 @@ const STEPS = [
   { key: 'compliance', label: 'Cumplimiento', icon: 'gavel' },
 ] as const;
 const REVIEW_STEP = STEPS.length;
+const FRAMEWORK_STEP = 3;
 const TEXT_MAX = 2000;
-const NONE = 'none';
 
-// Qué significa cada criterio de confianza, dicho sin jerga (las 5 opciones son fijas: SOC 2).
-const CRITERION_HELP: Record<string, string> = {
-  security: 'Proteger los sistemas y los datos contra accesos no autorizados.',
-  availability: 'Que el servicio esté disponible cuando tus clientes lo necesitan.',
-  confidentiality: 'Mantener protegida la información confidencial de tus clientes.',
-  integrity: 'Que el procesamiento de la información sea completo, válido y exacto.',
-  privacy: 'Manejar los datos personales como prometiste a las personas.',
+// Qué significa cada categoría de SOC 2, dicho sin jerga y con ejemplos de lo que revisaremos contigo.
+// Hoy solo SOC 2 está construido; cuando llegue otro marco tendrá sus propias categorías (D50).
+interface CriterionInfo {
+  help: string;
+  examples: string[];
+}
+const CRITERION_INFO: Record<string, CriterionInfo> = {
+  security: {
+    help: 'Proteger tus sistemas y los datos de tus clientes contra accesos no autorizados. Es la base de todo y siempre va incluida.',
+    examples: ['Quién entra y con qué permisos', 'Cómo gestionas cambios y riesgos', 'Cómo detectas y respondes a incidentes'],
+  },
+  availability: {
+    help: 'Que tu servicio esté disponible cuando tus clientes lo necesitan, y que se recupere si algo falla.',
+    examples: ['Copias de seguridad y recuperación', 'Capacidad y monitoreo del servicio', 'Plan ante caídas'],
+  },
+  confidentiality: {
+    help: 'Mantener protegida la información que tus clientes te entregan como confidencial, durante todo su ciclo de vida.',
+    examples: ['Cifrado de información sensible', 'Quién puede ver datos confidenciales', 'Cómo se elimina al terminar el contrato'],
+  },
+  integrity: {
+    help: 'Que tu servicio procese la información de forma completa, válida, exacta y a tiempo.',
+    examples: ['Controles de calidad en el procesamiento', 'Detección de errores y duplicados', 'Entradas y salidas verificadas'],
+  },
+  privacy: {
+    help: 'Manejar los datos personales como prometiste a las personas: qué recolectas, para qué, por cuánto tiempo.',
+    examples: ['Aviso de privacidad y consentimiento', 'Atención a solicitudes de acceso o borrado', 'Conservación y entrega a terceros'],
+  },
 };
 
 type Stage = 'loading' | 'error' | 'form' | 'saving' | 'done';
-type MultiKey = 'industries_served' | 'countries' | 'data_types' | 'regulation_codes';
+type MultiKey = 'industries_served' | 'countries' | 'data_types';
 type SingleKey = 'type' | 'active_client_count' | 'expected_availability' | 'previous_certification';
 type TextKey = 'name' | 'description' | 'scope_statement';
-type SubserviceTextKey = 'provider' | 'service_provided' | 'responsibility';
+// El nombre del proveedor ya no se pregunta: el tipo que eligió (AWS, Azure…) ya lo dice.
+type SubserviceTextKey = 'service_provided' | 'responsibility';
 
 @Component({
   selector: 'app-service-form',
@@ -81,7 +104,7 @@ export class ServiceFormView implements OnInit {
   readonly steps = STEPS;
   readonly reviewStep = REVIEW_STEP;
   readonly textMax = TEXT_MAX;
-  readonly criterionHelp = CRITERION_HELP;
+  readonly criterionInfo = CRITERION_INFO;
   readonly security = SECURITY;
 
   readonly stage = signal<Stage>('loading');
@@ -96,6 +119,8 @@ export class ServiceFormView implements OnInit {
   readonly needsCompany = signal(false);
 
   private userId: string | null = null;
+  // El servicio se guardó pero el archivo no se pudo subir (para decir qué falló).
+  private uploadFailed = false;
 
   readonly editing = computed(() => this.serviceId() !== null);
   readonly stepValid = computed(() => this.isStepValid(this.step(), this.draft()));
@@ -104,9 +129,6 @@ export class ServiceFormView implements OnInit {
   // Países del servicio: las regiones ("Unión Europea", "Latinoamérica", "Global") van aparte.
   readonly countryMain = computed(() => this.chips(this.catalogs()?.countries, 'country'));
   readonly countryRegions = computed(() => this.chips(this.catalogs()?.countries, 'region'));
-  readonly regulationChips = computed<ChipOption[]>(() =>
-    (this.catalogs()?.regulations ?? []).map((r) => ({ value: r.code, label: r.label })),
-  );
   readonly subserviceChips = computed<ChipOption[]>(() => this.options(this.catalogs()?.subserviceTypes));
   readonly selectedSubserviceTypes = computed(() => this.draft().subservices.map((s) => s.type));
   readonly fullCoverage = computed(() => ALL_TRUST_CRITERIA.every((c) => this.draft().trust_criteria.includes(c)));
@@ -114,6 +136,25 @@ export class ServiceFormView implements OnInit {
     const url = this.draft().system_description_url.trim();
     return url.length > 0 && !isHttpUrl(url);
   });
+
+  // Descripción del Sistema (D51): el enlace, un archivo de su equipo, o las dos. Con una basta.
+  // El archivo elegido no se guarda en el navegador con el borrador: si recarga, lo vuelve a elegir.
+  readonly systemFile = signal<File | null>(null);
+  readonly systemFileError = signal<string | null>(null);
+  // El archivo que ya está guardado en el servidor (al editar un servicio).
+  readonly existingFileName = signal<string | null>(null);
+  readonly hasSystemDescription = computed(
+    () => isHttpUrl(this.draft().system_description_url) || !!this.systemFile() || !!this.existingFileName(),
+  );
+
+  // Marcos: se muestran todos; solo se pueden elegir los que la empresa contrató. Elegir otro abre el aviso
+  // de ventas (mock por ahora, DT-38) en vez de seleccionarlo.
+  readonly salesFramework = signal<FrameworkOption | null>(null);
+  readonly contractedCodes = computed(() => new Set((this.catalogs()?.contracted ?? []).map((f) => f.code)));
+
+  // Alerta de cobertura parcial: se avisa una vez por combinación de categorías; si sigue igual, se respeta.
+  readonly coverageWarning = signal(false);
+  private coverageAcknowledged: string | null = null;
 
   constructor() {
     // Guarda el avance en el navegador mientras el cliente escribe (solo en un servicio nuevo).
@@ -153,23 +194,26 @@ export class ServiceFormView implements OnInit {
       trustCriteria: this.catalogService.options('trust_criterion'),
       subserviceTypes: this.catalogService.options('subservice_type'),
       certifications: this.catalogService.options('previous_certification'),
-      regulations: this.catalogService.regulations(),
-      // Solo los marcos que la empresa tiene contratados (D47).
-      frameworks: this.catalogService.contractedFrameworks(),
+      // Todos los marcos que Monkey ofrece, y aparte los que esta empresa tiene contratados (D47, D50).
+      frameworks: this.catalogService.frameworks(),
+      contracted: this.catalogService.contractedFrameworks(),
     }).subscribe({
       next: ({ service, ...catalogs }) => {
         this.catalogs.set(catalogs);
         if (service) {
           // Ya lo había declarado: se muestra lo guardado, en la revisión, para editar lo que quiera.
           this.draft.set(draftFromService(service));
+          this.existingFileName.set(service.system_description?.file_name ?? null);
           this.step.set(REVIEW_STEP);
         } else {
           const stored = this.userId ? this.drafts.load(this.userId) : null;
           const base = stored ? { ...emptyServiceDraft(), ...stored.draft } : emptyServiceDraft();
-          // Con un solo marco disponible (SOC 2) no hay nada que decidir: ya viene elegido.
-          if (base.framework_codes.length === 0 && catalogs.frameworks.length === 1) {
-            base.framework_codes = [catalogs.frameworks[0].code];
+          // Con un solo marco contratado (hoy, SOC 2) no hay nada que decidir: ya viene elegido.
+          if (base.framework_codes.length === 0 && catalogs.contracted.length === 1) {
+            base.framework_codes = [catalogs.contracted[0].code];
           }
+          // Un borrador viejo pudo guardar un marco que ya no está contratado: se descarta.
+          base.framework_codes = base.framework_codes.filter((c) => catalogs.contracted.some((f) => f.code === c));
           if (!base.trust_criteria.includes(SECURITY)) base.trust_criteria = [SECURITY, ...base.trust_criteria];
           this.draft.set(base);
           if (stored) this.step.set(Math.min(Math.max(stored.step, 0), REVIEW_STEP));
@@ -198,22 +242,36 @@ export class ServiceFormView implements OnInit {
   }
 
   toggle(key: MultiKey, value: string): void {
-    if (key === 'regulation_codes') return this.toggleRegulation(value);
     const list = this.draft()[key];
     this.patch({ [key]: list.includes(value) ? list.filter((v) => v !== value) : [...list, value] });
   }
 
-  // "Ninguna" significa que no le aplica ninguna: elegirla limpia las demás, y elegir otra la quita.
-  private toggleRegulation(code: string): void {
-    const current = this.draft().regulation_codes;
-    let next: string[];
-    if (code === NONE) {
-      next = current.includes(NONE) ? [] : [NONE];
-    } else {
-      const without = current.filter((c) => c !== NONE);
-      next = without.includes(code) ? without.filter((c) => c !== code) : [...without, code];
-    }
-    this.patch({ regulation_codes: next });
+  // ---------- archivo de la Descripción del Sistema ----------
+
+  pickSystemFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = ''; // permite volver a elegir el mismo archivo después de quitarlo
+    if (!file) return;
+    const problem = systemDescriptionFileError(file);
+    this.systemFileError.set(problem);
+    this.systemFile.set(problem ? null : file);
+  }
+
+  // Pide un enlace temporal (5 min) y abre el archivo guardado; el almacenamiento no es público.
+  downloadExistingFile(): void {
+    const id = this.serviceId();
+    if (!id) return;
+    this.services.systemDescriptionDownload(id).subscribe({
+      next: (link) => window.open(link.url, '_blank', 'noopener'),
+      error: (error) =>
+        this.systemFileError.set(apiErrorMessage(error, 'No pudimos abrir el archivo. Inténtalo de nuevo.')),
+    });
+  }
+
+  clearSystemFile(): void {
+    this.systemFile.set(null);
+    this.systemFileError.set(null);
   }
 
   toggleCriterion(value: string): void {
@@ -227,13 +285,46 @@ export class ServiceFormView implements OnInit {
     this.patch({ trust_criteria: this.fullCoverage() ? [SECURITY] : [...ALL_TRUST_CRITERIA] });
   }
 
-  // Con un solo marco contratado (hoy, SOC 2) no hay nada que decidir: va fijo y no se puede quitar.
-  readonly frameworkLocked = computed(() => (this.catalogs()?.frameworks.length ?? 0) === 1);
+  isContracted(code: string): boolean {
+    return this.contractedCodes().has(code);
+  }
 
-  toggleFramework(code: string): void {
-    if (this.frameworkLocked()) return;
+  // Un marco contratado se marca o desmarca; uno que no, abre el aviso de ventas y no se selecciona.
+  pickFramework(framework: FrameworkOption): void {
+    if (!this.isContracted(framework.code)) {
+      this.salesFramework.set(framework);
+      return;
+    }
     const list = this.draft().framework_codes;
-    this.patch({ framework_codes: list.includes(code) ? list.filter((c) => c !== code) : [...list, code] });
+    this.patch({
+      framework_codes: list.includes(framework.code)
+        ? list.filter((c) => c !== framework.code)
+        : [...list, framework.code],
+    });
+  }
+
+  closeSales(): void {
+    this.salesFramework.set(null);
+  }
+
+  // Cubrir todas las categorías es lo recomendable; si el cliente decide no hacerlo, se respeta (D50).
+  private coverageKey(): string {
+    return [...this.draft().trust_criteria].sort().join(',');
+  }
+
+  keepPartialCoverage(): void {
+    this.coverageAcknowledged = this.coverageKey();
+    this.coverageWarning.set(false);
+    this.advance();
+  }
+
+  coverAll(): void {
+    this.patch({ trust_criteria: [...ALL_TRUST_CRITERIA] });
+    this.coverageWarning.set(false);
+  }
+
+  dismissCoverageWarning(): void {
+    this.coverageWarning.set(false);
   }
 
   // Elegir un tipo de proveedor agrega su ficha; quitarlo la saca. Una ficha por tipo.
@@ -263,6 +354,15 @@ export class ServiceFormView implements OnInit {
       this.showHints.set(true);
       return;
     }
+    // En el paso del marco, cubrir solo parte de las categorías pide confirmación (una vez por combinación).
+    if (this.step() === FRAMEWORK_STEP && !this.fullCoverage() && this.coverageAcknowledged !== this.coverageKey()) {
+      this.coverageWarning.set(true);
+      return;
+    }
+    this.advance();
+  }
+
+  private advance(): void {
     this.showHints.set(false);
     this.step.update((s) => s + 1);
     this.scrollTop();
@@ -292,12 +392,31 @@ export class ServiceFormView implements OnInit {
     }
     const input = inputFromDraft(this.draft());
     const id = this.serviceId();
+    const file = this.systemFile();
     this.stage.set('saving');
     this.saveError.set(null);
-    (id ? this.services.update(id, input) : this.services.create(input)).subscribe({
+
+    // Con archivo: primero el servicio y, ya con id, el archivo. Si el archivo falla, el servicio queda
+    // guardado y el formulario pasa a editarlo (no se crea otro al reintentar).
+    const request$ = (id ? this.services.update(id, input) : this.services.create(input)).pipe(
+      switchMap((service) => {
+        if (!file) return of(service);
+        this.serviceId.set(service.id);
+        return this.services.uploadSystemDescription(service.id, file).pipe(
+          catchError((error) => {
+            this.uploadFailed = true;
+            return throwError(() => error);
+          }),
+        );
+      }),
+    );
+    this.uploadFailed = false;
+
+    request$.subscribe({
       next: (service) => {
         if (this.userId) this.drafts.clear(this.userId);
         this.saved.set(service);
+        this.systemFile.set(null);
         // Primero se refresca la sesión (el siguiente paso del onboarding lo calcula el backend) y
         // solo después se muestra «¡Listo!»: así Inicio nunca enseña por un instante el paso anterior.
         this.auth.validate().subscribe(() => {
@@ -306,6 +425,15 @@ export class ServiceFormView implements OnInit {
         });
       },
       error: (error) => {
+        if (this.uploadFailed) {
+          this.stage.set('form');
+          this.step.set(5);
+          this.saveError.set(
+            'Guardamos tu servicio, pero no pudimos subir el archivo. ' +
+              apiErrorMessage(error, 'Inténtalo de nuevo o usa un enlace.'),
+          );
+          return;
+        }
         this.stage.set('form');
         const code = apiErrorCode(error);
         if (code === 'SERVICE_NAME_TAKEN') {
@@ -315,7 +443,7 @@ export class ServiceFormView implements OnInit {
         }
         if (code === 'FRAMEWORK_NOT_CONTRACTED') {
           this.saveError.set(apiErrorMessage(error, 'Tu empresa aún no tiene contratado ese marco. Escríbenos y lo habilitamos.'));
-          this.step.set(3);
+          this.step.set(FRAMEWORK_STEP);
           return;
         }
         if (code === 'ORGANIZATION_NOT_DECLARED') {
@@ -335,6 +463,10 @@ export class ServiceFormView implements OnInit {
   addAnother(): void {
     this.saved.set(null);
     this.serviceId.set(null);
+    this.systemFile.set(null);
+    this.systemFileError.set(null);
+    this.existingFileName.set(null);
+    this.coverageAcknowledged = null;
     this.draft.set(this.freshDraft());
     this.step.set(0);
     this.stage.set('form');
@@ -344,8 +476,8 @@ export class ServiceFormView implements OnInit {
 
   private freshDraft(): ServiceDraft {
     const base = emptyServiceDraft();
-    const frameworks = this.catalogs()?.frameworks ?? [];
-    if (frameworks.length === 1) base.framework_codes = [frameworks[0].code];
+    const contracted = this.catalogs()?.contracted ?? [];
+    if (contracted.length === 1) base.framework_codes = [contracted[0].code];
     return base;
   }
 
@@ -357,12 +489,6 @@ export class ServiceFormView implements OnInit {
 
   labelsOf(options: { value: string; label: string }[] | undefined, values: string[]): string {
     const labels = values.map((v) => options?.find((o) => o.value === v)?.label ?? v);
-    return labels.length > 0 ? labels.join(', ') : '—';
-  }
-
-  regulationLabels(): string {
-    const all = this.catalogs()?.regulations ?? [];
-    const labels = this.draft().regulation_codes.map((c) => all.find((r) => r.code === c)?.label ?? c);
     return labels.length > 0 ? labels.join(', ') : '—';
   }
 
@@ -395,7 +521,9 @@ export class ServiceFormView implements OnInit {
       case 4:
         return d.subservices.length > 0;
       case 5:
-        return d.regulation_codes.length > 0 && isHttpUrl(d.system_description_url);
+        // La Descripción del Sistema: el enlace, un archivo, o las dos. Con una basta; si escribió un
+        // enlace, tiene que ser válido.
+        return !this.urlInvalid() && this.hasSystemDescription();
       default:
         return true;
     }

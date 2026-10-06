@@ -5,8 +5,9 @@ import { Injectable, computed, signal } from '@angular/core';
 export interface SessionUser {
   id: string;
   email: string;
-  name: string;
-  last_name: string;
+  // Opcionales: la cuenta se identifica por el correo (D51).
+  name: string | null;
+  last_name: string | null;
   role: string;
 }
 

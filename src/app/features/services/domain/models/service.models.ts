@@ -17,10 +17,11 @@ export interface SubserviceOrganization {
   responsibility: string | null;
 }
 
+// Enlace y/o archivo (D51): pueden venir los dos. El archivo no expone su llave; se baja con un enlace temporal.
 export interface SystemDescription {
   id: string;
-  kind: 'link' | 'file';
-  url: string;
+  url: string | null;
+  file_name: string | null;
   sections: unknown[];
 }
 
@@ -37,7 +38,6 @@ export interface Service {
   data_types: string[];
   trust_criteria: string[];
   frameworks: ServiceFrameworkRef[];
-  regulations: { code: string; name: string; jurisdiction: string }[];
   subservice_organizations: SubserviceOrganization[];
   previous_certification: string | null;
   expected_availability: string;
@@ -98,10 +98,10 @@ export interface ServiceInput {
     responsibility: string | null;
   }[];
   framework_codes: string[];
-  regulation_codes: string[];
   previous_certification: string | null;
   expected_availability: string;
-  system_description: { kind: 'link'; url: string };
+  // Opcional: con archivo, el servicio se crea y el archivo se sube a continuación (D51).
+  system_description?: { kind: 'link'; url: string };
 }
 
 // Las respuestas del cliente mientras las escribe (aún sin validar).
@@ -125,7 +125,6 @@ export interface ServiceDraft {
   trust_criteria: string[];
   framework_codes: string[];
   subservices: SubserviceDraft[];
-  regulation_codes: string[];
   previous_certification: string | null;
   system_description_url: string;
 }
@@ -147,7 +146,6 @@ export const emptyServiceDraft = (): ServiceDraft => ({
   trust_criteria: [SECURITY],
   framework_codes: [],
   subservices: [],
-  regulation_codes: [],
   previous_certification: null,
   system_description_url: '',
 });
@@ -170,7 +168,6 @@ export const draftFromService = (s: Service): ServiceDraft => ({
     service_provided: o.service_provided ?? '',
     responsibility: o.responsibility ?? '',
   })),
-  regulation_codes: s.regulations.map((r) => r.code),
   previous_certification: s.previous_certification,
   system_description_url: s.system_description?.url ?? '',
 });
@@ -195,10 +192,12 @@ export const inputFromDraft = (d: ServiceDraft): ServiceInput => ({
     responsibility: orNull(s.responsibility),
   })),
   framework_codes: d.framework_codes,
-  regulation_codes: d.regulation_codes,
   previous_certification: d.previous_certification,
   expected_availability: d.expected_availability!,
-  system_description: { kind: 'link', url: d.system_description_url.trim() },
+  // El archivo no viaja aquí: se sube aparte, cuando el servicio ya existe.
+  ...(d.system_description_url.trim()
+    ? { system_description: { kind: 'link' as const, url: d.system_description_url.trim() } }
+    : {}),
 });
 
 export const isHttpUrl = (value: string): boolean => {
@@ -208,4 +207,14 @@ export const isHttpUrl = (value: string): boolean => {
   } catch {
     return false;
   }
+};
+
+// Archivo de la Descripción del Sistema: PDF o Word, hasta 25 MB (contrato del Componente 2).
+export const SYSTEM_DESCRIPTION_MAX_BYTES = 25 * 1024 * 1024;
+export const systemDescriptionFileError = (file: File): string | null => {
+  const name = file.name.toLowerCase();
+  if (!name.endsWith('.pdf') && !name.endsWith('.docx')) return 'Solo se aceptan archivos PDF o Word (.docx).';
+  if (file.size > SYSTEM_DESCRIPTION_MAX_BYTES) return 'El archivo supera el máximo de 25 MB.';
+  if (file.size === 0) return 'El archivo está vacío.';
+  return null;
 };
