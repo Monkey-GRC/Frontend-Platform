@@ -4,13 +4,19 @@ export interface LoginDto {
   password: string;
 }
 
-// Primer acceso: canje de la clave de acceso que entregó Monkey (una sola vez).
+// Activación en dos pasos (D51). Paso 1: con solo el código se muestra la empresa y el correo que fijó Monkey.
+export interface AccessKeyLookup {
+  company: { name: string };
+  admin_email: string;
+  expires_at: string;
+}
+
+// Paso 2 — primer acceso: canjea la clave de acceso (una sola vez). El administrador se identifica por su
+// correo: solo se pide la contraseña.
 export interface RedeemDto {
   code: string;
   email: string;
   password: string;
-  name: string;
-  last_name: string;
 }
 
 export type UserRole = 'admin_monkey' | 'admin_empresa' | 'funcional' | 'auditor';
@@ -18,8 +24,9 @@ export type UserRole = 'admin_monkey' | 'admin_empresa' | 'funcional' | 'auditor
 export interface AuthUser {
   id: string;
   email: string;
-  name: string;
-  last_name: string;
+  // Opcionales: la cuenta se identifica por el correo (D51).
+  name: string | null;
+  last_name: string | null;
   role: UserRole;
   status: 'active' | 'inactive' | 'suspended';
   is_mfa_enabled: boolean;

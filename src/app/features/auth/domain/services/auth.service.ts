@@ -14,7 +14,7 @@ import {
 import { environment } from '@environments/environment';
 import { SessionService } from '@core/domain/services/session.service';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { AuthPayload, LoginDto, RedeemDto } from '../models/auth.models';
+import { AccessKeyLookup, AuthPayload, LoginDto, RedeemDto } from '../models/auth.models';
 
 // Monkey Platform es para las empresas cliente; el equipo Monkey trabaja en Monkey Admin (D24).
 const PLATFORM_EXCLUDED_ROLE = 'admin_monkey';
@@ -36,7 +36,14 @@ export class AuthService {
       .pipe(switchMap((res) => this.acceptSession(res.data!)));
   }
 
-  /** Primer acceso: canjea la clave de acceso y crea la cuenta del administrador de la empresa. */
+  /** Paso 1 de la activación: con el código, la empresa y el correo que fijó Monkey (no gasta la clave). */
+  lookupAccessKey(code: string): Observable<AccessKeyLookup> {
+    return this.http
+      .post<SuccessResponse<AccessKeyLookup>>(`${this.baseUrl}/redeem/lookup`, { code })
+      .pipe(map((res) => res.data!));
+  }
+
+  /** Paso 2: canjea la clave de acceso y crea la cuenta del administrador de la empresa. */
   redeem(dto: RedeemDto): Observable<AuthPayload> {
     return this.http
       .post<SuccessResponse<AuthPayload>>(`${this.baseUrl}/redeem`, dto)
