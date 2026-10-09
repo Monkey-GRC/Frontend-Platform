@@ -2,9 +2,9 @@
 
   @if (stage() === 'type') {
   <!-- ---------- ¿Qué quieres conectar? ---------- -->
-  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">¿Qué quieres conectar?</h3>
-  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Elige el tipo de sistema. Solo te mostramos lo que aplica a tu servicio.</p>
-  <div class="mt-5 grid gap-3">
+  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">¿Qué activo quieres registrar?</h3>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Solo te mostramos lo que aplica a tu servicio.</p>
+  <div class="mt-5 grid gap-3 md:grid-cols-2">
     @for (c of capabilities(); track c.catalog_code) {
     <button type="button" (click)="choose(c.catalog_code)"
       class="flex items-start gap-4 rounded-xl border border-gray-200 p-4 text-left transition hover:border-primary/60 hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-gray-700">
@@ -20,7 +20,7 @@
   <button type="button" (click)="cancelled.emit()" class="mt-5 text-sm font-medium text-gray-500 hover:underline">Cancelar</button>
 
   } @else {
-  <!-- ---------- Datos del sistema ---------- -->
+  <!-- ---------- Datos del activo ---------- -->
   <button type="button" (click)="back()" class="mb-3 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-primary">
     <span class="material-symbols-rounded text-[18px]">arrow_back</span>
     Cambiar el tipo
@@ -30,7 +30,7 @@
 
   <p class="mt-4 flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs text-gray-600 dark:bg-gray-900 dark:text-gray-400">
     <span class="material-symbols-rounded text-[18px] text-primary">lock</span>
-    Monkey solo lee, nunca modifica nada. Tus credenciales se guardan cifradas y no se vuelven a mostrar.
+    Monkey solo lee, nunca modifica nada. Lo que compartas (llaves o contraseñas, si tu conexión las pide) se guarda cifrado y no se vuelve a mostrar.
   </p>
 
   <div class="mt-6 space-y-6">
@@ -46,6 +46,7 @@
       }
     </div>
 
+    @if (!isCloud()) {
     <div>
       <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Plataforma <span class="text-error-500">*</span></p>
       <app-option-chips [options]="platformChips()" [selected]="platform() ? [platform()!] : []"
@@ -54,6 +55,84 @@
       <p class="mt-2 text-xs text-error-500">Elige la plataforma.</p>
       }
     </div>
+    } @else {
+    <!-- ---------- Nube (AWS): canal, cuenta y regiones ---------- -->
+    <div>
+      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">¿Cómo quieres conectar tu cuenta de AWS? <span class="text-error-500">*</span></p>
+      <div class="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Forma de conexión">
+        @for (m of cloudMethodOptions(); track m.value) {
+        <button type="button" role="radio" [attr.aria-checked]="cloudMethod() === m.value" (click)="cloudMethod.set($any(m.value))"
+          class="flex items-start gap-3 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          [class]="cloudMethod() === m.value ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/50 dark:border-gray-700'">
+          <span class="material-symbols-rounded mt-0.5 text-primary">{{ m.value === 'readonly_role' ? 'verified_user' : 'key' }}</span>
+          <span>
+            <span class="block text-sm font-semibold text-gray-900 dark:text-white">{{ m.label }}</span>
+            <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+              {{ m.value === 'readonly_role'
+                ? 'No compartes ninguna contraseña ni llave: creas en tu cuenta un rol que solo puede leer y nos dices cuál es.'
+                : 'Pegas una llave de acceso de solo lectura. Dura mucho tiempo, por eso es menos segura que un rol.' }}
+            </span>
+          </span>
+        </button>
+        }
+      </div>
+    </div>
+
+    <div>
+      <label for="aws-account" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Número de tu cuenta de AWS <span class="text-error-500">*</span></label>
+      <p class="mb-2 text-xs text-gray-400">Son 12 dígitos. Lo ves arriba a la derecha en la consola de AWS, al abrir el menú de tu usuario.</p>
+      <input id="aws-account" type="text" inputmode="numeric" maxlength="12" autocomplete="off" [value]="accountId()"
+        (input)="setAccountId($any($event.target).value)" placeholder="123456789012"
+        class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+      @if (fieldError('external_account_id'); as e) {
+      <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
+      } @else if (showHints() && !accountIdValid()) {
+      <p class="mt-1.5 text-xs text-error-500">Escribe los 12 dígitos de la cuenta.</p>
+      }
+    </div>
+
+    <div>
+      <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">¿En qué regiones tienes recursos? <span class="text-error-500">*</span></p>
+      <p class="mb-3 text-xs text-gray-400">Solo miraremos las regiones que elijas. Puedes marcar varias.</p>
+      <app-option-chips [options]="regionChips()" [selected]="regions()" [multiple]="true" ariaLabel="Regiones de AWS"
+        (picked)="toggleRegion($event)" />
+      @if (fieldError('regions'); as e) {
+      <p class="mt-2 text-xs text-error-500">{{ e }}</p>
+      } @else if (showHints() && regions().length === 0) {
+      <p class="mt-2 text-xs text-error-500">Elige al menos una región.</p>
+      }
+    </div>
+
+    @if (cloudMethod() === 'access_keys') {
+    <div class="space-y-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-900/10">
+      <p class="flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300">
+        <span class="material-symbols-rounded text-[18px]">warning</span>
+        Usa un usuario de IAM que solo tenga las políticas SecurityAudit y ViewOnlyAccess. La llave se guarda cifrada y no se vuelve a mostrar.
+      </p>
+      <div>
+        <label for="aws-key-id" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">ID de la llave de acceso <span class="text-error-500">*</span></label>
+        <input id="aws-key-id" type="text" autocomplete="off" spellcheck="false" [value]="accessKeyId()" (input)="accessKeyId.set($any($event.target).value)"
+          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        @if (fieldError('access_key_id'); as e) {
+        <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
+        }
+      </div>
+      <div>
+        <label for="aws-key-secret" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Llave secreta <span class="text-error-500">*</span></label>
+        <input id="aws-key-secret" type="password" autocomplete="off" spellcheck="false" [value]="secretAccessKey()" (input)="secretAccessKey.set($any($event.target).value)"
+          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        @if (fieldError('secret_access_key'); as e) {
+        <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
+        }
+      </div>
+    </div>
+    }
+
+    <p class="flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+      <span class="material-symbols-rounded text-[18px] text-primary">cloud</span>
+      Por ahora conectamos cuentas de AWS. Azure y Google Cloud llegarán pronto.
+    </p>
+    }
 
     @if (usesAgentChoice()) {
     <div>
@@ -95,6 +174,7 @@
     </div>
     }
 
+    @if (!isCloud()) {
     <div class="grid gap-4 sm:grid-cols-2">
       <div>
         <label for="asset-ip" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -116,6 +196,7 @@
           class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
       </div>
     </div>
+    }
 
     <div>
       <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">¿Qué tan importante es para tu servicio?</p>
@@ -158,7 +239,7 @@
       Guardando…
       } @else {
       <span class="material-symbols-rounded text-[20px]">add</span>
-      Registrar sistema
+      Registrar activo
       }
     </button>
   </div>

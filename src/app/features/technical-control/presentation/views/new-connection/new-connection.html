@@ -1,0 +1,25 @@
+<section class="w-full pb-10">
+  <a [routerLink]="['/services', serviceId()]" class="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-primary">
+    <span class="material-symbols-rounded text-[16px]">arrow_back</span>{{ service()?.name ?? 'Servicio' }}
+  </a>
+  <h1 class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">Nueva conexión</h1>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Elige cómo quieres conectar. Al terminar, Monkey te muestra los activos que encontró.</p>
+
+  <div class="mt-6">
+    @switch (stage()) {
+    @case ('loading') {
+    <div class="h-64 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" aria-busy="true"></div>
+    }
+    @case ('error') {
+    <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+      <p class="text-sm text-gray-600 dark:text-gray-300">No pudimos cargar esta pantalla. Revisa tu conexión e inténtalo de nuevo.</p>
+      <button type="button" (click)="load()" class="mt-4 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90">Reintentar</button>
+    </div>
+    }
+    @default {
+    <app-connect-asset-form [capabilities]="state()!.applicable_capabilities" [service]="service()!" [otherServices]="otherServices()"
+      [criticalities]="criticalities()" (created)="onCreated($event)" (cancelled)="cancel()" />
+    }
+    }
+  </div>
+</section>

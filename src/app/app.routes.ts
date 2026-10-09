@@ -32,14 +32,25 @@ export const routes: Routes = [
         path: 'services/new',
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
       },
-      // Componente 3 del onboarding: el control técnico de un servicio.
+      // El servicio del cliente: su información y las conexiones con las que Monkey llega a sus activos (Componente 3).
+      // Las rutas más específicas van antes que `:id`.
       {
-        path: 'services/:id/technical-control',
-        loadComponent: () => import('@features/technical-control/presentation/views/technical-control/technical-control').then(m => m.TechnicalControlView),
+        path: 'services/:id/connections/new',
+        loadComponent: () => import('@features/technical-control/presentation/views/new-connection/new-connection').then(m => m.NewConnectionView),
       },
       {
-        path: 'services/:id',
+        path: 'services/:id/connections/:assetId',
+        loadComponent: () => import('@features/technical-control/presentation/views/connection-detail/connection-detail').then(m => m.ConnectionDetailView),
+      },
+      {
+        path: 'services/:id/edit',
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
+      },
+      // Enlace de la pantalla anterior (el paso «control técnico» ya no existe como pantalla aparte).
+      { path: 'services/:id/technical-control', redirectTo: '/services/:id' },
+      {
+        path: 'services/:id',
+        loadComponent: () => import('@features/services/presentation/views/service-detail/service-detail').then(m => m.ServiceDetailView),
       },
     ]
   },
