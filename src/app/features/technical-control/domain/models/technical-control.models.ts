@@ -76,15 +76,23 @@ export interface UpdateAssetInput {
   credentials?: Record<string, string>;
 }
 
-// Un activo que la conexión reconoció dentro de la cuenta del cliente (D59). Los atributos son solo lo que se pudo leer.
+// Un activo que la conexión reconoció dentro de la cuenta del cliente (D61). Los atributos son solo lo que se pudo leer.
 export type ResourceAttributes = Record<string, string | number | boolean | null>;
 export interface DiscoveredAsset {
   id: string;
+  code: string;
   kind: string;
   type: string;
   name: string | null;
   region: string | null;
+  platform: string;
+  ip_address: string | null;
+  location: string | null;
+  criticality: string;
+  tags: string[];
   attributes: ResourceAttributes;
+  // Si pertenece al servicio por el que se preguntó.
+  in_service: boolean | null;
 }
 
 export interface DiscoveredAssetsPage {
@@ -94,6 +102,7 @@ export interface DiscoveredAssetsPage {
   // Servicios que no se pudieron leer: el cliente ve «incompleto», no «vacío».
   incomplete_services: string[];
   summary: { kind: string; count: number }[];
+  included_count: number | null;
   items: DiscoveredAsset[];
   page: number;
   page_size: number;

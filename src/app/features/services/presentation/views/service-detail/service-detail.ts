@@ -8,6 +8,7 @@ import { TechnicalControlService } from '@features/technical-control/domain/serv
 import { ConnectionsList } from '@features/technical-control/presentation/components/connections-list/connections-list';
 import { CatalogName, CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
+import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { Service } from '../../../domain/models/service.models';
 import { ServiceService } from '../../../domain/services/service.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -18,7 +19,7 @@ const CATALOGS: CatalogName[] = ['service_type', 'served_industry', 'service_cou
 // El servicio del cliente: su información ordenada arriba y, debajo, las conexiones con las que Monkey llega a sus activos (Componente 3).
 @Component({
   selector: 'app-service-detail',
-  imports: [RouterLink, ConnectionsList],
+  imports: [RouterLink, ConnectionsList, LoadingSpinner],
   templateUrl: './service-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

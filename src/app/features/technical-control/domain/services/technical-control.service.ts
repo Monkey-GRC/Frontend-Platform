@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { EMPTY, Observable, expand, last, map } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import {
@@ -44,11 +44,23 @@ export class TechnicalControlService {
     return this.http.post<SuccessResponse<Asset>>(this.assets, input).pipe(map((r) => r.data!));
   }
 
-  // Los activos que la conexión reconoció en la cuenta, en las regiones declaradas.
-  listDiscovered(assetId: string, kind?: string): Observable<DiscoveredAssetsPage> {
-    let params = new HttpParams().set('page_size', 100);
-    if (kind) params = params.set('kind', kind);
-    return this.http.get<SuccessResponse<DiscoveredAssetsPage>>(`${this.assets}/${assetId}/resources`, { params }).pipe(map((r) => r.data!));
+  // Los activos que la conexión reconoció en la cuenta, en las regiones declaradas, con cuáles son del servicio. Trae todas las páginas (máx. 500).
+  listDiscovered(assetId: string, serviceId: string): Observable<DiscoveredAssetsPage> {
+    const page = (n: number) =>
+      this.http
+        .get<SuccessResponse<DiscoveredAssetsPage>>(`${this.assets}/${assetId}/resources`, { params: new HttpParams().set('page', n).set('page_size', 100).set('service_id', serviceId) })
+        .pipe(map((r) => r.data!));
+    return page(1).pipe(
+      expand((p) => (p.page < p.total_pages ? page(p.page + 1).pipe(map((next) => ({ ...next, items: [...p.items, ...next.items] }))) : EMPTY)),
+      last(),
+    );
+  }
+
+  // Fija EXACTAMENTE qué activos de la conexión son de este servicio; los demás quedan fuera.
+  setServiceAssets(serviceId: string, connectionId: string, assetIds: string[]): Observable<{ included: number; added: number; removed: number }> {
+    return this.http
+      .put<SuccessResponse<{ included: number; added: number; removed: number }>>(`${this.services}/${serviceId}/connections/${connectionId}/assets`, { asset_ids: assetIds })
+      .pipe(map((r) => r.data!));
   }
 
   updateAsset(assetId: string, input: UpdateAssetInput): Observable<Asset> {

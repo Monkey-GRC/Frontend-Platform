@@ -4,6 +4,7 @@ import { forkJoin } from 'rxjs';
 import { ServiceService } from '@features/services/domain/services/service.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
+import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { Asset, TechnicalControlState } from '../../../domain/models/technical-control.models';
 import { TechnicalControlService } from '../../../domain/services/technical-control.service';
 import { AssetCard } from '../../components/asset-card/asset-card';
@@ -13,7 +14,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // El detalle de una conexión: cómo está conectada y, sobre todo, los activos que Monkey encontró a través de ella.
 @Component({
   selector: 'app-connection-detail',
-  imports: [AssetCard, RouterLink],
+  imports: [AssetCard, RouterLink, LoadingSpinner],
   templateUrl: './connection-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

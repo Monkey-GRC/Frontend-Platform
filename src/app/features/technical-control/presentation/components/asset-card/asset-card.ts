@@ -32,6 +32,8 @@ export class AssetCard implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly asset = input.required<Asset>();
+  // El servicio desde el que se mira la conexión: los activos que el cliente marca son de ESE servicio.
+  readonly serviceId = input.required<string>();
   readonly connectionLabel = input('');
   readonly probeMode = input<ProbeMode>('unavailable');
   // Frecuencias que admite esta conexión y sus etiquetas.

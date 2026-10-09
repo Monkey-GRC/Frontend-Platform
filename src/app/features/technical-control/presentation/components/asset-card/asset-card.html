@@ -1,4 +1,4 @@
-<article class="rounded-2xl border border-gray-200 bg-white p-5 md:p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+<article class="rounded-2xl border border-gray-200 bg-white p-5 md:p-6 dark:border-gray-700 dark:bg-gray-900">
 
   <!-- Quién es -->
   <div class="flex flex-wrap items-start justify-between gap-3">
@@ -7,9 +7,9 @@
         <span class="material-symbols-rounded">{{ isCloud() ? 'cloud' : 'dns' }}</span>
       </span>
       <div class="min-w-0">
-        <p class="text-xs text-gray-400">{{ asset().code }} · {{ connectionLabel() }}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-300">{{ asset().code }} · {{ connectionLabel() }}</p>
         <h3 class="mt-0.5 truncate text-base font-semibold text-gray-900 dark:text-white">{{ asset().name }}</h3>
-        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-300">
           @if (isCloud() && asset().external_account_id) {
           AWS · cuenta {{ asset().external_account_id }}@if (regions()) { · {{ regions() }} }
           } @else {
@@ -29,7 +29,7 @@
         <span class="material-symbols-rounded text-[20px]">{{ editing() ? 'close' : 'edit' }}</span>
       </button>
       <button type="button" (click)="confirmingRemove.set(true); editing.set(false)" [disabled]="removing()" aria-label="Quitar" title="Quitar"
-        class="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-error-600 dark:hover:bg-red-900/20">
+        class="rounded-lg p-2 text-gray-500 dark:text-gray-300 transition hover:bg-red-50 hover:text-error-600 dark:hover:bg-red-900/20">
         <span class="material-symbols-rounded text-[20px]">delete</span>
       </button>
     </div>
@@ -38,7 +38,7 @@
   @if (confirmingRemove()) {
   <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-900/10" role="alertdialog" aria-label="Confirmar que quitas el activo">
     <p class="text-sm font-medium text-gray-900 dark:text-white">¿Quitar «{{ asset().name }}»?</p>
-    <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+    <p class="mt-1 text-xs text-gray-700 dark:text-gray-200">
       Dejaremos de evaluarlo y no aparecerá en tu lista. Lo que ya medimos se conserva como historial. Si lo quieres de vuelta, tendrás que registrarlo otra vez.
     </p>
     <div class="mt-3 flex gap-2">
@@ -59,7 +59,7 @@
 
   <!-- Avisos -->
   @if (asset().provisioning.schedule_frequency; as freq) {
-  <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">Evaluación automática: <strong>{{ frequencyLabel(freq) }}</strong></p>
+  <p class="mt-4 text-sm text-gray-700 dark:text-gray-200">Evaluación automática: <strong>{{ frequencyLabel(freq) }}</strong></p>
   }
   @if (verified()) {
   <p class="mt-4 flex items-start gap-2 rounded-lg bg-green-50 p-3 text-xs text-green-800 dark:bg-green-900/20 dark:text-green-300">
@@ -116,7 +116,7 @@
     }
     @case ('scheduled') {
     <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs text-gray-400">Cambiar frecuencia:</span>
+      <span class="text-xs text-gray-500 dark:text-gray-300">Cambiar frecuencia:</span>
       @for (f of frequencies(); track f.value) {
       <button type="button" (click)="schedule(f.value)" [disabled]="busy() !== null || f.value === asset().provisioning.schedule_frequency"
         class="rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:opacity-60"
@@ -147,11 +147,11 @@
 
   <!-- Lo que la conexión reconoció: es la prueba de que Monkey ve los activos del cliente -->
   @if (isCloud() && connected()) {
-  <div class="mt-5 border-t border-gray-100 pt-5 dark:border-gray-800">
-    <app-discovered-assets [asset]="asset()" [probeMode]="probeMode()" [refreshing]="busy() === 'validate'" (refreshRequested)="validate()" />
+  <div class="mt-5 border-t border-gray-200 pt-5 dark:border-gray-700">
+    <app-discovered-assets [asset]="asset()" [serviceId]="serviceId()" [probeMode]="probeMode()" [refreshing]="busy() === 'validate'" (refreshRequested)="validate()" />
   </div>
 
-  <div class="mt-5 border-t border-gray-100 pt-5 dark:border-gray-800">
+  <div class="mt-5 border-t border-gray-200 pt-5 dark:border-gray-700">
     <div class="flex flex-wrap items-center gap-3">
       <button type="button" (click)="evaluate()" [disabled]="evaluating() || executionOpen()"
         class="inline-flex items-center gap-2 rounded-lg border border-primary/50 px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-primary/5 disabled:opacity-60">
@@ -160,7 +160,7 @@
       </button>
       @if (executionText(); as x) {
       <span class="inline-flex items-center gap-1.5 text-sm"
-        [class]="x.tone === 'ok' ? 'text-green-700 dark:text-green-400' : x.tone === 'error' ? 'text-error-600' : 'text-gray-600 dark:text-gray-300'" aria-live="polite">
+        [class]="x.tone === 'ok' ? 'text-green-700 dark:text-green-400' : x.tone === 'error' ? 'text-error-600' : 'text-gray-700 dark:text-gray-200'" aria-live="polite">
         <span class="material-symbols-rounded text-[18px]" [class.animate-spin]="x.icon === 'progress_activity'">{{ x.icon }}</span>
         {{ x.text }}
       </span>
