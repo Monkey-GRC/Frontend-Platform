@@ -3,9 +3,15 @@
   <!-- Quién es -->
   <div class="flex flex-wrap items-start justify-between gap-3">
     <div class="flex min-w-0 items-start gap-3">
+      @if (providerLogo(); as logo) {
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-gray-200 dark:ring-gray-600">
+        <svg viewBox="0 0 24 24" class="h-7 w-7" role="img" [attr.aria-label]="logo.label"><path [attr.d]="logo.path" [attr.fill]="logo.color" /></svg>
+      </span>
+      } @else {
       <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <span class="material-symbols-rounded">{{ isCloud() ? 'cloud' : 'dns' }}</span>
       </span>
+      }
       <div class="min-w-0">
         <p class="text-xs text-gray-500 dark:text-gray-300">{{ asset().code }} · {{ connectionLabel() }}</p>
         <h3 class="mt-0.5 truncate text-base font-semibold text-gray-900 dark:text-white">{{ asset().name }}</h3>
@@ -23,6 +29,18 @@
         <span class="material-symbols-rounded text-[16px]">{{ status().icon }}</span>
         {{ status().label }}
       </span>
+      @if (canShowSetup()) {
+      <button type="button" (click)="showSetup.set(!showSetup())" [attr.aria-label]="showSetup() ? 'Ocultar datos de conexión' : 'Ver datos de conexión'" [title]="showSetup() ? 'Ocultar datos de conexión' : 'Ver datos de conexión'"
+        class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
+        <span class="material-symbols-rounded text-[20px]">{{ showSetup() ? 'visibility_off' : 'visibility' }}</span>
+      </button>
+      }
+      @if (isCloud() && connected()) {
+      <button type="button" (click)="evaluate()" [disabled]="evaluating() || executionOpen()" aria-label="Evaluar ahora" title="Evaluar ahora"
+        class="rounded-lg p-2 text-primary transition hover:bg-primary/5 disabled:opacity-60">
+        <span class="material-symbols-rounded text-[20px]" [class.animate-spin]="evaluating()">{{ evaluating() ? 'progress_activity' : 'play_circle' }}</span>
+      </button>
+      }
       <button type="button" (click)="editing.set(!editing()); confirmingRemove.set(false)" [disabled]="removing()"
         [attr.aria-label]="editing() ? 'Cerrar edición' : 'Editar'" [title]="editing() ? 'Cerrar edición' : 'Editar'"
         class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
@@ -57,15 +75,17 @@
   <app-asset-edit-form [asset]="asset()" [criticalities]="criticalities()" (saved)="onEdited($event)" (cancelled)="editing.set(false)" />
   }
 
+  @if (executionText(); as x) {
+  <p class="mt-4 inline-flex items-center gap-1.5 text-sm"
+    [class]="x.tone === 'ok' ? 'text-green-700 dark:text-green-400' : x.tone === 'error' ? 'text-error-600' : 'text-gray-700 dark:text-gray-200'" aria-live="polite">
+    <span class="material-symbols-rounded text-[18px]" [class.animate-spin]="x.icon === 'progress_activity'">{{ x.icon }}</span>
+    {{ x.text }}
+  </p>
+  }
+
   <!-- Avisos -->
   @if (asset().provisioning.schedule_frequency; as freq) {
   <p class="mt-4 text-sm text-gray-700 dark:text-gray-200">Evaluación automática: <strong>{{ frequencyLabel(freq) }}</strong></p>
-  }
-  @if (verified()) {
-  <p class="mt-4 flex items-start gap-2 rounded-lg bg-green-50 p-3 text-xs text-green-800 dark:bg-green-900/20 dark:text-green-300">
-    <span class="material-symbols-rounded text-[16px]">verified</span>
-    Comprobamos el acceso a tu cuenta de AWS de verdad: el rol existe, es de la cuenta que declaraste y solo puede leer.
-  </p>
   }
   @if (keysWarning(); as w) {
   <p class="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
@@ -93,14 +113,7 @@
 
   <!-- Siguiente paso -->
   <div class="mt-4 flex flex-wrap items-center gap-3">
-    @switch (step()) {
-    @case ('validated') {
-    <button type="button" (click)="activate()" [disabled]="busy() !== null"
-      class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:opacity-60">
-      <span class="material-symbols-rounded text-[18px]" [class.animate-spin]="busy() === 'activate'">{{ busy() === 'activate' ? 'progress_activity' : 'bolt' }}</span>
-      Activar la evaluación automática
-    </button>
-    }
+    @switch (step() === 'validated' ? 'active' : step()) {
     @case ('active') {
     <div class="w-full">
       <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">¿Cada cuánto quieres que se evalúe?</p>
@@ -136,13 +149,6 @@
     }
     }
     }
-    @if (canShowSetup()) {
-    <button type="button" (click)="showSetup.set(!showSetup())"
-      class="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
-      <span class="material-symbols-rounded text-[16px]">{{ showSetup() ? 'visibility_off' : 'visibility' }}</span>
-      {{ showSetup() ? 'Ocultar datos de conexión' : 'Ver datos de conexión' }}
-    </button>
-    }
   </div>
 
   <!-- Lo que la conexión reconoció: es la prueba de que Monkey ve los activos del cliente -->
@@ -151,21 +157,5 @@
     <app-discovered-assets [asset]="asset()" [serviceId]="serviceId()" [probeMode]="probeMode()" [refreshing]="busy() === 'validate'" (refreshRequested)="validate()" />
   </div>
 
-  <div class="mt-5 border-t border-gray-200 pt-5 dark:border-gray-700">
-    <div class="flex flex-wrap items-center gap-3">
-      <button type="button" (click)="evaluate()" [disabled]="evaluating() || executionOpen()"
-        class="inline-flex items-center gap-2 rounded-lg border border-primary/50 px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-primary/5 disabled:opacity-60">
-        <span class="material-symbols-rounded text-[18px]" [class.animate-spin]="evaluating()">{{ evaluating() ? 'progress_activity' : 'play_circle' }}</span>
-        Evaluar ahora
-      </button>
-      @if (executionText(); as x) {
-      <span class="inline-flex items-center gap-1.5 text-sm"
-        [class]="x.tone === 'ok' ? 'text-green-700 dark:text-green-400' : x.tone === 'error' ? 'text-error-600' : 'text-gray-700 dark:text-gray-200'" aria-live="polite">
-        <span class="material-symbols-rounded text-[18px]" [class.animate-spin]="x.icon === 'progress_activity'">{{ x.icon }}</span>
-        {{ x.text }}
-      </span>
-      }
-    </div>
-  </div>
   }
 </article>
