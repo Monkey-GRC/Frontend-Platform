@@ -8,6 +8,7 @@ import { TechnicalControlService } from '../../../domain/services/technical-cont
 import { AssetEditForm } from '../asset-edit-form/asset-edit-form';
 import { CloudConnectionPanel } from '../cloud-connection-panel/cloud-connection-panel';
 import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
+import { BRAND_ICONS } from '../os-icon/brand-icons';
 
 const STATUS: Record<string, { label: string; chip: string; icon: string }> = {
   pending: { label: 'Pendiente de comprobar', chip: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300', icon: 'schedule' },
@@ -17,10 +18,10 @@ const STATUS: Record<string, { label: string; chip: string; icon: string }> = {
   failed: { label: 'No pudimos conectar', chip: 'bg-red-50 text-error-600 dark:bg-red-900/20', icon: 'error' },
 };
 
-type Busy = 'validate' | 'activate' | 'schedule';
+type Busy = 'validate' | 'schedule';
 
 // Un sistema conectado y lo que se puede hacer con él según en qué paso va: comprobar la
-// conexión → activar → programar. Habla de «evaluación automática», nunca de proveedores.
+// conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
   imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets],
@@ -68,8 +69,8 @@ export class AssetCard implements OnInit {
     const s = this.asset().connection_setup;
     return s?.method === 'access_keys' && ['pending', 'failed'].includes(this.step()) ? (s.warning ?? null) : null;
   });
-  // La comprobación contra la cuenta real (D58): se dice, para que nadie confunda esto con la demostración.
-  readonly verified = computed(() => this.isCloud() && this.probeMode() === 'runner' && this.connected());
+  // El logo del proveedor que eligió el cliente (hoy solo AWS) en lugar de una nube genérica.
+  readonly providerLogo = computed(() => (this.isCloud() && this.asset().platform?.toLowerCase() === 'aws' ? BRAND_ICONS['aws'] : null));
   readonly regions = computed(() => (this.asset().provisioning.regions ?? []).join(', '));
 
   // «Evaluar ahora»: solo se muestra su ESTADO (en cola → en curso → completada o fallida). Los resultados son otra pantalla.
@@ -154,12 +155,10 @@ export class AssetCard implements OnInit {
     this.run('validate', () => this.api.validate(this.asset().id));
   }
 
-  activate(): void {
-    this.run('activate', () => this.api.activate(this.asset().id));
-  }
-
+  // Programar activa la conexión si aún no lo está: el cliente no ve un paso «activar» aparte.
   schedule(frequency: string): void {
-    this.run('schedule', () => this.api.schedule(this.asset().id, frequency));
+    const needsActivation = this.step() === 'validated';
+    this.run('schedule', () => (needsActivation ? this.api.activate(this.asset().id).pipe(switchMap(() => this.api.schedule(this.asset().id, frequency))) : this.api.schedule(this.asset().id, frequency)));
   }
 
   // Ejecuta un paso y vuelve a leer el sistema: la API manda, la pantalla solo la muestra.

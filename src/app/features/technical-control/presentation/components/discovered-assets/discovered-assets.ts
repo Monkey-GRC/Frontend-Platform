@@ -75,11 +75,21 @@ export class DiscoveredAssets implements OnInit {
   readonly incomplete = computed(() => (this.page()?.incomplete_services ?? []).map((s) => SERVICE_NAME[s] ?? s).join(', '));
   readonly visible = computed(() => {
     const q = this.query().trim().toLowerCase();
-    return this.items().filter(
-      (a) =>
-        (!this.kind() || a.kind === this.kind()) &&
-        (!q || [a.name, a.code, this.identifier(a), a.ip_address, a.platform, ...a.tags].some((v) => (v ?? '').toLowerCase().includes(q))),
-    );
+    const saved = this.original();
+    return this.items()
+      .filter(
+        (a) =>
+          (!this.kind() || a.kind === this.kind()) &&
+          (!q || [a.name, a.code, this.identifier(a), a.ip_address, a.platform, ...a.tags].some((v) => (v ?? '').toLowerCase().includes(q))),
+      )
+      // Los del servicio (ya guardados) arriba y los demás abajo. Se ordena por lo guardado, no por lo marcado: si no, la fila saltaría al marcarla.
+      .sort((a, b) => Number(saved.has(b.id)) - Number(saved.has(a.id)));
+  });
+  // La primera fila de «los demás», solo si arriba hay alguna del servicio: ahí va la línea que separa los dos grupos.
+  readonly firstOutsideId = computed(() => {
+    const saved = this.original();
+    const rows = this.visible();
+    return rows.some((a) => saved.has(a.id)) ? (rows.find((a) => !saved.has(a.id))?.id ?? null) : null;
   });
   readonly includedNow = computed(() => this.selected().size);
   readonly dirty = computed(() => {
@@ -155,7 +165,6 @@ export class DiscoveredAssets implements OnInit {
         this.saving.set(false);
         this.original.set(new Set(this.selected()));
         this.page.update((p) => (p ? { ...p, included_count: r.included, items: p.items.map((a) => ({ ...a, in_service: this.selected().has(a.id) })) } : p));
-        this.notice.set({ kind: 'ok', text: r.included === 1 ? 'Listo: 1 activo es de este servicio.' : `Listo: ${r.included} activos son de este servicio.` });
       },
       error: (error) => {
         this.saving.set(false);
