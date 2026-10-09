@@ -34,7 +34,7 @@
     @if (usesRole()) {
     <div>
       <label for="edit-role" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">El rol que creaste</label>
-      <p class="mb-2 text-xs text-gray-400">Es el valor «RoleArn» de la pila en AWS. Cámbialo solo si creaste otro rol.</p>
+      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Es el valor «RoleArn» de la pila en AWS. Cámbialo solo si creaste otro rol.</p>
       <input id="edit-role" type="text" autocomplete="off" spellcheck="false" [value]="roleArn()" (input)="roleArn.set($any($event.target).value)"
         placeholder="arn:aws:iam::123456789012:role/MonkeyReadOnly"
         class="h-12 w-full rounded-lg border bg-white px-4 font-mono text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 dark:bg-gray-900 dark:text-white"

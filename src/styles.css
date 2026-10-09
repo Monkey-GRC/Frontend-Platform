@@ -520,3 +520,31 @@ textarea::placeholder {
 .animate-out {
   animation: fadeSlideOut 0.1s ease-in forwards;
 }
+/* Casilla de selección de las tablas: visible en claro y oscuro, con borde y color de marca al marcarla. */
+.mk-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  vertical-align: middle;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid var(--color-gray-400);
+  border-radius: 0.3rem;
+  background-color: transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.mk-checkbox:hover { border-color: var(--color-primary); }
+.mk-checkbox:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.mk-checkbox:checked,
+.mk-checkbox:indeterminate { background-color: var(--color-primary); border-color: var(--color-primary); }
+.mk-checkbox:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E");
+}
+.mk-checkbox:indeterminate {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M4 8h8'/%3E%3C/svg%3E");
+}

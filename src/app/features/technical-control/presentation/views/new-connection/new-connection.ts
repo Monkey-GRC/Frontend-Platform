@@ -4,6 +4,7 @@ import { forkJoin } from 'rxjs';
 import { ServiceService } from '@features/services/domain/services/service.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
+import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { Asset, TechnicalControlState } from '../../../domain/models/technical-control.models';
 import { TechnicalControlService } from '../../../domain/services/technical-control.service';
 import { ConnectAssetForm } from '../../components/connect-asset-form/connect-asset-form';
@@ -13,7 +14,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // Crear una conexión: Monkey propone los métodos que aplican al servicio (según dónde vive) y guía el que el cliente elija.
 @Component({
   selector: 'app-new-connection',
-  imports: [ConnectAssetForm, RouterLink],
+  imports: [ConnectAssetForm, RouterLink, LoadingSpinner],
   templateUrl: './new-connection.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
