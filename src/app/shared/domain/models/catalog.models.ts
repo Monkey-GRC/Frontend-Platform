@@ -47,4 +47,8 @@ export type CatalogName =
   // Componente 3 — el control técnico
   | 'deployment_scenario'
   | 'asset_criticality'
-  | 'schedule_frequency';
+  | 'schedule_frequency'
+  // Conexión de nube (D53, D58)
+  | 'connection_method'
+  | 'aws_region'
+  | 'resource_kind';

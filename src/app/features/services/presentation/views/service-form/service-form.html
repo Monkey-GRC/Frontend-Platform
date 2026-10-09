@@ -81,9 +81,9 @@
 
     <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
       @if (!editing() && saved(); as s) {
-      <a [routerLink]="['/services', s.id, 'technical-control']"
+      <a [routerLink]="['/services', s.id]"
         class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:opacity-90 transition">
-        Continuar: conectar mis sistemas
+        Continuar: registrar mis activos
         <span class="material-symbols-rounded text-[20px]">arrow_forward</span>
       </a>
       <a routerLink="/"

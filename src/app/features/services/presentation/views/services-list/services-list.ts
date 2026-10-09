@@ -27,6 +27,7 @@ export class ServicesListView implements OnInit {
   readonly stage = signal<Stage>('loading');
   readonly items = signal<ServiceListItem[]>([]);
   readonly types = signal<CatalogOption[]>([]);
+  readonly scenarios = signal<CatalogOption[]>([]);
   // Servicio que se está por eliminar (confirmación en la propia tarjeta) y el aviso del resultado.
   readonly confirming = signal<string | null>(null);
   readonly deleting = signal<string | null>(null);
@@ -38,14 +39,20 @@ export class ServicesListView implements OnInit {
 
   load(): void {
     this.stage.set('loading');
-    forkJoin({ page: this.services.list(), types: this.catalogService.options('service_type') }).subscribe({
-      next: ({ page, types }) => {
+    forkJoin({ page: this.services.list(), types: this.catalogService.options('service_type'), scenarios: this.catalogService.options('deployment_scenario') }).subscribe({
+      next: ({ page, types, scenarios }) => {
         this.items.set(page.items);
         this.types.set(types);
+        this.scenarios.set(scenarios);
         this.stage.set('ready');
       },
       error: () => this.stage.set('error'),
     });
+  }
+
+  // «Dónde vive» sale del catálogo del backend; la pantalla no fija la lista.
+  scenarioLabel(value: string): string {
+    return this.scenarios().find((s) => s.value === value)?.label ?? value;
   }
 
   typeLabel(value: string): string {
