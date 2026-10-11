@@ -38,6 +38,11 @@ export const routes: Routes = [
         path: 'services/:id/connections/new',
         loadComponent: () => import('@features/technical-control/presentation/views/new-connection/new-connection').then(m => m.NewConnectionView),
       },
+      // El paso a paso de una plataforma elegida en el marketplace (D67).
+      {
+        path: 'services/:id/connections/new/:catalog/:platform',
+        loadComponent: () => import('@features/technical-control/presentation/views/connect-platform/connect-platform').then(m => m.ConnectPlatformView),
+      },
       {
         path: 'services/:id/connections/:assetId',
         loadComponent: () => import('@features/technical-control/presentation/views/connection-detail/connection-detail').then(m => m.ConnectionDetailView),

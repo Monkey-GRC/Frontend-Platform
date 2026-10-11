@@ -1,0 +1,30 @@
+<section class="w-full pb-10">
+  <app-breadcrumb [items]="crumbs()" />
+  @if (platform(); as p) {
+  <div class="mt-4 flex items-center gap-4">
+    <app-provider-logo [logoKey]="p.logo_key" />
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Conectar {{ p.name }}</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Al terminar, Monkey te muestra los activos que encontró.</p>
+    </div>
+  </div>
+  }
+
+  <div class="mt-6">
+    @switch (stage()) {
+    @case ('loading') {
+    <app-loading-spinner />
+    }
+    @case ('error') {
+    <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-900">
+      <p class="text-sm text-gray-700 dark:text-gray-200">No pudimos cargar esta pantalla. Revisa tu conexión e inténtalo de nuevo.</p>
+      <button type="button" (click)="load()" class="mt-4 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90">Reintentar</button>
+    </div>
+    }
+    @default {
+    <app-connect-asset-form [capability]="capability()!" [platform]="platform()!" [service]="service()!" [otherServices]="otherServices()"
+      [criticalities]="criticalities()" (created)="onCreated($event)" (cancelled)="backToMarketplace()" />
+    }
+    }
+  </div>
+</section>

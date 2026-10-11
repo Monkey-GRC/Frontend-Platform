@@ -4,9 +4,7 @@
   <div class="flex flex-wrap items-start justify-between gap-3">
     <div class="flex min-w-0 items-start gap-3">
       @if (providerLogo(); as logo) {
-      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-gray-200 dark:ring-gray-600">
-        <svg viewBox="0 0 24 24" class="h-7 w-7" role="img" [attr.aria-label]="logo.label"><path [attr.d]="logo.path" [attr.fill]="logo.color" /></svg>
-      </span>
+      <app-provider-logo [logoKey]="logo" size="sm" />
       } @else {
       <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <span class="material-symbols-rounded">{{ isCloud() ? 'cloud' : 'dns' }}</span>

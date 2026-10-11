@@ -8,7 +8,7 @@ import { TechnicalControlService } from '../../../domain/services/technical-cont
 import { AssetEditForm } from '../asset-edit-form/asset-edit-form';
 import { CloudConnectionPanel } from '../cloud-connection-panel/cloud-connection-panel';
 import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
-import { BRAND_ICONS } from '../os-icon/brand-icons';
+import { ProviderLogo } from '../provider-logo/provider-logo';
 
 const STATUS: Record<string, { label: string; chip: string; icon: string }> = {
   pending: { label: 'Pendiente de comprobar', chip: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300', icon: 'schedule' },
@@ -24,7 +24,7 @@ type Busy = 'validate' | 'schedule';
 // conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
-  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets],
+  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets, ProviderLogo],
   templateUrl: './asset-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -69,8 +69,8 @@ export class AssetCard implements OnInit {
     const s = this.asset().connection_setup;
     return s?.method === 'access_keys' && ['pending', 'failed'].includes(this.step()) ? (s.warning ?? null) : null;
   });
-  // El logo del proveedor que eligió el cliente (hoy solo AWS) en lugar de una nube genérica.
-  readonly providerLogo = computed(() => (this.isCloud() && this.asset().platform?.toLowerCase() === 'aws' ? BRAND_ICONS['aws'] : null));
+  // El logo oficial de la plataforma que eligió el cliente (D67; hoy solo AWS) en lugar de una nube genérica.
+  readonly providerLogo = computed(() => (this.isCloud() && this.asset().platform?.toLowerCase() === 'aws' ? 'aws' : null));
   readonly regions = computed(() => (this.asset().provisioning.regions ?? []).join(', '));
 
   // «Evaluar ahora»: solo se muestra su ESTADO (en cola → en curso → completada o fallida). Los resultados son otra pantalla.

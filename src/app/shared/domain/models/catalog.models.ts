@@ -51,4 +51,6 @@ export type CatalogName =
   // Conexión de nube (D53, D58)
   | 'connection_method'
   | 'aws_region'
-  | 'resource_kind';
+  | 'resource_kind'
+  // Las regiones de una plataforma (`aws_region`…) salen de la base (D67): una plataforma nueva con regiones no exige cambiar esta lista.
+  | `${string}_region`;
