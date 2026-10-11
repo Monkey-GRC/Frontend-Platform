@@ -2,13 +2,24 @@
 // Nada aquí nombra al proveedor del motor de monitoreo: al cliente se le habla de «sonda» y de
 // «evaluación automática».
 
+// Lo que el cliente elige al conectar (D67): un proveedor de nube, un sistema operativo o un motor de base de datos. Solo se elige la `available`; la
+// `coming_soon` se muestra bloqueada. `logo_key` es el nombre del SVG en `public/providers/`. `name` es la marca y no se traduce.
+export interface Platform {
+  code: string;
+  name: string;
+  logo_key: string;
+  availability: 'available' | 'coming_soon';
+  // Canales con los que se conecta; el primero es el recomendado. Vacío si aún no tiene canal.
+  connection_methods: ConnectionMethod[];
+}
+
 export interface Capability {
   catalog_code: string;
   category: string;
   method: string;
   required_permissions: string[];
   base_frequency: string;
-  supported_platforms: string[];
+  platforms: Platform[];
   generated_evidence: string;
 }
 
