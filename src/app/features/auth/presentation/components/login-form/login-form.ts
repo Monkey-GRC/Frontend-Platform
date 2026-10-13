@@ -46,8 +46,9 @@ export class LoginForm {
     this.authService.login({ email: email.trim().toLowerCase(), password }).subscribe({
       next: (payload) => {
         this.loading.set(false);
+        // `replaceUrl`: el inicio de sesión no queda en el historial, así «atrás» no vuelve a él.
         // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
-        this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/');
+        this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/', { replaceUrl: true });
       },
       error: (error) => {
         this.loading.set(false);

@@ -134,7 +134,7 @@ export class RegisterForm {
         next: (payload) => {
           this.loading.set(false);
           // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
-          this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/');
+          this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/', { replaceUrl: true });
         },
         error: (error) => {
           this.loading.set(false);

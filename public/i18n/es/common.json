@@ -19,6 +19,23 @@
     "SHOW_PASSWORD": "Mostrar contraseña",
     "HIDE_PASSWORD": "Ocultar contraseña",
     "DOWNLOAD": "Descargar",
+    "CONFIRM": "Confirmar",
+    "TABLE": {
+      "PAGINATION": "Paginación",
+      "SHOWING": "Mostrando {{from}}–{{to}} de {{total}}",
+      "ROWS_PER_PAGE": "Filas por página",
+      "PAGE_OF": "Página {{page}} de {{pages}}",
+      "PREVIOUS": "Página anterior",
+      "NEXT": "Página siguiente",
+      "EMPTY_TITLE": "No hay nada que mostrar todavía"
+    },
+    "FILE": {
+      "DROP_OR_CLICK": "Arrastra un archivo aquí o haz clic para elegirlo",
+      "ACCEPTED": "{{types}}, hasta {{max}}",
+      "ERROR_TYPE": "Solo se aceptan archivos {{types}}.",
+      "ERROR_SIZE": "El archivo supera el máximo de {{max}}.",
+      "ERROR_EMPTY": "El archivo está vacío."
+    },
     "WIZARD": {
       "SKIP_HELP": "Puedes saltarte esta pregunta.",
       "MULTI_EACH": "Puedes elegir más de una opción en cada pregunta.",
