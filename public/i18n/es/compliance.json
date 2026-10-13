@@ -9,6 +9,12 @@
       "CAUSE": "Por qué podría pasar",
       "EVIDENCE": "Lo que tienes que aportar"
     },
+    "STATUS_HINT": {
+      "READY": "Todo lo que aplica está cumplido.",
+      "ALMOST_READY": "Casi todo está cumplido; faltan pocos puntos.",
+      "NEEDS_WORK": "Hay varios puntos por resolver.",
+      "NOT_MEASURED": "Todavía no hay datos para saber si se cumple. No es un fallo."
+    },
     "STATUS": {
       "READY": "Preparado",
       "ALMOST_READY": "Casi listo",

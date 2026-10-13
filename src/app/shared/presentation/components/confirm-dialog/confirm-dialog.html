@@ -1,0 +1,41 @@
+<div class="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50 p-4" (click)="cancel()">
+  <div
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+    role="alertdialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="titleId"
+    [attr.aria-describedby]="messageKey() ? messageId : null"
+    class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl md:p-8 dark:bg-gray-900"
+    (click)="$event.stopPropagation()"
+  >
+    <h2 [id]="titleId" class="text-lg font-semibold text-gray-900 dark:text-white">{{ titleKey() | translate: titleParams() }}</h2>
+    @if (messageKey(); as message) {
+      <p [id]="messageId" class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ message | translate: messageParams() }}</p>
+    }
+
+    <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        cdkFocusInitial
+        (click)="cancel()"
+        [disabled]="busy()"
+        class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+      >
+        {{ cancelLabelKey() | translate }}
+      </button>
+      <button
+        type="button"
+        (click)="confirm()"
+        [disabled]="busy()"
+        class="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:opacity-60"
+        [class]="tone() === 'danger' ? 'bg-error-600' : 'bg-primary'"
+      >
+        @if (busy()) {
+          <span class="material-symbols-rounded animate-spin text-[18px] leading-none" aria-hidden="true">progress_activity</span>
+        }
+        {{ confirmLabelKey() | translate }}
+      </button>
+    </div>
+  </div>
+</div>

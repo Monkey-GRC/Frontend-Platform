@@ -9,6 +9,12 @@
       "CAUSE": "Why it could happen",
       "EVIDENCE": "What you need to provide"
     },
+    "STATUS_HINT": {
+      "READY": "Everything that applies is met.",
+      "ALMOST_READY": "Almost everything is met; only a few points are missing.",
+      "NEEDS_WORK": "Several points still need to be resolved.",
+      "NOT_MEASURED": "There is no data yet to know whether it is met. This is not a failure."
+    },
     "STATUS": {
       "READY": "Ready",
       "ALMOST_READY": "Almost ready",

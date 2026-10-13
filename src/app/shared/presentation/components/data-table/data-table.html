@@ -1,0 +1,97 @@
+<div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+  <div class="overflow-x-auto">
+    <table class="w-full min-w-[40rem] text-left text-sm" [attr.aria-busy]="loading()">
+      <caption class="sr-only">{{ captionKey() | translate }}</caption>
+      <thead>
+        <tr class="border-b border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+          @for (column of columns(); track column.key) {
+            <th scope="col" class="px-4 py-3" [class]="align(column) + ' ' + (column.class ?? '')">
+              <span [class.sr-only]="column.srOnlyHeader">{{ column.headerKey | translate }}</span>
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        @if (loading()) {
+          <tr>
+            <td [attr.colspan]="columns().length" class="px-4 py-10 text-center" role="status">
+              <span class="material-symbols-rounded animate-spin text-[28px] text-primary" aria-hidden="true">progress_activity</span>
+              <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
+            </td>
+          </tr>
+        } @else {
+          @for (row of rows(); track rowKey()(row)) {
+            <tr
+              class="transition"
+              [class]="clickable() ? 'cursor-pointer hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary dark:hover:bg-gray-800/60 dark:focus-visible:bg-gray-800/60' : 'hover:bg-gray-50/60 dark:hover:bg-white/[0.02]'"
+              [attr.tabindex]="clickable() ? 0 : null"
+              (click)="activate(row)"
+              (keydown.enter)="activate(row)"
+            >
+              @for (column of columns(); track column.key) {
+                <td class="px-4 py-3.5 text-gray-900 dark:text-white" [class]="align(column) + ' ' + (column.class ?? '')">
+                  @if (cellFor(column.key); as template) {
+                    <ng-container *ngTemplateOutlet="template; context: { $implicit: row, row: row }" />
+                  } @else {
+                    {{ column.value ? (column.value(row) ?? '—') : '—' }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!loading() && rows().length === 0) {
+    <div class="p-4">
+      <ng-content select="[tableEmpty]">
+        <app-empty-state [icon]="emptyIcon()" [titleKey]="emptyTitleKey()" [descriptionKey]="emptyDescriptionKey()" />
+      </ng-content>
+    </div>
+  }
+
+  @if (page(); as p) {
+    <nav class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700" [attr.aria-label]="'COMMON.TABLE.PAGINATION' | translate">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-700 dark:text-gray-200">
+        @if (range(); as r) {
+          <span>{{ 'COMMON.TABLE.SHOWING' | translate: { from: r.from, to: r.to, total: p.total } }}</span>
+        }
+        <label class="flex items-center gap-2">
+          <span>{{ 'COMMON.TABLE.ROWS_PER_PAGE' | translate }}</span>
+          <select
+            class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            (change)="resize($event)"
+          >
+            @for (size of pageSizes(); track size) {
+              <option [value]="size" [selected]="size === p.pageSize">{{ size }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="text-gray-700 dark:text-gray-200">{{ 'COMMON.TABLE.PAGE_OF' | translate: { page: p.page, pages: p.totalPages || 1 } }}</span>
+        <button
+          type="button"
+          (click)="previous()"
+          [disabled]="!hasPrevious()"
+          [attr.aria-label]="'COMMON.TABLE.PREVIOUS' | translate"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+        >
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">chevron_left</span>
+        </button>
+        <button
+          type="button"
+          (click)="next()"
+          [disabled]="!hasNext()"
+          [attr.aria-label]="'COMMON.TABLE.NEXT' | translate"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+        >
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">chevron_right</span>
+        </button>
+      </div>
+    </nav>
+  }
+</div>
