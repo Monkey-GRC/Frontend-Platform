@@ -177,11 +177,12 @@ export interface NewAssetInput {
   regions?: string[];
 }
 
+// Claves de traducción (technical-control.json), no texto: la pantalla las pasa por `translate`.
 export const SCENARIO_HELP: Record<string, string> = {
-  cloud_managed_only: 'Usas servicios como AWS, Microsoft 365 o Google Workspace, sin servidores propios.',
-  cloud_with_servers: 'Tienes servidores o bases de datos alojados en la nube.',
-  on_premise: 'Tus servidores, bases de datos y equipos están en tus propias oficinas o centro de datos.',
-  hybrid: 'Una mezcla: algo en la nube y algo en tus propias instalaciones.',
+  cloud_managed_only: 'TECHNICAL_CONTROL.SCENARIO_HELP.CLOUD_MANAGED_ONLY',
+  cloud_with_servers: 'TECHNICAL_CONTROL.SCENARIO_HELP.CLOUD_WITH_SERVERS',
+  on_premise: 'TECHNICAL_CONTROL.SCENARIO_HELP.ON_PREMISE',
+  hybrid: 'TECHNICAL_CONTROL.SCENARIO_HELP.HYBRID',
 };
 
 export const SCENARIO_ICON: Record<string, string> = {

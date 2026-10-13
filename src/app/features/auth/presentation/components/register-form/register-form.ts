@@ -7,6 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { AccessKeyLookup } from '@features/auth/domain/models/auth.models';
 import { AuthService } from '@features/auth/domain/services/auth.service';
@@ -28,7 +29,7 @@ type FieldName = 'code' | 'password' | 'password_confirmation';
 // El administrador se identifica por su correo: no se le pide nombre ni apellido.
 @Component({
   selector: 'app-register-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './register-form.html',
   styleUrl: './register-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,6 +38,7 @@ export class RegisterForm {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   readonly step = signal<1 | 2>(1);
   // Lo que Monkey fijó para esta empresa; solo existe en el paso 2.
@@ -92,7 +94,7 @@ export class RegisterForm {
       },
       error: (error) => {
         this.loading.set(false);
-        this.errorMessage.set(apiErrorMessage(error, 'No pudimos comprobar la clave. Intenta de nuevo.'));
+        this.errorMessage.set(apiErrorMessage(error, this.translate.instant('AUTH.REGISTER.ERROR_LOOKUP')));
       },
     });
   }
@@ -138,7 +140,7 @@ export class RegisterForm {
             Object.fromEntries(fields.map((f) => [f.field, f.message])) as Partial<Record<FieldName, string>>,
           );
           this.errorMessage.set(
-            apiErrorMessage(error, 'No se pudo activar la cuenta. Intenta de nuevo.'),
+            apiErrorMessage(error, this.translate.instant('AUTH.REGISTER.ERROR_ACTIVATE')),
           );
         },
       });

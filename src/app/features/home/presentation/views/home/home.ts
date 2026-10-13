@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
 
 // Pantalla de llegada tras activar la cuenta o iniciar sesión. Es provisional: el dashboard de
 // 4 preguntas la reemplaza. Sin jerga ni porcentajes, como pide philosophy.md.
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './home.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

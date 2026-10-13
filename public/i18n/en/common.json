@@ -1,0 +1,39 @@
+{
+  "COMMON": {
+    "BREADCRUMB": "Breadcrumb",
+    "LOADING": "Loading",
+    "CHECK_CONNECTION": "Check your connection and try again.",
+    "RETRY": "Retry",
+    "DELETE": "Delete",
+    "CANCEL": "Cancel",
+    "EDIT": "Edit",
+    "CHANGE": "Change",
+    "SAVE": "Save",
+    "CONTINUE": "Continue",
+    "BACK": "Back",
+    "NEXT": "Next",
+    "OPTIONAL": "optional",
+    "REMOVE": "Remove",
+    "CLOSE": "Close",
+    "AUTH_PROBLEM": "An authentication problem occurred. If the error persists, contact support.",
+    "DOWNLOAD": "Download",
+    "WIZARD": {
+      "SKIP_HELP": "You can skip this question.",
+      "MULTI_EACH": "You can choose more than one option in each question.",
+      "REVIEW": "Review",
+      "REVIEW_BODY_EDIT": "Tap “Edit” on anything you want to change.",
+      "SAVING": "Saving…",
+      "SAVE_CHANGES": "Save changes",
+      "PROGRESS_SAVED": "We save your progress in this browser: if you get interrupted, you pick up where you left off."
+    },
+    "VALIDATION": {
+      "REQUIRED": "This field is required.",
+      "EMAIL_INVALID": "Enter a valid email address."
+    },
+    "NOT_FOUND": {
+      "TITLE": "ERROR",
+      "MESSAGE": "We can't find the page you are looking for.",
+      "BACK_HOME": "Back to home"
+    }
+  }
+}

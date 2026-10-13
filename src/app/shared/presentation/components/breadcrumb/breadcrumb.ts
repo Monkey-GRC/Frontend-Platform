@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 // Un paso de la ruta. El último no lleva enlace: es donde está el cliente.
 export interface Crumb {
@@ -11,7 +12,7 @@ export interface Crumb {
 // ahí. Es una navegación con nombre, una lista ordenada y el último paso marcado como la página actual (los separadores son decorativos para un lector de pantalla).
 @Component({
   selector: 'app-breadcrumb',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './breadcrumb.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

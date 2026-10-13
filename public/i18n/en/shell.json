@@ -1,0 +1,17 @@
+{
+  "SHELL": {
+    "NAV": {
+      "SECTION_MENU": "Menu",
+      "HOME": "Home",
+      "MY_COMPANY": "My company",
+      "MY_SERVICES": "My services"
+    },
+    "HEADER": {
+      "SEARCH_PLACEHOLDER": "Search or type a command...",
+      "LOGOUT": "Sign out"
+    },
+    "LANGUAGE": {
+      "SWITCH": "Change language"
+    }
+  }
+}

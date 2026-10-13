@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
+import { storedLanguage } from '@core/domain/services/language.service';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { CatalogName, CatalogOption, FrameworkOption, RegulationOption } from '../models/catalog.models';
@@ -34,13 +35,15 @@ export class CatalogService {
   }
 
   private items<T>(name: string): Observable<T[]> {
-    let request = this.cache.get(name);
+    // El backend traduce las etiquetas según `Accept-Language`: la caché es por idioma.
+    const key = `${storedLanguage()}:${name}`;
+    let request = this.cache.get(key);
     if (!request) {
       request = this.http.get<SuccessResponse<{ items: T[] }>>(`${this.baseUrl}/${name}`).pipe(
         map((res) => res.data?.items ?? []),
         shareReplay({ bufferSize: 1, refCount: false }),
       );
-      this.cache.set(name, request);
+      this.cache.set(key, request);
     }
     return request as Observable<T[]>;
   }

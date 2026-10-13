@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 
 @Component({
   selector: 'app-login-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './login-form.html',
   styleUrl: './login-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,6 +16,7 @@ export class LoginForm {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -48,7 +50,7 @@ export class LoginForm {
       error: (error) => {
         this.loading.set(false);
         // El backend ya distingue credenciales malas, cuenta bloqueada o inactiva, y lo traduce.
-        this.errorMessage.set(apiErrorMessage(error, 'No se pudo iniciar sesión. Intenta de nuevo.'));
+        this.errorMessage.set(apiErrorMessage(error, this.translate.instant('AUTH.LOGIN.ERROR_FALLBACK')));
       },
     });
   }

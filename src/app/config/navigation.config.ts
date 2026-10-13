@@ -2,6 +2,7 @@
 
 export interface NavSubItem {
     name: string;
+    labelKey: string; // Clave de traducción del texto visible
     path: string;
     pro?: boolean;
     new?: boolean;
@@ -9,7 +10,8 @@ export interface NavSubItem {
 }
 
 export interface NavItem {
-    name: string;
+    name: string; // Identificador estable (no se muestra)
+    labelKey: string; // Clave de traducción del texto visible
     icon: string; // Nombre del icono de Google Symbols
     path?: string;
     new?: boolean;
@@ -23,11 +25,16 @@ export interface SectionIcon {
 
 // Configuración de items de navegación
 export const NAV_ITEMS: NavItem[] = [
-    { icon: 'home', name: 'Inicio', path: '/', section: 'Menu' },
-    { icon: 'apartment', name: 'Mi empresa', path: '/onboarding', section: 'Menu' },
-    { icon: 'inventory_2', name: 'Mis servicios', path: '/services', section: 'Menu' },
+    { icon: 'home', name: 'Inicio', labelKey: 'SHELL.NAV.HOME', path: '/', section: 'Menu' },
+    { icon: 'apartment', name: 'Mi empresa', labelKey: 'SHELL.NAV.MY_COMPANY', path: '/onboarding', section: 'Menu' },
+    { icon: 'inventory_2', name: 'Mis servicios', labelKey: 'SHELL.NAV.MY_SERVICES', path: '/services', section: 'Menu' },
     // Se suman el control técnico y el dashboard cuando existan.
 ];
+
+// Clave de traducción del título de cada sección del menú.
+export const SECTION_LABEL_KEYS: { [key: string]: string } = {
+    'Menu': 'SHELL.NAV.SECTION_MENU',
+};
 
 // Mapeo de iconos para secciones cuando el sidebar está colapsado
 export const SECTION_ICONS: SectionIcon = {

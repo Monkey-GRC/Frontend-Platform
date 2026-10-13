@@ -1,4 +1,4 @@
-<nav aria-label="Ruta de navegación">
+<nav [attr.aria-label]="'COMMON.BREADCRUMB' | translate">
   <ol class="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-gray-600 dark:text-gray-300">
     @for (c of items(); track $index; let last = $last) {
     <li class="flex items-center gap-1">
