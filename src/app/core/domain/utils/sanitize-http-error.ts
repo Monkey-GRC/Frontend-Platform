@@ -10,14 +10,15 @@ import { HttpErrorResponse } from '@angular/common/http';
  */
 const INTERNAL_ROUTING_MESSAGE_PATTERN = /mnk-client-(identifier|key)|credenciales de tenant/i;
 
-export function sanitizeHttpError(error: HttpErrorResponse): HttpErrorResponse {
+// `replacement` es el texto que ve el cliente en lugar del mensaje interno (ya traducido por quien llama).
+export function sanitizeHttpError(error: HttpErrorResponse, replacement: string): HttpErrorResponse {
   const message = error.error?.message;
   if (typeof message !== 'string' || !INTERNAL_ROUTING_MESSAGE_PATTERN.test(message)) {
     return error;
   }
 
   return new HttpErrorResponse({
-    error: { ...error.error, message: 'Ocurrió un problema de autenticación. Si el error persiste, contacta a soporte.' },
+    error: { ...error.error, message: replacement },
     headers: error.headers,
     status: error.status,
     statusText: error.statusText,

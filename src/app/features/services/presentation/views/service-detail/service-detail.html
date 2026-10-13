@@ -8,14 +8,14 @@
   @case ('error') {
   <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-900">
     <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
-    <h1 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white">No pudimos cargar este servicio</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">Revisa tu conexión e inténtalo de nuevo.</p>
+    <h1 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.LOAD_ERROR_TITLE' | translate }}</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
     <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
       <button type="button" (click)="load()"
         class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
-        <span class="material-symbols-rounded text-[18px]">refresh</span>Reintentar
+        <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
       </button>
-      <a routerLink="/services" class="text-sm font-medium text-primary hover:underline">Volver a mis servicios</a>
+      <a routerLink="/services" class="text-sm font-medium text-primary hover:underline">{{ 'SERVICES.DETAIL.BACK_TO_SERVICES' | translate }}</a>
     </div>
   </div>
   }
@@ -23,7 +23,7 @@
   @default {
   @if (service(); as s) {
   <a routerLink="/services" class="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-primary">
-    <span class="material-symbols-rounded text-[16px]">arrow_back</span>Mis servicios
+    <span class="material-symbols-rounded text-[16px]">arrow_back</span>{{ 'SHELL.NAV.MY_SERVICES' | translate }}
   </a>
 
   <!-- Encabezado del servicio -->
@@ -39,74 +39,74 @@
     </div>
     <a [routerLink]="['/services', s.id, 'edit']"
       class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-800 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800">
-      <span class="material-symbols-rounded text-[18px]">edit</span>Editar
+      <span class="material-symbols-rounded text-[18px]">edit</span>{{ 'COMMON.EDIT' | translate }}
     </a>
   </div>
 
   <!-- Detalles, en tres paneles como las vistas de recurso de AWS -->
   <div class="mt-4 grid gap-4 xl:grid-cols-3">
 
-    <section class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" aria-label="Qué es el servicio">
-      <h2 class="border-b border-gray-200 px-5 py-3 text-sm font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Qué es</h2>
+    <section class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" [attr.aria-label]="'SERVICES.DETAIL.WHAT_ARIA' | translate">
+      <h2 class="border-b border-gray-200 px-5 py-3 text-sm font-semibold text-gray-900 dark:border-gray-700 dark:text-white">{{ 'SERVICES.DETAIL.WHAT_IS' | translate }}</h2>
       <dl class="space-y-5 px-5 py-5 text-sm">
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">Qué hace</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.WHAT_IT_DOES' | translate }}</dt>
           <dd class="mt-1.5 text-gray-900 dark:text-white">{{ s.description || '—' }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">Qué incluye</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.WHAT_IT_INCLUDES' | translate }}</dt>
           <dd class="mt-1.5 text-gray-900 dark:text-white">{{ s.scope_statement || '—' }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">Disponibilidad esperada</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.EXPECTED_AVAILABILITY' | translate }}</dt>
           <dd class="mt-1.5 text-gray-900 dark:text-white">{{ label('expected_availability', s.expected_availability) }}</dd>
         </div>
       </dl>
     </section>
 
-    <section class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" aria-label="Cumplimiento">
-      <h2 class="border-b border-gray-200 px-5 py-3 text-sm font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Cumplimiento</h2>
+    <section class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" [attr.aria-label]="'SERVICES.DETAIL.COMPLIANCE' | translate">
+      <h2 class="border-b border-gray-200 px-5 py-3 text-sm font-semibold text-gray-900 dark:border-gray-700 dark:text-white">{{ 'SERVICES.DETAIL.COMPLIANCE' | translate }}</h2>
       <dl class="space-y-5 px-5 py-5 text-sm">
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">Marcos de cumplimiento</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.LIST.COL_FRAMEWORKS' | translate }}</dt>
           <dd class="mt-1.5 flex flex-wrap gap-1.5">
             @for (f of s.frameworks; track f.code) {
-            <span class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary dark:text-blue-300">{{ frameworkLabel(f.code) }}{{ f.status !== 'active' ? ' (en pausa)' : '' }}</span>
+            <span class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary dark:text-blue-300">{{ frameworkLabel(f.code) }}{{ f.status !== 'active' ? ' (' + ('SERVICES.LIST.PAUSED' | translate) + ')' : '' }}</span>
             } @empty { <span class="text-gray-900 dark:text-white">—</span> }
           </dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">Certificación previa</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.PREVIOUS_CERTIFICATION' | translate }}</dt>
           <dd class="mt-1.5 text-gray-900 dark:text-white">{{ label('previous_certification', s.previous_certification) }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">Catálogo</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.LIST.COL_CATALOG' | translate }}</dt>
           <dd class="mt-1.5">
             @if (s.catalog.status === 'ready') {
             <span class="inline-flex items-center gap-1.5 text-green-700 dark:text-green-300">
-              <span class="material-symbols-rounded text-[18px]">task_alt</span>Listo · {{ s.catalog.cloned_controls }} controles
+              <span class="material-symbols-rounded text-[18px]">task_alt</span>{{ 'SERVICES.LIST.CATALOG_READY' | translate: { count: s.catalog.cloned_controls } }}
             </span>
             } @else {
-            <span class="inline-flex items-center gap-1.5 text-gray-900 dark:text-white"><span class="material-symbols-rounded animate-spin text-[18px]">progress_activity</span>Preparando…</span>
+            <span class="inline-flex items-center gap-1.5 text-gray-900 dark:text-white"><span class="material-symbols-rounded animate-spin text-[18px]">progress_activity</span>{{ 'SERVICES.LIST.PREPARING' | translate }}</span>
             }
           </dd>
         </div>
       </dl>
     </section>
 
-    <section class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" aria-label="Clientes y datos">
-      <h2 class="border-b border-gray-200 px-5 py-3 text-sm font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Clientes y datos</h2>
+    <section class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" [attr.aria-label]="'SERVICES.DETAIL.CLIENTS_DATA' | translate">
+      <h2 class="border-b border-gray-200 px-5 py-3 text-sm font-semibold text-gray-900 dark:border-gray-700 dark:text-white">{{ 'SERVICES.DETAIL.CLIENTS_DATA' | translate }}</h2>
       <dl class="space-y-5 px-5 py-5 text-sm">
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">A quién atiende</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.WHO_SERVED' | translate }}</dt>
           <dd class="mt-1.5 text-gray-900 dark:text-white">{{ labels('served_industry', s.industries_served) }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">Países</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.COUNTRIES' | translate }}</dt>
           <dd class="mt-1.5 text-gray-900 dark:text-white">{{ labels('service_country', s.countries) }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">Datos que maneja</dt>
+          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.DATA_HANDLED' | translate }}</dt>
           <dd class="mt-1.5 text-gray-900 dark:text-white">{{ labels('data_type', s.data_types) }}</dd>
         </div>
       </dl>
@@ -117,13 +117,13 @@
   <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h2 class="text-base font-semibold text-gray-900 dark:text-white">¿Dónde vive tu servicio?</h2>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.WHERE_TITLE' | translate }}</h2>
         <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-300">
-          @if (scenario()) { {{ label('deployment_scenario', scenario()) }} } @else { Cuéntanos para proponerte las conexiones que aplican. }
+          @if (scenario()) { {{ label('deployment_scenario', scenario()) }} } @else { {{ 'SERVICES.DETAIL.WHERE_EMPTY' | translate }} }
         </p>
       </div>
       @if (!choosing()) {
-      <button type="button" (click)="choosing.set(true)" class="rounded-lg px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/5">Cambiar</button>
+      <button type="button" (click)="choosing.set(true)" class="rounded-lg px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/5">{{ 'COMMON.CHANGE' | translate }}</button>
       }
     </div>
 
@@ -136,7 +136,7 @@
         <span class="material-symbols-rounded mt-0.5 text-primary">{{ scenarioIcon[o.value] }}</span>
         <span>
           <span class="block text-sm font-semibold text-gray-900 dark:text-white">{{ o.label }}</span>
-          <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-300">{{ scenarioHelp[o.value] }}</span>
+          <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-300">{{ scenarioHelp[o.value] | translate }}</span>
         </span>
       </button>
       }
@@ -150,11 +150,11 @@
       <button type="button" (click)="saveScenario()" [disabled]="!pending() || saving()"
         class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:opacity-60">
         @if (saving()) { <span class="material-symbols-rounded animate-spin text-[18px]">progress_activity</span> }
-        Guardar
+{{ 'COMMON.SAVE' | translate }}
       </button>
       @if (scenario()) {
       <button type="button" (click)="choosing.set(false); pending.set(scenario())" [disabled]="saving()"
-        class="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Cancelar</button>
+        class="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">{{ 'COMMON.CANCEL' | translate }}</button>
       }
     </div>
     }
@@ -164,13 +164,13 @@
   <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Conexiones</h2>
-        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-300">Las vías por las que Monkey llega a tus activos. Abre una para ver lo que encontró.</p>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.LIST.COL_CONNECTIONS' | translate }}</h2>
+        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-300">{{ 'SERVICES.DETAIL.CONNECTIONS_HELP' | translate }}</p>
       </div>
       @if (scenario()) {
       <a [routerLink]="['/services', s.id, 'connections', 'new']"
         class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow transition hover:opacity-90">
-        <span class="material-symbols-rounded text-[18px]">add</span>Nueva conexión
+        <span class="material-symbols-rounded text-[18px]">add</span>{{ 'SERVICES.DETAIL.NEW_CONNECTION' | translate }}
       </a>
       }
     </div>
@@ -182,12 +182,12 @@
     } @else {
     <div class="mt-5 rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700">
       <span class="material-symbols-rounded text-3xl text-gray-500 dark:text-gray-300">cable</span>
-      <p class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Aún no tienes conexiones</p>
+      <p class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.NO_CONNECTIONS_TITLE' | translate }}</p>
       <p class="mx-auto mt-1 max-w-md text-sm text-gray-500 dark:text-gray-300">
         @if (scenario()) {
-        Crea una conexión y te proponemos cómo hacerla. Al terminar verás los activos que Monkey encontró.
+        {{ 'SERVICES.DETAIL.NO_CONNECTIONS_WITH_SCENARIO' | translate }}
         } @else {
-        Primero cuéntanos dónde vive tu servicio, arriba, y te proponemos las conexiones que aplican.
+        {{ 'SERVICES.DETAIL.NO_CONNECTIONS_NO_SCENARIO' | translate }}
         }
       </p>
     </div>

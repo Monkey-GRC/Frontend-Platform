@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { ServiceService } from '@features/services/domain/services/service.service';
 import { Breadcrumb, Crumb } from '@shared/presentation/components/breadcrumb/breadcrumb';
@@ -7,6 +8,7 @@ import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/
 import { Capability, ConnectionMethod, Platform } from '../../../domain/models/technical-control.models';
 import { TechnicalControlService } from '../../../domain/services/technical-control.service';
 import { ProviderLogo } from '../../components/provider-logo/provider-logo';
+import { categoryLabel } from '../../../domain/utils/category-label';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -14,7 +16,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // si están disponibles salen del catálogo del backend; esta pantalla no fija ninguna. Las que aún no tienen flujo se muestran bloqueadas.
 @Component({
   selector: 'app-new-connection',
-  imports: [Breadcrumb, ProviderLogo, RouterLink, LoadingSpinner],
+  imports: [Breadcrumb, ProviderLogo, RouterLink, LoadingSpinner, TranslatePipe],
   templateUrl: './new-connection.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -23,6 +25,7 @@ export class NewConnectionView implements OnInit {
   private readonly router = inject(Router);
   private readonly api = inject(TechnicalControlService);
   private readonly services = inject(ServiceService);
+  private readonly translate = inject(TranslateService);
 
   readonly stage = signal<Stage>('loading');
   readonly serviceId = signal('');
@@ -32,9 +35,9 @@ export class NewConnectionView implements OnInit {
 
   // Mis servicios › {servicio} › Nueva conexión
   readonly crumbs = computed<Crumb[]>(() => [
-    { label: 'Mis servicios', link: ['/services'] },
-    { label: this.serviceName() ?? 'Servicio', link: ['/services', this.serviceId()] },
-    { label: 'Nueva conexión' },
+    { label: this.translate.instant('SHELL.NAV.MY_SERVICES'), link: ['/services'] },
+    { label: this.serviceName() ?? this.translate.instant('TECHNICAL_CONTROL.CRUMB_SERVICE'), link: ['/services', this.serviceId()] },
+    { label: this.translate.instant('TECHNICAL_CONTROL.NEW_CONNECTION') },
   ]);
 
   ngOnInit(): void {
@@ -63,20 +66,20 @@ export class NewConnectionView implements OnInit {
   // Cómo se conecta, dicho sin jerga (philosophy.md): lo que el cliente va a hacer, no el nombre del mecanismo. El primer canal es el recomendado.
   describe(p: Platform): string {
     const how: Record<ConnectionMethod, string> = {
-      readonly_role: 'Monkey revisa tu cuenta con un rol de solo lectura. No compartes contraseñas ni llaves.',
-      access_keys: 'Monkey revisa tu cuenta con una llave de acceso de solo lectura.',
-      agent: 'Instalas un programa ligero de Monkey en el equipo. No necesitas dar contraseñas.',
+      readonly_role: 'TECHNICAL_CONTROL.NEW.HOW_READONLY_ROLE',
+      access_keys: 'TECHNICAL_CONTROL.NEW.HOW_ACCESS_KEYS',
+      agent: 'TECHNICAL_CONTROL.NEW.HOW_AGENT',
     };
-    return p.availability === 'available' && p.connection_methods.length > 0 ? how[p.connection_methods[0]] : 'Estará disponible muy pronto.';
+    return this.translate.instant(p.availability === 'available' && p.connection_methods.length > 0 ? how[p.connection_methods[0]] : 'TECHNICAL_CONTROL.NEW.SOON');
   }
 
   // El título del grupo es el nombre del tipo de conexión sin la aclaración entre paréntesis («Servicios en nube (gestionados, sin servidor)» → «Servicios en nube»).
-  groupTitle(category: string): string {
-    return category.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+  groupTitle(code: string, category: string): string {
+    return categoryLabel(this.translate, code, category).replace(/\s*\([^)]*\)\s*/g, ' ').trim();
   }
 
   // Una tarjeta bloqueada no navega: se anuncia como no disponible y no hace nada.
   blockedLabel(name: string): string {
-    return `${name}, no disponible, próximamente`;
+    return this.translate.instant('TECHNICAL_CONTROL.NEW.BLOCKED_ARIA', { name });
   }
 }

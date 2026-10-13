@@ -20,7 +20,7 @@
             <div class="flex items-center justify-between mb-6 md:mb-8">
                 <span
                     class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs md:text-sm font-medium text-primary">
-                    Bienvenido de vuelta
+                    {{ 'AUTH.LOGIN.WELCOME_BACK' | translate }}
                 </span>
                 <span class="text-[10px] md:text-xs text-gray-400">v1.0</span>
             </div>
@@ -28,11 +28,11 @@
             <!-- Title -->
             <h1
                 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2 text-primary dark:text-white text-center md:text-left">
-                Inicia sesión
+                {{ 'AUTH.LOGIN.TITLE' | translate }}
             </h1>
 
             <p class="text-xs md:text-sm text-gray-400 text-center md:text-left">
-                Usa el correo y la contraseña que elegiste al activar tu cuenta.
+                {{ 'AUTH.LOGIN.SUBTITLE' | translate }}
             </p>
 
             <!-- Form Fields -->
@@ -41,7 +41,7 @@
                 <!-- Identifier -->
                 <div class="relative">
                     <label class="block text-xs font-medium text-gray-400 mb-2">
-                        Correo electrónico
+                        {{ 'AUTH.FIELDS.EMAIL' | translate }}
                     </label>
 
                     <span
@@ -50,19 +50,19 @@
                     </span>
 
                     <input formControlName="email" type="email" autocomplete="email"
-                        placeholder="tu@empresa.com"
+                        [placeholder]="'AUTH.FIELDS.EMAIL_PLACEHOLDER' | translate"
                         class="bg-gray-100 dark:bg-[#162036] dark:text-white focus:bg-white dark:focus:bg-[#0E1525]
               w-full pl-10 pr-3 h-11 md:pl-12 md:h-12 text-sm md:text-base rounded-lg border border-gray-300 dark:border-gray-700
               focus:border-primary/60 transition" />
 
                     @if (hasError('email','required')) {
                     <p class="mt-1.5 text-xs text-error-500">
-                        Este campo es obligatorio.
+                        {{ 'COMMON.VALIDATION.REQUIRED' | translate }}
                     </p>
                     }
                     @if (hasError('email','email')) {
                     <p class="mt-1.5 text-xs text-error-500">
-                        Ingresa un correo válido.
+                        {{ 'COMMON.VALIDATION.EMAIL_INVALID' | translate }}
                     </p>
                     }
                 </div>
@@ -70,7 +70,7 @@
                 <!-- Password -->
                 <div class="relative">
                     <label class="block text-xs font-medium text-gray-400 mb-2">
-                        Contraseña
+                        {{ 'AUTH.FIELDS.PASSWORD' | translate }}
                     </label>
 
                     <span
@@ -85,7 +85,7 @@
 
                     @if (hasError('password','required')) {
                     <p class="mt-1.5 text-xs text-error-500">
-                        La contraseña es obligatoria.
+                        {{ 'AUTH.VALIDATION.PASSWORD_REQUIRED' | translate }}
                     </p>
                     }
                 </div>
@@ -103,12 +103,12 @@
                     [disabled]="loading() || form.invalid">
 
                     @if (!loading()) {
-                    <span>Iniciar sesión</span>
+                    <span>{{ 'AUTH.LOGIN.SUBMIT' | translate }}</span>
                     } @else {
                     <span class="inline-flex items-center gap-2">
                         <span
                             class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
-                        Verificando…
+                        {{ 'AUTH.LOGIN.VERIFYING' | translate }}
                     </span>
                     }
 
@@ -123,13 +123,13 @@
             <div class="mt-8 md:mt-10">
                 <div class="flex items-center gap-3">
                     <span class="h-px w-full bg-gray-200 dark:bg-gray-700"></span>
-                    <span class="text-xs text-gray-500">Información</span>
+                    <span class="text-xs text-gray-500">{{ 'AUTH.LOGIN.INFO' | translate }}</span>
                     <span class="h-px w-full bg-gray-200 dark:bg-gray-700"></span>
                 </div>
 
                 <p class="text-[11px] md:text-xs text-gray-500 mt-4 text-center md:text-left">
-                    ¿Todavía no activaste tu cuenta?
-                    <a routerLink="/register" class="text-primary underline">Actívala con tu clave de acceso</a>.
+                    {{ 'AUTH.LOGIN.NOT_ACTIVATED' | translate }}
+                    <a routerLink="/register" class="text-primary underline">{{ 'AUTH.LOGIN.ACTIVATE_LINK' | translate }}</a>.
                 </p>
             </div>
 

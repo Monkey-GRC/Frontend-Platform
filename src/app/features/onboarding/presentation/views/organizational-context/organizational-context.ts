@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '@core/domain/services/language.service';
 import { forkJoin } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
@@ -29,11 +31,11 @@ interface Catalogs {
 // Las 5 pantallas del Componente 1 (contexto organizacional) y una de revisión. Agrupan campos
 // que van naturalmente juntos para que no sean 10 pantallas; cada una hace pocas preguntas.
 const STEPS = [
-  { key: 'company', label: 'Tu empresa', icon: 'apartment' },
-  { key: 'size', label: 'Tamaño', icon: 'groups' },
-  { key: 'business', label: 'Tu negocio', icon: 'storefront' },
-  { key: 'reach', label: 'Alcance', icon: 'public' },
-  { key: 'compliance', label: 'Cumplimiento', icon: 'verified_user' },
+  { key: 'company', labelKey: 'ONBOARDING.STEPS.COMPANY', icon: 'apartment' },
+  { key: 'size', labelKey: 'ONBOARDING.STEPS.SIZE', icon: 'groups' },
+  { key: 'business', labelKey: 'ONBOARDING.STEPS.BUSINESS', icon: 'storefront' },
+  { key: 'reach', labelKey: 'ONBOARDING.STEPS.REACH', icon: 'public' },
+  { key: 'compliance', labelKey: 'ONBOARDING.STEPS.COMPLIANCE', icon: 'verified_user' },
 ] as const;
 const REVIEW_STEP = STEPS.length;
 const DESCRIPTION_MAX = 2000;
@@ -45,7 +47,7 @@ type SingleKey = 'size' | 'years_in_operation' | 'industry' | 'business_model' |
 
 @Component({
   selector: 'app-organizational-context',
-  imports: [OptionChips],
+  imports: [OptionChips, TranslatePipe],
   templateUrl: './organizational-context.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -56,6 +58,8 @@ export class OrganizationalContextView implements OnInit {
   private readonly session = inject(SessionService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
 
   readonly steps = STEPS;
   readonly reviewStep = REVIEW_STEP;
@@ -87,6 +91,13 @@ export class OrganizationalContextView implements OnInit {
   );
 
   constructor() {
+    // El backend traduce los catálogos: al cambiar el idioma se vuelven a pedir, sin recrear la pantalla ni tocar lo escrito.
+    effect(() => {
+      this.language.current();
+      untracked(() => {
+        if (this.catalogs()) this.fetchCatalogs().subscribe((fresh) => this.catalogs.set(fresh));
+      });
+    });
     // Guarda el avance en el navegador mientras el cliente escribe (solo si aún no hay nada
     // guardado en el backend: si ya lo hay, el backend es la verdad).
     effect(() => {
@@ -101,6 +112,19 @@ export class OrganizationalContextView implements OnInit {
   ngOnInit(): void {
     this.userId = this.session.user()?.id ?? null;
     this.load();
+  }
+
+  private fetchCatalogs() {
+    return forkJoin({
+      size: this.catalogService.options('size'),
+      years: this.catalogService.options('years_in_operation'),
+      industry: this.catalogService.options('industry'),
+      businessModel: this.catalogService.options('business_model'),
+      incorporation: this.catalogService.options('incorporation_country'),
+      client: this.catalogService.options('client_country'),
+      maturity: this.catalogService.options('compliance_maturity'),
+      regulations: this.catalogService.regulations(),
+    });
   }
 
   load(): void {
@@ -238,7 +262,7 @@ export class OrganizationalContextView implements OnInit {
           this.saveError.set(
             fields.length > 0
               ? fields.map((f) => f.message).join(' ')
-              : apiErrorMessage(error, 'No pudimos guardar tu información. Inténtalo de nuevo.'),
+              : apiErrorMessage(error, this.translate.instant('ONBOARDING.SAVE_ERROR')),
           );
         },
       });

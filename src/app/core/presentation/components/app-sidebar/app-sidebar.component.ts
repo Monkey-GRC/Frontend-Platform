@@ -5,14 +5,16 @@ import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef } fro
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { combineLatest, Subscription } from 'rxjs';
 import { SidebarService } from '@core/domain/services/sidebar.service';
-import { NavItem, NAV_ITEMS, SECTION_ICONS, NavigationHelper, NavSubItem } from '@config/navigation.config';
+import { TranslatePipe } from '@ngx-translate/core';
+import { NavItem, NAV_ITEMS, SECTION_ICONS, SECTION_LABEL_KEYS, NavigationHelper, NavSubItem } from '@config/navigation.config';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    TranslatePipe
   ],
   templateUrl: './app-sidebar.component.html',
 })
@@ -79,6 +81,10 @@ export class AppSidebarComponent {
   // Obtener items por sección
   getItemsBySection(section: string): NavItem[] {
     return NavigationHelper.getItemsBySection(this.navItems, section);
+  }
+
+  sectionLabelKey(section: string): string {
+    return SECTION_LABEL_KEYS[section] ?? section;
   }
 
   // Obtener icono para sección cuando está colapsada

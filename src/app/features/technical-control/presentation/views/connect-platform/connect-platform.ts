@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '@core/domain/services/language.service';
 import { forkJoin } from 'rxjs';
 import { ServiceService } from '@features/services/domain/services/service.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
@@ -17,7 +19,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // o está bloqueada, se vuelve al marketplace: nadie llega aquí a conectar algo que no se puede.
 @Component({
   selector: 'app-connect-platform',
-  imports: [Breadcrumb, ConnectAssetForm, ProviderLogo, LoadingSpinner],
+  imports: [Breadcrumb, ConnectAssetForm, ProviderLogo, LoadingSpinner, TranslatePipe],
   templateUrl: './connect-platform.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -27,6 +29,8 @@ export class ConnectPlatformView implements OnInit {
   private readonly api = inject(TechnicalControlService);
   private readonly services = inject(ServiceService);
   private readonly catalogs = inject(CatalogService);
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
 
   readonly stage = signal<Stage>('loading');
   readonly serviceId = signal('');
@@ -38,11 +42,21 @@ export class ConnectPlatformView implements OnInit {
 
   // Mis servicios › {servicio} › Nueva conexión › {plataforma}
   readonly crumbs = computed<Crumb[]>(() => [
-    { label: 'Mis servicios', link: ['/services'] },
-    { label: this.service()?.name ?? 'Servicio', link: ['/services', this.serviceId()] },
-    { label: 'Nueva conexión', link: ['/services', this.serviceId(), 'connections', 'new'] },
+    { label: this.translate.instant('SHELL.NAV.MY_SERVICES'), link: ['/services'] },
+    { label: this.service()?.name ?? this.translate.instant('TECHNICAL_CONTROL.CRUMB_SERVICE'), link: ['/services', this.serviceId()] },
+    { label: this.translate.instant('TECHNICAL_CONTROL.NEW_CONNECTION'), link: ['/services', this.serviceId(), 'connections', 'new'] },
     { label: this.platform()?.name ?? '…' },
   ]);
+
+  constructor() {
+    // El backend traduce los catálogos: al cambiar el idioma se vuelven a pedir, sin recrear la pantalla ni perder lo escrito.
+    effect(() => {
+      this.language.current();
+      untracked(() => {
+        if (this.stage() === 'ready') this.catalogs.options('asset_criticality').subscribe((c) => this.criticalities.set(c));
+      });
+    });
+  }
 
   ngOnInit(): void {
     this.serviceId.set(this.route.snapshot.paramMap.get('id') ?? '');

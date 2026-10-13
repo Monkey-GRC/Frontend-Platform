@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { Asset } from '../../../domain/models/technical-control.models';
 import { TechnicalControlService } from '../../../domain/services/technical-control.service';
@@ -9,11 +10,13 @@ type Phase = 'idle' | 'saving' | 'checking';
 // Aquí no hay credenciales: el cliente comparte un rol que él controla y puede borrar cuando quiera. Los pasos vienen del backend (ya en su idioma).
 @Component({
   selector: 'app-cloud-connection-panel',
+  imports: [TranslatePipe],
   templateUrl: './cloud-connection-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CloudConnectionPanel {
   private readonly api = inject(TechnicalControlService);
+  private readonly translate = inject(TranslateService);
 
   readonly asset = input.required<Asset>();
   readonly changed = output<Asset>();
@@ -28,15 +31,15 @@ export class CloudConnectionPanel {
   readonly setup = computed(() => this.asset().connection_setup ?? null);
   readonly busy = computed(() => this.phase() !== 'idle');
   readonly narration = computed(() =>
-    this.phase() === 'saving' ? 'Guardando el rol…' : this.phase() === 'checking' ? 'Comprobando el acceso a tu cuenta de AWS…' : '',
+    this.phase() === 'saving' ? this.translate.instant('TECHNICAL_CONTROL.PANEL.SAVING_ROLE') : this.phase() === 'checking' ? this.translate.instant('TECHNICAL_CONTROL.PANEL.CHECKING') : '',
   );
   // Lo que el cliente pega en CloudFormation. Los nombres son los de los parámetros de la plantilla.
   readonly rows = computed(() => {
     const s = this.setup();
     if (!s) return [];
     return [
-      { key: 'external_id', label: 'ExternalId', hint: 'identificador externo', value: s.external_id ?? '' },
-      { key: 'principal', label: 'MonkeyPrincipalArn', hint: 'identidad de Monkey', value: s.monkey_principal_arn ?? '' },
+      { key: 'external_id', label: 'ExternalId', hint: 'TECHNICAL_CONTROL.PANEL.HINT_EXTERNAL_ID', value: s.external_id ?? '' },
+      { key: 'principal', label: 'MonkeyPrincipalArn', hint: 'TECHNICAL_CONTROL.PANEL.HINT_PRINCIPAL', value: s.monkey_principal_arn ?? '' },
     ];
   });
   readonly missingPrincipal = computed(() => !this.setup()?.monkey_principal_arn);
@@ -74,7 +77,7 @@ export class CloudConnectionPanel {
       },
       error: (error) => {
         this.downloading.set(false);
-        this.message.set({ kind: 'error', text: apiErrorMessage(error, 'No pudimos descargar la plantilla. Inténtalo de nuevo.') });
+        this.message.set({ kind: 'error', text: apiErrorMessage(error, this.translate.instant('TECHNICAL_CONTROL.PANEL.DOWNLOAD_ERROR')) });
       },
     });
   }
@@ -85,7 +88,7 @@ export class CloudConnectionPanel {
     this.roleError.set(null);
     this.message.set(null);
     if (!arn) {
-      this.roleError.set('Pega el valor «RoleArn» que te dio AWS al crear la pila.');
+      this.roleError.set(this.translate.instant('TECHNICAL_CONTROL.PANEL.ROLE_REQUIRED'));
       return;
     }
     const saved = this.asset().connection_setup?.role_arn;
@@ -100,7 +103,7 @@ export class CloudConnectionPanel {
         this.phase.set('idle');
         const field = apiFieldErrors(error).find((f) => f.field === 'role_arn');
         if (field) this.roleError.set(field.message);
-        else this.message.set({ kind: 'error', text: apiErrorMessage(error, 'No pudimos guardar el rol. Inténtalo de nuevo.') });
+        else this.message.set({ kind: 'error', text: apiErrorMessage(error, this.translate.instant('TECHNICAL_CONTROL.PANEL.SAVE_ROLE_ERROR')) });
       },
     });
   }
@@ -114,13 +117,13 @@ export class CloudConnectionPanel {
         if (code === 'CONNECTION_FAILED') {
           // La comprobación fallida cambió el estado del sistema («no pudimos conectar»): se refleja y se dice qué corregir.
           const field = apiFieldErrors(error).find((f) => f.field === 'role_arn');
-          this.roleError.set(field?.message ?? apiFieldErrors(error)[0]?.message ?? 'No pudimos acceder a tu cuenta.');
+          this.roleError.set(field?.message ?? apiFieldErrors(error)[0]?.message ?? this.translate.instant('TECHNICAL_CONTROL.PANEL.ACCESS_ERROR'));
           this.refresh();
           return;
         }
         this.phase.set('idle');
         // «No disponible» no es un error del cliente: el rol quedó guardado y puede reintentar en un momento.
-        this.message.set({ kind: code === 'CONNECTION_UNAVAILABLE' ? 'info' : 'error', text: apiErrorMessage(error, 'No pudimos completar la comprobación. Inténtalo de nuevo.') });
+        this.message.set({ kind: code === 'CONNECTION_UNAVAILABLE' ? 'info' : 'error', text: apiErrorMessage(error, this.translate.instant('TECHNICAL_CONTROL.PANEL.CHECK_ERROR')) });
       },
     });
   }

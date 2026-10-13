@@ -47,7 +47,7 @@
                   'justify-start': (isExpanded$ | async) || (isHovered$ | async)
                 }">
             @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-            {{ section }}
+            {{ sectionLabelKey(section) | translate }}
             }
           </h2>
 
@@ -77,7 +77,7 @@
 
                 @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
                 <span class="menu-item-text">
-                  {{ item.name }}
+                  {{ item.labelKey | translate }}
                 </span>
                 }
 
@@ -120,7 +120,7 @@
                                   'menu-dropdown-item-inactive': !isActive(subItem.path || ''),
                                   'menu-dropdown-item-active': isActive(subItem.path || ''),
                                 }">
-                      {{ subItem.name }}
+                      {{ subItem.labelKey | translate }}
                       <span class="flex items-center gap-1 ml-auto">
                         @if (subItem.new) {
                         <span class="menu-dropdown-badge" [ngClass]="{
@@ -160,7 +160,7 @@
                 </span>
                 <span class="menu-item-text">
                   @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                  {{ item.name }}
+                  {{ item.labelKey | translate }}
                   }
                 </span>
               </a>

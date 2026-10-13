@@ -211,10 +211,11 @@ export const isHttpUrl = (value: string): boolean => {
 
 // Archivo de la Descripción del Sistema: PDF o Word, hasta 25 MB (contrato del Componente 2).
 export const SYSTEM_DESCRIPTION_MAX_BYTES = 25 * 1024 * 1024;
+// Devuelve la clave de traducción del problema (services.json), o null si el archivo sirve.
 export const systemDescriptionFileError = (file: File): string | null => {
   const name = file.name.toLowerCase();
-  if (!name.endsWith('.pdf') && !name.endsWith('.docx')) return 'Solo se aceptan archivos PDF o Word (.docx).';
-  if (file.size > SYSTEM_DESCRIPTION_MAX_BYTES) return 'El archivo supera el máximo de 25 MB.';
-  if (file.size === 0) return 'El archivo está vacío.';
+  if (!name.endsWith('.pdf') && !name.endsWith('.docx')) return 'SERVICES.FORM.FILE_ERROR_TYPE';
+  if (file.size > SYSTEM_DESCRIPTION_MAX_BYTES) return 'SERVICES.FORM.FILE_ERROR_SIZE';
+  if (file.size === 0) return 'SERVICES.FORM.FILE_ERROR_EMPTY';
   return null;
 };

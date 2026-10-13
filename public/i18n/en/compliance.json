@@ -1,0 +1,19 @@
+{
+  "COMPLIANCE": {
+    "GLOSSARY": {
+      "CONTROLS": "Protection actions",
+      "CONTROL": "Protection action",
+      "RISKS": "What could go wrong",
+      "RISK": "Something that could go wrong",
+      "CAUSES": "Why it could happen",
+      "CAUSE": "Why it could happen",
+      "EVIDENCE": "What you need to provide"
+    },
+    "STATUS": {
+      "READY": "Ready",
+      "ALMOST_READY": "Almost ready",
+      "NEEDS_WORK": "Needs work",
+      "NOT_MEASURED": "Not measured"
+    }
+  }
+}

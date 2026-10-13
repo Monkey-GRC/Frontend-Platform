@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import {
   Observable,
   catchError,
@@ -18,13 +19,14 @@ import { AccessKeyLookup, AuthPayload, LoginDto, RedeemDto } from '../models/aut
 
 // Monkey Platform es para las empresas cliente; el equipo Monkey trabaja en Monkey Admin (D24).
 const PLATFORM_EXCLUDED_ROLE = 'admin_monkey';
-export const ADMIN_NOT_ALLOWED_MESSAGE =
-  'Esta plataforma es para las empresas cliente. El equipo de Monkey ingresa por Monkey Admin.';
+// Clave de traducción (auth.json): el mensaje se traduce al momento de mostrarlo.
+export const ADMIN_NOT_ALLOWED_MESSAGE = 'AUTH.ADMIN_NOT_ALLOWED';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly session = inject(SessionService);
+  private readonly translate = inject(TranslateService);
   private readonly baseUrl = `${environment.apiUrl}/auth`;
   // Un solo refresh en vuelo aunque varias peticiones reciban 401 a la vez.
   private refreshInFlight$: Observable<boolean> | null = null;
@@ -104,7 +106,7 @@ export class AuthService {
 
   private acceptSession(payload: AuthPayload): Observable<AuthPayload> {
     if (payload.user.role === PLATFORM_EXCLUDED_ROLE) {
-      return this.logout().pipe(switchMap(() => throwError(() => new Error(ADMIN_NOT_ALLOWED_MESSAGE))));
+      return this.logout().pipe(switchMap(() => throwError(() => new Error(this.translate.instant(ADMIN_NOT_ALLOWED_MESSAGE)))));
     }
     this.session.set(payload.user, payload.company, payload.onboarding ?? null);
     return of(payload);

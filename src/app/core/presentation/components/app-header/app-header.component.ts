@@ -1,7 +1,9 @@
 import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ThemeToggleButtonComponent } from '@core/presentation/components/app-header/theme-toggle/theme-toggle-button.component';
+import { LanguageToggleComponent } from '@core/presentation/components/app-header/language-toggle/language-toggle.component';
 import { SidebarService } from '@core/domain/services/sidebar.service';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 
@@ -11,7 +13,9 @@ import { AuthService } from '@features/auth/domain/services/auth.service';
   imports: [
     CommonModule,
     RouterModule,
-    ThemeToggleButtonComponent
+    ThemeToggleButtonComponent,
+    LanguageToggleComponent,
+    TranslatePipe
   ],
   templateUrl: './app-header.component.html',
 })

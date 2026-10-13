@@ -1,0 +1,39 @@
+{
+  "COMMON": {
+    "BREADCRUMB": "Ruta de navegación",
+    "LOADING": "Cargando",
+    "CHECK_CONNECTION": "Revisa tu conexión e inténtalo de nuevo.",
+    "RETRY": "Reintentar",
+    "DELETE": "Eliminar",
+    "CANCEL": "Cancelar",
+    "EDIT": "Editar",
+    "CHANGE": "Cambiar",
+    "SAVE": "Guardar",
+    "CONTINUE": "Continuar",
+    "BACK": "Atrás",
+    "NEXT": "Siguiente",
+    "OPTIONAL": "opcional",
+    "REMOVE": "Quitar",
+    "CLOSE": "Cerrar",
+    "AUTH_PROBLEM": "Ocurrió un problema de autenticación. Si el error persiste, contacta a soporte.",
+    "DOWNLOAD": "Descargar",
+    "WIZARD": {
+      "SKIP_HELP": "Puedes saltarte esta pregunta.",
+      "MULTI_EACH": "Puedes elegir más de una opción en cada pregunta.",
+      "REVIEW": "Revisar",
+      "REVIEW_BODY_EDIT": "Toca «Editar» en lo que quieras cambiar.",
+      "SAVING": "Guardando…",
+      "SAVE_CHANGES": "Guardar cambios",
+      "PROGRESS_SAVED": "Guardamos tu avance en este navegador: si te interrumpen, retomas donde ibas."
+    },
+    "VALIDATION": {
+      "REQUIRED": "Este campo es obligatorio.",
+      "EMAIL_INVALID": "Ingresa un correo válido."
+    },
+    "NOT_FOUND": {
+      "TITLE": "ERROR",
+      "MESSAGE": "No encontramos la página que buscas.",
+      "BACK_HOME": "Volver al inicio"
+    }
+  }
+}

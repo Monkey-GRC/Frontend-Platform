@@ -1,9 +1,9 @@
-<section class="mt-4 rounded-xl border border-gray-200 bg-gray-50/60 p-5 dark:border-gray-700 dark:bg-white/[0.02]" aria-label="Editar este activo">
-  <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Editar este activo</h4>
+<section class="mt-4 rounded-xl border border-gray-200 bg-gray-50/60 p-5 dark:border-gray-700 dark:bg-white/[0.02]" [attr.aria-label]="'TECHNICAL_CONTROL.EDIT.TITLE' | translate">
+  <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'TECHNICAL_CONTROL.EDIT.TITLE' | translate }}</h4>
 
   <div class="mt-4 space-y-5">
     <div>
-      <label for="edit-name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre <span class="text-error-500">*</span></label>
+      <label for="edit-name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.NAME' | translate }} <span class="text-error-500">*</span></label>
       <input id="edit-name" type="text" maxlength="200" [value]="name()" (input)="name.set($any($event.target).value)"
         class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
       @if (fieldError('name'); as e) { <p class="mt-1.5 text-xs text-error-500">{{ e }}</p> }
@@ -11,14 +11,14 @@
 
     @if (criticalityChips().length) {
     <div>
-      <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">¿Qué tan importante es?</p>
-      <app-option-chips [options]="criticalityChips()" [selected]="[criticality()]" ariaLabel="Importancia del activo" (picked)="criticality.set($event)" />
+      <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.IMPORTANCE' | translate }}</p>
+      <app-option-chips [options]="criticalityChips()" [selected]="[criticality()]" [ariaLabel]="'TECHNICAL_CONTROL.EDIT.IMPORTANCE_ARIA' | translate" (picked)="criticality.set($event)" />
     </div>
     }
 
     @if (isCloud()) {
     <div>
-      <label for="edit-account" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Número de tu cuenta de AWS <span class="text-error-500">*</span></label>
+      <label for="edit-account" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.ACCOUNT' | translate }} <span class="text-error-500">*</span></label>
       <input id="edit-account" type="text" inputmode="numeric" maxlength="12" autocomplete="off" [value]="accountId()"
         (input)="setAccountId($any($event.target).value)" placeholder="123456789012"
         class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
@@ -26,15 +26,15 @@
     </div>
 
     <div>
-      <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Regiones que se evalúan <span class="text-error-500">*</span></p>
-      <app-option-chips [options]="regionChips()" [selected]="regions()" [multiple]="true" ariaLabel="Regiones de AWS" (picked)="toggleRegion($event)" />
+      <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.REGIONS' | translate }} <span class="text-error-500">*</span></p>
+      <app-option-chips [options]="regionChips()" [selected]="regions()" [multiple]="true" [ariaLabel]="'TECHNICAL_CONTROL.EDIT.REGIONS_ARIA' | translate" (picked)="toggleRegion($event)" />
       @if (fieldError('regions'); as e) { <p class="mt-2 text-xs text-error-500">{{ e }}</p> }
     </div>
 
     @if (usesRole()) {
     <div>
-      <label for="edit-role" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">El rol que creaste</label>
-      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Es el valor «RoleArn» de la pila en AWS. Cámbialo solo si creaste otro rol.</p>
+      <label for="edit-role" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.ROLE' | translate }}</label>
+      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.ROLE_HELP' | translate }}</p>
       <input id="edit-role" type="text" autocomplete="off" spellcheck="false" [value]="roleArn()" (input)="roleArn.set($any($event.target).value)"
         placeholder="arn:aws:iam::123456789012:role/MonkeyReadOnly"
         class="h-12 w-full rounded-lg border bg-white px-4 font-mono text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 dark:bg-gray-900 dark:text-white"
@@ -45,11 +45,11 @@
 
     @if (usesKeys()) {
     <div class="space-y-3 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-900/10">
-      <p class="text-xs text-amber-800 dark:text-amber-300">Por seguridad no mostramos las llaves guardadas. Déjalas vacías para conservarlas, o pega las dos nuevas para reemplazarlas.</p>
-      <input type="text" autocomplete="off" spellcheck="false" aria-label="Identificador de la llave de acceso" placeholder="Identificador de la llave (AKIA…)" [value]="accessKeyId()"
+      <p class="text-xs text-amber-800 dark:text-amber-300">{{ 'TECHNICAL_CONTROL.EDIT.KEYS_HELP' | translate }}</p>
+      <input type="text" autocomplete="off" spellcheck="false" [attr.aria-label]="'TECHNICAL_CONTROL.EDIT.KEY_ID_ARIA' | translate" [placeholder]="'TECHNICAL_CONTROL.EDIT.KEY_ID_PLACEHOLDER' | translate" [value]="accessKeyId()"
         (input)="accessKeyId.set($any($event.target).value)"
         class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-      <input type="password" autocomplete="new-password" aria-label="Llave secreta" placeholder="Llave secreta" [value]="secretAccessKey()"
+      <input type="password" autocomplete="new-password" [attr.aria-label]="'TECHNICAL_CONTROL.EDIT.SECRET' | translate" [placeholder]="'TECHNICAL_CONTROL.EDIT.SECRET' | translate" [value]="secretAccessKey()"
         (input)="secretAccessKey.set($any($event.target).value)"
         class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
       @if (fieldError('credentials'); as e) { <p class="text-xs text-error-500">{{ e }}</p> }
@@ -61,7 +61,7 @@
   @if (changesConnection()) {
   <p class="mt-4 flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-xs text-blue-800 dark:bg-blue-900/20 dark:text-blue-300" role="status">
     <span class="material-symbols-rounded text-[16px]">info</span>
-    Cambiaste lo que se evalúa, así que al guardar tendrás que comprobar la conexión otra vez. Lo que ya medimos se conserva.
+    {{ 'TECHNICAL_CONTROL.EDIT.CHANGES_CONNECTION' | translate }}
   </p>
   }
   @if (error(); as e) {
@@ -74,11 +74,11 @@
     <button type="button" (click)="save()" [disabled]="!valid() || !dirty() || saving()"
       class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:opacity-60">
       <span class="material-symbols-rounded text-[20px]" [class.animate-spin]="saving()">{{ saving() ? 'progress_activity' : 'save' }}</span>
-      Guardar cambios
+      {{ 'COMMON.WIZARD.SAVE_CHANGES' | translate }}
     </button>
     <button type="button" (click)="cancelled.emit()" [disabled]="saving()"
       class="rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
-      Cancelar
+      {{ 'COMMON.CANCEL' | translate }}
     </button>
   </div>
 </section>

@@ -1,0 +1,24 @@
+{
+  "HOME": {
+    "GREETING": "Hola, {{name}}. Tu cuenta está lista.",
+    "INTRO": "Desde ahora ingresas con tu correo y contraseña. Vamos a preparar a tu empresa para su auditoría, paso a paso.",
+    "START": "Empezar",
+    "STEP_FIRST": "Primer paso",
+    "STEP_NEXT": "Siguiente paso",
+    "STEP_LAST": "Último paso",
+    "COMPANY_TITLE": "Conozcamos tu empresa",
+    "COMPANY_BODY": "Unas preguntas sencillas sobre tu negocio. Toma un par de minutos.",
+    "COMPANY_KNOWN": "Ya conocemos tu empresa",
+    "VIEW_INFO": "Ver mi información",
+    "SERVICE_TITLE": "Cuéntanos sobre tu servicio",
+    "SERVICE_BODY": "El servicio que quieres auditar. Al terminar te dejamos listo tu catálogo de cumplimiento.",
+    "COMPANY_SERVICE_KNOWN": "Ya conocemos tu empresa y tu servicio",
+    "CATALOG_READY": "Tu catálogo de cumplimiento está preparado.",
+    "VIEW_COMPANY": "Ver mi empresa",
+    "VIEW_SERVICES": "Ver mis servicios",
+    "ASSETS_TITLE": "Registra tus activos",
+    "ASSETS_BODY": "Cuéntanos dónde vive tu servicio y conéctalo para que Monkey lo evalúe sola. Puedes hacerlo por partes.",
+    "ALL_READY_TITLE": "Tu empresa y tu servicio están listos",
+    "ALL_READY_BODY": "Tu catálogo de cumplimiento está preparado y ya sabemos dónde vive tu servicio. Puedes revisar o editar lo que nos contaste, y registrar más activos cuando quieras."
+  }
+}

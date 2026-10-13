@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '@core/domain/services/language.service';
 import { catchError, concatMap, from, map, of, toArray, forkJoin } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { apiErrorCode } from '@core/domain/utils/api-error';
@@ -16,7 +18,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // actúan sobre lo seleccionado (ver, editar, eliminar uno o varios).
 @Component({
   selector: 'app-services-list',
-  imports: [RouterLink, LoadingSpinner],
+  imports: [RouterLink, LoadingSpinner, TranslatePipe],
   templateUrl: './services-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -24,6 +26,8 @@ export class ServicesListView implements OnInit {
   private readonly services = inject(ServiceService);
   private readonly catalogService = inject(CatalogService);
   private readonly auth = inject(AuthService);
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
   readonly session = inject(SessionService);
 
   readonly stage = signal<Stage>('loading');
@@ -44,6 +48,25 @@ export class ServicesListView implements OnInit {
   readonly count = computed(() => this.selected().size);
   readonly allSelected = computed(() => this.visible().length > 0 && this.visible().every((i) => this.selected().has(i.id)));
   readonly someSelected = computed(() => this.count() > 0 && !this.allSelected());
+
+  confirmMessage(): string {
+    const items = this.selectedItems();
+    return items.length === 1
+      ? this.translate.instant('SERVICES.LIST.CONFIRM_ONE', { name: items[0].name })
+      : this.translate.instant('SERVICES.LIST.CONFIRM_MANY', { count: items.length });
+  }
+
+  constructor() {
+    // El backend traduce los catálogos: al cambiar el idioma se vuelven a pedir, sin recrear la pantalla ni perder la selección.
+    effect(() => {
+      this.language.current();
+      untracked(() => {
+        if (this.stage() !== 'ready') return;
+        this.catalogService.options('service_type').subscribe((t) => this.types.set(t));
+        this.catalogService.options('deployment_scenario').subscribe((s) => this.scenarios.set(s));
+      });
+    });
+  }
 
   ngOnInit(): void {
     this.load();
@@ -122,10 +145,10 @@ export class ServicesListView implements OnInit {
         const done = results.length - failed.length;
         const blocked = failed.filter((r) => apiErrorCode(r.error) === 'SERVICE_HAS_EVALUATIONS').map((r) => `«${r.item.name}»`);
         const parts: string[] = [];
-        if (done > 0) parts.push(done === 1 ? 'Eliminamos 1 servicio.' : `Eliminamos ${done} servicios.`);
-        if (blocked.length > 0) parts.push(`${blocked.join(', ')} ya tiene${blocked.length > 1 ? 'n' : ''} evaluaciones o evidencias registradas, por eso no se puede${blocked.length > 1 ? 'n' : ''} eliminar.`);
+        if (done > 0) parts.push(this.translate.instant(done === 1 ? 'SERVICES.LIST.DELETED_ONE' : 'SERVICES.LIST.DELETED_MANY', { count: done }));
+        if (blocked.length > 0) parts.push(this.translate.instant(blocked.length > 1 ? 'SERVICES.LIST.BLOCKED_MANY' : 'SERVICES.LIST.BLOCKED_ONE', { names: blocked.join(', ') }));
         const other = failed.length - blocked.length;
-        if (other > 0) parts.push(`No pudimos eliminar ${other === 1 ? 'otro servicio' : `otros ${other}`}. Inténtalo de nuevo.`);
+        if (other > 0) parts.push(this.translate.instant(other === 1 ? 'SERVICES.LIST.FAILED_ONE' : 'SERVICES.LIST.FAILED_MANY', { count: other }));
         this.notice.set({ kind: failed.length > 0 ? 'error' : 'ok', text: parts.join(' ') });
         this.items.update((list) => list.filter((i) => !results.some((r) => !r.error && r.item.id === i.id)));
         this.selected.set(new Set());

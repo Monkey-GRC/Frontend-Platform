@@ -1,28 +1,28 @@
 <div class="rounded-2xl border border-primary/30 bg-white p-6 shadow-sm dark:bg-gray-900">
 
-  <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Datos de tu cuenta</h2>
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'TECHNICAL_CONTROL.FORM.TITLE' | translate }}</h2>
   <p class="mt-4 flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs text-gray-600 dark:bg-gray-900 dark:text-gray-300">
     <span class="material-symbols-rounded text-[18px] text-primary">lock</span>
-    Monkey solo lee, nunca modifica nada. Lo que compartas (llaves o contraseñas, si tu conexión las pide) se guarda cifrado y no se vuelve a mostrar.
+    {{ 'TECHNICAL_CONTROL.FORM.READ_ONLY_NOTE' | translate }}
   </p>
 
   <div class="mt-6 space-y-6">
     <div>
       <label for="asset-name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-        ¿Cómo lo llamas? <span class="text-error-500">*</span>
+        {{ 'TECHNICAL_CONTROL.FORM.NAME_LABEL' | translate }} <span class="text-error-500">*</span>
       </label>
       <input id="asset-name" type="text" [value]="name()" maxlength="200" autocomplete="off"
-        (input)="name.set($any($event.target).value)" placeholder="Por ejemplo: Servidor de la aplicación"
+        (input)="name.set($any($event.target).value)" [placeholder]="'TECHNICAL_CONTROL.FORM.NAME_PLACEHOLDER' | translate"
         class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
       @if (showHints() && !name().trim()) {
-      <p class="mt-1.5 text-xs text-error-500">Ponle un nombre para reconocerlo después.</p>
+      <p class="mt-1.5 text-xs text-error-500">{{ 'TECHNICAL_CONTROL.FORM.NAME_HINT' | translate }}</p>
       }
     </div>
 
     <!-- ---------- Canal, cuenta y regiones ---------- -->
     <div>
-      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">¿Cómo quieres conectar tu cuenta de {{ platform().name }}? <span class="text-error-500">*</span></p>
-      <div class="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Forma de conexión">
+      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.METHOD_LABEL' | translate: { name: platform().name } }} <span class="text-error-500">*</span></p>
+      <div class="grid gap-3 sm:grid-cols-2" role="radiogroup" [attr.aria-label]="'TECHNICAL_CONTROL.FORM.METHOD_ARIA' | translate">
         @for (m of methods(); track m.value) {
         <button type="button" role="radio" [attr.aria-checked]="method() === m.value" (click)="method.set(m.value)"
           class="flex items-start gap-3 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
@@ -31,9 +31,7 @@
           <span>
             <span class="block text-sm font-semibold text-gray-900 dark:text-white">{{ m.label }}</span>
             <span class="mt-1 block text-xs text-gray-500 dark:text-gray-300">
-              {{ m.value === 'readonly_role'
-                ? 'No compartes ninguna contraseña ni llave: creas en tu cuenta un rol que solo puede leer y nos dices cuál es.'
-                : 'Pegas una llave de acceso de solo lectura. Dura mucho tiempo, por eso es menos segura que un rol.' }}
+              {{ (m.value === 'readonly_role' ? 'TECHNICAL_CONTROL.FORM.METHOD_ROLE_HELP' : 'TECHNICAL_CONTROL.FORM.METHOD_KEYS_HELP') | translate }}
             </span>
           </span>
         </button>
@@ -42,27 +40,27 @@
     </div>
 
     <div>
-      <label for="aws-account" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Número de tu cuenta de AWS <span class="text-error-500">*</span></label>
-      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">Son 12 dígitos. Lo ves arriba a la derecha en la consola de AWS, al abrir el menú de tu usuario.</p>
+      <label for="aws-account" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.ACCOUNT' | translate }} <span class="text-error-500">*</span></label>
+      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.ACCOUNT_HELP' | translate }}</p>
       <input id="aws-account" type="text" inputmode="numeric" maxlength="12" autocomplete="off" [value]="accountId()"
         (input)="setAccountId($any($event.target).value)" placeholder="123456789012"
         class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
       @if (fieldError('external_account_id'); as e) {
       <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
       } @else if (showHints() && !accountIdValid()) {
-      <p class="mt-1.5 text-xs text-error-500">Escribe los 12 dígitos de la cuenta.</p>
+      <p class="mt-1.5 text-xs text-error-500">{{ 'TECHNICAL_CONTROL.FORM.ACCOUNT_HINT' | translate }}</p>
       }
     </div>
 
     <div>
-      <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">¿En qué regiones tienes recursos? <span class="text-error-500">*</span></p>
-      <p class="mb-3 text-xs text-gray-500 dark:text-gray-300">Solo miraremos las regiones que elijas. Puedes marcar varias.</p>
-      <app-option-chips [options]="regionChips()" [selected]="regions()" [multiple]="true" ariaLabel="Regiones de AWS"
+      <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_LABEL' | translate }} <span class="text-error-500">*</span></p>
+      <p class="mb-3 text-xs text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_HELP' | translate }}</p>
+      <app-option-chips [options]="regionChips()" [selected]="regions()" [multiple]="true" [ariaLabel]="'TECHNICAL_CONTROL.EDIT.REGIONS_ARIA' | translate"
         (picked)="toggleRegion($event)" />
       @if (fieldError('regions'); as e) {
       <p class="mt-2 text-xs text-error-500">{{ e }}</p>
       } @else if (showHints() && regions().length === 0) {
-      <p class="mt-2 text-xs text-error-500">Elige al menos una región.</p>
+      <p class="mt-2 text-xs text-error-500">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_HINT' | translate }}</p>
       }
     </div>
 
@@ -70,10 +68,10 @@
     <div class="space-y-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-900/10">
       <p class="flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300">
         <span class="material-symbols-rounded text-[18px]">warning</span>
-        Usa un usuario de IAM que solo tenga las políticas SecurityAudit y ViewOnlyAccess. La llave se guarda cifrada y no se vuelve a mostrar.
+        {{ 'TECHNICAL_CONTROL.FORM.KEYS_NOTE' | translate }}
       </p>
       <div>
-        <label for="aws-key-id" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">ID de la llave de acceso <span class="text-error-500">*</span></label>
+        <label for="aws-key-id" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.KEY_ID' | translate }} <span class="text-error-500">*</span></label>
         <input id="aws-key-id" type="text" autocomplete="off" spellcheck="false" [value]="accessKeyId()" (input)="accessKeyId.set($any($event.target).value)"
           class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
         @if (fieldError('access_key_id'); as e) {
@@ -81,7 +79,7 @@
         }
       </div>
       <div>
-        <label for="aws-key-secret" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Llave secreta <span class="text-error-500">*</span></label>
+        <label for="aws-key-secret" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.SECRET' | translate }} <span class="text-error-500">*</span></label>
         <input id="aws-key-secret" type="password" autocomplete="off" spellcheck="false" [value]="secretAccessKey()" (input)="secretAccessKey.set($any($event.target).value)"
           class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
         @if (fieldError('secret_access_key'); as e) {
@@ -92,15 +90,15 @@
     }
 
     <div>
-      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">¿Qué tan importante es para tu servicio?</p>
-      <app-option-chips [options]="criticalityChips()" [selected]="[criticality()]" ariaLabel="Importancia"
+      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.IMPORTANCE' | translate }}</p>
+      <app-option-chips [options]="criticalityChips()" [selected]="[criticality()]" [ariaLabel]="'TECHNICAL_CONTROL.FORM.IMPORTANCE_ARIA' | translate"
         (picked)="criticality.set($event)" />
     </div>
 
     @if (otherServices().length > 0) {
     <div>
-      <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">¿También da soporte a otros servicios?</p>
-      <p class="mb-3 text-xs text-gray-500 dark:text-gray-300">Así no lo registras dos veces. Es opcional.</p>
+      <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.ALSO_SUPPORTS' | translate }}</p>
+      <p class="mb-3 text-xs text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.ALSO_SUPPORTS_HELP' | translate }}</p>
       <div class="space-y-2">
         @for (s of otherServices(); track s.id) {
         <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300">
@@ -123,16 +121,16 @@
   <div class="mt-8 flex items-center justify-between gap-3">
     <button type="button" (click)="cancelled.emit()" [disabled]="saving()"
       class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-      Cancelar
+      {{ 'COMMON.CANCEL' | translate }}
     </button>
     <button type="button" (click)="submit()" [disabled]="saving()"
       class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90 disabled:opacity-60">
       @if (saving()) {
       <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
-      Guardando…
+      {{ 'COMMON.WIZARD.SAVING' | translate }}
       } @else {
       <span class="material-symbols-rounded text-[20px]">add</span>
-      Registrar activo
+      {{ 'TECHNICAL_CONTROL.FORM.REGISTER' | translate }}
       }
     </button>
   </div>

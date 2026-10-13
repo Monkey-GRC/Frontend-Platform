@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
@@ -13,13 +15,15 @@ const ACCOUNT_ID = /^\d{12}$/;
 // no llegan aquí. Las llaves solo se piden aquí, se guardan cifradas y no se vuelven a mostrar.
 @Component({
   selector: 'app-connect-asset-form',
-  imports: [OptionChips],
+  imports: [OptionChips, TranslatePipe],
   templateUrl: './connect-asset-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConnectAssetForm implements OnInit {
   private readonly api = inject(TechnicalControlService);
   private readonly catalogs = inject(CatalogService);
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
 
   readonly capability = input.required<Capability>();
   readonly platform = input.required<Platform>();
@@ -61,6 +65,17 @@ export class ConnectAssetForm implements OnInit {
   ngOnInit(): void {
     // El primer canal es el recomendado.
     this.method.set(this.platform().connection_methods[0] ?? null);
+  }
+
+  constructor() {
+    // El backend traduce las opciones: al cambiar el idioma se vuelven a pedir, sin tocar lo que el cliente ya escribió.
+    effect(() => {
+      this.language.current();
+      untracked(() => this.loadCatalogs());
+    });
+  }
+
+  private loadCatalogs(): void {
     this.catalogs.options('connection_method').subscribe((o) => this.methodOptions.set(o));
     // Las regiones de esa plataforma: `<código>_region`, de la base (D67).
     this.catalogs.options(`${this.platform().code}_region`).subscribe((o) => this.regionOptions.set(o));
@@ -126,21 +141,21 @@ export class ConnectAssetForm implements OnInit {
       const service = error instanceof HttpErrorResponse ? error.error?.error?.service : null;
       this.error.set(
         code === 'CAPABILITY_NOT_APPLICABLE'
-          ? `Esta conexión no aplica al escenario de ${service ? `«${service}»` : 'uno de los servicios elegidos'}. Quítalo de la lista o elige otra plataforma.`
-          : `Primero cuéntanos dónde vive ${service ? `«${service}»` : 'ese servicio'}.`,
+          ? this.translate.instant(service ? 'TECHNICAL_CONTROL.FORM.NOT_APPLICABLE_SERVICE' : 'TECHNICAL_CONTROL.FORM.NOT_APPLICABLE', { service })
+          : this.translate.instant(service ? 'TECHNICAL_CONTROL.FORM.SCENARIO_NOT_SET_SERVICE' : 'TECHNICAL_CONTROL.FORM.SCENARIO_NOT_SET', { service }),
       );
       return;
     }
     const fields = apiFieldErrors(error);
     if (fields.length > 0) {
       this.fieldErrors.set(Object.fromEntries(fields.map((f) => [f.field.replace(/^credentials\./, ''), f.message])));
-      this.error.set('Revisa los datos marcados y vuelve a intentarlo.');
+      this.error.set(this.translate.instant('TECHNICAL_CONTROL.FORM.CHECK_MARKED'));
       return;
     }
     if (code === 'CONNECTION_METHOD_NOT_APPLICABLE') {
-      this.error.set('Ese tipo de conexión no está disponible para esta plataforma. Elige otro.');
+      this.error.set(this.translate.instant('TECHNICAL_CONTROL.FORM.METHOD_NOT_APPLICABLE'));
       return;
     }
-    this.error.set(apiErrorMessage(error, 'No pudimos registrar el activo. Inténtalo de nuevo.'));
+    this.error.set(apiErrorMessage(error, this.translate.instant('TECHNICAL_CONTROL.FORM.REGISTER_ERROR')));
   }
 }

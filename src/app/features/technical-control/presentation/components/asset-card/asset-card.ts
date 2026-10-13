@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, switchMap, takeWhile, timer } from 'rxjs';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
@@ -11,11 +12,11 @@ import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
 import { ProviderLogo } from '../provider-logo/provider-logo';
 
 const STATUS: Record<string, { label: string; chip: string; icon: string }> = {
-  pending: { label: 'Pendiente de comprobar', chip: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300', icon: 'schedule' },
-  validated: { label: 'Conexión comprobada', chip: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', icon: 'task_alt' },
-  active: { label: 'Activa', chip: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: 'bolt' },
-  scheduled: { label: 'Programada', chip: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: 'event_repeat' },
-  failed: { label: 'No pudimos conectar', chip: 'bg-red-50 text-error-600 dark:bg-red-900/20', icon: 'error' },
+  pending: { label: 'TECHNICAL_CONTROL.STATUS.PENDING', chip: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300', icon: 'schedule' },
+  validated: { label: 'TECHNICAL_CONTROL.STATUS.VALIDATED', chip: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', icon: 'task_alt' },
+  active: { label: 'TECHNICAL_CONTROL.STATUS.ACTIVE', chip: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: 'bolt' },
+  scheduled: { label: 'TECHNICAL_CONTROL.STATUS.SCHEDULED', chip: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: 'event_repeat' },
+  failed: { label: 'TECHNICAL_CONTROL.STATUS.FAILED', chip: 'bg-red-50 text-error-600 dark:bg-red-900/20', icon: 'error' },
 };
 
 type Busy = 'validate' | 'schedule';
@@ -24,13 +25,14 @@ type Busy = 'validate' | 'schedule';
 // conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
-  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets, ProviderLogo],
+  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets, ProviderLogo, TranslatePipe],
   templateUrl: './asset-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AssetCard implements OnInit {
   private readonly api = inject(TechnicalControlService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   readonly asset = input.required<Asset>();
   // El servicio desde el que se mira la conexión: los activos que el cliente marca son de ESE servicio.
@@ -80,11 +82,11 @@ export class AssetCard implements OnInit {
     const e = this.execution();
     if (!e) return null;
     switch (e.status) {
-      case 'queued': return { icon: 'schedule', tone: 'info', text: 'En cola: empezará en unos segundos.' };
-      case 'running': return { icon: 'progress_activity', tone: 'info', text: 'Evaluando tu cuenta de AWS… puede tardar unos minutos.' };
-      case 'completed': return { icon: 'task_alt', tone: 'ok', text: 'Evaluación completada.' };
-      case 'cancelled': return { icon: 'block', tone: 'warn', text: 'La evaluación se canceló. Puedes lanzarla de nuevo.' };
-      default: return { icon: 'error', tone: 'error', text: e.failure_message ?? 'No pudimos completar la evaluación. Inténtalo de nuevo.' };
+      case 'queued': return { icon: 'schedule', tone: 'info', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.QUEUED') };
+      case 'running': return { icon: 'progress_activity', tone: 'info', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.RUNNING') };
+      case 'completed': return { icon: 'task_alt', tone: 'ok', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.COMPLETED') };
+      case 'cancelled': return { icon: 'block', tone: 'warn', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.CANCELLED') };
+      default: return { icon: 'error', tone: 'error', text: e.failure_message ?? this.translate.instant('TECHNICAL_CONTROL.EXECUTION.FAILED') };
     }
   });
   readonly executionOpen = computed(() => ['queued', 'running'].includes(this.execution()?.status ?? ''));
@@ -115,7 +117,7 @@ export class AssetCard implements OnInit {
       error: (error) => {
         this.removing.set(false);
         this.confirmingRemove.set(false);
-        this.message.set({ kind: 'error', text: apiErrorMessage(error, 'No pudimos quitar el activo. Inténtalo de nuevo.') });
+        this.message.set({ kind: 'error', text: apiErrorMessage(error, this.translate.instant('TECHNICAL_CONTROL.CARD.REMOVE_ERROR')) });
       },
     });
   }
@@ -131,7 +133,7 @@ export class AssetCard implements OnInit {
       },
       error: (error) => {
         this.evaluating.set(false);
-        this.message.set({ kind: 'error', text: apiErrorMessage(error, 'No pudimos iniciar la evaluación. Inténtalo de nuevo.') });
+        this.message.set({ kind: 'error', text: apiErrorMessage(error, this.translate.instant('TECHNICAL_CONTROL.CARD.EVALUATE_ERROR')) });
       },
     });
   }
@@ -194,9 +196,9 @@ export class AssetCard implements OnInit {
       const detail = apiFieldErrors(error).map((f) => f.message).join(' ');
       return {
         kind: 'error',
-        text: `${detail || 'No pudimos conectar con tu cuenta.'} Revisa los datos y vuelve a intentarlo.`,
+        text: `${detail || this.translate.instant('TECHNICAL_CONTROL.CARD.CONNECT_ERROR')} ${this.translate.instant('TECHNICAL_CONTROL.CARD.CHECK_DATA')}`,
       };
     }
-    return { kind: 'error', text: apiErrorMessage(error, 'No pudimos completar este paso. Inténtalo de nuevo.') };
+    return { kind: 'error', text: apiErrorMessage(error, this.translate.instant('TECHNICAL_CONTROL.CARD.STEP_ERROR')) };
   }
 }

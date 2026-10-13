@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '@core/domain/services/language.service';
 import { Observable, catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
@@ -39,18 +41,19 @@ interface Catalogs {
 // Las 6 pantallas del Componente 2 (contexto del servicio) y una de revisión. Agrupan los 16
 // campos del Excel por afinidad para que cada pantalla haga pocas preguntas.
 const STEPS = [
-  { key: 'service', label: 'Tu servicio', icon: 'inventory_2' },
-  { key: 'clients', label: 'Tus clientes', icon: 'groups' },
-  { key: 'data', label: 'Datos y alcance', icon: 'database' },
-  { key: 'framework', label: 'Marco', icon: 'verified_user' },
-  { key: 'providers', label: 'Proveedores', icon: 'cloud' },
-  { key: 'compliance', label: 'Cumplimiento', icon: 'gavel' },
+  { key: 'service', labelKey: 'SERVICES.FORM.STEPS.SERVICE', icon: 'inventory_2' },
+  { key: 'clients', labelKey: 'SERVICES.FORM.STEPS.CLIENTS', icon: 'groups' },
+  { key: 'data', labelKey: 'SERVICES.FORM.STEPS.DATA', icon: 'database' },
+  { key: 'framework', labelKey: 'SERVICES.FORM.STEPS.FRAMEWORK', icon: 'verified_user' },
+  { key: 'providers', labelKey: 'SERVICES.FORM.STEPS.PROVIDERS', icon: 'cloud' },
+  { key: 'compliance', labelKey: 'SERVICES.FORM.STEPS.COMPLIANCE', icon: 'gavel' },
 ] as const;
 const REVIEW_STEP = STEPS.length;
 const FRAMEWORK_STEP = 3;
 const TEXT_MAX = 2000;
 
 // Qué significa cada categoría de SOC 2, dicho sin jerga y con ejemplos de lo que revisaremos contigo.
+// Los textos son claves de traducción (services.json).
 // Hoy solo SOC 2 está construido; cuando llegue otro marco tendrá sus propias categorías (D50).
 interface CriterionInfo {
   help: string;
@@ -58,24 +61,24 @@ interface CriterionInfo {
 }
 const CRITERION_INFO: Record<string, CriterionInfo> = {
   security: {
-    help: 'Proteger tus sistemas y los datos de tus clientes contra accesos no autorizados. Es la base de todo y siempre va incluida.',
-    examples: ['Quién entra y con qué permisos', 'Cómo gestionas cambios y riesgos', 'Cómo detectas y respondes a incidentes'],
+    help: 'SERVICES.FORM.CRITERIA.SECURITY.HELP',
+    examples: ['SERVICES.FORM.CRITERIA.SECURITY.EX1', 'SERVICES.FORM.CRITERIA.SECURITY.EX2', 'SERVICES.FORM.CRITERIA.SECURITY.EX3'],
   },
   availability: {
-    help: 'Que tu servicio esté disponible cuando tus clientes lo necesitan, y que se recupere si algo falla.',
-    examples: ['Copias de seguridad y recuperación', 'Capacidad y monitoreo del servicio', 'Plan ante caídas'],
+    help: 'SERVICES.FORM.CRITERIA.AVAILABILITY.HELP',
+    examples: ['SERVICES.FORM.CRITERIA.AVAILABILITY.EX1', 'SERVICES.FORM.CRITERIA.AVAILABILITY.EX2', 'SERVICES.FORM.CRITERIA.AVAILABILITY.EX3'],
   },
   confidentiality: {
-    help: 'Mantener protegida la información que tus clientes te entregan como confidencial, durante todo su ciclo de vida.',
-    examples: ['Cifrado de información sensible', 'Quién puede ver datos confidenciales', 'Cómo se elimina al terminar el contrato'],
+    help: 'SERVICES.FORM.CRITERIA.CONFIDENTIALITY.HELP',
+    examples: ['SERVICES.FORM.CRITERIA.CONFIDENTIALITY.EX1', 'SERVICES.FORM.CRITERIA.CONFIDENTIALITY.EX2', 'SERVICES.FORM.CRITERIA.CONFIDENTIALITY.EX3'],
   },
   integrity: {
-    help: 'Que tu servicio procese la información de forma completa, válida, exacta y a tiempo.',
-    examples: ['Controles de calidad en el procesamiento', 'Detección de errores y duplicados', 'Entradas y salidas verificadas'],
+    help: 'SERVICES.FORM.CRITERIA.INTEGRITY.HELP',
+    examples: ['SERVICES.FORM.CRITERIA.INTEGRITY.EX1', 'SERVICES.FORM.CRITERIA.INTEGRITY.EX2', 'SERVICES.FORM.CRITERIA.INTEGRITY.EX3'],
   },
   privacy: {
-    help: 'Manejar los datos personales como prometiste a las personas: qué recolectas, para qué, por cuánto tiempo.',
-    examples: ['Aviso de privacidad y consentimiento', 'Atención a solicitudes de acceso o borrado', 'Conservación y entrega a terceros'],
+    help: 'SERVICES.FORM.CRITERIA.PRIVACY.HELP',
+    examples: ['SERVICES.FORM.CRITERIA.PRIVACY.EX1', 'SERVICES.FORM.CRITERIA.PRIVACY.EX2', 'SERVICES.FORM.CRITERIA.PRIVACY.EX3'],
   },
 };
 
@@ -88,7 +91,7 @@ type SubserviceTextKey = 'service_provided' | 'responsibility';
 
 @Component({
   selector: 'app-service-form',
-  imports: [OptionChips, RouterLink],
+  imports: [OptionChips, RouterLink, TranslatePipe],
   templateUrl: './service-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -100,6 +103,8 @@ export class ServiceFormView implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
 
   readonly steps = STEPS;
   readonly reviewStep = REVIEW_STEP;
@@ -157,6 +162,13 @@ export class ServiceFormView implements OnInit {
   private coverageAcknowledged: string | null = null;
 
   constructor() {
+    // El backend traduce los catálogos: al cambiar el idioma se vuelven a pedir, sin recrear la pantalla ni tocar lo escrito.
+    effect(() => {
+      this.language.current();
+      untracked(() => {
+        if (this.catalogs()) this.fetchCatalogs().subscribe((fresh) => this.catalogs.set(fresh));
+      });
+    });
     // Guarda el avance en el navegador mientras el cliente escribe (solo en un servicio nuevo).
     effect(() => {
       const draft = this.draft();
@@ -171,6 +183,22 @@ export class ServiceFormView implements OnInit {
     this.userId = this.session.user()?.id ?? null;
     this.serviceId.set(this.route.snapshot.paramMap.get('id'));
     this.load();
+  }
+
+  private fetchCatalogs(): Observable<Catalogs> {
+    return forkJoin({
+      type: this.catalogService.options('service_type'),
+      industries: this.catalogService.options('served_industry'),
+      clientCount: this.catalogService.options('active_client_count'),
+      countries: this.catalogService.options('service_country'),
+      dataTypes: this.catalogService.options('data_type'),
+      availability: this.catalogService.options('expected_availability'),
+      trustCriteria: this.catalogService.options('trust_criterion'),
+      subserviceTypes: this.catalogService.options('subservice_type'),
+      certifications: this.catalogService.options('previous_certification'),
+      frameworks: this.catalogService.frameworks(),
+      contracted: this.catalogService.contractedFrameworks(),
+    });
   }
 
   load(): void {
@@ -254,7 +282,7 @@ export class ServiceFormView implements OnInit {
     input.value = ''; // permite volver a elegir el mismo archivo después de quitarlo
     if (!file) return;
     const problem = systemDescriptionFileError(file);
-    this.systemFileError.set(problem);
+    this.systemFileError.set(problem ? this.translate.instant(problem) : null);
     this.systemFile.set(problem ? null : file);
   }
 
@@ -265,7 +293,7 @@ export class ServiceFormView implements OnInit {
     this.services.systemDescriptionDownload(id).subscribe({
       next: (link) => window.open(link.url, '_blank', 'noopener'),
       error: (error) =>
-        this.systemFileError.set(apiErrorMessage(error, 'No pudimos abrir el archivo. Inténtalo de nuevo.')),
+        this.systemFileError.set(apiErrorMessage(error, this.translate.instant('SERVICES.FORM.OPEN_FILE_ERROR'))),
     });
   }
 
@@ -429,20 +457,20 @@ export class ServiceFormView implements OnInit {
           this.stage.set('form');
           this.step.set(5);
           this.saveError.set(
-            'Guardamos tu servicio, pero no pudimos subir el archivo. ' +
-              apiErrorMessage(error, 'Inténtalo de nuevo o usa un enlace.'),
+            this.translate.instant('SERVICES.FORM.UPLOAD_FAILED') + ' ' +
+              apiErrorMessage(error, this.translate.instant('SERVICES.FORM.UPLOAD_RETRY')),
           );
           return;
         }
         this.stage.set('form');
         const code = apiErrorCode(error);
         if (code === 'SERVICE_NAME_TAKEN') {
-          this.saveError.set('Ya tienes un servicio con ese nombre. Elige otro para distinguirlos.');
+          this.saveError.set(this.translate.instant('SERVICES.FORM.NAME_TAKEN'));
           this.step.set(0);
           return;
         }
         if (code === 'FRAMEWORK_NOT_CONTRACTED') {
-          this.saveError.set(apiErrorMessage(error, 'Tu empresa aún no tiene contratado ese marco. Escríbenos y lo habilitamos.'));
+          this.saveError.set(apiErrorMessage(error, this.translate.instant('SERVICES.FORM.FRAMEWORK_NOT_CONTRACTED')));
           this.step.set(FRAMEWORK_STEP);
           return;
         }
@@ -454,7 +482,7 @@ export class ServiceFormView implements OnInit {
         this.saveError.set(
           fields.length > 0
             ? fields.map((f) => f.message).join(' ')
-            : apiErrorMessage(error, 'No pudimos guardar tu servicio. Inténtalo de nuevo.'),
+            : apiErrorMessage(error, this.translate.instant('SERVICES.FORM.SAVE_ERROR')),
         );
       },
     });
