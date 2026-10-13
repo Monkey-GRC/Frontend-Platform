@@ -7,7 +7,7 @@
   <div class="space-y-4 animate-pulse" aria-busy="true" [attr.aria-label]="'COMMON.LOADING' | translate">
     <div class="h-4 w-40 rounded bg-gray-200 dark:bg-gray-800"></div>
     <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800"></div>
-    <div class="rounded-2xl border border-gray-200 p-8 dark:border-gray-800">
+    <div class="py-8">
       <div class="h-7 w-2/3 rounded bg-gray-200 dark:bg-gray-800"></div>
       <div class="mt-3 h-4 w-1/2 rounded bg-gray-100 dark:bg-gray-800/60"></div>
       <div class="mt-8 h-28 rounded-xl bg-gray-100 dark:bg-gray-800/60"></div>
@@ -275,65 +275,64 @@
       </span>
       <div class="min-w-0">
         <h1 class="truncate text-2xl font-semibold text-gray-900 dark:text-white">{{ companyName() }}</h1>
-        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
-          {{ (alreadySaved() ? 'ONBOARDING.REVIEW_TITLE_EDIT' : 'ONBOARDING.REVIEW_TITLE') | translate }}
-          · {{ (alreadySaved() ? 'COMMON.WIZARD.REVIEW_BODY_EDIT' : 'ONBOARDING.REVIEW_BODY') | translate }}
-        </p>
+        @if (!alreadySaved()) {
+        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.REVIEW_TITLE' | translate }} · {{ 'ONBOARDING.REVIEW_BODY' | translate }}</p>
+        }
       </div>
     </header>
 
-    <div class="mt-8 space-y-8 border-t border-gray-200 pt-8 dark:border-gray-700">
-      <section>
-        <div class="flex items-center justify-between border-b border-gray-200 pb-2 dark:border-gray-700">
+    <div class="mt-8 space-y-6 border-b border-gray-200 pb-6 dark:border-gray-700">
+      <section class="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <div class="flex items-center justify-between">
           <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
             <span class="material-symbols-rounded text-[20px] text-primary" aria-hidden="true">notes</span>{{ 'ONBOARDING.FIELD.DESCRIPTION' | translate }}
           </h2>
           <button type="button" (click)="goTo(0)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.FIELD.DESCRIPTION' | translate)"
             class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
         </div>
-        <p class="mt-3 max-w-3xl whitespace-pre-line text-sm leading-relaxed text-gray-800 dark:text-gray-100">{{ draft().description }}</p>
+        <p class="mt-2 max-w-3xl whitespace-pre-line text-sm leading-relaxed text-gray-800 dark:text-gray-100">{{ draft().description }}</p>
       </section>
 
-      <div class="grid gap-x-12 gap-y-8 md:grid-cols-2">
-      <section>
-        <div class="flex items-center justify-between border-b border-gray-200 pb-2 dark:border-gray-700">
+      <div class="grid gap-x-12 gap-y-6 md:grid-cols-2">
+      <section class="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <div class="flex items-center justify-between">
           <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
             <span class="material-symbols-rounded text-[20px] text-primary" aria-hidden="true">groups</span>{{ 'ONBOARDING.STEPS.SIZE' | translate }}
           </h2>
           <button type="button" (click)="goTo(1)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.STEPS.SIZE' | translate)"
             class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
         </div>
-        <dl class="mt-3 grid grid-cols-[minmax(7rem,38%)_1fr] gap-x-4 gap-y-2.5 text-sm">
+        <dl class="mt-2 grid grid-cols-[minmax(7rem,38%)_1fr] gap-x-4 gap-y-2.5 text-sm">
           <dt class="text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.FIELD.EMPLOYEES' | translate }}</dt>
           <dd class="text-gray-900 dark:text-white">{{ labelOf(catalogs()!.size, draft().size) }}</dd>
           <dt class="text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.FIELD.YEARS' | translate }}</dt>
           <dd class="text-gray-900 dark:text-white">{{ labelOf(catalogs()!.years, draft().years_in_operation) }}</dd>
         </dl>
       </section>
-      <section>
-        <div class="flex items-center justify-between border-b border-gray-200 pb-2 dark:border-gray-700">
+      <section class="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <div class="flex items-center justify-between">
           <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
             <span class="material-symbols-rounded text-[20px] text-primary" aria-hidden="true">storefront</span>{{ 'ONBOARDING.STEPS.BUSINESS' | translate }}
           </h2>
           <button type="button" (click)="goTo(2)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.STEPS.BUSINESS' | translate)"
             class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
         </div>
-        <dl class="mt-3 grid grid-cols-[minmax(7rem,38%)_1fr] gap-x-4 gap-y-2.5 text-sm">
+        <dl class="mt-2 grid grid-cols-[minmax(7rem,38%)_1fr] gap-x-4 gap-y-2.5 text-sm">
           <dt class="text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.FIELD.INDUSTRY' | translate }}</dt>
           <dd class="text-gray-900 dark:text-white">{{ labelOf(catalogs()!.industry, draft().industry) }}</dd>
           <dt class="text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.FIELD.MODEL' | translate }}</dt>
           <dd class="text-gray-900 dark:text-white">{{ labelOf(catalogs()!.businessModel, draft().business_model) }}</dd>
         </dl>
       </section>
-      <section>
-        <div class="flex items-center justify-between border-b border-gray-200 pb-2 dark:border-gray-700">
+      <section class="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <div class="flex items-center justify-between">
           <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
             <span class="material-symbols-rounded text-[20px] text-primary" aria-hidden="true">public</span>{{ 'ONBOARDING.STEPS.REACH' | translate }}
           </h2>
           <button type="button" (click)="goTo(3)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.STEPS.REACH' | translate)"
             class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
         </div>
-        <dl class="mt-3 grid grid-cols-[minmax(7rem,38%)_1fr] gap-x-4 gap-y-2.5 text-sm">
+        <dl class="mt-2 grid grid-cols-[minmax(7rem,38%)_1fr] gap-x-4 gap-y-2.5 text-sm">
           <dt class="text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.FIELD.INCORPORATION' | translate }}</dt>
           <dd class="text-gray-900 dark:text-white">
             <ul class="flex flex-wrap gap-1.5">
@@ -352,15 +351,15 @@
           </dd>
         </dl>
       </section>
-      <section>
-        <div class="flex items-center justify-between border-b border-gray-200 pb-2 dark:border-gray-700">
+      <section class="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <div class="flex items-center justify-between">
           <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
             <span class="material-symbols-rounded text-[20px] text-primary" aria-hidden="true">verified_user</span>{{ 'ONBOARDING.STEPS.COMPLIANCE' | translate }}
           </h2>
           <button type="button" (click)="goTo(4)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.STEPS.COMPLIANCE' | translate)"
             class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
         </div>
-        <dl class="mt-3 grid grid-cols-[minmax(7rem,38%)_1fr] gap-x-4 gap-y-2.5 text-sm">
+        <dl class="mt-2 grid grid-cols-[minmax(7rem,38%)_1fr] gap-x-4 gap-y-2.5 text-sm">
           <dt class="text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.FIELD.MATURITY' | translate }}</dt>
           <dd class="text-gray-900 dark:text-white">{{ labelOf(catalogs()!.maturity, draft().compliance_maturity) }}</dd>
           <dt class="text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.FIELD.REGULATIONS' | translate }}</dt>

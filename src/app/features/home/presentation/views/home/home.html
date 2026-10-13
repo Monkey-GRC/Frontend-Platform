@@ -1,5 +1,5 @@
-<section class="mx-auto max-w-3xl space-y-6">
-  <div class="rounded-2xl border border-gray-200 bg-white p-6 md:p-8 dark:border-gray-800 dark:bg-white/[0.03]">
+<section class="max-w-4xl space-y-8">
+  <div class="pb-2">
     <span class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
       {{ session.company()?.name }}
     </span>
@@ -12,7 +12,7 @@
   </div>
 
   @if (pendingCompanyContext()) {
-  <div class="rounded-2xl border border-primary/30 bg-primary/5 p-6 dark:bg-primary/10">
+  <div class="border-l-4 border-primary pl-5">
     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-start gap-4">
         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white">
@@ -34,7 +34,7 @@
     </div>
   </div>
   } @else if (pendingService()) {
-  <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="border-t border-gray-200 pt-6 dark:border-gray-700">
     <div class="flex items-start gap-4">
       <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
         <span class="material-symbols-rounded">task_alt</span>
@@ -48,7 +48,7 @@
     </div>
   </div>
 
-  <div class="rounded-2xl border border-primary/30 bg-primary/5 p-6 dark:bg-primary/10">
+  <div class="border-l-4 border-primary pl-5">
     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-start gap-4">
         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white">
@@ -70,7 +70,7 @@
     </div>
   </div>
   } @else if (pendingTechnicalControl()) {
-  <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="border-t border-gray-200 pt-6 dark:border-gray-700">
     <div class="flex items-start gap-4">
       <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
         <span class="material-symbols-rounded">task_alt</span>
@@ -86,7 +86,7 @@
     </div>
   </div>
 
-  <div class="rounded-2xl border border-primary/30 bg-primary/5 p-6 dark:bg-primary/10">
+  <div class="border-l-4 border-primary pl-5">
     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-start gap-4">
         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white">
@@ -108,7 +108,7 @@
     </div>
   </div>
   } @else {
-  <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="border-t border-gray-200 pt-6 dark:border-gray-700">
     <div class="flex items-start gap-4">
       <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
         <span class="material-symbols-rounded">task_alt</span>
