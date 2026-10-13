@@ -1,6 +1,17 @@
 {
   "ONBOARDING": {
     "STEP_OF": "Paso {{current}} de {{total}}",
+    "FIELD": {
+      "DESCRIPTION": "A qué se dedica",
+      "EMPLOYEES": "Empleados",
+      "YEARS": "Años operando",
+      "INDUSTRY": "Sector",
+      "MODEL": "Modelo de negocio",
+      "INCORPORATION": "Constituida en",
+      "CLIENTS": "Clientes en",
+      "MATURITY": "Nivel de cumplimiento",
+      "REGULATIONS": "Normas que te aplican"
+    },
     "STEPS": {
       "COMPANY": "Tu empresa",
       "SIZE": "Tamaño",
@@ -53,11 +64,6 @@
     "REVIEW_TITLE_EDIT": "Esto es lo que sabemos de tu empresa",
     "REVIEW_TITLE": "Revisa tu información",
     "REVIEW_BODY": "Si todo está bien, guárdala. Podrás editarla después.",
-    "REVIEW_EMPLOYEES": "{{value}} empleados",
-    "REVIEW_YEARS": "{{value}} años operando",
-    "REVIEW_INCORP": "Constituida en: {{value}}",
-    "REVIEW_CLIENTS": "Clientes en: {{value}}",
-    "REVIEW_REGULATIONS": "Te aplican: {{value}}",
     "SAVE_AND_CONTINUE": "Guardar y continuar",
     "SAVE_ERROR": "No pudimos guardar tu información. Inténtalo de nuevo."
   }

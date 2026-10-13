@@ -71,6 +71,8 @@ export class OrganizationalContextView implements OnInit {
   readonly companyName = signal('');
   readonly catalogs = signal<Catalogs | null>(null);
   readonly alreadySaved = signal(false);
+  // Lo último que está guardado en el backend, para saber si hay cambios sin guardar (mientras no los haya, la ficha no muestra botones).
+  private readonly savedSnapshot = signal('');
   readonly showHints = signal(false);
   readonly saveError = signal<string | null>(null);
 
@@ -79,6 +81,7 @@ export class OrganizationalContextView implements OnInit {
   // Un paso se puede dejar atrás solo si lo obligatorio está contestado.
   readonly stepValid = computed(() => this.isStepValid(this.step(), this.draft()));
   readonly allValid = computed(() => STEPS.every((_, i) => this.isStepValid(i, this.draft())));
+  readonly dirty = computed(() => JSON.stringify(this.draft()) !== this.savedSnapshot());
   readonly progress = computed(() => Math.round((Math.min(this.step(), STEPS.length) / STEPS.length) * 100));
 
   // Países: "Unión Europea" y "Otro" van aparte de los países (la fuente los mezcla en una lista).
@@ -147,6 +150,7 @@ export class OrganizationalContextView implements OnInit {
           // Ya la había llenado: se muestra lo guardado, en la revisión, para editar lo que quiera.
           this.alreadySaved.set(true);
           this.draft.set(draftFromContext(ctx));
+          this.savedSnapshot.set(JSON.stringify(this.draft()));
           this.step.set(REVIEW_STEP);
         } else {
           const stored = this.userId ? this.drafts.load(this.userId) : null;
@@ -249,6 +253,7 @@ export class OrganizationalContextView implements OnInit {
         next: () => {
           if (this.userId) this.drafts.clear(this.userId);
           this.alreadySaved.set(true);
+          this.savedSnapshot.set(JSON.stringify(this.draft()));
           // Primero se refresca la sesión (el siguiente paso lo calcula el backend) y luego se muestra
           // «¡Listo!»: así Inicio nunca enseña por un instante el paso anterior.
           this.auth.validate().subscribe(() => {
@@ -281,6 +286,16 @@ export class OrganizationalContextView implements OnInit {
   labelsOf(options: { value: string; label: string }[] | undefined, values: string[]): string {
     const labels = values.map((v) => options?.find((o) => o.value === v)?.label ?? v);
     return labels.length > 0 ? labels.join(', ') : '—';
+  }
+
+  // Las etiquetas de una lista de opciones, una por una (se muestran como chips).
+  labelList(options: { value: string; label: string }[] | undefined, values: string[]): string[] {
+    return values.map((v) => options?.find((o) => o.value === v)?.label ?? v);
+  }
+
+  regulationList(): string[] {
+    const all = this.catalogs()?.regulations ?? [];
+    return this.draft().regulation_codes.map((c) => all.find((r) => r.code === c)?.label ?? c);
   }
 
   regulationLabels(): string {
