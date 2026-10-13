@@ -34,8 +34,8 @@ export class AppHeaderComponent {
 
   logout(): void {
     this.authService.logout().subscribe({
-      next: () => this.router.navigateByUrl('/signin'),
-      error: () => this.router.navigateByUrl('/signin'),
+      next: () => this.router.navigateByUrl('/signin', { replaceUrl: true }),
+      error: () => this.router.navigateByUrl('/signin', { replaceUrl: true }),
     });
   }
 

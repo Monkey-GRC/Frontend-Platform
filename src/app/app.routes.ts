@@ -4,6 +4,7 @@ import { Register } from '@features/auth/presentation/views/register/register';
 import { NotFoundLayout } from '@core/presentation/pages/not-found-layout/not-found-layout';
 import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layout.component';
 import { authGuard } from '@core/domain/guards/auth.guard';
+import { guestGuard } from '@core/domain/guards/guest.guard';
 
 export const routes: Routes = [
   {
@@ -59,14 +60,16 @@ export const routes: Routes = [
       },
     ]
   },
-  // auth pages
+  // auth pages: solo para quien no tiene sesión (con sesión, `guestGuard` lo manda adentro)
   {
     path: 'signin',
-    component: Login
+    component: Login,
+    canActivate: [guestGuard],
   },
   {
     path: 'register',
-    component: Register
+    component: Register,
+    canActivate: [guestGuard],
   },
   // error pages
   {
