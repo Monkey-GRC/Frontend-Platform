@@ -10,6 +10,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { AccessKeyLookup } from '@features/auth/domain/models/auth.models';
+import { PasswordToggle } from '@shared/presentation/components/password-toggle/password-toggle';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 
 // Política de contraseña del backend (modelo-datos.md §5.3): 12+ con mayúscula, minúscula,
@@ -29,7 +30,7 @@ type FieldName = 'code' | 'password' | 'password_confirmation';
 // El administrador se identifica por su correo: no se le pide nombre ni apellido.
 @Component({
   selector: 'app-register-form',
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, PasswordToggle],
   templateUrl: './register-form.html',
   styleUrl: './register-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +45,8 @@ export class RegisterForm {
   // Lo que Monkey fijó para esta empresa; solo existe en el paso 2.
   readonly lookup = signal<AccessKeyLookup | null>(null);
   readonly loading = signal(false);
+  readonly showPassword = signal(false);
+  readonly showConfirmation = signal(false);
   readonly errorMessage = signal<string | null>(null);
   // Errores por campo que devuelve el backend (422), para mostrarlos bajo cada input.
   readonly serverErrors = signal<Partial<Record<FieldName, string>>>({});

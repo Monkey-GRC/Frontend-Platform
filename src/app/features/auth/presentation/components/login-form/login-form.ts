@@ -4,10 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { AuthService } from '@features/auth/domain/services/auth.service';
+import { PasswordToggle } from '@shared/presentation/components/password-toggle/password-toggle';
 
 @Component({
   selector: 'app-login-form',
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, PasswordToggle],
   templateUrl: './login-form.html',
   styleUrl: './login-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +20,7 @@ export class LoginForm {
   private readonly translate = inject(TranslateService);
 
   readonly loading = signal(false);
+  readonly showPassword = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
   readonly form = this.fb.nonNullable.group({

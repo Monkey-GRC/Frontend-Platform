@@ -16,6 +16,8 @@
     "REMOVE": "Remove",
     "CLOSE": "Close",
     "AUTH_PROBLEM": "An authentication problem occurred. If the error persists, contact support.",
+    "SHOW_PASSWORD": "Show password",
+    "HIDE_PASSWORD": "Hide password",
     "DOWNLOAD": "Download",
     "WIZARD": {
       "SKIP_HELP": "You can skip this question.",

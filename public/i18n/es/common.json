@@ -16,6 +16,8 @@
     "REMOVE": "Quitar",
     "CLOSE": "Cerrar",
     "AUTH_PROBLEM": "Ocurrió un problema de autenticación. Si el error persiste, contacta a soporte.",
+    "SHOW_PASSWORD": "Mostrar contraseña",
+    "HIDE_PASSWORD": "Ocultar contraseña",
     "DOWNLOAD": "Descargar",
     "WIZARD": {
       "SKIP_HELP": "Puedes saltarte esta pregunta.",
