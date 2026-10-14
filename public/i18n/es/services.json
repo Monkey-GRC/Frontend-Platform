@@ -1,7 +1,6 @@
 {
   "SERVICES": {
     "LIST": {
-      "TITLE": "Mis servicios",
       "LOAD_ERROR_TITLE": "No pudimos cargar tus servicios",
       "EMPTY_TITLE": "Aún no has declarado ningún servicio",
       "EMPTY_BODY": "Cuéntanos qué servicio quieres auditar y te dejamos listo su catálogo de cumplimiento.",
