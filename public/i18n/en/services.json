@@ -1,8 +1,6 @@
 {
   "SERVICES": {
     "LIST": {
-      "TITLE": "My services",
-      "SUBTITLE": "The services of {{company}} that you will submit to audit.",
       "LOAD_ERROR_TITLE": "We couldn't load your services",
       "EMPTY_TITLE": "You haven't declared any service yet",
       "EMPTY_BODY": "Tell us which service you want to audit and we'll get its compliance catalog ready.",

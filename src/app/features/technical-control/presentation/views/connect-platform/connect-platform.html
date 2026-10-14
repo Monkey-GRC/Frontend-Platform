@@ -16,7 +16,7 @@
     <app-loading-spinner />
     }
     @case ('error') {
-    <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-900">
+    <div class="py-12 text-center">
       <p class="text-sm text-gray-700 dark:text-gray-200">{{ 'TECHNICAL_CONTROL.LOAD_ERROR' | translate }}</p>
       <button type="button" (click)="load()" class="mt-4 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90">{{ 'COMMON.RETRY' | translate }}</button>
     </div>

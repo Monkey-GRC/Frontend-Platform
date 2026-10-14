@@ -32,6 +32,8 @@ export class ServicesListView implements OnInit {
 
   readonly stage = signal<Stage>('loading');
   readonly items = signal<ServiceListItem[]>([]);
+  // Cuántos servicios tiene la empresa en total (lo que dice el backend), no solo los de la página que se ve.
+  readonly total = signal(0);
   readonly types = signal<CatalogOption[]>([]);
   readonly scenarios = signal<CatalogOption[]>([]);
   readonly query = signal('');
@@ -81,6 +83,7 @@ export class ServicesListView implements OnInit {
     }).subscribe({
       next: ({ page, types, scenarios }) => {
         this.items.set(page.items);
+        this.total.set(page.total);
         this.types.set(types);
         this.scenarios.set(scenarios);
         this.selected.set(new Set());
@@ -151,6 +154,7 @@ export class ServicesListView implements OnInit {
         if (other > 0) parts.push(this.translate.instant(other === 1 ? 'SERVICES.LIST.FAILED_ONE' : 'SERVICES.LIST.FAILED_MANY', { count: other }));
         this.notice.set({ kind: failed.length > 0 ? 'error' : 'ok', text: parts.join(' ') });
         this.items.update((list) => list.filter((i) => !results.some((r) => !r.error && r.item.id === i.id)));
+        this.total.update((t) => Math.max(0, t - done));
         this.selected.set(new Set());
         // El siguiente paso del onboarding depende de que haya al menos un servicio.
         this.auth.validate().subscribe();

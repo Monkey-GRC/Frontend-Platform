@@ -1,7 +1,6 @@
 {
   "HOME": {
     "GREETING": "Hello, {{name}}. Your account is ready.",
-    "INTRO": "From now on you sign in with your email and password. We will get your company ready for its audit, step by step.",
     "START": "Get started",
     "STEP_FIRST": "First step",
     "STEP_NEXT": "Next step",

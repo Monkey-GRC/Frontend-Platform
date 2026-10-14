@@ -1,6 +1,17 @@
 {
   "ONBOARDING": {
     "STEP_OF": "Step {{current}} of {{total}}",
+    "FIELD": {
+      "DESCRIPTION": "What it does",
+      "EMPLOYEES": "Employees",
+      "YEARS": "Years operating",
+      "INDUSTRY": "Sector",
+      "MODEL": "Business model",
+      "INCORPORATION": "Incorporated in",
+      "CLIENTS": "Clients in",
+      "MATURITY": "Compliance level",
+      "REGULATIONS": "Regulations that apply to you"
+    },
     "STEPS": {
       "COMPANY": "Your company",
       "SIZE": "Size",
@@ -50,14 +61,8 @@
     "REGULATIONS_HELP": "Choose all that apply. If none, choose “None”.",
     "REGULATIONS_ARIA": "Regulations",
     "REGULATIONS_HINT": "Choose at least one option (or “None”).",
-    "REVIEW_TITLE_EDIT": "This is what we know about your company",
     "REVIEW_TITLE": "Review your information",
     "REVIEW_BODY": "If everything looks right, save it. You can edit it later.",
-    "REVIEW_EMPLOYEES": "{{value}} employees",
-    "REVIEW_YEARS": "{{value}} years operating",
-    "REVIEW_INCORP": "Incorporated in: {{value}}",
-    "REVIEW_CLIENTS": "Clients in: {{value}}",
-    "REVIEW_REGULATIONS": "Apply to you: {{value}}",
     "SAVE_AND_CONTINUE": "Save and continue",
     "SAVE_ERROR": "We couldn't save your information. Please try again."
   }
