@@ -53,8 +53,8 @@ export const routes: Routes = [
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
       },
       // Cumplimiento (MD-119): entrada del menú y, dentro de cada servicio, el módulo con sus pestañas. Cada pestaña muestra
-      // un contenido provisional hasta que su historia cambie el `loadComponent` (acciones MD-120, riesgos MD-124,
-      // evidencias MD-129, resumen MD-140). Las rutas más específicas van antes que `services/:id`.
+      // un contenido provisional hasta que su historia cambie el `loadComponent` (resumen MD-140 y evidencias MD-129). Ya son reales:
+      // controles (MD-120, MD-121), riesgos y causas (MD-124). Las rutas más específicas van antes que `services/:id`.
       {
         path: 'cumplimiento',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
@@ -63,20 +63,29 @@ export const routes: Routes = [
         path: 'services/:id/cumplimiento',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-shell/compliance-shell').then(m => m.ComplianceShellView),
         children: [
-          { path: '', redirectTo: 'resumen', pathMatch: 'full' },
+          // Se entra por Controles mientras el Resumen (MD-140) no exista.
+          { path: '', redirectTo: 'controles', pathMatch: 'full' },
           {
             path: 'resumen',
             data: { titleKey: 'COMPLIANCE.TABS.SUMMARY', icon: 'dashboard' },
             loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
           },
           {
-            path: 'acciones',
+            path: 'controles',
             loadComponent: () => import('@features/compliance/presentation/views/controls-list/controls-list').then(m => m.ControlsListView),
           },
+          // Antes se llamaba «acciones»: se conserva el enlace viejo.
+          { path: 'acciones', redirectTo: 'controles', pathMatch: 'full' },
+          // Riesgos y Causas son la misma vista con dos rutas: una causa no depende de un riesgo (10 de las 56 del catálogo no pertenecen a ninguno).
           {
             path: 'riesgos',
-            data: { titleKey: 'COMPLIANCE.GLOSSARY.RISKS', icon: 'warning' },
-            loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
+            data: { section: 'risks' },
+            loadComponent: () => import('@features/compliance/presentation/views/risks/risks').then(m => m.RisksView),
+          },
+          {
+            path: 'causas',
+            data: { section: 'causes' },
+            loadComponent: () => import('@features/compliance/presentation/views/risks/risks').then(m => m.RisksView),
           },
           {
             path: 'evidencias',

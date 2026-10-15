@@ -1,0 +1,146 @@
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
+import { apiErrorMessage } from '@core/domain/utils/api-error';
+import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
+import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
+import { RiskCauseNode, RiskDetail, linkCode } from '../../../domain/models/risk.models';
+import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
+import { EnumLabelService } from '../../../domain/services/enum-label.service';
+import { RiskService } from '../../../domain/services/risk.service';
+import { LinkPicker, PickerItem } from '../link-picker/link-picker';
+import { RiskLevelBadge } from '../risk-level-badge/risk-level-badge';
+
+type Stage = 'loading' | 'error' | 'ready';
+
+// El detalle de un riesgo (MD-124): su descripción, el impacto potencial, y el árbol de causas con los controles que las mitigan. El administrador de la
+// empresa puede vincular y quitar causas y dar de baja un riesgo propio; el resto de roles solo lee. La evaluación 5×5 y el tratamiento llegan con MD-123.
+@Component({
+  selector: 'app-risk-detail-panel',
+  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker, RiskLevelBadge],
+  templateUrl: './risk-detail-panel.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class RiskDetailPanel {
+  private readonly api = inject(RiskService);
+  private readonly translate = inject(TranslateService);
+  readonly view = inject(ComplianceViewService);
+  readonly labels = inject(EnumLabelService);
+
+  readonly riskId = input.required<string>();
+  readonly closed = output<void>();
+  // El riesgo cambió (un vínculo nuevo o quitado, o una baja): la lista se vuelve a pedir.
+  readonly changed = output<void>();
+  readonly openCause = output<string>();
+
+  readonly codeOf = linkCode;
+
+  readonly stage = signal<Stage>('loading');
+  readonly detail = signal<RiskDetail | null>(null);
+  readonly saving = signal(false);
+  readonly notice = signal<string | null>(null);
+  readonly error = signal<string | null>(null);
+
+  readonly picking = signal(false);
+  readonly candidates = signal<PickerItem[]>([]);
+  readonly confirmingRemove = signal(false);
+  readonly unlinking = signal<RiskCauseNode | null>(null);
+
+  /** Dar de baja es solo de un riesgo propio; los del catálogo no se quitan desde la pantalla. */
+  readonly canRemove = computed(() => this.view.canManage() && this.detail()?.origin === 'own');
+
+  constructor() {
+    effect(() => {
+      this.riskId();
+      this.view.viewParam();
+      untracked(() => this.load());
+    });
+  }
+
+  load(): void {
+    this.stage.set('loading');
+    this.api.getRisk(this.riskId(), this.view.viewParam()).subscribe({
+      next: (detail) => {
+        this.detail.set(detail);
+        this.stage.set('ready');
+      },
+      error: () => this.stage.set('error'),
+    });
+  }
+
+  startLink(): void {
+    const d = this.detail();
+    if (!d) return;
+    this.reset();
+    this.picking.set(true);
+    const linked = new Set(d.causes.map((c) => c.id));
+    this.api.listAllCauses(d.service_id, this.view.viewParam()).subscribe({
+      next: (all) => this.candidates.set(all.filter((c) => c.is_active && !linked.has(c.id)).map((c) => ({ id: c.id, label: `${c.code} · ${c.name}` }))),
+      error: () => this.fail(null),
+    });
+  }
+
+  link(causeId: string): void {
+    this.run(this.api.linkCause(this.riskId(), causeId), 'COMPLIANCE.RISK_DETAIL.LINKED', () => this.picking.set(false));
+  }
+
+  askUnlink(cause: RiskCauseNode): void {
+    this.reset();
+    this.unlinking.set(cause);
+  }
+
+  confirmUnlink(): void {
+    const cause = this.unlinking();
+    if (!cause) return;
+    this.run(this.api.unlinkCause(this.riskId(), cause.id), 'COMPLIANCE.RISK_DETAIL.UNLINKED', () => this.unlinking.set(null));
+  }
+
+  askRemove(): void {
+    this.reset();
+    this.confirmingRemove.set(true);
+  }
+
+  confirmRemove(): void {
+    this.saving.set(true);
+    this.api.deactivateRisk(this.riskId()).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.changed.emit();
+        this.closed.emit();
+      },
+      error: (e) => {
+        this.confirmingRemove.set(false);
+        this.fail(e);
+      },
+    });
+  }
+
+  private run(call: Observable<unknown>, noticeKey: string, done: () => void): void {
+    this.saving.set(true);
+    this.reset();
+    call.subscribe({
+      next: () => {
+        this.saving.set(false);
+        done();
+        this.notice.set(this.translate.instant(noticeKey));
+        this.load();
+        this.changed.emit();
+      },
+      error: (e) => {
+        this.unlinking.set(null);
+        this.fail(e);
+      },
+    });
+  }
+
+  private fail(error: unknown): void {
+    this.saving.set(false);
+    // `message` ya viene traducido por el backend (409: vínculo repetido, riesgo dado de baja…).
+    this.error.set(apiErrorMessage(error, this.translate.instant('COMPLIANCE.RISK_DETAIL.SAVE_ERROR')));
+  }
+
+  private reset(): void {
+    this.notice.set(null);
+    this.error.set(null);
+  }
+}
