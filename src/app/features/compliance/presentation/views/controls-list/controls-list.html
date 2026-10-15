@@ -1,0 +1,108 @@
+@switch (stage()) {
+
+@case ('loading') {
+<app-loading-spinner />
+}
+
+@case ('error') {
+<div class="py-12 text-center">
+  <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
+  <h2 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.CONTROLS.LOAD_ERROR_TITLE' | translate }}</h2>
+  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+  <button type="button" (click)="load()"
+    class="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
+    <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
+  </button>
+</div>
+}
+
+@default {
+<div class="flex flex-col gap-4">
+  <div>
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.GLOSSARY.CONTROLS' | translate }}</h2>
+    <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.INTRO' | translate }}</p>
+  </div>
+
+  <!-- Los temas agrupan la lista: elegir uno la vuelve a pedir con ese filtro. -->
+  <div class="flex flex-col gap-3">
+    <div>
+      <p class="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.FILTER_TOPIC' | translate }}</p>
+      <app-option-chips [options]="topicChips()" [selected]="[trust() ?? 'all']" [ariaLabel]="'COMPLIANCE.CONTROLS.FILTER_TOPIC' | translate"
+        (picked)="pickTopic($event)" />
+    </div>
+    <div>
+      <p class="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.FILTER_STATUS' | translate }}</p>
+      <app-option-chips [options]="readinessChips()" [selected]="[readiness() ?? 'all']" [ariaLabel]="'COMPLIANCE.CONTROLS.FILTER_STATUS' | translate"
+        (picked)="pickReadiness($event)" />
+    </div>
+  </div>
+
+  <app-data-table captionKey="COMPLIANCE.CONTROLS.TABLE_CAPTION" [columns]="columns()" [rows]="rows()" [rowKey]="rowKey" [page]="page()"
+    [loading]="loadingPage()" [clickable]="true" emptyIcon="shield"
+    [emptyTitleKey]="hasFilters() ? 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_TITLE' : 'COMPLIANCE.CONTROLS.EMPTY_TITLE'"
+    [emptyDescriptionKey]="hasFilters() ? 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_BODY' : 'COMPLIANCE.CONTROLS.EMPTY_BODY'"
+    (pageChange)="goTo($event)" (pageSizeChange)="resize($event)" (rowClick)="open($event)">
+
+    <ng-template appCell="name" let-row>
+      <div class="min-w-0">
+        <p class="font-medium text-gray-900 dark:text-white">{{ row.name }}</p>
+        <div class="mt-1 flex flex-wrap items-center gap-1.5">
+          @if (row.origin === 'own') {
+          <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{{ 'COMPLIANCE.CONTROLS.OWN' | translate }}</span>
+          }
+          @if (row.approval === 'pending') {
+          <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">{{ 'COMPLIANCE.CONTROLS.AWAITING_APPROVAL' | translate }}</span>
+          }
+          @if (row.has_pending_change) {
+          <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+            <span class="material-symbols-rounded text-[14px]" aria-hidden="true">schedule</span>{{ 'COMPLIANCE.CONTROLS.CHANGE_PENDING' | translate }}
+          </span>
+          }
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template appCell="topics" let-row>
+      <span class="text-sm text-gray-700 dark:text-gray-200">{{ topicLabels(row) }}</span>
+    </ng-template>
+
+    <ng-template appCell="status" let-row>
+      <app-status-badge [status]="row.readiness" size="sm" />
+    </ng-template>
+
+    <!-- Avance y cobertura: dos conteos distintos, nunca un porcentaje (philosophy.md). -->
+    <ng-template appCell="counts" let-row>
+      <div class="text-sm text-gray-700 dark:text-gray-200">
+        <p>{{ 'COMPLIANCE.CONTROLS.PROGRESS' | translate: { done: row.progress.done, total: row.progress.total } }}</p>
+        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.COVERAGE' | translate: { measured: row.coverage.measured, applicable: row.coverage.applicable } }}</p>
+      </div>
+    </ng-template>
+
+    <!-- Solo auditor y consultor (vista técnica): el código y los requisitos que cubre. -->
+    <ng-template appCell="technical" let-row>
+      @if (row.technical; as tech) {
+      <div class="text-xs text-gray-700 dark:text-gray-200">
+        <p class="font-mono font-medium">{{ tech.control_code ?? row.own_code ?? '—' }}</p>
+        @if (tech.requirement_codes.length) {
+        <p class="mt-0.5 text-gray-600 dark:text-gray-300">{{ tech.requirement_codes.join(', ') }}</p>
+        }
+      </div>
+      }
+    </ng-template>
+
+    @if (hasFilters()) {
+    <div tableEmpty class="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-gray-900">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_TITLE' | translate }}</h3>
+      <p class="mx-auto mt-1 max-w-sm text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_BODY' | translate }}</p>
+      <button type="button" (click)="clearFilters()" class="mt-5 text-sm font-medium text-primary hover:underline">{{ 'COMPLIANCE.CONTROLS.CLEAR_FILTERS' | translate }}</button>
+    </div>
+    }
+  </app-data-table>
+</div>
+
+@if (selected(); as id) {
+<app-control-detail-panel [controlId]="id" (closed)="selected.set(null)" (changed)="load()" />
+}
+}
+
+}

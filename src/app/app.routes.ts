@@ -71,8 +71,7 @@ export const routes: Routes = [
           },
           {
             path: 'acciones',
-            data: { titleKey: 'COMPLIANCE.GLOSSARY.CONTROLS', icon: 'shield' },
-            loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
+            loadComponent: () => import('@features/compliance/presentation/views/controls-list/controls-list').then(m => m.ControlsListView),
           },
           {
             path: 'riesgos',
