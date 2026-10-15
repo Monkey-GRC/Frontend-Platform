@@ -28,7 +28,8 @@ export const NAV_ITEMS: NavItem[] = [
     { icon: 'home', name: 'Inicio', labelKey: 'SHELL.NAV.HOME', path: '/', section: 'Menu' },
     { icon: 'apartment', name: 'Mi empresa', labelKey: 'SHELL.NAV.MY_COMPANY', path: '/onboarding', section: 'Menu' },
     { icon: 'inventory_2', name: 'Mis servicios', labelKey: 'SHELL.NAV.MY_SERVICES', path: '/services', section: 'Menu' },
-    // Se suman el control técnico y el dashboard cuando existan.
+    { icon: 'verified_user', name: 'Cumplimiento', labelKey: 'SHELL.NAV.COMPLIANCE', path: '/cumplimiento', section: 'Menu' },
+    // Se suma el dashboard cuando exista.
 ];
 
 // Clave de traducción del título de cada sección del menú.

@@ -19,7 +19,7 @@ export interface RedeemDto {
   password: string;
 }
 
-export type UserRole = 'admin_monkey' | 'admin_empresa' | 'funcional' | 'auditor';
+export type UserRole = 'admin_monkey' | 'admin_empresa' | 'funcional' | 'consultor' | 'auditor';
 
 export interface AuthUser {
   id: string;

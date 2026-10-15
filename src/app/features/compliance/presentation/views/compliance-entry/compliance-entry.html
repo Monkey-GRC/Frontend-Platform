@@ -1,0 +1,48 @@
+<section class="w-full pb-10">
+  @switch (stage()) {
+
+  @case ('loading') {
+  <app-loading-spinner />
+  }
+
+  @case ('error') {
+  <div class="py-12 text-center">
+    <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
+    <h1 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.ENTRY.LOAD_ERROR_TITLE' | translate }}</h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+    <button type="button" (click)="load()"
+      class="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
+      <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
+    </button>
+  </div>
+  }
+
+  @case ('forbidden') {
+  <app-empty-state icon="lock" titleKey="COMPLIANCE.ENTRY.FORBIDDEN_TITLE" descriptionKey="COMPLIANCE.ENTRY.FORBIDDEN_BODY" />
+  }
+
+  @case ('empty') {
+  <app-empty-state icon="inventory_2" titleKey="COMPLIANCE.ENTRY.EMPTY_TITLE" descriptionKey="COMPLIANCE.ENTRY.EMPTY_BODY">
+    <a routerLink="/services/new" class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
+      {{ 'COMPLIANCE.ENTRY.DECLARE_SERVICE' | translate }}<span class="material-symbols-rounded text-[18px]">arrow_forward</span>
+    </a>
+  </app-empty-state>
+  }
+
+  @default {
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.ENTRY.CHOOSE_TITLE' | translate }}</h1>
+  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.ENTRY.CHOOSE_BODY' | translate }}</p>
+  <ul class="mt-5 divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
+    @for (s of services(); track s.id) {
+    <li>
+      <a [routerLink]="['/services', s.id, 'cumplimiento']" class="flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50 dark:text-white dark:hover:bg-gray-800">
+        <span class="truncate">{{ s.name }}</span>
+        <span class="material-symbols-rounded text-[18px] text-gray-500" aria-hidden="true">chevron_right</span>
+      </a>
+    </li>
+    }
+  </ul>
+  }
+
+  }
+</section>

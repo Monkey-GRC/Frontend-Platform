@@ -20,6 +20,25 @@
       "ALMOST_READY": "Almost ready",
       "NEEDS_WORK": "Needs work",
       "NOT_MEASURED": "Not measured"
+    },
+    "TABS": {
+      "SUMMARY": "Summary"
+    },
+    "SHELL": {
+      "TITLE": "Compliance",
+      "BACK_TO_SERVICE": "Back to the service",
+      "TECHNICAL_VIEW": "Technical view",
+      "COMING_SOON": "This section is being built."
+    },
+    "ENTRY": {
+      "LOAD_ERROR_TITLE": "We could not load your services",
+      "FORBIDDEN_TITLE": "There are no services to show yet",
+      "FORBIDDEN_BODY": "Your role cannot pick a service from the menu yet.",
+      "EMPTY_TITLE": "You have no services yet",
+      "EMPTY_BODY": "Declare a service to see its compliance.",
+      "DECLARE_SERVICE": "Declare a service",
+      "CHOOSE_TITLE": "Which service?",
+      "CHOOSE_BODY": "Choose the service whose compliance you want to see."
     }
   }
 }

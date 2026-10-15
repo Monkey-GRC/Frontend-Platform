@@ -52,6 +52,40 @@ export const routes: Routes = [
         path: 'services/:id/edit',
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
       },
+      // Cumplimiento (MD-119): entrada del menú y, dentro de cada servicio, el módulo con sus pestañas. Cada pestaña muestra
+      // un contenido provisional hasta que su historia cambie el `loadComponent` (acciones MD-120, riesgos MD-124,
+      // evidencias MD-129, resumen MD-140). Las rutas más específicas van antes que `services/:id`.
+      {
+        path: 'cumplimiento',
+        loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
+      },
+      {
+        path: 'services/:id/cumplimiento',
+        loadComponent: () => import('@features/compliance/presentation/views/compliance-shell/compliance-shell').then(m => m.ComplianceShellView),
+        children: [
+          { path: '', redirectTo: 'resumen', pathMatch: 'full' },
+          {
+            path: 'resumen',
+            data: { titleKey: 'COMPLIANCE.TABS.SUMMARY', icon: 'dashboard' },
+            loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
+          },
+          {
+            path: 'acciones',
+            data: { titleKey: 'COMPLIANCE.GLOSSARY.CONTROLS', icon: 'shield' },
+            loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
+          },
+          {
+            path: 'riesgos',
+            data: { titleKey: 'COMPLIANCE.GLOSSARY.RISKS', icon: 'warning' },
+            loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
+          },
+          {
+            path: 'evidencias',
+            data: { titleKey: 'COMPLIANCE.GLOSSARY.EVIDENCE', icon: 'upload_file' },
+            loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
+          },
+        ],
+      },
       // Enlace de la pantalla anterior (el paso «control técnico» ya no existe como pantalla aparte).
       { path: 'services/:id/technical-control', redirectTo: '/services/:id' },
       {

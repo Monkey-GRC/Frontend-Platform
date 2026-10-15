@@ -37,10 +37,16 @@
         <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-200">{{ label('service_type', s.type) }}</p>
       </div>
     </div>
-    <a [routerLink]="['/services', s.id, 'edit']"
-      class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-800 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800">
-      <span class="material-symbols-rounded text-[18px]">edit</span>{{ 'COMMON.EDIT' | translate }}
-    </a>
+    <div class="flex flex-wrap items-center gap-2">
+      <a [routerLink]="['/services', s.id, 'cumplimiento']"
+        class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-white shadow transition hover:opacity-90">
+        <span class="material-symbols-rounded text-[18px]">verified_user</span>{{ 'SHELL.NAV.COMPLIANCE' | translate }}
+      </a>
+      <a [routerLink]="['/services', s.id, 'edit']"
+        class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-800 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800">
+        <span class="material-symbols-rounded text-[18px]">edit</span>{{ 'COMMON.EDIT' | translate }}
+      </a>
+    </div>
   </div>
 
   <!-- Detalles, en tres paneles como las vistas de recurso de AWS -->
