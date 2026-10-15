@@ -1,23 +1,23 @@
 {
   "HOME": {
-    "GREETING": "Hola, {{name}}. Tu cuenta está lista.",
-    "START": "Empezar",
+    "GREETING": "{{name}}, tu cuenta está activa.",
+    "START": "Comenzar",
     "STEP_FIRST": "Primer paso",
     "STEP_NEXT": "Siguiente paso",
     "STEP_LAST": "Último paso",
-    "COMPANY_TITLE": "Conozcamos tu empresa",
-    "COMPANY_BODY": "Unas preguntas sencillas sobre tu negocio. Toma un par de minutos.",
-    "COMPANY_KNOWN": "Ya conocemos tu empresa",
-    "VIEW_INFO": "Ver mi información",
-    "SERVICE_TITLE": "Cuéntanos sobre tu servicio",
-    "SERVICE_BODY": "El servicio que quieres auditar. Al terminar te dejamos listo tu catálogo de cumplimiento.",
-    "COMPANY_SERVICE_KNOWN": "Ya conocemos tu empresa y tu servicio",
-    "CATALOG_READY": "Tu catálogo de cumplimiento está preparado.",
-    "VIEW_COMPANY": "Ver mi empresa",
+    "COMPANY_TITLE": "Contexto organizacional",
+    "COMPANY_BODY": "Declara los datos de la organización: sector, tamaño, alcance geográfico y normas aplicables.",
+    "COMPANY_KNOWN": "Contexto organizacional declarado",
+    "VIEW_INFO": "Ver el contexto organizacional",
+    "SERVICE_TITLE": "Contexto del servicio",
+    "SERVICE_BODY": "Declara el servicio que será evaluado y el marco aplicable. Al terminar se genera el catálogo de controles del servicio.",
+    "COMPANY_SERVICE_KNOWN": "Organización y servicio declarados",
+    "CATALOG_READY": "El catálogo de controles del servicio está generado.",
+    "VIEW_COMPANY": "Ver mi organización",
     "VIEW_SERVICES": "Ver mis servicios",
-    "ASSETS_TITLE": "Registra tus activos",
-    "ASSETS_BODY": "Cuéntanos dónde vive tu servicio y conéctalo para que Monkey lo evalúe sola. Puedes hacerlo por partes.",
-    "ALL_READY_TITLE": "Tu empresa y tu servicio están listos",
-    "ALL_READY_BODY": "Tu catálogo de cumplimiento está preparado y ya sabemos dónde vive tu servicio. Puedes revisar o editar lo que nos contaste, y registrar más activos cuando quieras."
+    "ASSETS_TITLE": "Control técnico",
+    "ASSETS_BODY": "Define dónde se aloja el servicio y conecta sus activos para que Monkey los evalúe de forma automática. Puedes avanzar por partes.",
+    "ALL_READY_TITLE": "Organización y servicio configurados",
+    "ALL_READY_BODY": "El catálogo de controles está generado y el escenario de despliegue definido. Puedes revisar lo declarado y registrar más activos cuando lo necesites."
   }
 }

@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
+import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
 import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
@@ -11,6 +13,8 @@ import {
   ControlDetail,
   ControlDimension,
   ProposeChangeBody,
+  controlCode,
+  requirementCodes,
 } from '../../../domain/models/control.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { ControlService } from '../../../domain/services/control.service';
@@ -48,6 +52,16 @@ export class ControlDetailPanel {
   readonly changed = output<void>();
 
   readonly maxInterpretation = INTERPRETATION_MAX;
+
+  private readonly language = inject(LanguageService);
+  readonly codeOf = controlCode;
+  readonly requirementsOf = requirementCodes;
+  readonly percentOf = percentOf;
+
+  /** «60 %» (o «—» sin total), en el idioma de la sesión. */
+  pct(part: number, total: number): string {
+    return formatPercent(percentOf(part, total), this.language.current());
+  }
 
   readonly stage = signal<Stage>('loading');
   readonly detail = signal<ControlDetail | null>(null);

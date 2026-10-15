@@ -43,6 +43,16 @@
     [emptyDescriptionKey]="hasFilters() ? 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_BODY' : 'COMPLIANCE.CONTROLS.EMPTY_BODY'"
     (pageChange)="goTo($event)" (pageSizeChange)="resize($event)" (rowClick)="open($event)">
 
+    <!-- D80: el código se muestra siempre; debajo, los requisitos del marco que el control cubre. -->
+    <ng-template appCell="code" let-row>
+      <div class="text-xs text-gray-700 dark:text-gray-200">
+        <p class="font-mono font-semibold">{{ codeOf(row) ?? '—' }}</p>
+        @if (requirementsOf(row).length) {
+        <p class="mt-0.5 font-mono text-gray-600 dark:text-gray-300">{{ requirementsOf(row).join(', ') }}</p>
+        }
+      </div>
+    </ng-template>
+
     <ng-template appCell="name" let-row>
       <div class="min-w-0">
         <p class="font-medium text-gray-900 dark:text-white">{{ row.name }}</p>
@@ -70,24 +80,15 @@
       <app-status-badge [status]="row.readiness" size="sm" />
     </ng-template>
 
-    <!-- Avance y cobertura: dos conteos distintos, nunca un porcentaje (philosophy.md). -->
+    <!-- Cumplimiento y cobertura: dos porcentajes con sus conteos, siempre juntos y junto al estado (D80). El de cumplimiento informa, no decide. -->
     <ng-template appCell="counts" let-row>
-      <div class="text-sm text-gray-700 dark:text-gray-200">
-        <p>{{ 'COMPLIANCE.CONTROLS.PROGRESS' | translate: { done: row.progress.done, total: row.progress.total } }}</p>
-        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.COVERAGE' | translate: { measured: row.coverage.measured, applicable: row.coverage.applicable } }}</p>
+      <div class="min-w-[11rem] text-sm text-gray-700 dark:text-gray-200">
+        <p class="font-medium text-gray-900 dark:text-white">{{ 'COMPLIANCE.CONTROLS.PROGRESS' | translate: { percent: pct(row.progress.done, row.progress.total), done: row.progress.done, total: row.progress.total } }}</p>
+        <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700" aria-hidden="true">
+          <div class="h-full rounded-full bg-primary" [style.width.%]="percentOf(row.progress.done, row.progress.total) ?? 0"></div>
+        </div>
+        <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.COVERAGE' | translate: { percent: pct(row.coverage.measured, row.coverage.applicable), measured: row.coverage.measured, applicable: row.coverage.applicable } }}</p>
       </div>
-    </ng-template>
-
-    <!-- Solo auditor y consultor (vista técnica): el código y los requisitos que cubre. -->
-    <ng-template appCell="technical" let-row>
-      @if (row.technical; as tech) {
-      <div class="text-xs text-gray-700 dark:text-gray-200">
-        <p class="font-mono font-medium">{{ tech.control_code ?? row.own_code ?? '—' }}</p>
-        @if (tech.requirement_codes.length) {
-        <p class="mt-0.5 text-gray-600 dark:text-gray-300">{{ tech.requirement_codes.join(', ') }}</p>
-        }
-      </div>
-      }
     </ng-template>
 
     @if (hasFilters()) {

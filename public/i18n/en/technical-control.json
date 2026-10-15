@@ -141,8 +141,8 @@
       "REGISTER": "Register asset",
       "NOT_APPLICABLE_SERVICE": "This connection doesn't apply to the scenario of “{{service}}”. Remove it from the list or choose another platform.",
       "NOT_APPLICABLE": "This connection doesn't apply to the scenario of one of the chosen services. Remove it from the list or choose another platform.",
-      "SCENARIO_NOT_SET_SERVICE": "First tell us where “{{service}}” lives.",
-      "SCENARIO_NOT_SET": "First tell us where that service lives.",
+      "SCENARIO_NOT_SET_SERVICE": "First define where “{{service}}” is hosted.",
+      "SCENARIO_NOT_SET": "First define where that service is hosted.",
       "CHECK_MARKED": "Check the marked fields and try again.",
       "METHOD_NOT_APPLICABLE": "That connection type isn't available for this platform. Choose another one.",
       "REGISTER_ERROR": "We couldn't register the asset. Please try again."

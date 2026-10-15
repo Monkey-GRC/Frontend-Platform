@@ -141,8 +141,8 @@
       "REGISTER": "Registrar activo",
       "NOT_APPLICABLE_SERVICE": "Esta conexión no aplica al escenario de «{{service}}». Quítalo de la lista o elige otra plataforma.",
       "NOT_APPLICABLE": "Esta conexión no aplica al escenario de uno de los servicios elegidos. Quítalo de la lista o elige otra plataforma.",
-      "SCENARIO_NOT_SET_SERVICE": "Primero cuéntanos dónde vive «{{service}}».",
-      "SCENARIO_NOT_SET": "Primero cuéntanos dónde vive ese servicio.",
+      "SCENARIO_NOT_SET_SERVICE": "Primero define dónde se aloja «{{service}}».",
+      "SCENARIO_NOT_SET": "Primero define dónde se aloja ese servicio.",
       "CHECK_MARKED": "Revisa los datos marcados y vuelve a intentarlo.",
       "METHOD_NOT_APPLICABLE": "Ese tipo de conexión no está disponible para esta plataforma. Elige otro.",
       "REGISTER_ERROR": "No pudimos registrar el activo. Inténtalo de nuevo."
