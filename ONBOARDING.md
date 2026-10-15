@@ -1,309 +1,82 @@
-# Onboarding de un tenant nuevo — guía para frontend-platform
+# Onboarding de una empresa nueva — guía para Frontend-Platform
 
-Este documento describe el flujo que ve un cliente de Monkey **después**
-de que un `MONKEY_ADMIN` le crea su tenant desde `/clients` (en la app
-`frontend`, panel de Monkey Admin) y le entrega un **código de
-onboarding**. `frontend-platform` es la aplicación que usará el cliente
-final para activar su cuenta, elegir su framework de cumplimiento y
-configurar su tenant.
+Este documento describe lo que ve un cliente de Monkey **desde que recibe su clave de acceso hasta que termina de configurar su empresa**. La fuente de verdad es el cerebro del producto (`Monkey-Brain-IA`): los contratos viven en `contracts/modules/` y, si algo de aquí los contradice, gana el contrato.
 
-## Contexto rápido
+## Panorama
 
-- Cuando `MONKEY_ADMIN` crea un cliente (`POST /clients`), Monkey **NO**
-  aprovisiona todavía ninguna base de datos física — solo guarda los datos
-  de la empresa y genera un **`onboarding_code`** de un solo uso, que
-  expira **a los 7 días**. No se crea ningún usuario ni credencial de acceso
-  en ese momento. **Este es el único código que se le muestra a un humano
-  directamente** — a `MONKEY_ADMIN`, una sola vez, en `frontend` — para que
-  se lo entregue al cliente por el canal que sea (correo, WhatsApp, etc.).
-- La base de datos física del tenant, el usuario `CLIENT_ADMIN` y las
-  credenciales de acceso a la API (`mnk-client-identifier` /
-  `mnk-client-key`) se crean **todas juntas, al final**, en un solo paso
-  atómico: `POST /onboarding/complete`. Si algo falla en ese paso (crear el
-  usuario, clonar el template elegido, etc.), todo se revierte — la base de
-  datos aprovisionada se elimina y el `onboarding_code` sigue siendo válido
-  para reintentar.
-- **`mnk-client-identifier` / `mnk-client-key` NUNCA se le muestran al
-  cliente.** No son una credencial que la persona deba copiar, guardar ni
-  recordar — son un dato interno de enrutamiento, equivalente a un
-  access-key/secret-key de infraestructura. El frontend los recibe una
-  única vez en la respuesta de `POST /onboarding/complete`, los guarda de
-  inmediato en `localStorage` **sin mostrarlos en pantalla**, y de ahí en
-  adelante un interceptor HTTP los agrega automáticamente como headers en
-  **todas** las peticiones — el cliente nunca se entera de que existen.
-  Con lo único que el cliente inicia sesión es su **usuario y contraseña**
-  (elegidos por él mismo en el último paso del onboarding).
-- Tanto el `onboarding_code` (hasheado) como `client_key` (hasheado) viven
-  en la base de datos **central** (`mnk_clients`), asociados al tenant.
-  Cada request que llega con los headers `mnk-client-identifier` /
-  `mnk-client-key` se resuelve contra esa tabla para saber a qué base de
-  datos física de tenant dirigir la petición (`ClientCredentialsGuard`).
-- Todo lo que el cliente crea (usuarios, templates, riesgos, causas,
-  controles) vive **únicamente en la base de datos física de su propio
-  tenant** — aislado de todos los demás.
+1. Un `admin_monkey` registra la empresa en **Monkey Admin** y genera su **clave de acceso** (`MNK-XXXX-XXXX-XXXX`). Se la entrega al cliente por fuera de la aplicación.
+2. El cliente **canjea la clave** en Platform y crea la cuenta de `admin_empresa` (`/register`).
+3. Platform lo lleva por los **tres componentes** del onboarding, en orden:
+   1. **Contexto Organizacional** — quién es la empresa.
+   2. **Contexto del Servicio** — qué servicio se evalúa (repetible por servicio).
+   3. **Control Técnico** — cómo se conectan los sistemas que se medirán.
 
-## Flujo de UI (todo antes de tener sesión, un único POST final)
+No existen `onboarding_code`, `POST /onboarding/complete` ni los headers `mnk-client-identifier` / `mnk-client-key`: ese flujo se retiró. La empresa se aísla por `tenant_id` (RLS) y la identidad viaja en la **sesión por cookie**.
 
-```
-0. Bienvenida + código   →  el cliente pega el onboarding_code que le
-                              compartió MONKEY_ADMIN (pantalla /register)
+## Sesión
 
-1. Caracterización       →  tipo de empresa (business_type) y número de
-                              activos/servidores (server_count) — se
-                              guardan en memoria, todavía no hay tenant ni
-                              sesión, no se llama a ningún endpoint
+- La sesión vive en cookies `httpOnly` (`mnk_access`, `mnk_refresh`); el frontend nunca toca el token. Las peticiones llevan `withCredentials`.
+- El access token dura 15 min y se renueva con `POST /v1/auth/refresh`. La sesión se cierra a los 30 min sin actividad y a las 8 h en total.
+- Al arrancar, `AuthService.validate()` llama a `GET /v1/auth/me` (y a `refresh` si da 401). `authGuard` protege las rutas internas y `guestGuard` manda adentro a quien ya tiene sesión.
+- Platform rechaza a `admin_monkey`: el equipo Monkey trabaja en Monkey Admin (D24).
+- Contrato: `contracts/modules/auth.md`.
 
-2. Elegir framework       →  GET /onboarding/master-templates?onboarding_code=...
-   (opcional)                (ver la biblioteca y escoger un template_id,
-                              o saltar este paso con "crear mi propio
-                              template más adelante" — template_id es
-                              opcional en el paso final)
+## Paso 0 — Activación de la cuenta (`/register`)
 
-3. Crear cuenta            →  POST /onboarding/complete
-   (usuario y contraseña)     (onboarding_code + lo acumulado en los pasos
-                               1-2 + email/username/password que el cliente
-                               elige — aquí es donde se crea TODO: DB,
-                               usuario admin, keys de acceso, y opcionalmente
-                               el template clonado)
-                             → devuelve sesión ya logueada (cookies) +
-                               mnk-client-identifier + mnk-client-key
-                               (estos dos NUNCA se muestran — se guardan
-                               en localStorage en silencio)
+Dos pasos, en `RegisterForm` (D51):
 
-4. Redirección              →  directo al dashboard del tenant, ya
-                                autenticado con usuario/contraseña
-```
+1. **Solo el código.** `POST /v1/auth/redeem/lookup` comprueba la clave **sin gastarla** y devuelve la razón social y el correo administrativo que fijó Monkey.
+2. **Datos fijos + contraseña.** Razón social y correo se muestran bloqueados; solo se pide la contraseña y su confirmación (12+ caracteres con mayúscula, minúscula, número y símbolo). Se llama a `POST /v1/auth/redeem` con `{ code, email, password }`.
 
-Los pasos 1 y 2 solo acumulan datos en memoria (ver
-`RegistrationSessionService`) — la única llamada al backend que crea algo
-es el `POST /onboarding/complete` del paso 3, exactamente igual que antes:
-la base de datos del tenant no existe hasta ese momento, así que no hay
-forma de guardar nada server-side antes de ese llamado.
+El `201` abre la sesión y trae `user`, `company` y `onboarding.next_step`. Si `next_step` es `organizational_context`, se navega a `/onboarding`; si no, al inicio.
 
----
+Errores a mostrar con un mensaje claro: `ACCESS_KEY_INVALID` (404), `ACCESS_KEY_ALREADY_USED` y `ACCESS_KEY_EXPIRED` (409), `ACCESS_KEY_EMAIL_MISMATCH` y `VALIDATION_FAILED` (422, por campo) y `ACCESS_KEY_RATE_LIMITED` (429: 10 fallos por 15 min por dirección).
 
-## Paso 1 — Caracterización (business_type + server_count)
+## Dónde va el usuario: `onboarding.next_step`
 
-Sin llamada al backend. Pantalla previa al framework: pregunta el tipo de
-negocio (mismas opciones del enum `BusinessType`: `E_COMMERCE`, `FINTECH`,
-`SAAS`, `HEALTHTECH`, `OTHER`) y el número de activos/servidores a evaluar.
-Ambos se guardan en `RegistrationSessionService` y viajan dentro del body
-de `POST /onboarding/complete` al final (`business_type`, `server_count`
-— siguen siendo opcionales a nivel de API, pero la UI los pide como parte
-del flujo natural de alta).
+`GET /v1/auth/me` (y el login y el canje) devuelven `onboarding` con `next_step` (el primer paso sin hacer, o `null` si terminó) y `completed_steps`. Los valores son `organizational_context`, `service_context` y `technical_control`. El frontend **no adivina** el paso: lo lee de ahí.
 
-## Paso 2 — Elegir framework (catálogo de plantillas maestras)
+## Componente 1 — Contexto Organizacional (`/onboarding`)
 
-**`GET /onboarding/master-templates?onboarding_code=...`** — sin
-`AuthGuard`, protegido con el propio `onboarding_code` como query param (no
-hay sesión ni tenant todavía). Valida que el código exista, no esté
-expirado y no se haya usado ya — mismos errores que el paso 3 (ver abajo).
+- Vista: `features/onboarding/.../organizational-context`. Servicios: `OnboardingService` y `OnboardingDraftService` (borrador local mientras se escribe).
+- `GET /v1/onboarding/organizational-context` trae lo guardado; sin nada guardado devuelve solo la razón social (precargada y **bloqueada**, viene de `companies`).
+- `PUT /v1/onboarding/organizational-context` crea o actualiza (mismo endpoint). 9 campos obligatorios + 1 opcional.
+- Las opciones de cada lista salen de `GET /v1/catalogs/{name}` (`size`, `industry`, `business_model`, `years_in_operation`, `incorporation_country`, `client_country`, `compliance_maturity`, `regulations`); **nunca se hardcodean** (`contracts/enums.md`).
+- Contrato: `contracts/modules/onboarding-organizational-context.md`.
 
-Respuesta (200):
-```json
-{
-  "message": "Catálogo de plantillas obtenido exitosamente.",
-  "statusCode": 200,
-  "data": [
-    {
-      "id": "8143c5be-...",
-      "name": "ISO 27001 Demo",
-      "code": "TPL-112648",
-      "description": "...",
-      "objective": null,
-      "scope": null,
-      "slug": "iso-27001-demo",
-      "created_at": "...",
-      "updated_at": "..."
-    }
-  ]
-}
-```
+## Componente 2 — Contexto del Servicio (`/services`)
 
-Muestra este catálogo como una lista de tarjetas/opciones para que el
-cliente elija una — el `id` elegido es el `template_id` que va en el paso
-3. **Este paso es opcional**: si el cliente prefiere no adoptar ninguna
-plantilla maestra, puede elegir "crear mi propio template más adelante" y
-seguir sin `template_id` — podrá construir su propio template desde cero
-después del onboarding (`/templates`, ver más abajo).
+- Feature `features/services`: lista (`ServicesListView`), alta y edición (`ServiceFormView`, `/services/new` y `/services/:id/edit`) y detalle (`ServiceDetailView`, `/services/:id`).
+- `POST /v1/services` declara un servicio (16 campos del Excel, 14 en el request) **y clona el catálogo del marco en la misma transacción**; el `201` ya trae `catalog.status = ready`. El servicio es repetible: una empresa puede declarar varios.
+- `GET /v1/services` (paginado), `GET`, `PATCH` y `DELETE /v1/services/{id}`. Borrar con evaluaciones, evidencias o planes responde `409 SERVICE_HAS_EVALUATIONS`.
+- **Descripción del Sistema**: enlace (`POST .../system-description`, `http`/`https`) o archivo (`POST .../system-description/file`, multipart, máx. 25 MB, PDF o `.docx`). Como el archivo necesita que el servicio exista, con archivo el flujo es crear el servicio y luego subir el archivo. La descarga (`GET .../system-description/file`) devuelve una URL temporal de 5 min.
+- Los criterios de confianza contratados filtran los requisitos aplicables.
+- Contrato: `contracts/modules/onboarding-service-context.md`.
 
----
+## Componente 3 — Control Técnico (`/services/:id/connections/...`)
 
-## Paso 3 — Completar onboarding (crea todo de una vez)
+Feature `features/technical-control`. Se configura **por servicio**:
 
-**`POST /onboarding/complete`** — sin `AuthGuard`, sin headers de tenant
-(todavía no existen). El `onboarding_code` en el body es la única prueba de
-que quien llama tiene derecho a activar ese tenant.
+1. **Escenario de despliegue** — `PUT /v1/services/{id}/deployment-scenario`. Devuelve las conexiones que aplican (`409 CAPABILITY_NOT_APPLICABLE` si dejaría fuera un sistema ya registrado). `GET /v1/services/{id}/technical-control` trae escenario, conexiones aplicables y `is_complete` en una sola lectura.
+2. **Conectar un sistema** (`new-connection` → `connect-platform`) — la plataforma y el canal salen de la base (`GET /v1/catalogs/automated-capabilities`, `connection_method`, `aws_region`); la pantalla no hardcodea listas. Hoy solo hay cuentas de nube (AWS) con rol de solo lectura (plantilla en `GET /v1/connection-templates/aws-readonly-role`) o con llaves. Servidores, bases y equipos con agente aún no se pueden registrar.
+3. **Validar** (`POST /v1/assets/{id}/validate`), **elegir qué activos descubiertos son del servicio** (`GET /v1/assets/{id}/resources` y `PUT /v1/services/{id}/connections/{connectionId}/assets`), **activar** (`POST .../activate`) y **programar** (`PUT .../schedule`, frecuencia validada por conexión).
+4. Detalle de una conexión: `ConnectionDetailView` (`/services/:id/connections/:assetId`), con sus ejecuciones (`GET/POST /v1/assets/{id}/executions`).
 
-Request body:
-```json
-{
-  "onboarding_code": "wT11qICzB-uCpgAMbjwEfRB87QeXKU_d",
-  "template_id": "8143c5be-bd84-4541-a024-edb9421c4b55", // opcional
-  "email": "admin@clienteejemplo.com",
-  "username": "admin-cliente",
-  "password": "MinimoOchoCaracteres",
-  "name": "Nombre",                 // opcional
-  "last_name": "Apellido",          // opcional
-  "business_type": "SAAS",          // opcional — E_COMMERCE | FINTECH | SAAS | HEALTHTECH | OTHER
-  "server_count": 5                 // opcional
-}
-```
+Reglas de producto:
+- Al cliente **nunca** se le nombra el proveedor de la sonda: se dice «sonda» o «evaluación automática».
+- «Automatizado» no es «Operativo»: activar con la sonda simulada deja el sistema en `warning`.
+- Contrato: `contracts/modules/onboarding-technical-control.md`.
 
-`template_id` es **opcional**: si no se envía, el backend crea el tenant
-sin ningún template inicial — el cliente arranca desde `/templates` vacío
-y construye el suyo con `POST /templates` + `POST /risks` + `POST
-/reasons` + `POST /controls` (ver "Uso normal después del onboarding").
+## Convenciones de la app
 
-Qué pasa internamente, en orden (útil para explicarle a soporte si algo
-falla a mitad de camino):
-1. Valida el `onboarding_code` (existe, no expiró, no se usó ya).
-2. Si vino `template_id`, valida que exista en la biblioteca maestra (si
-   no vino, se salta este paso y el paso 5 completo).
-3. Aprovisiona la base de datos física del tenant (rol + DB + migraciones).
-4. Crea el usuario `CLIENT_ADMIN` con el email/usuario/contraseña que envió
-   el cliente, y el `CompanyProfile` si mandó `business_type`/`server_count`.
-5. Si vino `template_id`, clona ese template (con sus riesgos, causas,
-   controles y checks) dentro de la base recién creada — queda editable
-   desde el minuto uno, sin afectar nunca al template maestro original.
-6. Genera `mnk-client-identifier` y `mnk-client-key`, y los guarda
-   (el segundo, hasheado) en la base central. **Estos dos valores no se le
-   muestran al cliente en ningún momento** — el frontend los recibe en la
-   respuesta y los persiste directo en `localStorage`.
-7. Marca el tenant como `READY` y el onboarding como completado — el
-   `onboarding_code` queda invalidado, no vuelve a funcionar.
-8. Emite la sesión (mismas cookies httpOnly `access_token`/`refresh_token`
-   que usa el login normal).
-
-Si algo falla entre el paso 3 y el 6, se revierte todo automáticamente
-(se elimina la base de datos recién creada) y el `onboarding_code` **sigue
-siendo válido** — el cliente puede reintentar el mismo `POST
-/onboarding/complete` sin pedir un código nuevo.
-
-Respuesta (201) — y además setea las cookies de sesión:
-```json
-{
-  "message": "Onboarding completado exitosamente.",
-  "statusCode": 201,
-  "data": {
-    "user": {
-      "id": "...",
-      "email": "admin@clienteejemplo.com",
-      "username": "admin-cliente",
-      "name": "Nombre",
-      "last_name": "Apellido",
-      "role": "CLIENT_ADMIN",
-      "client_id": "...",
-      "is_active": true
-    },
-    "client_identifier": "i60AxzXZoGEXoV6YE4qjSg",
-    "client_key": "UsGpVbjwn4IDCxtkN3yn0oT5mqmndL9_"
-  }
-}
-```
-
-`client_identifier`/`client_key` llegan en esta respuesta **una única
-vez** — el frontend los guarda inmediatamente en `localStorage` (ej.
-`mnk_client_identifier` / `mnk_client_key`) sin renderizarlos en ninguna
-pantalla, y redirige derecho al dashboard. No hay "pantalla de revelar
-credenciales" para esto — a diferencia del `onboarding_code`, que sí se le
-muestra una vez a `MONKEY_ADMIN` en `/clients`, esto es una operación
-transparente para el cliente final.
-
-### Errores posibles
-
-| Status | Cuándo | Qué mostrarle al cliente |
-|---|---|---|
-| 401 | `onboarding_code` no existe (o ya se usó — el hash se limpia al completar) | "Código de onboarding inválido" — mismo mensaje sea cual sea la causa real, no reveles cuál |
-| 409 | El tenant ya completó su onboarding antes | "Este tenant ya fue activado, inicia sesión normalmente" |
-| 410 | El código expiró (pasaron más de 7 días desde que `MONKEY_ADMIN` lo creó) | "El código expiró, pide a soporte que te genere uno nuevo" — `MONKEY_ADMIN` puede regenerarlo desde `/clients` |
-| 404 | `template_id` inválido (no existe en la biblioteca maestra) | Solo aplica si se envió `template_id` — no debería pasar si el paso 2 se usó para poblar la lista, validar igual por si acaso |
-| 500 | Falló el aprovisionamiento de la DB o la creación del usuario | "Ocurrió un error, intenta de nuevo" — es seguro reintentar, el código sigue siendo válido |
-
----
-
-## Paso 4 — Usar las credenciales de tenant en cada request (transparente)
-
-A partir de aquí, **cualquier llamada a un endpoint de tenant** (risks,
-reasons, controls, templates, dashboard, login, etc.) debe llevar estos dos
-headers:
-
-```
-mnk-client-identifier: i60AxzXZoGEXoV6YE4qjSg
-mnk-client-key: UsGpVbjwn4IDCxtkN3yn0oT5mqmndL9_
-```
-
-Se guardan en `localStorage` justo después del paso 3 (silenciosamente,
-sin pantalla intermedia) y un interceptor HTTP de Angular
-(`tenantCredentialsInterceptor`) los agrega a **todas** las peticiones
-salientes — sin ellos, cualquier endpoint tenant-scoped responde `401
-Unauthorized` con "Se requieren los headers mnk-client-identifier y
-mnk-client-key", aunque la cookie de sesión siga siendo válida. El usuario
-nunca ve ni maneja estos valores directamente.
-
-Esto también aplica al **login normal** de sesiones futuras
-(`POST /auth/login`): el `identifier`/`password` van en el body igual que
-siempre (con estos, y solo con estos, el usuario inicia sesión), pero los
-dos headers de arriba son obligatorios para que el backend sepa a qué base
-de datos de tenant dirigir la autenticación (ya no existe el campo
-`api_key` en el body de login, quedó reemplazado por estos headers, que el
-interceptor agrega solo).
-
-Si el tenant se desactiva (`MONKEY_ADMIN` lo desactivó, por ejemplo por
-falta de pago), estos headers empiezan a fallar con `401 Unauthorized`
-("Credenciales de tenant inválidas") de inmediato, sin importar que la
-sesión siga activa — trátalo como "cuenta suspendida" en la UI.
-
----
-
-## Uso normal después del onboarding
-
-Todo esto ya funciona **usando exactamente los mismos servicios Angular que
-ya existen** en `src/app/features/templates/` (`TemplateService`,
-`RiskService`, `ReasonService`, `ControlService`, `ChecklistService`) una
-vez que el interceptor de headers está en su lugar — no hace falta
-reinventar las llamadas HTTP, el backend enruta automáticamente a la base
-de datos del tenant identificado por `mnk-client-identifier`.
-
-- **Dashboard** (`/`): `DashboardService` (`GET /dashboard/summary`, `GET
-  /dashboard/controls`, `GET /dashboard/controls/:id/checks`) — cumplimiento
-  real del tenant según su template y los checks evaluados.
-- **Templates** (`/templates`): si el onboarding se completó con
-  `template_id`, el tenant ya tiene ese template clonado y editable desde
-  el día uno. Si se completó sin `template_id` ("crear el mío después"),
-  arranca vacío y el cliente construye el suyo con `TemplateService.create()`
-  + `template-builder` (controles, riesgos, causas, y su vínculo).
-- Opcionalmente, una pantalla de "editar datos de la empresa" (`GET`/`PATCH
-  /onboarding/company-profile`, sin cambios respecto a antes — requieren
-  sesión + los headers de tenant, que van solos gracias al interceptor).
+- Respuestas con sobre `SuccessResponse<T>`; errores con `error.code` (`@core/domain/utils/api-error`). Ver `contracts/conventions.md`.
+- Todo texto visible va por i18n (`public/i18n/{es,en}/*.json`, `@ngx-translate`); i18n es obligatorio (`Monkey-Brain-IA/skills/frontend/architecture-guardian.md`).
+- Arquitectura por capas (`domain` / `presentation`), componentes standalone y alias `@core`, `@features`, `@shared`, `@environments`.
 
 ## Dónde mirar como referencia
 
-- `src/app/features/onboarding/` — todo el flujo de alta (pasos 0 a 3).
-- `src/app/core/domain/services/tenant-credentials.service.ts` — guarda/lee
-  `mnk-client-identifier`/`mnk-client-key` de `localStorage`, sin exponerlos
-  en ninguna vista.
-- `src/app/core/domain/interceptors/tenant-credentials.interceptor.ts` —
-  los agrega como headers a cada request saliente.
-- `src/app/features/templates/` — todo lo necesario para ver/crear
-  templates, riesgos, causas y controles de un tenant ya activo.
-
-## Reglas de negocio a respetar (no son solo detalles de implementación)
-
-- El admin del tenant **elige su propio usuario/contraseña** en el
-  onboarding — `MONKEY_ADMIN` nunca los define ni los conoce. Ese
-  usuario/contraseña es la **única** forma de iniciar sesión.
-- `mnk-client-identifier`/`mnk-client-key` **nunca se muestran ni se le
-  piden al cliente** — son un dato de enrutamiento interno, no una
-  credencial que la persona deba gestionar. Se guardan y se usan en
-  silencio.
-- El template elegido en el paso 2 se **clona**, no se referencia — el
-  cliente puede editarlo libremente (quitar/agregar riesgos, causas,
-  controles) sin que eso afecte jamás la plantilla maestra original.
-  Elegir un template en el onboarding es **opcional** — el cliente puede
-  posponer esa decisión y construir el suyo desde cero después.
-- El `onboarding_code` solo sirve **una vez** y solo si no expiró — pero si
-  el `POST /onboarding/complete` falla a mitad de camino (aprovisionamiento,
-  clonado del template, etc.), el código sigue siendo válido para
-  reintentar, no hace falta pedir uno nuevo salvo que el error sea
-  específicamente 410 (expiración).
+- `src/app/features/auth/` — login, activación y `AuthService`.
+- `src/app/features/onboarding/` — Componente 1.
+- `src/app/features/services/` — Componente 2.
+- `src/app/features/technical-control/` — Componente 3.
+- `src/app/core/domain/` — guards, interceptores, sesión y utilidades de error.
