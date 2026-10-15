@@ -4,7 +4,8 @@
       "SECTION_MENU": "Menu",
       "HOME": "Home",
       "MY_COMPANY": "My company",
-      "MY_SERVICES": "My services"
+      "MY_SERVICES": "My services",
+      "COMPLIANCE": "Compliance"
     },
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Search or type a command...",

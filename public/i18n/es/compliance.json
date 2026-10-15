@@ -20,6 +20,25 @@
       "ALMOST_READY": "Casi listo",
       "NEEDS_WORK": "Requiere trabajo",
       "NOT_MEASURED": "Sin medir"
+    },
+    "TABS": {
+      "SUMMARY": "Resumen"
+    },
+    "SHELL": {
+      "TITLE": "Cumplimiento",
+      "BACK_TO_SERVICE": "Volver al servicio",
+      "TECHNICAL_VIEW": "Vista técnica",
+      "COMING_SOON": "Esta sección se está construyendo."
+    },
+    "ENTRY": {
+      "LOAD_ERROR_TITLE": "No pudimos cargar tus servicios",
+      "FORBIDDEN_TITLE": "Aún no hay servicios para mostrar",
+      "FORBIDDEN_BODY": "Tu rol todavía no puede elegir un servicio desde el menú.",
+      "EMPTY_TITLE": "Aún no tienes servicios",
+      "EMPTY_BODY": "Declara un servicio para ver su cumplimiento.",
+      "DECLARE_SERVICE": "Declarar un servicio",
+      "CHOOSE_TITLE": "¿De qué servicio?",
+      "CHOOSE_BODY": "Elige el servicio cuyo cumplimiento quieres ver."
     }
   }
 }
