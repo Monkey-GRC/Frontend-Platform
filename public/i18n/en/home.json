@@ -1,23 +1,23 @@
 {
   "HOME": {
-    "GREETING": "Hello, {{name}}. Your account is ready.",
-    "START": "Get started",
+    "GREETING": "{{name}}, your account is active.",
+    "START": "Start",
     "STEP_FIRST": "First step",
     "STEP_NEXT": "Next step",
     "STEP_LAST": "Last step",
-    "COMPANY_TITLE": "Let's get to know your company",
-    "COMPANY_BODY": "A few simple questions about your business. It takes a couple of minutes.",
-    "COMPANY_KNOWN": "We already know your company",
-    "VIEW_INFO": "View my information",
-    "SERVICE_TITLE": "Tell us about your service",
-    "SERVICE_BODY": "The service you want to audit. When you finish, your compliance catalog will be ready.",
-    "COMPANY_SERVICE_KNOWN": "We already know your company and your service",
-    "CATALOG_READY": "Your compliance catalog is ready.",
-    "VIEW_COMPANY": "View my company",
+    "COMPANY_TITLE": "Organizational context",
+    "COMPANY_BODY": "Declare the organization's details: industry, size, geographic reach and applicable regulations.",
+    "COMPANY_KNOWN": "Organizational context declared",
+    "VIEW_INFO": "View the organizational context",
+    "SERVICE_TITLE": "Service context",
+    "SERVICE_BODY": "Declare the service to be assessed and the applicable framework. When done, the service's control catalog is generated.",
+    "COMPANY_SERVICE_KNOWN": "Organization and service declared",
+    "CATALOG_READY": "The service's control catalog has been generated.",
+    "VIEW_COMPANY": "View my organization",
     "VIEW_SERVICES": "View my services",
-    "ASSETS_TITLE": "Register your assets",
-    "ASSETS_BODY": "Tell us where your service lives and connect it so Monkey can assess it on its own. You can do it in parts.",
-    "ALL_READY_TITLE": "Your company and your service are ready",
-    "ALL_READY_BODY": "Your compliance catalog is ready and we already know where your service lives. You can review or edit what you told us, and register more assets whenever you like."
+    "ASSETS_TITLE": "Technical control",
+    "ASSETS_BODY": "Define where the service is hosted and connect its assets so Monkey assesses them automatically. You can go step by step.",
+    "ALL_READY_TITLE": "Organization and service configured",
+    "ALL_READY_BODY": "The control catalog is generated and the deployment scenario is defined. You can review what was declared and register more assets whenever you need."
   }
 }

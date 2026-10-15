@@ -24,10 +24,11 @@ export interface Assignee {
   last_name: string | null;
 }
 
-// Solo llega con `?view=technical` (auditor y consultor).
+// Solo llega con `?view=technical` (auditor y consultor). Hoy el backend aún trae aquí `control_code` y `requirement_codes`; por D80 pasan
+// a la vista de negocio (`code` y `requirement_codes` del control), y esto queda como respaldo hasta que se mueva.
 export interface ControlTechnical {
-  control_code: string | null;
-  requirement_codes: string[];
+  control_code?: string | null;
+  requirement_codes?: string[];
   points_of_focus: string[];
   control_state: string;
   tests_count: number;
@@ -36,6 +37,10 @@ export interface ControlTechnical {
 
 export interface ControlListItem {
   id: string;
+  // D80: el código se muestra siempre (`IAC-12`, o `C01` en un control propio) y los requisitos que cubre (`CC6.1`). Opcionales mientras el
+  // backend no los mueva a la vista de negocio (contracts/modules/compliance-controls.md → «Estado de implementación»).
+  code?: string | null;
+  requirement_codes?: string[];
   own_code: string | null;
   name: string;
   origin: ControlOrigin;
@@ -78,6 +83,16 @@ export interface ControlDetail extends Omit<ControlListItem, 'technical'> {
   causes: { id: string; name: string }[];
   failing: ControlFailing[];
   technical?: ControlTechnical;
+}
+
+/** El código que identifica al control: el de la vista de negocio, o el técnico si el backend aún lo manda ahí, o el propio (`C01`). */
+export function controlCode(c: Pick<ControlListItem, 'code' | 'own_code' | 'technical'>): string | null {
+  return c.code ?? c.technical?.control_code ?? c.own_code ?? null;
+}
+
+/** Los requisitos del marco que cubre el control (`CC6.1`). */
+export function requirementCodes(c: Pick<ControlListItem, 'requirement_codes' | 'technical'>): string[] {
+  return c.requirement_codes ?? c.technical?.requirement_codes ?? [];
 }
 
 // La página tal como la manda el backend (conventions.md).

@@ -8,11 +8,12 @@ import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { READINESS_LEVELS, Readiness } from '@shared/domain/models/readiness.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { PageInfo } from '@shared/domain/utils/pagination';
+import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
-import { ControlListItem, TrustCriterion } from '../../../domain/models/control.models';
+import { ControlListItem, TrustCriterion, controlCode, requirementCodes } from '../../../domain/models/control.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { ControlService } from '../../../domain/services/control.service';
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
@@ -22,9 +23,9 @@ type Stage = 'loading' | 'error' | 'ready';
 const ALL = 'all';
 const PAGE_SIZE = 25;
 
-// La pestaña «Acciones de protección» de un servicio (MD-120). Los temas (los 5 criterios de confianza) agrupan la lista: elegir uno vuelve a
-// pedir al backend con ese filtro, así la paginación sigue siendo la del servidor. Nunca se muestra un porcentaje: el estado es cualitativo y
-// el avance y la cobertura salen como dos conteos aparte. «Sin medir» no es un fallo.
+// La pestaña «Controles» de un servicio (MD-120). Las categorías (los criterios de confianza de SOC 2) agrupan la lista: elegir una vuelve a
+// pedir al backend con ese filtro, así la paginación sigue siendo la del servidor. Cada control muestra, a la vez, su estado cualitativo, su
+// porcentaje de cumplimiento y su cobertura, con los conteos entre paréntesis (D80); nunca un porcentaje solo. «Sin medir» no es un fallo.
 @Component({
   selector: 'app-controls-list',
   imports: [TranslatePipe, DataTable, TableCell, OptionChips, StatusBadge, LoadingSpinner, ControlDetailPanel],
@@ -71,13 +72,26 @@ export class ControlsListView {
     ...READINESS_LEVELS.map((level) => ({ value: level, label: this.t(`COMPLIANCE.STATUS.${level.toUpperCase()}`) })),
   ]);
 
+  // D80: el código se muestra siempre. La columna aparece en cuanto el backend manda códigos (hoy solo los trae en la vista técnica, para auditor y
+  // consultor); mientras no haya ninguno en la página no se pinta una columna vacía.
+  readonly hasCodes = computed(() => this.rows().some((r) => controlCode(r) !== null));
+
   readonly columns = computed<TableColumn<ControlListItem>[]>(() => [
+    ...(this.hasCodes() ? [{ key: 'code', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TECHNICAL' }] : []),
     { key: 'name', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_NAME' },
     { key: 'topics', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TOPIC' },
     { key: 'status', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_STATUS' },
     { key: 'counts', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_PROGRESS' },
-    ...(this.view.isTechnicalView() ? [{ key: 'technical', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TECHNICAL' }] : []),
   ]);
+
+  readonly codeOf = controlCode;
+  readonly requirementsOf = requirementCodes;
+  readonly percentOf = percentOf;
+
+  /** «60 %» (o «—» sin total), en el idioma de la sesión. */
+  pct(part: number, total: number): string {
+    return formatPercent(percentOf(part, total), this.language.current());
+  }
 
   readonly rowKey = (row: ControlListItem): string => row.id;
   readonly hasFilters = computed(() => this.trust() !== null || this.readiness() !== null);

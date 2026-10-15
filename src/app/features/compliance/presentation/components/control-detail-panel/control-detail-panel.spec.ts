@@ -59,6 +59,14 @@ describe('ControlDetailPanel', () => {
     expect(api.get).toHaveBeenCalledWith('c1', 'technical');
   });
 
+  it('shows the code and the requirements it covers next to the name, and the percentages', () => {
+    const panel = setup('admin_empresa', { ...DETAIL, code: 'IAC-12', requirement_codes: ['CC6.1'], progress: { done: 3, total: 5 }, coverage: { measured: 4, applicable: 5 } });
+    expect(text()).toContain('IAC-12');
+    expect(text()).toContain('CC6.1');
+    expect(panel.pct(3, 5).replace(/\s/g, '')).toBe('60%');
+    expect(panel.pct(4, 5).replace(/\s/g, '')).toBe('80%');
+  });
+
   it('lets the company admin propose changes, and only reads for the auditor and the consultant', () => {
     expect(setup('admin_empresa').canPropose()).toBeTrue();
     expect(text()).toContain('COMPLIANCE.DETAIL.RETIRE');
