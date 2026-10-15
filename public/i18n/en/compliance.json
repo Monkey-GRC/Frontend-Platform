@@ -28,7 +28,9 @@
       "TITLE": "Compliance",
       "BACK_TO_SERVICE": "Back to the service",
       "TECHNICAL_VIEW": "Technical view",
-      "COMING_SOON": "Section under construction."
+      "COMING_SOON": "Section under construction.",
+      "FRAMEWORKS": "Frameworks of the service",
+      "SERVICE": "Service"
     },
     "ENTRY": {
       "LOAD_ERROR_TITLE": "The services could not be loaded",
@@ -121,6 +123,119 @@
       "RETIRE_HINT": "The consultant decides on the retirement; until then the control still counts toward compliance.",
       "RETIRE_CONFIRM_TITLE": "Propose retiring this control?",
       "RETIRE_CONFIRM_BODY": "It will be sent to the consultant. The control is not retired until they approve it."
+    },
+    "RISKS": {
+      "ALL": "All",
+      "INTRO": "Risks of the service and the causes that originate them, with the controls that mitigate them.",
+      "SEARCH": "Search by code or name",
+      "FILTER_CRITERION": "Criterion",
+      "FILTER_CATEGORY": "Failure category",
+      "LOAD_ERROR_TITLE": "The risks could not be loaded",
+      "EMPTY_RISKS_TITLE": "There are no risks yet",
+      "EMPTY_CAUSES_TITLE": "There are no causes yet",
+      "EMPTY_BODY": "They are generated once the service has a framework contracted.",
+      "EMPTY_FILTERED_TITLE": "Nothing matches the search",
+      "EMPTY_FILTERED_BODY": "Try another criterion or another text.",
+      "CLEAR_FILTERS": "Clear the filters",
+      "OWN": "Own",
+      "CAUSES_COUNT": "Causes: {{count}}",
+      "RISKS_COUNT": "Risks: {{count}}",
+      "CONTROLS_COUNT": "Controls: {{count}}",
+      "NOT_EVALUATED": "Not evaluated",
+      "INTRO_CAUSES": "Causes that originate the risks of the service, with the controls that mitigate them."
+    },
+    "RISK_LEVEL": {
+      "LOW": "Low",
+      "MODERATE": "Moderate",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
+    "RISK_CRITERION": {
+      "CONFIDENTIALITY": "Confidentiality",
+      "INTEGRITY": "Integrity",
+      "AVAILABILITY": "Availability",
+      "PRIVACY": "Privacy",
+      "COMPLIANCE": "Compliance",
+      "SECURITY": "Security",
+      "CONTINUITY": "Continuity",
+      "THIRD_PARTIES": "Third parties",
+      "FRAUD": "Fraud",
+      "REPUTATION": "Reputation",
+      "OPERATIONS": "Operations"
+    },
+    "FAILURE_CATEGORY": {
+      "HUMAN_RESOURCE": "Human resources",
+      "PROCESSES": "Processes",
+      "INFORMATION_TECHNOLOGY": "Information technology",
+      "INFRASTRUCTURE": "Infrastructure",
+      "EXTERNAL": "External",
+      "GOVERNANCE": "Governance"
+    },
+    "LOSS_TYPE": {
+      "REPUTATIONAL": "Reputational",
+      "FINANCIAL_LOSS": "Financial loss",
+      "REGULATORY_SANCTION": "Regulatory sanction",
+      "LITIGATION": "Litigation",
+      "CUSTOMER_TRUST_LOSS": "Loss of customer trust",
+      "OPERATION_INTERRUPTION": "Operational interruption"
+    },
+    "CAUSE_EFFECT": {
+      "PROBABILITY": "Reduces the likelihood",
+      "IMPACT": "Reduces the impact"
+    },
+    "LINK": {
+      "SEARCH": "Filter the list",
+      "NOTHING_TO_LINK": "There is nothing else to link",
+      "LINK": "Link"
+    },
+    "RISK_DETAIL": {
+      "LOAD_ERROR_TITLE": "The risk could not be loaded",
+      "SAVE_ERROR": "The action could not be completed. Please try again.",
+      "EVALUATION": "Likelihood {{likelihood}} × impact {{impact}} = {{value}}",
+      "DESCRIPTION": "Description",
+      "POTENTIAL_IMPACT": "Potential impact",
+      "NO_IMPACT": "No potential impact declared.",
+      "TREATMENT": "Treatment",
+      "TREATMENT_NONE": "No treatment defined.",
+      "LINK_CAUSE": "Link a cause",
+      "PICK_CAUSE": "Cause that originates this risk",
+      "LINKED": "Cause linked.",
+      "UNLINKED": "Cause unlinked.",
+      "VIEW_CAUSE": "View cause",
+      "UNLINK": "Remove",
+      "UNLINK_CONFIRM_TITLE": "Remove the cause \"{{name}}\" from this risk?",
+      "UNLINK_CONFIRM_BODY": "Only the link is removed: neither the risk nor the cause is deleted.",
+      "NO_CAUSES": "This risk has no linked causes.",
+      "NO_CONTROLS": "This cause has no linked controls.",
+      "MANDATORY": "Mandatory",
+      "OPTIONAL": "Optional",
+      "REMOVE": "Retire the risk",
+      "REMOVE_HINT": "It stops appearing in the lists; its history and evaluations are kept.",
+      "REMOVE_CONFIRM_TITLE": "Retire this risk?",
+      "REMOVE_CONFIRM_BODY": "It will stop appearing in the lists. Its history and evaluations are kept.",
+      "REMOVE_CONFIRM": "Retire"
+    },
+    "CAUSE_DETAIL": {
+      "LOAD_ERROR_TITLE": "The cause could not be loaded",
+      "SAVE_ERROR": "The action could not be completed. Please try again.",
+      "DESCRIPTION": "Description",
+      "RISKS_ORIGINATED": "Risks it originates",
+      "NO_RISKS": "This cause does not originate any risk.",
+      "VIEW_RISK": "View risk",
+      "MITIGATING_CONTROLS": "Controls that mitigate it",
+      "LINK_CONTROL": "Link a control",
+      "PICK_CONTROL": "Control that mitigates this cause",
+      "LINKED": "Control linked.",
+      "UNLINKED": "Control unlinked.",
+      "UNLINK": "Remove",
+      "UNLINK_CONFIRM_TITLE": "Remove the control \"{{name}}\" from this cause?",
+      "UNLINK_CONFIRM_BODY": "Only the link is removed: neither the cause nor the control is deleted.",
+      "NO_CONTROLS": "This cause has no linked controls.",
+      "REMOVE": "Retire the cause",
+      "REMOVE_HINT": "It stops appearing in the lists; its history is kept.",
+      "REMOVE_CONFIRM_TITLE": "Retire this cause?",
+      "REMOVE_CONFIRM_BODY": "It will stop appearing in the lists. Its history is kept.",
+      "REMOVE_CONFIRM": "Retire"
     }
   }
 }

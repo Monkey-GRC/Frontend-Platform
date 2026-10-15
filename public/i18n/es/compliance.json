@@ -28,7 +28,9 @@
       "TITLE": "Cumplimiento",
       "BACK_TO_SERVICE": "Volver al servicio",
       "TECHNICAL_VIEW": "Vista técnica",
-      "COMING_SOON": "Sección en construcción."
+      "COMING_SOON": "Sección en construcción.",
+      "FRAMEWORKS": "Marcos del servicio",
+      "SERVICE": "Servicio"
     },
     "ENTRY": {
       "LOAD_ERROR_TITLE": "No se pudieron cargar los servicios",
@@ -121,6 +123,119 @@
       "RETIRE_HINT": "El consultor decide la baja; hasta entonces el control sigue contando para el cumplimiento.",
       "RETIRE_CONFIRM_TITLE": "¿Proponer la baja de este control?",
       "RETIRE_CONFIRM_BODY": "Se enviará al consultor. El control no se da de baja hasta que lo apruebe."
+    },
+    "RISKS": {
+      "ALL": "Todos",
+      "INTRO": "Riesgos del servicio y las causas que los originan, con los controles que las mitigan.",
+      "SEARCH": "Buscar por código o nombre",
+      "FILTER_CRITERION": "Criterio",
+      "FILTER_CATEGORY": "Categoría de falla",
+      "LOAD_ERROR_TITLE": "No se pudieron cargar los riesgos",
+      "EMPTY_RISKS_TITLE": "Aún no hay riesgos",
+      "EMPTY_CAUSES_TITLE": "Aún no hay causas",
+      "EMPTY_BODY": "Se generan cuando el servicio tiene un marco contratado.",
+      "EMPTY_FILTERED_TITLE": "Nada coincide con la búsqueda",
+      "EMPTY_FILTERED_BODY": "Prueba con otro criterio o con otro texto.",
+      "CLEAR_FILTERS": "Quitar los filtros",
+      "OWN": "Propio",
+      "CAUSES_COUNT": "Causas: {{count}}",
+      "RISKS_COUNT": "Riesgos: {{count}}",
+      "CONTROLS_COUNT": "Controles: {{count}}",
+      "NOT_EVALUATED": "Sin evaluar",
+      "INTRO_CAUSES": "Causas que originan los riesgos del servicio, con los controles que las mitigan."
+    },
+    "RISK_LEVEL": {
+      "LOW": "Bajo",
+      "MODERATE": "Moderado",
+      "HIGH": "Alto",
+      "CRITICAL": "Crítico"
+    },
+    "RISK_CRITERION": {
+      "CONFIDENTIALITY": "Confidencialidad",
+      "INTEGRITY": "Integridad",
+      "AVAILABILITY": "Disponibilidad",
+      "PRIVACY": "Privacidad",
+      "COMPLIANCE": "Cumplimiento",
+      "SECURITY": "Seguridad",
+      "CONTINUITY": "Continuidad",
+      "THIRD_PARTIES": "Terceros",
+      "FRAUD": "Fraude",
+      "REPUTATION": "Reputación",
+      "OPERATIONS": "Operación"
+    },
+    "FAILURE_CATEGORY": {
+      "HUMAN_RESOURCE": "Recurso humano",
+      "PROCESSES": "Procesos",
+      "INFORMATION_TECHNOLOGY": "Tecnología de información",
+      "INFRASTRUCTURE": "Infraestructura",
+      "EXTERNAL": "Externos",
+      "GOVERNANCE": "Gobierno"
+    },
+    "LOSS_TYPE": {
+      "REPUTATIONAL": "Reputacional",
+      "FINANCIAL_LOSS": "Pérdida financiera",
+      "REGULATORY_SANCTION": "Sanción regulatoria",
+      "LITIGATION": "Litigios",
+      "CUSTOMER_TRUST_LOSS": "Pérdida de confianza de clientes",
+      "OPERATION_INTERRUPTION": "Interrupción de la operación"
+    },
+    "CAUSE_EFFECT": {
+      "PROBABILITY": "Reduce la probabilidad",
+      "IMPACT": "Reduce el impacto"
+    },
+    "LINK": {
+      "SEARCH": "Filtrar la lista",
+      "NOTHING_TO_LINK": "No hay nada más que vincular",
+      "LINK": "Vincular"
+    },
+    "RISK_DETAIL": {
+      "LOAD_ERROR_TITLE": "No se pudo cargar el riesgo",
+      "SAVE_ERROR": "No se pudo completar la acción. Inténtalo de nuevo.",
+      "EVALUATION": "Probabilidad {{likelihood}} × impacto {{impact}} = {{value}}",
+      "DESCRIPTION": "Descripción",
+      "POTENTIAL_IMPACT": "Impacto potencial",
+      "NO_IMPACT": "Sin impacto potencial declarado.",
+      "TREATMENT": "Tratamiento",
+      "TREATMENT_NONE": "Sin tratamiento definido.",
+      "LINK_CAUSE": "Vincular una causa",
+      "PICK_CAUSE": "Causa que origina este riesgo",
+      "LINKED": "Causa vinculada.",
+      "UNLINKED": "Causa desvinculada.",
+      "VIEW_CAUSE": "Ver causa",
+      "UNLINK": "Quitar",
+      "UNLINK_CONFIRM_TITLE": "¿Quitar la causa «{{name}}» de este riesgo?",
+      "UNLINK_CONFIRM_BODY": "Solo se elimina el vínculo: ni el riesgo ni la causa se borran.",
+      "NO_CAUSES": "Este riesgo no tiene causas vinculadas.",
+      "NO_CONTROLS": "Esta causa no tiene controles vinculados.",
+      "MANDATORY": "Obligatorio",
+      "OPTIONAL": "Opcional",
+      "REMOVE": "Dar de baja el riesgo",
+      "REMOVE_HINT": "Deja de aparecer en las listas; su historial y sus evaluaciones se conservan.",
+      "REMOVE_CONFIRM_TITLE": "¿Dar de baja este riesgo?",
+      "REMOVE_CONFIRM_BODY": "Dejará de aparecer en las listas. Su historial y sus evaluaciones se conservan.",
+      "REMOVE_CONFIRM": "Dar de baja"
+    },
+    "CAUSE_DETAIL": {
+      "LOAD_ERROR_TITLE": "No se pudo cargar la causa",
+      "SAVE_ERROR": "No se pudo completar la acción. Inténtalo de nuevo.",
+      "DESCRIPTION": "Descripción",
+      "RISKS_ORIGINATED": "Riesgos que origina",
+      "NO_RISKS": "Esta causa no origina ningún riesgo.",
+      "VIEW_RISK": "Ver riesgo",
+      "MITIGATING_CONTROLS": "Controles que la mitigan",
+      "LINK_CONTROL": "Vincular un control",
+      "PICK_CONTROL": "Control que mitiga esta causa",
+      "LINKED": "Control vinculado.",
+      "UNLINKED": "Control desvinculado.",
+      "UNLINK": "Quitar",
+      "UNLINK_CONFIRM_TITLE": "¿Quitar el control «{{name}}» de esta causa?",
+      "UNLINK_CONFIRM_BODY": "Solo se elimina el vínculo: ni la causa ni el control se borran.",
+      "NO_CONTROLS": "Esta causa no tiene controles vinculados.",
+      "REMOVE": "Dar de baja la causa",
+      "REMOVE_HINT": "Deja de aparecer en las listas; su historial se conserva.",
+      "REMOVE_CONFIRM_TITLE": "¿Dar de baja esta causa?",
+      "REMOVE_CONFIRM_BODY": "Dejará de aparecer en las listas. Su historial se conserva.",
+      "REMOVE_CONFIRM": "Dar de baja"
     }
   }
 }

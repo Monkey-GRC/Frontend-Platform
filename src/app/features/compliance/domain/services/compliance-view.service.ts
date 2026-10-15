@@ -21,4 +21,7 @@ export class ComplianceViewService {
 
   /** Solo el administrador de la empresa puede abrir la pantalla del servicio (la API de servicios es suya). */
   readonly canOpenService = computed(() => this.role() === 'admin_empresa');
+
+  /** Solo el administrador de la empresa crea, vincula y da de baja riesgos y causas; el resto de roles solo lee (compliance-risks.md → «Quién puede qué»). */
+  readonly canManage = computed(() => this.role() === 'admin_empresa');
 }

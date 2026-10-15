@@ -5,14 +5,45 @@
   </a>
   }
 
-  <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.SHELL.TITLE' | translate }}</h1>
-    @if (view.isTechnicalView()) {
-    <!-- Informa, no se pulsa: la vista técnica es de este rol, no un modo que se active (D63, D64). -->
-    <span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-      <span class="material-symbols-rounded text-[16px]" aria-hidden="true">verified_user</span>{{ 'COMPLIANCE.SHELL.TECHNICAL_VIEW' | translate }}
-    </span>
-    }
+  <div class="mt-3 flex flex-wrap items-end justify-between gap-3">
+    <div class="min-w-0">
+      @if (current(); as s) {
+      <!-- De qué servicio se habla: el cumplimiento es de un servicio y de un marco, nunca de la empresa. -->
+      <p class="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.SHELL.TITLE' | translate }}</p>
+      <h1 class="truncate text-2xl font-semibold text-gray-900 dark:text-white">{{ s.name }}</h1>
+      @if (s.frameworks.length) {
+      <ul class="mt-1.5 flex flex-wrap items-center gap-1.5" [attr.aria-label]="'COMPLIANCE.SHELL.FRAMEWORKS' | translate">
+        @for (f of s.frameworks; track f.code) {
+        <li class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          <span class="material-symbols-rounded text-[14px]" aria-hidden="true">workspace_premium</span>{{ frameworkLabel(f.code) }}
+        </li>
+        }
+      </ul>
+      }
+      } @else {
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.SHELL.TITLE' | translate }}</h1>
+      }
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      @if (canSwitch()) {
+      <div class="flex items-center gap-2">
+        <label for="service-switch" class="text-xs font-medium text-gray-700 dark:text-gray-200">{{ 'COMPLIANCE.SHELL.SERVICE' | translate }}</label>
+        <select id="service-switch" (change)="switchTo($any($event.target).value)"
+          class="h-9 max-w-[16rem] rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+          @for (s of others(); track s.id) {
+          <option [value]="s.id" [selected]="s.id === serviceId()">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+      }
+      @if (view.isTechnicalView()) {
+      <!-- Informa, no se pulsa: la vista técnica es de este rol, no un modo que se active (D63, D64). -->
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">verified_user</span>{{ 'COMPLIANCE.SHELL.TECHNICAL_VIEW' | translate }}
+      </span>
+      }
+    </div>
   </div>
 
   <nav class="mt-4 flex gap-1 overflow-x-auto border-b border-gray-200 dark:border-gray-700" [attr.aria-label]="'COMPLIANCE.SHELL.TITLE' | translate">

@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { PageInfo } from '@shared/domain/utils/pagination';
@@ -35,6 +35,15 @@ export class ControlService {
         const data = r.data!;
         return { items: data.items, page: { page: data.page, pageSize: data.page_size, total: data.total, totalPages: data.total_pages } };
       }),
+    );
+  }
+
+  /** Todos los controles del servicio (para elegir uno al vincularlo a una causa): recorre las páginas de 100. */
+  listAll(serviceId: string, view?: 'technical'): Observable<ControlListItem[]> {
+    const page = (n: number) => this.list(serviceId, { page: n, pageSize: 100 }, view);
+    return page(1).pipe(
+      expand((p) => (p.page.page < p.page.totalPages ? page(p.page.page + 1) : EMPTY)),
+      reduce<ControlsPage, ControlListItem[]>((acc, p) => acc.concat(p.items), []),
     );
   }
 

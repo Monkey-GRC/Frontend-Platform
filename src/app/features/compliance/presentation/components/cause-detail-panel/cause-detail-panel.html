@@ -1,0 +1,131 @@
+<app-side-panel titleKey="COMPLIANCE.GLOSSARY.CAUSE" size="lg" (closed)="closed.emit()">
+
+  @switch (stage()) {
+
+  @case ('loading') {
+  <div class="flex justify-center py-12" role="status">
+    <span class="material-symbols-rounded animate-spin text-[28px] text-primary" aria-hidden="true">progress_activity</span>
+    <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
+  </div>
+  }
+
+  @case ('error') {
+  <div class="py-10 text-center">
+    <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
+    <p class="mt-3 text-base font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.CAUSE_DETAIL.LOAD_ERROR_TITLE' | translate }}</p>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+    <button type="button" (click)="load()"
+      class="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:opacity-90 transition">
+      <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
+    </button>
+  </div>
+  }
+
+  @default {
+  @if (detail(); as d) {
+  <div class="flex flex-col gap-6">
+
+    <div>
+      <p class="font-mono text-xs font-semibold text-gray-700 dark:text-gray-200">{{ d.code }}</p>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ d.name }}</h3>
+      <div class="mt-2 flex flex-wrap items-center gap-2">
+        @if (d.origin === 'own') {
+        <span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{{ 'COMPLIANCE.RISKS.OWN' | translate }}</span>
+        }
+        <span class="text-xs text-gray-600 dark:text-gray-300">{{ labels.of('COMPLIANCE.FAILURE_CATEGORY', d.failure_category) }}</span>
+      </div>
+    </div>
+
+    @if (notice(); as n) {
+    <div class="flex items-start gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300" role="status">
+      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">check_circle</span><span>{{ n }}</span>
+    </div>
+    }
+    @if (error(); as e) {
+    <div class="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300" role="alert">
+      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ e }}</span>
+    </div>
+    }
+
+    <section [attr.aria-label]="'COMPLIANCE.CAUSE_DETAIL.DESCRIPTION' | translate">
+      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.CAUSE_DETAIL.DESCRIPTION' | translate }}</h4>
+      <p class="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-200">{{ d.description }}</p>
+    </section>
+
+    <section [attr.aria-label]="'COMPLIANCE.GLOSSARY.RISKS' | translate">
+      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.CAUSE_DETAIL.RISKS_ORIGINATED' | translate }} ({{ d.risks.length }})</h4>
+      @if (d.risks.length === 0) {
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CAUSE_DETAIL.NO_RISKS' | translate }}</p>
+      } @else {
+      <ul class="mt-2 flex flex-col gap-1.5">
+        @for (r of d.risks; track r.id) {
+        <li class="flex items-center justify-between gap-3 text-sm text-gray-700 dark:text-gray-200">
+          <span><span class="font-mono text-xs font-semibold">{{ r.code }}</span> · {{ r.name }}</span>
+          <button type="button" (click)="openRisk.emit(r.id)" class="shrink-0 text-xs font-medium text-primary hover:underline">{{ 'COMPLIANCE.CAUSE_DETAIL.VIEW_RISK' | translate }}</button>
+        </li>
+        }
+      </ul>
+      }
+    </section>
+
+    <section [attr.aria-label]="'COMPLIANCE.GLOSSARY.CONTROLS' | translate">
+      <div class="flex items-center justify-between gap-3">
+        <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.CAUSE_DETAIL.MITIGATING_CONTROLS' | translate }} ({{ d.controls.length }})</h4>
+        @if (view.canManage() && !picking()) {
+        <button type="button" (click)="startLink()" [disabled]="saving()" class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40">
+          <span class="material-symbols-rounded text-[16px]" aria-hidden="true">add_link</span>{{ 'COMPLIANCE.CAUSE_DETAIL.LINK_CONTROL' | translate }}
+        </button>
+        }
+      </div>
+
+      @if (picking()) {
+      <div class="mt-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <app-link-picker labelKey="COMPLIANCE.CAUSE_DETAIL.PICK_CONTROL" [items]="candidates()" [busy]="saving()" (picked)="link($event)" (cancelled)="picking.set(false)" />
+      </div>
+      }
+
+      @if (d.controls.length === 0) {
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CAUSE_DETAIL.NO_CONTROLS' | translate }}</p>
+      } @else {
+      <ul class="mt-3 flex flex-col gap-2">
+        @for (k of d.controls; track k.control_id) {
+        <li class="flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700">
+          <div class="min-w-0 text-gray-700 dark:text-gray-200">
+            <p>@if (codeOf(k); as code) {<span class="font-mono text-xs font-semibold">{{ code }}</span> · }{{ k.name }}</p>
+            <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">
+              {{ (k.is_mandatory ? 'COMPLIANCE.RISK_DETAIL.MANDATORY' : 'COMPLIANCE.RISK_DETAIL.OPTIONAL') | translate }}
+              @if (k.effect) { · {{ labels.of('COMPLIANCE.CAUSE_EFFECT', k.effect) }} }
+            </p>
+          </div>
+          @if (view.canManage()) {
+          <button type="button" (click)="askUnlink(k)" [disabled]="saving()" class="shrink-0 text-xs font-medium text-error-600 hover:underline disabled:opacity-40">{{ 'COMPLIANCE.CAUSE_DETAIL.UNLINK' | translate }}</button>
+          }
+        </li>
+        }
+      </ul>
+      }
+    </section>
+
+    @if (canRemove()) {
+    <section class="border-t border-gray-200 pt-4 dark:border-gray-700" [attr.aria-label]="'COMPLIANCE.CAUSE_DETAIL.REMOVE' | translate">
+      <button type="button" (click)="askRemove()" [disabled]="saving()" class="inline-flex items-center gap-1.5 text-sm font-medium text-error-600 hover:underline disabled:opacity-40">
+        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">delete</span>{{ 'COMPLIANCE.CAUSE_DETAIL.REMOVE' | translate }}
+      </button>
+      <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CAUSE_DETAIL.REMOVE_HINT' | translate }}</p>
+    </section>
+    }
+  </div>
+  }
+  }
+
+  }
+</app-side-panel>
+
+@if (confirmingRemove()) {
+<app-confirm-dialog titleKey="COMPLIANCE.CAUSE_DETAIL.REMOVE_CONFIRM_TITLE" messageKey="COMPLIANCE.CAUSE_DETAIL.REMOVE_CONFIRM_BODY" tone="danger"
+  confirmLabelKey="COMPLIANCE.CAUSE_DETAIL.REMOVE_CONFIRM" [busy]="saving()" (confirmed)="confirmRemove()" (cancelled)="confirmingRemove.set(false)" />
+}
+@if (unlinking(); as control) {
+<app-confirm-dialog titleKey="COMPLIANCE.CAUSE_DETAIL.UNLINK_CONFIRM_TITLE" [titleParams]="{ name: control.name }" messageKey="COMPLIANCE.CAUSE_DETAIL.UNLINK_CONFIRM_BODY" tone="danger"
+  confirmLabelKey="COMPLIANCE.CAUSE_DETAIL.UNLINK" [busy]="saving()" (confirmed)="confirmUnlink()" (cancelled)="unlinking.set(null)" />
+}
