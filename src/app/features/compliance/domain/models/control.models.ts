@@ -32,7 +32,7 @@ export interface ControlTechnical {
   points_of_focus: string[];
   control_state: string;
   tests_count: number;
-  tests?: { test_code: string; display_name: string; dimension: ControlDimension; state: string }[];
+  tests?: { test_code: string; display_name: string; display_description?: string | null; dimension: ControlDimension; state: string }[];
 }
 
 export interface ControlListItem {

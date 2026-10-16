@@ -266,7 +266,9 @@
     "TESTS": {
       "TITLE": "Pruebas",
       "NONE": "Este control no tiene pruebas asignadas.",
-      "COUNT_ONLY": "Este control se verifica con {{count}} pruebas."
+      "COUNT_ONLY": "Este control se verifica con {{count}} pruebas.",
+      "SHOW_MORE": "Ver más",
+      "SHOW_LESS": "Ver menos"
     },
     "TEST_STATE": {
       "COMPLIANT": "Cumple",
