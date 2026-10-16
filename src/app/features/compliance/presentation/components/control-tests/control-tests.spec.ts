@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { ControlDimensionDetail } from '../../../domain/models/control.models';
@@ -12,6 +13,19 @@ const TESTS: ControlTest[] = [
   { test_code: 'T-DOC-002', display_name: 'Validación de la ejecución de la revisión', dimension: 'policy', state: 'pending' },
   { test_code: 'T-DOC-001', display_name: 'Revisión de diseño y vigencia de la política', dimension: 'policy', state: 'compliant' },
 ];
+
+@Component({
+  selector: 'app-host',
+  imports: [ControlTests],
+  template: `
+    <app-control-tests [tests]="tests" [dimensions]="dimensions" [total]="3" [evidenceTpl]="upload" />
+    <ng-template #upload let-dimension><button type="button" data-upload [attr.data-dimension]="dimension">subir</button></ng-template>
+  `,
+})
+class Host {
+  tests = TESTS;
+  dimensions = DIMENSIONS;
+}
 
 describe('ControlTests', () => {
   let fixture: ComponentFixture<ControlTests>;
@@ -61,6 +75,17 @@ describe('ControlTests', () => {
     const el = render(TESTS);
     const codes = Array.from(el.querySelectorAll('li p span.font-mono')).map((s) => s.textContent!.trim());
     expect(codes).toEqual(['T-DOC-001', 'T-DOC-002', 'T-SRV-001']);
+  });
+
+  it('offers the evidence upload under the manual tests only, never under the automatic ones', () => {
+    TestBed.configureTestingModule({ imports: [Host], providers: [provideTranslateService({ fallbackLang: 'es' })] });
+    const host = TestBed.createComponent(Host);
+    host.detectChanges();
+    const el = host.nativeElement as HTMLElement;
+    const slots = el.querySelectorAll('[data-test-evidence] [data-upload]');
+    expect(slots.length).toBe(1);
+    expect(slots[0].getAttribute('data-dimension')).toBe('policy');
+    expect(slots[0].closest('[data-test-evidence]')!.previousElementSibling!.textContent).toContain('T-DOC-002');
   });
 
   describe('short description', () => {

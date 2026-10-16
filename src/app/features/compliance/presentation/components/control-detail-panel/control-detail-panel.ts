@@ -86,6 +86,12 @@ export class ControlDetailPanel {
     return role !== null && PROPOSING_ROLES.includes(role);
   });
 
+  /** ¿La subida de evidencia va bajo las pruebas manuales? Solo si el detalle trae las pruebas y alguna es manual; si no, va aparte. */
+  protected evidenceUnderTests(d: ControlDetail): boolean {
+    const dims = new Map(d.dimensions.map((x) => [x.dimension, x.type]));
+    return !!d.technical?.tests?.some((t) => dims.get(t.dimension) === 'manual');
+  }
+
   readonly canUploadEvidence = computed(() => {
     const role = this.view.role();
     return role !== null && UPLOADING_ROLES.includes(role);
