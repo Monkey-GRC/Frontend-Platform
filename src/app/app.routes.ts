@@ -63,19 +63,14 @@ export const routes: Routes = [
         path: 'services/:id/cumplimiento',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-shell/compliance-shell').then(m => m.ComplianceShellView),
         children: [
-          // Se entra por Controles mientras el Resumen (MD-140) no exista.
-          { path: '', redirectTo: 'controles', pathMatch: 'full' },
+          // Se entra por Riesgos (la primera del recorrido que ya es real) mientras el Resumen (MD-140) no exista.
+          { path: '', redirectTo: 'riesgos', pathMatch: 'full' },
           {
             path: 'resumen',
             data: { titleKey: 'COMPLIANCE.TABS.SUMMARY', icon: 'dashboard' },
             loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
           },
-          {
-            path: 'controles',
-            loadComponent: () => import('@features/compliance/presentation/views/controls-list/controls-list').then(m => m.ControlsListView),
-          },
-          // Antes se llamaba «acciones»: se conserva el enlace viejo.
-          { path: 'acciones', redirectTo: 'controles', pathMatch: 'full' },
+          // El orden de las rutas es el de las pestañas: riesgos → causas → controles → evidencias.
           // Riesgos y Causas son la misma vista con dos rutas: una causa no depende de un riesgo (10 de las 56 del catálogo no pertenecen a ninguno).
           {
             path: 'riesgos',
@@ -87,6 +82,12 @@ export const routes: Routes = [
             data: { section: 'causes' },
             loadComponent: () => import('@features/compliance/presentation/views/risks/risks').then(m => m.RisksView),
           },
+          {
+            path: 'controles',
+            loadComponent: () => import('@features/compliance/presentation/views/controls-list/controls-list').then(m => m.ControlsListView),
+          },
+          // Antes se llamaba «acciones»: se conserva el enlace viejo.
+          { path: 'acciones', redirectTo: 'controles', pathMatch: 'full' },
           {
             path: 'evidencias',
             data: { titleKey: 'COMPLIANCE.GLOSSARY.EVIDENCE', icon: 'upload_file' },

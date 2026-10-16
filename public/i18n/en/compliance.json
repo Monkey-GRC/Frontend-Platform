@@ -107,18 +107,11 @@
       "REASON_IS": "Reason: {{reason}}",
       "PROPOSAL_NOTE": "It is sent as a proposal: the consultant reviews it before it is applied.",
       "SEND_PROPOSAL": "Send proposal",
-      "NO_EVIDENCE": "This control has no required evidence.",
-      "RESPONSIBLE": "Responsible: {{role}} · {{person}}",
-      "NO_PERSON": "no person assigned",
-      "NO_RESPONSIBLE": "No responsible designated.",
-      "LATEST_VERSION": "Latest version: v{{version}} ({{status}})",
-      "NOT_DELIVERED": "Not delivered yet.",
       "NO_CAUSES": "This control is not linked to any cause.",
       "FAILING": "Where it fails",
       "TECH_REQUIREMENTS": "Requirements",
       "TECH_FOCUS": "Points of focus",
       "TECH_STATE": "Control state",
-      "TECH_TESTS": "Associated tests",
       "RETIRE": "Propose retirement",
       "RETIRE_HINT": "The consultant decides on the retirement; until then the control still counts toward compliance.",
       "RETIRE_CONFIRM_TITLE": "Propose retiring this control?",
@@ -236,6 +229,62 @@
       "REMOVE_CONFIRM_TITLE": "Retire this cause?",
       "REMOVE_CONFIRM_BODY": "It will stop appearing in the lists. Its history is kept.",
       "REMOVE_CONFIRM": "Retire"
+    },
+    "EVIDENCE": {
+      "REQUIRED_TITLE": "Required evidence",
+      "DELIVERED_TITLE": "Delivered evidence",
+      "EMPTY": "This control has no required evidence.",
+      "NOT_DELIVERED": "Not delivered yet.",
+      "RESPONSIBLE": "Responsible: {{role}} · {{person}}",
+      "NO_PERSON": "no person assigned",
+      "NO_RESPONSIBLE": "No responsible designated.",
+      "VALIDITY": "Validity: {{value}}",
+      "VERSION": "v{{version}}",
+      "SUBMITTED": "Delivered on {{date}} by {{name}}",
+      "INTEGRITY": "SHA-256 fingerprint: {{hash}}",
+      "LATEST_VERSION": "Latest version: v{{version}} ({{status}})",
+      "DOWNLOAD": "Download",
+      "DOWNLOAD_ERROR": "The download link could not be generated. Please try again.",
+      "SHOW_VERSIONS": "Show previous versions ({{count}})",
+      "HIDE_VERSIONS": "Hide previous versions",
+      "REJECTED_NOTE": "Reason for the rejection: {{note}}",
+      "AI_SUGGESTION": "AI-generated suggestion: {{verdict}}",
+      "UPLOAD": "Upload evidence",
+      "UPLOAD_NEW": "Upload a new version",
+      "UPLOAD_LABEL": "Evidence file",
+      "SEND": "Send",
+      "SENDING": "Sending…",
+      "UPLOADED": "Evidence delivered. It is pending review.",
+      "UPLOAD_ERROR": "The evidence could not be uploaded. Please try again.",
+      "LOAD_ERROR": "The evidence could not be loaded.",
+      "SUMMARY_NOTE": "Delivering evidence is not available in this environment yet."
+    },
+    "REQUIRES": {
+      "TITLE": "What this control requires",
+      "INTRO": "The tests that verify it and the evidence to provide to meet them, in one place."
+    },
+    "TESTS": {
+      "TITLE": "Tests",
+      "NONE": "This control has no tests assigned.",
+      "COUNT_ONLY": "This control is verified with {{count}} tests."
+    },
+    "TEST_STATE": {
+      "COMPLIANT": "Compliant",
+      "NON_COMPLIANT": "Non-compliant",
+      "PENDING": "Pending",
+      "EVALUATING": "Evaluating",
+      "IN_REVIEW": "In review",
+      "EXPIRED": "Expired",
+      "ERROR": "Error",
+      "NO_ASSETS": "No assets",
+      "NOT_APPLICABLE": "Not applicable",
+      "DEACTIVATED": "Deactivated"
+    },
+    "CONTROL_TYPE": {
+      "MANUAL": "Manual",
+      "AUTOMATED": "Automated",
+      "HYBRID": "Hybrid",
+      "TECHNICAL_MANUAL": "Technical manual"
     }
   }
 }
