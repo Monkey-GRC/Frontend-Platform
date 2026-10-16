@@ -57,8 +57,11 @@ describe('RisksView', () => {
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-  it('loads all the risks of the service at once, in the business view for the company admin', () => {
+  it('loads all the risks of the service at once, in the technical view for the company admin and in the business view for the functional user', () => {
     setup('admin_empresa');
+    expect(api.listAllRisks).toHaveBeenCalledWith('s1', 'technical');
+    TestBed.resetTestingModule();
+    setup('funcional');
     expect(api.listAllRisks).toHaveBeenCalledWith('s1', undefined);
 
     expect(text()).toContain('Acceso no autorizado');
@@ -104,7 +107,7 @@ describe('RisksView', () => {
   it('is the causes tab on its own route: loads only the causes and groups them by failure category', () => {
     const view = setup('admin_empresa', 'causes');
     expect(view.section()).toBe('causes');
-    expect(api.listAllCauses).toHaveBeenCalledWith('s1', undefined);
+    expect(api.listAllCauses).toHaveBeenCalledWith('s1', 'technical');
     expect(api.listAllRisks).not.toHaveBeenCalled();
     expect(view.causeGroups().map((g) => g.key).sort()).toEqual(['human_resource', 'information_technology']);
     expect(view.chips().map((c) => c.value)).toEqual(['all', 'human_resource', 'information_technology']);

@@ -65,7 +65,7 @@ describe('CauseDetailPanel', () => {
   it('offers only the controls that are not linked yet, with their code in the label', () => {
     const panel = setup('admin_empresa');
     panel.startLink();
-    expect(controls.listAll).toHaveBeenCalledWith('s1', undefined);
+    expect(controls.listAll).toHaveBeenCalledWith('s1', 'technical');
     expect(panel.candidates()).toEqual([{ id: 'k2', label: 'MON-3 · Monitoreo continuo' }]);
   });
 

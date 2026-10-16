@@ -18,6 +18,8 @@ import {
 } from '../../../domain/models/control.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { ControlService } from '../../../domain/services/control.service';
+import { ControlEvidence } from '../control-evidence/control-evidence';
+import { ControlTests } from '../control-tests/control-tests';
 
 type Stage = 'loading' | 'error' | 'ready';
 type Mode = 'view' | 'interpretation' | 'dimensions';
@@ -32,12 +34,14 @@ interface DimensionDraft {
 // lo único que le llega). El consultor y el auditor solo leen. El backend lo vuelve a comprobar.
 const PROPOSING_ROLES: readonly string[] = ['admin_empresa', 'funcional'];
 const INTERPRETATION_MAX = 4000;
+// Suben la evidencia el administrador de la empresa y el funcional (solo de lo asignado, que es lo único que le llega); el consultor y el auditor solo leen.
+const UPLOADING_ROLES: readonly string[] = ['admin_empresa', 'funcional'];
 
 // El detalle de una acción de protección (MD-121), en un panel lateral. Editar es PROPONER: la acción sigue como estaba y sigue contando hasta
 // que el consultor apruebe el cambio (D65). Los errores 422 se muestran bajo cada campo.
 @Component({
   selector: 'app-control-detail-panel',
-  imports: [FormsModule, TranslatePipe, SidePanel, StatusBadge, ConfirmDialog],
+  imports: [FormsModule, TranslatePipe, SidePanel, StatusBadge, ConfirmDialog, ControlEvidence, ControlTests],
   templateUrl: './control-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -80,6 +84,11 @@ export class ControlDetailPanel {
   readonly canPropose = computed(() => {
     const role = this.view.role();
     return role !== null && PROPOSING_ROLES.includes(role);
+  });
+
+  readonly canUploadEvidence = computed(() => {
+    const role = this.view.role();
+    return role !== null && UPLOADING_ROLES.includes(role);
   });
 
   private readonly pendingTypes = computed(() => new Set<ControlChangeType>(this.pending().map((c) => c.change_type)));

@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { of, throwError } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { ControlChange, ControlDetail } from '../../../domain/models/control.models';
 import { ControlService } from '../../../domain/services/control.service';
+import { EvidenceService } from '../../../domain/services/evidence.service';
 import { ControlDetailPanel } from './control-detail-panel';
 
 const DETAIL: ControlDetail = {
@@ -35,13 +36,16 @@ const PENDING_RETIRE: ControlChange = { id: 'p1', control_id: 'c1', change_type:
 
 describe('ControlDetailPanel', () => {
   let api: jasmine.SpyObj<ControlService>;
+  let evidence: jasmine.SpyObj<EvidenceService>;
   let fixture: ComponentFixture<ControlDetailPanel>;
 
   function setup(role: string, detail: ControlDetail = DETAIL, pending: ControlChange[] = []): ControlDetailPanel {
     api = jasmine.createSpyObj<ControlService>('ControlService', ['get', 'changes', 'proposeChange']);
     api.get.and.returnValue(of(detail));
     api.changes.and.returnValue(of(pending));
-    TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), { provide: ControlService, useValue: api }] });
+    evidence = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download']);
+    evidence.list.and.returnValue(NEVER);
+    TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), { provide: ControlService, useValue: api }, { provide: EvidenceService, useValue: evidence }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(ControlDetailPanel);
     fixture.componentRef.setInput('controlId', 'c1');
@@ -51,12 +55,15 @@ describe('ControlDetailPanel', () => {
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-  it('asks for the business view for the company admin and the technical view for the auditor', () => {
+  it('asks for the technical view for the company admin and the auditor, and the business view for the functional user', () => {
     setup('admin_empresa');
-    expect(api.get).toHaveBeenCalledWith('c1', undefined);
+    expect(api.get).toHaveBeenCalledWith('c1', 'technical');
     TestBed.resetTestingModule();
     setup('auditor');
     expect(api.get).toHaveBeenCalledWith('c1', 'technical');
+    TestBed.resetTestingModule();
+    setup('funcional');
+    expect(api.get).toHaveBeenCalledWith('c1', undefined);
   });
 
   it('shows the code and the requirements it covers next to the name, and the percentages', () => {
@@ -65,6 +72,44 @@ describe('ControlDetailPanel', () => {
     expect(text()).toContain('CC6.1');
     expect(panel.pct(3, 5).replace(/\s/g, '')).toBe('60%');
     expect(panel.pct(4, 5).replace(/\s/g, '')).toBe('80%');
+  });
+
+  it('puts the evidence of the control inside the drawer, for this control, and lets only the company admin and the functional user upload it', () => {
+    const panel = setup('admin_empresa');
+    expect(fixture.nativeElement.querySelector('app-control-evidence')).not.toBeNull();
+    expect(evidence.list).toHaveBeenCalledWith('c1', 'technical');
+    expect(panel.canUploadEvidence()).toBeTrue();
+    TestBed.resetTestingModule();
+    expect(setup('funcional').canUploadEvidence()).toBeTrue();
+    for (const role of ['auditor', 'consultor']) {
+      TestBed.resetTestingModule();
+      expect(setup(role).canUploadEvidence()).toBeFalse();
+    }
+  });
+
+  it('shows to the company admin every test of the control, next to the evidence it asks for', () => {
+    setup('admin_empresa', {
+      ...DETAIL,
+      technical: {
+        points_of_focus: [],
+        control_state: 'incomplete',
+        tests_count: 2,
+        tests: [
+          { test_code: 'T-DOC-001', display_name: 'Revisión de diseño de la política', dimension: 'policy', state: 'pending' },
+          { test_code: 'T-SRV-001', display_name: 'Configuración de servidores', dimension: 'server', state: 'no_assets' },
+        ],
+      },
+    });
+    expect(text()).toContain('COMPLIANCE.REQUIRES.TITLE');
+    expect(text()).toContain('T-DOC-001');
+    expect(text()).toContain('Configuración de servidores');
+    expect(fixture.nativeElement.querySelector('app-control-evidence')).not.toBeNull();
+  });
+
+  it('only says how many tests the control has when the view brings no list, as for the functional user', () => {
+    setup('funcional');
+    expect(text()).toContain('COMPLIANCE.TESTS.COUNT_ONLY');
+    expect(fixture.nativeElement.querySelector('[data-test-state]')).toBeNull();
   });
 
   it('lets the company admin propose changes, and only reads for the auditor and the consultant', () => {

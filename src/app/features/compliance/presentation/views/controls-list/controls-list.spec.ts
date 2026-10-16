@@ -51,18 +51,21 @@ describe('ControlsListView', () => {
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-  it('loads the first page of the service with no filters and no technical view for the company admin', () => {
+  it('loads the first page of the service with no filters, in the technical view for the company admin', () => {
     setup('admin_empresa');
-    expect(api.list).toHaveBeenCalledWith('s1', { page: 1, pageSize: 25, trustCriterion: null, readiness: null }, undefined);
+    expect(api.list).toHaveBeenCalledWith('s1', { page: 1, pageSize: 25, trustCriterion: null, readiness: null }, 'technical');
     expect(text()).toContain('Gestión de accesos de usuarios');
     expect(text()).toContain('Seguridad');
   });
 
-  it('asks for the technical view only for the auditor', () => {
+  it('asks for the technical view for the company admin and the auditor, and not for the functional user', () => {
     setup('auditor');
     expect(api.list.calls.mostRecent().args[2]).toBe('technical');
     TestBed.resetTestingModule();
     setup('admin_empresa');
+    expect(api.list.calls.mostRecent().args[2]).toBe('technical');
+    TestBed.resetTestingModule();
+    setup('funcional');
     expect(api.list.calls.mostRecent().args[2]).toBeUndefined();
   });
 

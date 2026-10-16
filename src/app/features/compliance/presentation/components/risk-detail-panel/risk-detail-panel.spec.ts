@@ -70,7 +70,7 @@ describe('RiskDetailPanel', () => {
   it('offers only the causes that are active and not linked yet', () => {
     const panel = setup('admin_empresa');
     panel.startLink();
-    expect(api.listAllCauses).toHaveBeenCalledWith('s1', undefined);
+    expect(api.listAllCauses).toHaveBeenCalledWith('s1', 'technical');
     expect(panel.candidates().map((c) => c.id)).toEqual(['c2']);
   });
 

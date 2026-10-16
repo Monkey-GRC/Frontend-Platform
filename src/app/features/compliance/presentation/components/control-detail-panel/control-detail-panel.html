@@ -172,34 +172,15 @@
       }
     </section>
 
-    <!-- Lo que se debe aportar -->
-    <section [attr.aria-label]="'COMPLIANCE.GLOSSARY.EVIDENCE' | translate">
-      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.GLOSSARY.EVIDENCE' | translate }}</h4>
-      @if (d.evidence.length === 0) {
-      <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.DETAIL.NO_EVIDENCE' | translate }}</p>
-      } @else {
-      <ul class="mt-2 flex flex-col gap-3">
-        @for (e of d.evidence; track e.requirement_id) {
-        <li class="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700">
-          <p class="font-medium text-gray-900 dark:text-white">{{ e.description }}</p>
-          <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-            @if (e.responsible; as r) {
-            {{ 'COMPLIANCE.DETAIL.RESPONSIBLE' | translate: { role: ('COMPLIANCE.RESPONSIBLE_TYPE.' + r.type.toUpperCase() | translate), person: r.person_name ?? ('COMPLIANCE.DETAIL.NO_PERSON' | translate) } }}
-            } @else {
-            {{ 'COMPLIANCE.DETAIL.NO_RESPONSIBLE' | translate }}
-            }
-          </p>
-          <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-            @if (e.latest_submission; as s) {
-            {{ 'COMPLIANCE.DETAIL.LATEST_VERSION' | translate: { version: s.version, status: ('COMPLIANCE.EVIDENCE_STATUS.' + s.validation_status.toUpperCase() | translate) } }}
-            } @else {
-            {{ 'COMPLIANCE.DETAIL.NOT_DELIVERED' | translate }}
-            }
-          </p>
-        </li>
-        }
-      </ul>
-      }
+    <!-- Lo que pide este control, todo en un solo lugar: las pruebas que lo verifican (documentales y las que valida la sonda), con su estado, y las
+         evidencias que hay que aportar para cumplirlas, que se suben desde aquí mismo (D80). -->
+    <section class="flex flex-col gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700" [attr.aria-label]="'COMPLIANCE.REQUIRES.TITLE' | translate">
+      <div>
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-900 dark:text-white">{{ 'COMPLIANCE.REQUIRES.TITLE' | translate }}</h3>
+        <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.REQUIRES.INTRO' | translate }}</p>
+      </div>
+      <app-control-tests [tests]="d.technical?.tests" [dimensions]="d.dimensions" [total]="d.progress.total" />
+      <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" (changed)="changed.emit()" />
     </section>
 
     <!-- Por qué podría pasar: las causas que esta acción ayuda a evitar -->
@@ -244,15 +225,7 @@
       <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs text-gray-700 dark:text-gray-200">
         <dt class="font-medium">{{ 'COMPLIANCE.DETAIL.TECH_FOCUS' | translate }}</dt><dd class="font-mono">{{ tech.points_of_focus.length ? tech.points_of_focus.join(', ') : '—' }}</dd>
         <dt class="font-medium">{{ 'COMPLIANCE.DETAIL.TECH_STATE' | translate }}</dt><dd class="font-mono">{{ tech.control_state }}</dd>
-        <dt class="font-medium">{{ 'COMPLIANCE.DETAIL.TECH_TESTS' | translate }}</dt><dd>{{ tech.tests_count }}</dd>
       </dl>
-      @if (tech.tests?.length) {
-      <ul class="mt-2 list-disc pl-5 text-xs text-gray-700 dark:text-gray-200">
-        @for (t of tech.tests; track t.test_code) {
-        <li><span class="font-mono">{{ t.test_code }}</span> · {{ t.display_name }} · <span class="font-mono">{{ t.state }}</span></li>
-        }
-      </ul>
-      }
     </section>
     }
 

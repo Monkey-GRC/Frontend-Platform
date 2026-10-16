@@ -107,18 +107,11 @@
       "REASON_IS": "Motivo: {{reason}}",
       "PROPOSAL_NOTE": "Se envía como propuesta: el consultor la revisa antes de que se aplique.",
       "SEND_PROPOSAL": "Enviar propuesta",
-      "NO_EVIDENCE": "Este control no tiene evidencias requeridas.",
-      "RESPONSIBLE": "Responsable: {{role}} · {{person}}",
-      "NO_PERSON": "sin persona asignada",
-      "NO_RESPONSIBLE": "Sin responsable designado.",
-      "LATEST_VERSION": "Última versión: v{{version}} ({{status}})",
-      "NOT_DELIVERED": "Aún no se ha entregado.",
       "NO_CAUSES": "Este control no está vinculado a ninguna causa.",
       "FAILING": "Dónde falla",
       "TECH_REQUIREMENTS": "Requisitos",
       "TECH_FOCUS": "Puntos de enfoque",
       "TECH_STATE": "Estado del control",
-      "TECH_TESTS": "Pruebas asociadas",
       "RETIRE": "Proponer la baja",
       "RETIRE_HINT": "El consultor decide la baja; hasta entonces el control sigue contando para el cumplimiento.",
       "RETIRE_CONFIRM_TITLE": "¿Proponer la baja de este control?",
@@ -236,6 +229,62 @@
       "REMOVE_CONFIRM_TITLE": "¿Dar de baja esta causa?",
       "REMOVE_CONFIRM_BODY": "Dejará de aparecer en las listas. Su historial se conserva.",
       "REMOVE_CONFIRM": "Dar de baja"
+    },
+    "EVIDENCE": {
+      "REQUIRED_TITLE": "Evidencias requeridas",
+      "DELIVERED_TITLE": "Evidencia entregada",
+      "EMPTY": "Este control no tiene evidencias requeridas.",
+      "NOT_DELIVERED": "Aún no se ha entregado.",
+      "RESPONSIBLE": "Responsable: {{role}} · {{person}}",
+      "NO_PERSON": "sin persona asignada",
+      "NO_RESPONSIBLE": "Sin responsable designado.",
+      "VALIDITY": "Vigencia: {{value}}",
+      "VERSION": "v{{version}}",
+      "SUBMITTED": "Entregada el {{date}} por {{name}}",
+      "INTEGRITY": "Huella SHA-256: {{hash}}",
+      "LATEST_VERSION": "Última versión: v{{version}} ({{status}})",
+      "DOWNLOAD": "Descargar",
+      "DOWNLOAD_ERROR": "No se pudo generar el enlace de descarga. Inténtalo de nuevo.",
+      "SHOW_VERSIONS": "Ver versiones anteriores ({{count}})",
+      "HIDE_VERSIONS": "Ocultar versiones anteriores",
+      "REJECTED_NOTE": "Motivo del rechazo: {{note}}",
+      "AI_SUGGESTION": "Sugerencia generada por IA: {{verdict}}",
+      "UPLOAD": "Subir evidencia",
+      "UPLOAD_NEW": "Subir una versión nueva",
+      "UPLOAD_LABEL": "Archivo de la evidencia",
+      "SEND": "Enviar",
+      "SENDING": "Enviando…",
+      "UPLOADED": "Evidencia entregada. Queda pendiente de revisión.",
+      "UPLOAD_ERROR": "No se pudo subir la evidencia. Inténtalo de nuevo.",
+      "LOAD_ERROR": "No se pudieron cargar las evidencias.",
+      "SUMMARY_NOTE": "La entrega de evidencias aún no está disponible en este entorno."
+    },
+    "REQUIRES": {
+      "TITLE": "Lo que pide este control",
+      "INTRO": "Las pruebas que lo verifican y las evidencias que hay que aportar para cumplirlas, en un solo lugar."
+    },
+    "TESTS": {
+      "TITLE": "Pruebas",
+      "NONE": "Este control no tiene pruebas asignadas.",
+      "COUNT_ONLY": "Este control se verifica con {{count}} pruebas."
+    },
+    "TEST_STATE": {
+      "COMPLIANT": "Cumple",
+      "NON_COMPLIANT": "No cumple",
+      "PENDING": "Pendiente",
+      "EVALUATING": "En evaluación",
+      "IN_REVIEW": "En revisión",
+      "EXPIRED": "Vencida",
+      "ERROR": "Error",
+      "NO_ASSETS": "Sin activos",
+      "NOT_APPLICABLE": "No aplica",
+      "DEACTIVATED": "Desactivada"
+    },
+    "CONTROL_TYPE": {
+      "MANUAL": "Manual",
+      "AUTOMATED": "Automática",
+      "HYBRID": "Híbrida",
+      "TECHNICAL_MANUAL": "Técnica manual"
     }
   }
 }

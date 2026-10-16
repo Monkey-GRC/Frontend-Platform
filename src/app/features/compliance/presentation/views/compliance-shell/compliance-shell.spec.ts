@@ -65,14 +65,12 @@ describe('ComplianceShellView', () => {
     expect(navigate).toHaveBeenCalledWith(['/services', 's2', 'cumplimiento', 'riesgos']);
   });
 
-  it('goes to Controls when it switches service from a url with no tab, and does nothing for the same service', () => {
+  it('does nothing when the service picked is the current one', () => {
     const shell = setup('admin_empresa');
     const navigate = spyOn(router, 'navigate').and.resolveTo(true);
     spyOnProperty(router, 'url', 'get').and.returnValue('/services/s1/cumplimiento');
     shell.switchTo('s1');
     expect(navigate).not.toHaveBeenCalled();
-    shell.switchTo('s2');
-    expect(navigate).toHaveBeenCalledWith(['/services', 's2', 'cumplimiento', 'controles']);
   });
 
   it('falls back to the generic title when the list of services cannot be read, as for any role but the company admin', () => {
@@ -82,8 +80,16 @@ describe('ComplianceShellView', () => {
     expect(text()).toContain('COMPLIANCE.SHELL.TITLE');
   });
 
-  it('has the five tabs, with Causes as a tab of its own at the same level as Controls and Risks', () => {
+  it('has the five tabs in the order of the GRC chain: risks, causes, controls, evidence', () => {
     const shell = setup('admin_empresa');
-    expect(shell.tabs.map((t) => t.path)).toEqual(['resumen', 'controles', 'riesgos', 'causas', 'evidencias']);
+    expect(shell.tabs.map((t) => t.path)).toEqual(['resumen', 'riesgos', 'causas', 'controles', 'evidencias']);
+  });
+
+  it('goes to the first real tab, Risks, when it switches service from a url with no tab', () => {
+    const shell = setup('admin_empresa');
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    spyOnProperty(router, 'url', 'get').and.returnValue('/services/s1/cumplimiento');
+    shell.switchTo('s2');
+    expect(navigate).toHaveBeenCalledWith(['/services', 's2', 'cumplimiento', 'riesgos']);
   });
 });
