@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
@@ -35,6 +35,10 @@ export class ControlEvidence {
   readonly summary = input<EvidenceSummary[]>([]);
   /** ¿Puede este rol subir? Los que suben son el administrador de la empresa y el funcional (solo de lo asignado). */
   readonly canUpload = input(false);
+  /** Si viene, solo las evidencias requeridas de esa dimensión (las de una prueba manual); el resumen del detalle no trae dimensión y se muestra completo. */
+  readonly dimension = input<string | null>(null);
+  /** Dentro del bloque de pruebas: sin título propio, porque ya está bajo la prueba que lo pide. */
+  readonly embedded = input(false);
   // Se subió algo: el control cambió de estado (la evidencia alimenta sus pruebas documentales).
   readonly changed = output<void>();
 
@@ -43,6 +47,10 @@ export class ControlEvidence {
 
   readonly stage = signal<Stage>('loading');
   readonly items = signal<EvidenceRequirement[]>([]);
+  readonly visible = computed(() => {
+    const dimension = this.dimension();
+    return dimension ? this.items().filter((r) => r.dimension === dimension) : this.items();
+  });
 
   // Una subida abierta a la vez: sobre qué requerimiento, con qué archivo.
   readonly uploadingFor = signal<string | null>(null);

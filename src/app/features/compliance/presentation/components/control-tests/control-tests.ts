@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, TemplateRef, computed, inject, input, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ControlDimensionDetail, ControlTechnical } from '../../../domain/models/control.models';
+import { ControlDimension, ControlDimensionDetail, ControlTechnical } from '../../../domain/models/control.models';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 
 export type ControlTest = NonNullable<ControlTechnical['tests']>[number];
@@ -31,7 +32,7 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
 // que no es un fallo: es lo que el control va a pedir. De cada prueba solo se ve su nombre neutro y su resultado (D70), nunca el texto del comité.
 @Component({
   selector: 'app-control-tests',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-label]="'COMPLIANCE.TESTS.TITLE' | translate">
@@ -41,8 +42,9 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
         @if (list.length === 0) {
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.TESTS.NONE' | translate }}</p>
         } @else {
+          @for (g of groups(); track g.dimension) {
           <ul class="mt-2 flex flex-col gap-2">
-            @for (t of list; track t.test_code) {
+            @for (t of g.tests; track t.test_code) {
               <li class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700">
                 <div class="min-w-0 text-sm">
                   <p class="text-gray-900 dark:text-white"><span class="font-mono text-xs font-semibold text-gray-700 dark:text-gray-200">{{ t.test_code }}</span> · {{ t.display_name }}</p>
@@ -62,6 +64,10 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
               </li>
             }
           </ul>
+          @if (g.manual && evidenceTpl(); as tpl) {
+            <div class="mt-3" data-test-evidence><ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="{ $implicit: g.dimension }" /></div>
+          }
+          }
         }
       } @else {
         <!-- Sin el detalle de las pruebas (otros roles): al menos cuántas son, que es el denominador del avance. -->
@@ -94,6 +100,17 @@ export class ControlTests {
   readonly dimensions = input<ControlDimensionDetail[]>([]);
   /** Cuántas pruebas cuenta el avance, para decirlo cuando no hay detalle. */
   readonly total = input(0);
+  /** La subida de evidencia: se pinta bajo las pruebas manuales de cada dimensión, que son las que se cumplen con un documento. */
+  readonly evidenceTpl = input<TemplateRef<{ $implicit: string }> | null>(null);
+
+  protected readonly groups = computed(() => {
+    const list = this.rows();
+    if (!list) return [];
+    const typeOf = new Map(this.dimensions().map((d) => [d.dimension, d.type]));
+    const byDimension = new Map<ControlDimension, typeof list>();
+    for (const r of list) byDimension.set(r.dimension, [...(byDimension.get(r.dimension) ?? []), r]);
+    return [...byDimension].map(([dimension, tests]) => ({ dimension, tests, manual: typeOf.get(dimension) === 'manual' }));
+  });
 
   protected readonly rows = computed(() => {
     const list = this.tests();

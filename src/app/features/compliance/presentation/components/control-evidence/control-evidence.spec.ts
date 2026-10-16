@@ -47,6 +47,16 @@ describe('ControlEvidence', () => {
     expect(fixture.nativeElement.querySelector('[data-validation="pending"]')).not.toBeNull();
   });
 
+  it('keeps only the evidence of the dimension it is embedded for, without its own title', () => {
+    setup('admin_empresa', true, [requirement('e1'), { ...requirement('e2'), dimension: 'server' }]);
+    fixture.componentRef.setInput('dimension', 'policy');
+    fixture.componentRef.setInput('embedded', true);
+    fixture.detectChanges();
+    expect(text()).toContain('Documento e1');
+    expect(text()).not.toContain('Documento e2');
+    expect(fixture.nativeElement.querySelector('h4')).toBeNull();
+  });
+
   it('shows only the latest version and the previous ones when asked, the latest first', () => {
     const view = setup('admin_empresa', true);
     expect(text()).not.toContain('politica-v1.pdf');
