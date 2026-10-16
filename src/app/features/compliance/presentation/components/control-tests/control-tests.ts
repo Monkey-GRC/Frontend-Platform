@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ControlDimensionDetail, ControlTechnical } from '../../../domain/models/control.models';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
@@ -47,6 +47,14 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
                 <div class="min-w-0 text-sm">
                   <p class="text-gray-900 dark:text-white"><span class="font-mono text-xs font-semibold text-gray-700 dark:text-gray-200">{{ t.test_code }}</span> · {{ t.display_name }}</p>
                   <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ labels.of('COMPLIANCE.DIMENSION', t.dimension) }} · {{ t.kind }}</p>
+                  @if (t.display_description) {
+                    <p class="mt-1 text-xs text-gray-700 dark:text-gray-200" [class.line-clamp-2]="!isOpen(t.test_code)" data-test-description>{{ t.display_description }}</p>
+                    @if (t.display_description.length > LONG) {
+                      <button type="button" class="mt-0.5 text-xs font-medium text-primary hover:underline" [attr.aria-expanded]="isOpen(t.test_code)" (click)="toggle(t.test_code)">
+                        {{ (isOpen(t.test_code) ? 'COMPLIANCE.TESTS.SHOW_LESS' : 'COMPLIANCE.TESTS.SHOW_MORE') | translate }}
+                      </button>
+                    }
+                  }
                 </div>
                 <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="t.look.chip" [attr.data-test-state]="t.state">
                   <span class="material-symbols-rounded text-[14px] leading-none" aria-hidden="true">{{ t.look.icon }}</span>{{ labels.of('COMPLIANCE.TEST_STATE', t.state) }}
@@ -64,6 +72,21 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
 })
 export class ControlTests {
   protected readonly labels = inject(EnumLabelService);
+  /** Desde cuántos caracteres una descripción se recorta a dos líneas con «Ver más». */
+  protected readonly LONG = 140;
+  private readonly opened = signal<ReadonlySet<string>>(new Set());
+
+  protected isOpen(code: string): boolean {
+    return this.opened().has(code);
+  }
+
+  protected toggle(code: string): void {
+    this.opened.update((s) => {
+      const next = new Set(s);
+      if (!next.delete(code)) next.add(code);
+      return next;
+    });
+  }
 
   /** Las pruebas del control (vista técnica). `null`/`undefined` = esta vista no las trae. */
   readonly tests = input<ControlTest[] | null | undefined>(null);

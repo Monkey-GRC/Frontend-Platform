@@ -63,6 +63,35 @@ describe('ControlTests', () => {
     expect(codes).toEqual(['T-DOC-001', 'T-DOC-002', 'T-SRV-001']);
   });
 
+  describe('short description', () => {
+    const SHORT = 'Verifica que existe una política vigente.';
+    const LONG = 'Verificar que los servidores en alcance cumplen la línea base de configuración segura definida, comprobándola de forma automática sobre el 100% de los servidores y dejando constancia de las desviaciones.';
+
+    it('shows the description under the name of each test that has one', () => {
+      const el = render([{ ...TESTS[2], display_description: SHORT }, TESTS[1]]);
+      const descriptions = el.querySelectorAll('[data-test-description]');
+      expect(descriptions.length).toBe(1);
+      expect(descriptions[0].textContent).toContain(SHORT);
+    });
+
+    it('does not offer "show more" for a short description', () => {
+      const el = render([{ ...TESTS[2], display_description: SHORT }]);
+      expect(el.querySelector('button')).toBeNull();
+    });
+
+    it('clamps a long description and expands it on demand', () => {
+      const el = render([{ ...TESTS[2], display_description: LONG }]);
+      const text = el.querySelector('[data-test-description]')!;
+      const button = el.querySelector('button')!;
+      expect(text.classList).toContain('line-clamp-2');
+      expect(button.getAttribute('aria-expanded')).toBe('false');
+      button.click();
+      fixture.detectChanges();
+      expect(text.classList).not.toContain('line-clamp-2');
+      expect(button.getAttribute('aria-expanded')).toBe('true');
+    });
+  });
+
   it('says how many tests the control has when the view does not bring the list', () => {
     const el = render(null, 3);
     expect(el.querySelectorAll('li').length).toBe(0);

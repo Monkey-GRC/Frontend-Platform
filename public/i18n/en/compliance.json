@@ -266,7 +266,9 @@
     "TESTS": {
       "TITLE": "Tests",
       "NONE": "This control has no tests assigned.",
-      "COUNT_ONLY": "This control is verified with {{count}} tests."
+      "COUNT_ONLY": "This control is verified with {{count}} tests.",
+      "SHOW_MORE": "Show more",
+      "SHOW_LESS": "Show less"
     },
     "TEST_STATE": {
       "COMPLIANT": "Compliant",
