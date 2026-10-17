@@ -31,7 +31,6 @@ export interface RiskListItem {
   impact: number | null;
   inherent_risk_value: number | null;
   inherent_risk_level: string | null;
-  // Llega con MD-123; hoy siempre `null`.
   treatment: RiskTreatment | null;
   causes_count: number;
 }
@@ -89,4 +88,45 @@ export interface LinkedControl {
   control_id: string;
   is_mandatory: boolean;
   effect: string | null;
+}
+
+// Evaluación 5×5 y tratamiento de un riesgo (compliance-risks.md, MD-123). El valor y el nivel los calcula el servidor.
+export const RISK_SCALE: readonly number[] = [1, 2, 3, 4, 5];
+// enums.md `risk_treatment_decision`: el backend no lo sirve como catálogo, así que el formulario usa estos cuatro valores y el texto sale del i18n por valor.
+export const TREATMENT_DECISIONS: readonly string[] = ['mitigate', 'accept', 'transfer', 'avoid'];
+
+export interface RiskScore {
+  likelihood: number;
+  impact: number;
+  inherent_risk_value: number;
+  inherent_risk_level: string;
+}
+
+export interface RiskEvaluationEntry extends RiskScore {
+  risk_id: string;
+  previous: RiskScore | null;
+  evaluated_by: { id: string; name: string | null; last_name: string | null } | null;
+  evaluated_at: string;
+}
+
+export interface Responsible {
+  id: string;
+  type: string;
+  person_name: string | null;
+  is_in_use: boolean;
+}
+
+export interface RiskTreatmentRecord {
+  id: string;
+  risk_id: string;
+  decision: string;
+  responsible: { id: string; type: string; person_name: string | null };
+  due_date: string;
+  created_at: string;
+}
+
+export interface NewTreatment {
+  decision: string;
+  responsible_id: string;
+  due_date: string;
 }
