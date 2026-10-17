@@ -68,12 +68,11 @@ export const routes: Routes = [
         path: 'services/:id/cumplimiento',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-shell/compliance-shell').then(m => m.ComplianceShellView),
         children: [
-          // Se entra por Riesgos (la primera del recorrido que ya es real) mientras el Resumen (MD-140) no exista.
-          { path: '', redirectTo: 'riesgos', pathMatch: 'full' },
+          // Se entra por el Resumen (MD-140): el estado del servicio antes que el detalle.
+          { path: '', redirectTo: 'resumen', pathMatch: 'full' },
           {
             path: 'resumen',
-            data: { titleKey: 'COMPLIANCE.TABS.SUMMARY', icon: 'dashboard' },
-            loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
+            loadComponent: () => import('@features/compliance/presentation/views/overview/overview').then(m => m.OverviewView),
           },
           // El orden de las rutas es el de las pestañas: riesgos → causas → controles → evidencias.
           // Riesgos y Causas son la misma vista con dos rutas: una causa no depende de un riesgo (10 de las 56 del catálogo no pertenecen a ninguno).

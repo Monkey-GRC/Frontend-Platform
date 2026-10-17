@@ -33,6 +33,45 @@
       "FRAMEWORKS": "Frameworks of the service",
       "SERVICE": "Service"
     },
+    "OVERVIEW": {
+      "TITLE": "Compliance status",
+      "FRAMEWORK": "Framework",
+      "LOAD_ERROR_TITLE": "The summary could not be loaded",
+      "EVALUATION": "Period {{start}} – {{end}} · cutoff {{cutoff}} · catalog v{{version}}",
+      "NOT_DEFINED_TITLE": "The evaluation is not defined yet.",
+      "NOT_DEFINED_BODY": "The audited period and the cutoff date are missing; until then the summary shows “Not measured”.",
+      "VERDICT": {
+        "COMPLIANT": "Compliant",
+        "NON_COMPLIANT": "Non-compliant",
+        "EVALUATING": "Under evaluation",
+        "NO_CONTROLS": "No controls"
+      },
+      "BODY": {
+        "COMPLIANT": "All in-scope controls are effective.",
+        "NON_COMPLIANT": "Some controls have failing or expired tests. A single failure prevents the framework from being compliant.",
+        "EVALUATING": "Some controls are still undecided: anything pending never counts as compliant.",
+        "NOT_MEASURED": "There are no results yet to decide whether it complies. This is not a failure.",
+        "NO_CONTROLS": "The framework has no controls in scope."
+      },
+      "PROGRESS": "Progress",
+      "PROGRESS_NOTE": "Progress shows how much has been achieved, but it is not the same as compliance.",
+      "COVERAGE": "Coverage",
+      "KPI_EVALUATED": "Evaluated controls",
+      "KPI_EFFECTIVE": "Effective",
+      "KPI_INEFFECTIVE": "Not effective",
+      "KPI_PENDING": "Pending",
+      "CATEGORIES_TITLE": "Trust criteria",
+      "CATEGORY_COUNT": "{{done}} of {{total}} controls effective",
+      "ATTENTION_TITLE": "Controls that need attention",
+      "ATTENTION_ALL": "See all controls",
+      "ATTENTION_EMPTY": "No control is failing for now.",
+      "ATTENTION_EMPTY_UNMEASURED": "There are no results yet, so there are no controls to point out.",
+      "TESTS": "{{done}}/{{total}} tests pass",
+      "RULE_TITLE": "Keep in mind:",
+      "RULE_BODY": "the absence of evidence is not compliance. A pending, in-review or expired control never counts as compliant.",
+      "NO_FRAMEWORKS_TITLE": "This service has no framework yet",
+      "NO_FRAMEWORKS_BODY": "Once you contract a framework you will see its compliance status here."
+    },
     "ENTRY": {
       "LOAD_ERROR_TITLE": "The services could not be loaded",
       "FORBIDDEN_TITLE": "There are no services to show yet",
