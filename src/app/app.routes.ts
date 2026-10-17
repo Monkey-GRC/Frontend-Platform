@@ -59,6 +59,11 @@ export const routes: Routes = [
         path: 'cumplimiento',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
       },
+      // Los cargos responsables son de la organización, no de un servicio (MD-135).
+      {
+        path: 'responsables',
+        loadComponent: () => import('@features/compliance/presentation/views/responsibles/responsibles').then(m => m.ResponsiblesView),
+      },
       {
         path: 'services/:id/cumplimiento',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-shell/compliance-shell').then(m => m.ComplianceShellView),

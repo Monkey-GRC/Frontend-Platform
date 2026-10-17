@@ -5,7 +5,8 @@
       "HOME": "Home",
       "MY_COMPANY": "My company",
       "MY_SERVICES": "My services",
-      "COMPLIANCE": "Compliance"
+      "COMPLIANCE": "Compliance",
+      "RESPONSIBLES": "Responsibles"
     },
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Search or type a command...",

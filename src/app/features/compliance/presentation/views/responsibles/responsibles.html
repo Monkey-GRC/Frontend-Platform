@@ -1,0 +1,99 @@
+<section class="w-full pb-10">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.RESPONSIBLES.TITLE' | translate }}</h1>
+  <p class="mt-1 max-w-3xl text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RESPONSIBLES.INTRO' | translate }}</p>
+
+  @if (notice(); as n) {
+  <div class="mt-4 flex items-start gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300" role="status">
+    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">check_circle</span><span>{{ n }}</span>
+  </div>
+  }
+  @if (error(); as e) {
+  <div class="mt-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300" role="alert">
+    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ e }}</span>
+  </div>
+  }
+
+  @if (view.canManage()) {
+  <form class="mt-5 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 p-4 dark:border-gray-700" (submit)="$event.preventDefault(); add()" [attr.aria-label]="'COMPLIANCE.RESPONSIBLES.ADD' | translate">
+    <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+      {{ 'COMPLIANCE.RESPONSIBLES.TYPE' | translate }}
+      <select data-test-type (change)="newType.set($any($event.target).value)" [disabled]="saving()"
+        class="h-9 min-w-48 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+        <option value="" [selected]="!newType()">{{ 'COMPLIANCE.RESPONSIBLES.SELECT' | translate }}</option>
+        @for (t of types; track t) {<option [value]="t" [selected]="newType() === t">{{ labels.of('COMPLIANCE.RESPONSIBLE_TYPE', t) }}</option>}
+      </select>
+    </label>
+    <label class="flex min-w-56 flex-1 flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+      {{ 'COMPLIANCE.RESPONSIBLES.PERSON' | translate }}
+      <input type="text" data-test-name maxlength="200" [value]="newName()" (input)="newName.set($any($event.target).value)" [disabled]="saving()"
+        class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+    </label>
+    <button type="submit" [disabled]="!canAdd()" data-test-add
+      class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">add</span>{{ 'COMPLIANCE.RESPONSIBLES.ADD' | translate }}
+    </button>
+  </form>
+  }
+
+  @switch (stage()) {
+
+  @case ('loading') {
+  <app-loading-spinner />
+  }
+
+  @case ('error') {
+  <div class="py-10 text-center">
+    <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
+    <p class="mt-3 text-base font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.RESPONSIBLES.LOAD_ERROR' | translate }}</p>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+    <button type="button" (click)="load()" data-test-retry class="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:opacity-90 transition">
+      <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
+    </button>
+  </div>
+  }
+
+  @default {
+  @if (items().length === 0) {
+  <p class="mt-6 text-sm text-gray-600 dark:text-gray-300" data-test-empty>{{ (view.canManage() ? 'COMPLIANCE.RESPONSIBLES.EMPTY_ADMIN' : 'COMPLIANCE.RESPONSIBLES.EMPTY') | translate }}</p>
+  } @else {
+  <ul class="mt-5 divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900" data-test-list>
+    @for (r of items(); track r.id) {
+    <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">{{ labels.of('COMPLIANCE.RESPONSIBLE_TYPE', r.type) }}</p>
+        @if (editing() === r.id) {
+        <form class="mt-1 flex items-center gap-2" (submit)="$event.preventDefault(); saveEdit()">
+          <input type="text" data-test-edit-name maxlength="200" [value]="editName()" (input)="editName.set($any($event.target).value)" [disabled]="saving()" [attr.aria-label]="'COMPLIANCE.RESPONSIBLES.PERSON' | translate"
+            class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+          <button type="submit" [disabled]="!editName().trim() || saving()" data-test-save-edit class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'COMPLIANCE.RESPONSIBLES.SAVE' | translate }}</button>
+          <button type="button" (click)="cancelEdit()" [disabled]="saving()" class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+        </form>
+        } @else {
+        <p class="font-medium text-gray-900 dark:text-white">{{ r.person_name ?? '—' }}</p>
+        }
+      </div>
+      <div class="flex items-center gap-4">
+        @if (r.is_in_use) {
+        <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-200" data-test-in-use>
+          <span class="material-symbols-rounded text-[14px]" aria-hidden="true">link</span>{{ 'COMPLIANCE.RESPONSIBLES.IN_USE' | translate }}
+        </span>
+        }
+        @if (view.canManage() && editing() !== r.id) {
+        <button type="button" (click)="startEdit(r)" [disabled]="saving()" data-test-edit class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'COMPLIANCE.RESPONSIBLES.CHANGE_PERSON' | translate }}</button>
+        <button type="button" (click)="askRemove(r)" [disabled]="saving() || r.is_in_use" [title]="r.is_in_use ? ('COMPLIANCE.RESPONSIBLES.IN_USE_HINT' | translate) : ''" data-test-remove
+          class="text-sm font-medium text-error-600 hover:underline disabled:cursor-not-allowed disabled:opacity-40">{{ 'COMPLIANCE.RESPONSIBLES.REMOVE' | translate }}</button>
+        }
+      </div>
+    </li>
+    }
+  </ul>
+  }
+  }
+
+  }
+</section>
+
+@if (removing(); as r) {
+<app-confirm-dialog titleKey="COMPLIANCE.RESPONSIBLES.REMOVE_CONFIRM_TITLE" [titleParams]="{ name: r.person_name ?? '' }" messageKey="COMPLIANCE.RESPONSIBLES.REMOVE_CONFIRM_BODY" tone="danger"
+  confirmLabelKey="COMPLIANCE.RESPONSIBLES.REMOVE" [busy]="saving()" (confirmed)="confirmRemove()" (cancelled)="removing.set(null)" />
+}

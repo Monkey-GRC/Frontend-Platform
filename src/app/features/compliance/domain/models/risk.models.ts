@@ -109,6 +109,9 @@ export interface RiskEvaluationEntry extends RiskScore {
   evaluated_at: string;
 }
 
+// enums.md `responsible_type`: el backend no lo sirve como catálogo; el texto de cada valor sale del i18n.
+export const RESPONSIBLE_TYPES: readonly string[] = ['coo', 'it', 'compliance', 'process', 'ciso', 'asset_owner'];
+
 export interface Responsible {
   id: string;
   type: string;

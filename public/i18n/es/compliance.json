@@ -239,6 +239,28 @@
       "TRANSFER": "Transferir",
       "AVOID": "Evitar"
     },
+    "RESPONSIBLES": {
+      "TITLE": "Responsables",
+      "INTRO": "Los cargos de la organización —COO, TI, Cumplimiento, Proceso, CISO y propietarios de activo— con el nombre de la persona que responde. A ellos se asignan los tratamientos de riesgo y las evidencias.",
+      "ADD": "Agregar responsable",
+      "TYPE": "Cargo",
+      "PERSON": "Persona",
+      "SELECT": "Selecciona",
+      "SAVE": "Guardar",
+      "CHANGE_PERSON": "Cambiar persona",
+      "REMOVE": "Quitar",
+      "IN_USE": "En uso",
+      "IN_USE_HINT": "Tiene tratamientos, evidencias o activos asignados: reasígnalos para poder quitarlo.",
+      "EMPTY": "La organización aún no tiene responsables.",
+      "EMPTY_ADMIN": "Aún no hay responsables. Agrega el primero para poder asignar tratamientos y evidencias.",
+      "LOAD_ERROR": "No se pudieron cargar los responsables",
+      "SAVE_ERROR": "No se pudo completar la acción. Inténtalo de nuevo.",
+      "CREATED": "Responsable agregado.",
+      "UPDATED": "Persona actualizada.",
+      "REMOVED": "Responsable quitado.",
+      "REMOVE_CONFIRM_TITLE": "¿Quitar a «{{name}}» de los responsables?",
+      "REMOVE_CONFIRM_BODY": "Solo se quita el cargo. Si algo depende de él, no se podrá quitar hasta reasignarlo."
+    },
     "CAUSE_DETAIL": {
       "LOAD_ERROR_TITLE": "No se pudo cargar la causa",
       "SAVE_ERROR": "No se pudo completar la acción. Inténtalo de nuevo.",
