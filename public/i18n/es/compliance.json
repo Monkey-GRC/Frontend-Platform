@@ -33,6 +33,45 @@
       "FRAMEWORKS": "Marcos del servicio",
       "SERVICE": "Servicio"
     },
+    "OVERVIEW": {
+      "TITLE": "Estado de cumplimiento",
+      "FRAMEWORK": "Marco",
+      "LOAD_ERROR_TITLE": "No se pudo cargar el resumen",
+      "EVALUATION": "Período {{start}} – {{end}} · corte {{cutoff}} · catálogo v{{version}}",
+      "NOT_DEFINED_TITLE": "La evaluación aún no está definida.",
+      "NOT_DEFINED_BODY": "Falta el período auditado y la fecha de corte; mientras tanto el resumen se muestra «Sin medir».",
+      "VERDICT": {
+        "COMPLIANT": "Cumple",
+        "NON_COMPLIANT": "No cumple",
+        "EVALUATING": "En evaluación",
+        "NO_CONTROLS": "Sin controles"
+      },
+      "BODY": {
+        "COMPLIANT": "Todos los controles en alcance son efectivos.",
+        "NON_COMPLIANT": "Hay controles con pruebas que no cumplen o están vencidas. Un solo incumplimiento impide el cumplimiento del marco.",
+        "EVALUATING": "Aún hay controles sin decidir: lo pendiente nunca cuenta como cumplido.",
+        "NOT_MEASURED": "Todavía no hay resultados para decidir si cumple. No es un incumplimiento.",
+        "NO_CONTROLS": "El marco no tiene controles en alcance."
+      },
+      "PROGRESS": "Avance",
+      "PROGRESS_NOTE": "El avance indica cuánto se ha logrado, pero no equivale a cumplimiento.",
+      "COVERAGE": "Cobertura",
+      "KPI_EVALUATED": "Controles evaluados",
+      "KPI_EFFECTIVE": "Efectivos",
+      "KPI_INEFFECTIVE": "No efectivos",
+      "KPI_PENDING": "Pendientes",
+      "CATEGORIES_TITLE": "Criterios de confianza",
+      "CATEGORY_COUNT": "{{done}} de {{total}} controles efectivos",
+      "ATTENTION_TITLE": "Controles que requieren atención",
+      "ATTENTION_ALL": "Ver todos los controles",
+      "ATTENTION_EMPTY": "Ningún control incumple por ahora.",
+      "ATTENTION_EMPTY_UNMEASURED": "Aún no hay resultados, así que no hay controles que señalar.",
+      "TESTS": "{{done}}/{{total}} pruebas cumplen",
+      "RULE_TITLE": "Ten presente:",
+      "RULE_BODY": "la ausencia de evidencia no se considera cumplimiento. Un control pendiente, en revisión o vencido nunca cuenta como cumplido.",
+      "NO_FRAMEWORKS_TITLE": "Este servicio aún no tiene un marco contratado",
+      "NO_FRAMEWORKS_BODY": "Cuando contrates un marco verás aquí su estado de cumplimiento."
+    },
     "ENTRY": {
       "LOAD_ERROR_TITLE": "No se pudieron cargar los servicios",
       "FORBIDDEN_TITLE": "Aún no hay servicios para mostrar",

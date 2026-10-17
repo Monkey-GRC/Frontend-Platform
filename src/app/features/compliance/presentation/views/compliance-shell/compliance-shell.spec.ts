@@ -85,11 +85,11 @@ describe('ComplianceShellView', () => {
     expect(shell.tabs.map((t) => t.path)).toEqual(['resumen', 'riesgos', 'causas', 'controles', 'evidencias', 'exclusiones']);
   });
 
-  it('goes to the first real tab, Risks, when it switches service from a url with no tab', () => {
+  it('goes to the Summary tab when it switches service from a url with no tab', () => {
     const shell = setup('admin_empresa');
     const navigate = spyOn(router, 'navigate').and.resolveTo(true);
     spyOnProperty(router, 'url', 'get').and.returnValue('/services/s1/cumplimiento');
     shell.switchTo('s2');
-    expect(navigate).toHaveBeenCalledWith(['/services', 's2', 'cumplimiento', 'riesgos']);
+    expect(navigate).toHaveBeenCalledWith(['/services', 's2', 'cumplimiento', 'resumen']);
   });
 });

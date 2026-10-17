@@ -12,8 +12,8 @@ export const COMPLIANCE_TABS = [
   { path: 'exclusiones', labelKey: 'COMPLIANCE.TABS.EXCLUSIONS', icon: 'block' },
 ] as const;
 
-// La pestaña por la que se entra mientras el Resumen (MD-140) no exista: la primera del recorrido que ya es real.
-export const DEFAULT_COMPLIANCE_TAB: ComplianceTabPath = 'riesgos';
+// La pestaña por la que se entra: el Resumen (MD-140), el estado del servicio antes que el detalle.
+export const DEFAULT_COMPLIANCE_TAB: ComplianceTabPath = 'resumen';
 
 export type ComplianceTabPath = (typeof COMPLIANCE_TABS)[number]['path'];
 
