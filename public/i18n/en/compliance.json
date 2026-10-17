@@ -81,7 +81,8 @@
       "EMPTY": "No risk has been evaluated yet. Evaluate a risk (likelihood and impact) and it will appear here.",
       "HINT": "Select a cell to see its risks.",
       "RESIDUAL_NOTE": "The residual matrix will be shown once the mitigation formula data exists.",
-      "CELL_ARIA": "Likelihood {{likelihood}}, impact {{impact}}: {{count}} risks"
+      "CELL_ARIA": "Likelihood {{likelihood}}, impact {{impact}}: {{count}} risks",
+      "LEGEND": "Risk levels, from lowest to highest"
     },
     "ENTRY": {
       "LOAD_ERROR_TITLE": "The services could not be loaded",

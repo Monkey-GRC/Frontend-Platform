@@ -1,6 +1,6 @@
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { of } from 'rxjs';
-import { provideCatalogStub } from '../../../testing/catalog-options';
+import { provideCatalogStub, provideRiskMatrixStub } from '../../../testing/catalog-options';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { MatrixCell, MatrixPosition, RiskMatrix } from './risk-matrix';
@@ -10,7 +10,7 @@ describe('RiskMatrix', () => {
   let picked: MatrixCell[];
 
   function setup(inputs: { editable?: boolean; disabled?: boolean; selected?: MatrixCell | null; saved?: MatrixPosition | null } = {}): void {
-    TestBed.configureTestingModule({ imports: [RiskMatrix], providers: [provideCatalogStub(), provideTranslateService({ fallbackLang: 'es' })] });
+    TestBed.configureTestingModule({ imports: [RiskMatrix], providers: [provideCatalogStub(), provideRiskMatrixStub(), provideTranslateService({ fallbackLang: 'es' })] });
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('es', { COMPLIANCE: { RISK_ASSESSMENT: { CELL_ARIA: 'Probabilidad {{likelihood}}, impacto {{impact}}' } } });
     translate.use('es');
@@ -31,7 +31,7 @@ describe('RiskMatrix', () => {
   it('takes its size from the scale that the backend serves: a scale of 3 draws 9 cells, not 25', () => {
     TestBed.configureTestingModule({
       imports: [RiskMatrix],
-      providers: [provideTranslateService(), { provide: CatalogService, useValue: { options: () => of(['1', '2', '3'].map((v) => ({ value: v, label: v }))) } }],
+      providers: [provideTranslateService(), provideRiskMatrixStub(), { provide: CatalogService, useValue: { options: () => of(['1', '2', '3'].map((v) => ({ value: v, label: v }))) } }],
     });
     fixture = TestBed.createComponent(RiskMatrix);
     fixture.detectChanges();
@@ -56,17 +56,26 @@ describe('RiskMatrix', () => {
     expect(picked).toEqual([]);
   });
 
-  it('marks the saved cell and paints it with the level of the server, and only that cell', () => {
+  it('marks the saved cell and paints it with the strong tone of the level of the server, and only that cell', () => {
     setup({ saved: { likelihood: 5, impact: 4, level: 'critical' } });
     expect(cell(5, 4).getAttribute('aria-current')).toBe('true');
-    expect(cell(5, 4).className).toContain('bg-red-50');
+    expect(cell(5, 4).className).toContain('bg-red-700');
     expect(el().querySelectorAll('[aria-current="true"]').length).toBe(1);
-    expect(cell(1, 1).className).not.toContain('bg-red-50');
+    expect(cell(1, 1).className).not.toContain('bg-red-700');
+  });
+
+  it('paints every cell as a heat map, from green to red, with the level that the backend gives each one', () => {
+    setup();
+    expect(cell(1, 1).className).toContain('bg-green-300'); // 1 → Bajo
+    expect(cell(2, 3).className).toContain('bg-yellow-300'); // 6 → Moderado
+    expect(cell(4, 3).className).toContain('bg-orange-400'); // 12 → Alto
+    expect(cell(5, 5).className).toContain('bg-red-400'); // 25 → Crítico
   });
 
   it('paints a saved cell of an unknown level neutral, not as a failure', () => {
     setup({ saved: { likelihood: 1, impact: 1, level: null } });
     expect(cell(1, 1).className).not.toContain('bg-red');
+    expect(cell(1, 1).className).toContain('bg-gray-300');
   });
 
   it('picks the cell that is clicked when it is editable, and tells which one', () => {

@@ -8,7 +8,7 @@ import { SessionService } from '@core/domain/services/session.service';
 import { ComplianceOverview, OverviewCategory, OverviewFramework } from '../../../domain/models/overview.models';
 import { OverviewService } from '../../../domain/services/overview.service';
 import { RiskService } from '../../../domain/services/risk.service';
-import { provideCatalogStub } from '../../../testing/catalog-options';
+import { RISK_MATRIX, provideCatalogStub } from '../../../testing/catalog-options';
 import { OverviewView } from './overview';
 
 const DEFINED = { catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: '2026-10-14' };
@@ -35,7 +35,8 @@ describe('OverviewView', () => {
 
   function setup(role: string, frameworks: OverviewFramework[], result: 'ok' | 'error' | 'pending' = 'ok'): OverviewView {
     api = jasmine.createSpyObj<OverviewService>('OverviewService', ['get']);
-    riskApi = jasmine.createSpyObj<RiskService>('RiskService', ['listAllRisks']);
+    riskApi = jasmine.createSpyObj<RiskService>('RiskService', ['listAllRisks', 'matrix']);
+    riskApi.matrix.and.returnValue(of(RISK_MATRIX));
     riskApi.listAllRisks.and.returnValue(of([]));
     api.get.and.returnValue(result === 'error' ? throwError(() => new Error('x')) : result === 'pending' ? NEVER : of({ service_id: 's1', frameworks } as ComplianceOverview));
     TestBed.configureTestingModule({

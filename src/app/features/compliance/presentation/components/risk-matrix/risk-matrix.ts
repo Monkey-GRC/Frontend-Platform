@@ -1,8 +1,11 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError, of } from 'rxjs';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { riskLevelLook } from '../risk-level-badge/risk-level-badge';
+import { RiskMatrixData } from '../../../domain/models/risk.models';
+import { RiskService } from '../../../domain/services/risk.service';
+import { riskLevelHeat } from '../risk-level-badge/risk-level-badge';
 
 export interface MatrixCell {
   likelihood: number;
@@ -66,8 +69,16 @@ export class RiskMatrix {
     return !!s && s.likelihood === l && s.impact === i;
   }
 
-  protected savedChip(): string {
-    return riskLevelLook(this.saved()?.level).chip;
+  // El nivel de cada casilla lo sirve el backend (`GET /risk-matrix`): todas las casillas se pintan de verde a rojo y la guardada, con el tono intenso de su nivel.
+  private readonly matrix = toSignal(inject(RiskService).matrix().pipe(catchError(() => of(null as RiskMatrixData | null))), { initialValue: null as RiskMatrixData | null });
+  private readonly served = computed(() => new Map((this.matrix()?.cells ?? []).map((c) => [`${c.likelihood}-${c.impact}`, c.level])));
+
+  protected soft(l: number, i: number): string {
+    return riskLevelHeat(this.served().get(`${l}-${i}`)).soft;
+  }
+
+  protected savedTone(): string {
+    return riskLevelHeat(this.saved()?.level).solid;
   }
 
   protected isStop(l: number, i: number): boolean {

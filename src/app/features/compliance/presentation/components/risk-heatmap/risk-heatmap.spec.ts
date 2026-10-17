@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
+import { throwError } from 'rxjs';
+import { RiskService } from '../../../domain/services/risk.service';
 import { RiskListItem } from '../../../domain/models/risk.models';
-import { provideCatalogStub } from '../../../testing/catalog-options';
+import { provideCatalogStub, provideRiskMatrixStub } from '../../../testing/catalog-options';
 import { RiskHeatmap } from './risk-heatmap';
 
 const risk = (id: string, likelihood: number | null, impact: number | null, level: string | null): RiskListItem => ({
@@ -14,7 +16,7 @@ describe('RiskHeatmap', () => {
   let fixture: ComponentFixture<RiskHeatmap>;
 
   function setup(risks: RiskListItem[]): void {
-    TestBed.configureTestingModule({ imports: [RiskHeatmap], providers: [provideTranslateService(), provideRouter([]), provideCatalogStub()] });
+    TestBed.configureTestingModule({ imports: [RiskHeatmap], providers: [provideTranslateService(), provideRouter([]), provideCatalogStub(), provideRiskMatrixStub()] });
     fixture = TestBed.createComponent(RiskHeatmap);
     fixture.componentRef.setInput('risks', risks);
     fixture.componentRef.setInput('serviceId', 's1');
@@ -32,10 +34,46 @@ describe('RiskHeatmap', () => {
     expect(cell(1, 1).getAttribute('data-count')).toBe('0');
   });
 
-  it('colours an occupied cell with the level the server gave its risks, and leaves the empty ones neutral', () => {
-    setup([risk('r1', 5, 5, 'critical')]);
-    expect(cell(5, 5).className).toContain('red');
-    expect(cell(1, 1).className).not.toContain('red');
+  it('is a heat map: every cell has the colour of its level, green the best and red the worst, even with no risks', () => {
+    setup([]);
+    expect(cell(1, 1).className).toContain('bg-green-300');
+    expect(cell(2, 3).className).toContain('bg-yellow-300');
+    expect(cell(4, 3).className).toContain('bg-orange-400');
+    expect(cell(5, 5).className).toContain('bg-red-400');
+  });
+
+  it('shows the value of each empty cell (likelihood × impact), as the committee draws it', () => {
+    setup([]);
+    expect(cell(4, 4).textContent!.trim()).toBe('16');
+    expect(cell(5, 5).textContent!.trim()).toBe('25');
+    expect(cell(1, 1).textContent!.trim()).toBe('1');
+  });
+
+  it('an occupied cell takes the strong tone of its level and shows how many risks are in it', () => {
+    setup([risk('r1', 5, 5, 'critical'), risk('r2', 1, 2, 'low')]);
+    expect(cell(5, 5).className).toContain('bg-red-700');
+    expect(cell(5, 5).textContent!.trim()).toBe('1');
+    expect(cell(1, 2).className).toContain('bg-green-700');
+    expect(cell(5, 4).className).toContain('bg-red-400');
+  });
+
+  it('if the matrix cannot be loaded it still shows the risks, with the level the server gave them, and the other cells stay neutral', () => {
+    TestBed.configureTestingModule({
+      imports: [RiskHeatmap],
+      providers: [provideTranslateService(), provideRouter([]), provideCatalogStub(), { provide: RiskService, useValue: { matrix: () => throwError(() => new Error('x')) } }],
+    });
+    fixture = TestBed.createComponent(RiskHeatmap);
+    fixture.componentRef.setInput('risks', [risk('r1', 5, 5, 'critical')]);
+    fixture.componentRef.setInput('serviceId', 's1');
+    fixture.detectChanges();
+    expect(cell(5, 5).className).toContain('bg-red-700');
+    expect(cell(1, 1).className).toContain('bg-gray-50');
+    expect(cell(1, 1).textContent!.trim()).toBe('');
+  });
+
+  it('draws a legend with the four levels, from the lowest to the highest', () => {
+    setup([]);
+    expect(Array.from(el().querySelectorAll('[data-legend] li')).map((li) => li.textContent!.trim())).toEqual(['Bajo', 'Moderado', 'Alto', 'Crítico']);
   });
 
   it('says how many risks are evaluated and how many are not, without any average', () => {

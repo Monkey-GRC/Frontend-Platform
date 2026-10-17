@@ -22,6 +22,21 @@ export function riskLevelLook(level: string | null | undefined): Look {
   return LOOKS[level ?? ''] ?? UNEVALUATED;
 }
 
+// El mapa de calor (verde → amarillo → naranja → rojo, de lo mejor a lo peor). Cada casilla tiene dos tonos: el suave pinta la casilla vacía y el intenso la que tiene
+// riesgos, así que lo ocupado se distingue de un vistazo. El color nunca va solo: la casilla lleva su número y, fuera de ella, la leyenda con el nombre de cada nivel.
+const HEAT: Record<string, { soft: string; solid: string }> = {
+  low: { soft: 'border-green-400 bg-green-300 text-green-950 dark:border-green-500 dark:bg-green-600 dark:text-white', solid: 'border-green-800 bg-green-700 text-white' },
+  moderate: { soft: 'border-yellow-400 bg-yellow-300 text-yellow-950 dark:border-yellow-500 dark:bg-yellow-500 dark:text-yellow-950', solid: 'border-yellow-600 bg-yellow-500 text-yellow-950' },
+  high: { soft: 'border-orange-500 bg-orange-400 text-orange-950 dark:border-orange-500 dark:bg-orange-500 dark:text-white', solid: 'border-orange-800 bg-orange-600 text-white' },
+  critical: { soft: 'border-red-500 bg-red-400 text-red-950 dark:border-red-500 dark:bg-red-600 dark:text-white', solid: 'border-red-900 bg-red-700 text-white' },
+};
+const HEAT_NEUTRAL = { soft: 'border-gray-200 bg-gray-50 text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300', solid: 'border-gray-400 bg-gray-300 text-gray-900' };
+
+/** Los dos tonos de una casilla del mapa de calor según su nivel; un nivel desconocido (o sin dato) sale neutro. */
+export function riskLevelHeat(level: string | null | undefined): { soft: string; solid: string } {
+  return HEAT[level ?? ''] ?? HEAT_NEUTRAL;
+}
+
 @Component({
   selector: 'app-risk-level-badge',
   imports: [TranslatePipe],

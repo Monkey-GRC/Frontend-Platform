@@ -81,7 +81,8 @@
       "EMPTY": "Aún no hay riesgos evaluados. Evalúa un riesgo (probabilidad e impacto) y aparecerá aquí.",
       "HINT": "Pulsa una casilla para ver sus riesgos.",
       "RESIDUAL_NOTE": "La matriz residual se mostrará cuando existan los datos de la fórmula de mitigación.",
-      "CELL_ARIA": "Probabilidad {{likelihood}}, impacto {{impact}}: {{count}} riesgos"
+      "CELL_ARIA": "Probabilidad {{likelihood}}, impacto {{impact}}: {{count}} riesgos",
+      "LEGEND": "Niveles de riesgo, de menor a mayor"
     },
     "ENTRY": {
       "LOAD_ERROR_TITLE": "No se pudieron cargar los servicios",
