@@ -7,6 +7,7 @@ import { convertToParamMap } from '@angular/router';
 import { SessionService } from '@core/domain/services/session.service';
 import { ComplianceOverview, OverviewCategory, OverviewFramework } from '../../../domain/models/overview.models';
 import { OverviewService } from '../../../domain/services/overview.service';
+import { RiskService } from '../../../domain/services/risk.service';
 import { provideCatalogStub } from '../../../testing/catalog-options';
 import { OverviewView } from './overview';
 
@@ -29,16 +30,20 @@ const technical = (state: 'compliant' | 'non_compliant' | 'evaluating') => ({ st
 
 describe('OverviewView', () => {
   let api: jasmine.SpyObj<OverviewService>;
+  let riskApi: jasmine.SpyObj<RiskService>;
   let fixture: ComponentFixture<OverviewView>;
 
   function setup(role: string, frameworks: OverviewFramework[], result: 'ok' | 'error' | 'pending' = 'ok'): OverviewView {
     api = jasmine.createSpyObj<OverviewService>('OverviewService', ['get']);
+    riskApi = jasmine.createSpyObj<RiskService>('RiskService', ['listAllRisks']);
+    riskApi.listAllRisks.and.returnValue(of([]));
     api.get.and.returnValue(result === 'error' ? throwError(() => new Error('x')) : result === 'pending' ? NEVER : of({ service_id: 's1', frameworks } as ComplianceOverview));
     TestBed.configureTestingModule({
       imports: [OverviewView],
       providers: [
         provideTranslateService(), provideRouter([]), provideCatalogStub(),
         { provide: OverviewService, useValue: api },
+        { provide: RiskService, useValue: riskApi },
         { provide: ActivatedRoute, useValue: { parent: { paramMap: new BehaviorSubject(convertToParamMap({ id: 's1' })) } } },
       ],
     });
@@ -140,6 +145,18 @@ describe('OverviewView', () => {
     });
     setup('admin_empresa', [framework({ categories: [security], technical: technical('non_compliant') })]);
     expect(q('[data-attention]')!.textContent).toContain('COMPLIANCE.OVERVIEW.TESTS');
+  });
+
+  it('shows the inherent matrix of the service with the risks that were evaluated', () => {
+    const evaluated = { id: 'r1', code: 'R001', name: 'Acceso', trust_criterion: 'security', origin: 'catalog' as const, is_active: true, likelihood: 4, impact: 4, inherent_risk_value: 16, inherent_risk_level: 'high', treatment: null, causes_count: 1 };
+    setup('admin_empresa', [framework({ technical: technical('non_compliant') })]);
+    expect(q('[data-heatmap-empty]')).not.toBeNull(); // sin riesgos evaluados lo dice, no pinta una matriz verde
+    riskApi.listAllRisks.and.returnValue(of([evaluated]));
+    fixture.componentInstance.load();
+    fixture.detectChanges();
+    expect(q('[data-heatmap-section]')).not.toBeNull();
+    expect(q('[data-cell="4-4"]')!.getAttribute('data-count')).toBe('1');
+    expect(riskApi.listAllRisks).toHaveBeenCalledWith('s1', 'technical');
   });
 
   it('says so when the service has no framework yet', () => {

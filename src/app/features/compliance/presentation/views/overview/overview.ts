@@ -9,10 +9,13 @@ import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
 import { COMPLIANCE_ROUTE } from '../../../domain/models/compliance.models';
+import { RiskListItem } from '../../../domain/models/risk.models';
 import { FailingAffected, OverviewCategory, OverviewFailingControl, OverviewFramework, OverviewReadiness, RollupState } from '../../../domain/models/overview.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { OverviewService } from '../../../domain/services/overview.service';
+import { RiskService } from '../../../domain/services/risk.service';
 import { ProgressRing, RingTone } from '../../components/progress-ring/progress-ring';
+import { RiskHeatmap } from '../../components/risk-heatmap/risk-heatmap';
 
 type Stage = 'loading' | 'error' | 'ready';
 type Tone = 'green' | 'amber' | 'red' | 'gray';
@@ -55,13 +58,14 @@ const ICON_CLASS: Record<Tone, string> = {
 // vencido nunca cuenta como cumplido, y sin resultados no se inventa ningún porcentaje. El cumplimiento se mide por servicio × marco; nunca hay un total de la empresa.
 @Component({
   selector: 'app-overview',
-  imports: [TranslatePipe, RouterLink, StatusBadge, LoadingSpinner, ProgressRing],
+  imports: [TranslatePipe, RouterLink, StatusBadge, LoadingSpinner, ProgressRing, RiskHeatmap],
   templateUrl: './overview.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OverviewView {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(OverviewService);
+  private readonly riskApi = inject(RiskService);
   private readonly catalogs = inject(CatalogService);
   private readonly language = inject(LanguageService);
   readonly view = inject(ComplianceViewService);
@@ -73,6 +77,9 @@ export class OverviewView {
   readonly stage = signal<Stage>('loading');
   readonly frameworks = signal<OverviewFramework[]>([]);
   readonly pickedCode = signal<string | null>(null);
+  /** Los riesgos del servicio, para la matriz inherente; 
+ull mientras llegan o si no se pudieron leer (la matriz solo se muestra con ellos). */
+  readonly risks = signal<RiskListItem[] | null>(null);
 
   // Los nombres de las categorías y de las dimensiones salen del catálogo del backend (según el idioma de la sesión); aquí no hay listas escritas a mano.
   private readonly criteria = signal<CatalogOption[]>([]);
@@ -162,6 +169,8 @@ export class OverviewView {
   load(): void {
     const seq = ++this.requestSeq;
     this.stage.set('loading');
+    this.risks.set(null);
+    this.riskApi.listAllRisks(this.serviceId(), this.view.viewParam()).subscribe({ next: (list) => seq === this.requestSeq && this.risks.set(list), error: () => undefined });
     this.api.get(this.serviceId(), this.view.viewParam()).subscribe({
       next: (overview) => {
         if (seq !== this.requestSeq) return;

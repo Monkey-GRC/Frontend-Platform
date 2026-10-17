@@ -15,6 +15,7 @@ export const COMPLIANCE_OPTIONS: Record<string, CatalogOption[]> = {
   risk_criterion: [option('confidentiality', 'Confidencialidad'), option('integrity', 'Integridad'), option('security', 'Seguridad')],
   failure_category: [option('human_resource', 'Recurso humano'), option('processes', 'Procesos')],
   loss_type: [option('reputational', 'Reputacional'), option('financial_loss', 'Pérdida financiera')],
+  risk_level: [option('low', 'Bajo'), option('moderate', 'Moderado'), option('high', 'Alto'), option('critical', 'Crítico')],
   risk_scale: ['1', '2', '3', '4', '5'].map((v) => option(v, v)),
 };
 
