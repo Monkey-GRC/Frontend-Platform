@@ -98,6 +98,10 @@ export const routes: Routes = [
             data: { titleKey: 'COMPLIANCE.GLOSSARY.EVIDENCE', icon: 'upload_file' },
             loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
           },
+          {
+            path: 'exclusiones',
+            loadComponent: () => import('@features/compliance/presentation/views/exclusions/exclusions').then(m => m.ExclusionsView),
+          },
         ],
       },
       // Enlace de la pantalla anterior (el paso «control técnico» ya no existe como pantalla aparte).

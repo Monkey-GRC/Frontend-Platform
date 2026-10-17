@@ -80,9 +80,9 @@ describe('ComplianceShellView', () => {
     expect(text()).toContain('COMPLIANCE.SHELL.TITLE');
   });
 
-  it('has the five tabs in the order of the GRC chain: risks, causes, controls, evidence', () => {
+  it('has the tabs in the order of the GRC chain: risks, causes, controls, evidence, and the exclusions last', () => {
     const shell = setup('admin_empresa');
-    expect(shell.tabs.map((t) => t.path)).toEqual(['resumen', 'riesgos', 'causas', 'controles', 'evidencias']);
+    expect(shell.tabs.map((t) => t.path)).toEqual(['resumen', 'riesgos', 'causas', 'controles', 'evidencias', 'exclusiones']);
   });
 
   it('goes to the first real tab, Risks, when it switches service from a url with no tab', () => {

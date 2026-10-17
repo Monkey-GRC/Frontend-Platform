@@ -24,4 +24,7 @@ export class ComplianceViewService {
 
   /** Solo el administrador de la empresa crea, vincula y da de baja riesgos y causas; el resto de roles solo lee (compliance-risks.md → «Quién puede qué»). */
   readonly canManage = computed(() => this.role() === 'admin_empresa');
+
+  /** Solo el consultor decide una exclusión: quien se evalúa no aprueba lo que se le deja de medir (D78). */
+  readonly canDecide = computed(() => this.role() === 'consultor');
 }

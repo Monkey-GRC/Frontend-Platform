@@ -9,6 +9,7 @@ export const COMPLIANCE_TABS = [
   { path: 'causas', labelKey: 'COMPLIANCE.GLOSSARY.CAUSES', icon: 'troubleshoot' },
   { path: 'controles', labelKey: 'COMPLIANCE.GLOSSARY.CONTROLS', icon: 'shield' },
   { path: 'evidencias', labelKey: 'COMPLIANCE.GLOSSARY.EVIDENCE', icon: 'upload_file' },
+  { path: 'exclusiones', labelKey: 'COMPLIANCE.TABS.EXCLUSIONS', icon: 'block' },
 ] as const;
 
 // La pestaña por la que se entra mientras el Resumen (MD-140) no exista: la primera del recorrido que ya es real.
