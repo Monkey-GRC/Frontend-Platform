@@ -7,7 +7,8 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { EXCLUSION_STATUSES, Exclusion, ExclusionStatus } from '../../../domain/models/exclusion.models';
+import { CatalogService } from '@shared/domain/services/catalog.service';
+import { Exclusion, ExclusionStatus } from '../../../domain/models/exclusion.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { ExclusionService } from '../../../domain/services/exclusion.service';
@@ -35,7 +36,8 @@ export class ExclusionsView implements OnInit {
   private readonly params = toSignal(this.route.parent!.paramMap, { requireSync: true });
   readonly serviceId = computed(() => this.params().get('id') ?? '');
 
-  readonly statuses = EXCLUSION_STATUSES;
+  // Los estados de una exclusión salen del backend (enum de Postgres `exclusion_status`).
+  readonly statuses = toSignal(inject(CatalogService).options('exclusion_status'), { initialValue: [] });
   readonly stage = signal<Stage>('loading');
   readonly all = signal<Exclusion[]>([]);
   readonly filter = signal<ExclusionStatus | null>(null);

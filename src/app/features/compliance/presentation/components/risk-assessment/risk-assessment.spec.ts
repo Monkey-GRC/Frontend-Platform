@@ -1,3 +1,4 @@
+import { COMPLIANCE_OPTIONS, provideCatalogStub } from '../../../testing/catalog-options';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
@@ -33,7 +34,7 @@ describe('RiskAssessment', () => {
     responsibles.list.and.returnValue(of([CISO]));
     TestBed.configureTestingModule({
       imports: [RiskAssessment],
-      providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: RiskService, useValue: api }, { provide: ResponsibleService, useValue: responsibles }],
+      providers: [provideCatalogStub(), provideTranslateService({ fallbackLang: 'es' }), { provide: RiskService, useValue: api }, { provide: ResponsibleService, useValue: responsibles }],
     });
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('es', { COMPLIANCE: { TREATMENT_DECISION: { MITIGATE: 'Mitigar' }, RESPONSIBLE_TYPE: { CISO: 'CISO' }, RISK_LEVEL: { HIGH: 'Alto' } } });
@@ -90,8 +91,9 @@ describe('RiskAssessment', () => {
     api.evaluate.and.returnValue(of(entry(3, 4)));
     click('[data-test-start-evaluation]');
     expect(el().querySelector<HTMLButtonElement>('[data-test-save-evaluation]')!.disabled).toBeTrue();
-    pick('[data-test-likelihood]', '3');
-    pick('[data-test-impact]', '4');
+    expect(el().querySelector('[data-test-picked]')!.textContent).toContain('COMPLIANCE.RISK_ASSESSMENT.PICK_PROMPT');
+    click('[data-cell="3-4"]');
+    expect(el().querySelector('[data-test-picked]')!.textContent).toContain('COMPLIANCE.RISK_ASSESSMENT.PICKED');
     expect(el().querySelector<HTMLButtonElement>('[data-test-save-evaluation]')!.disabled).toBeFalse();
     click('[data-test-save-evaluation]');
     expect(api.evaluate).toHaveBeenCalledOnceWith('r1', 3, 4);
@@ -99,12 +101,37 @@ describe('RiskAssessment', () => {
     expect(text()).toContain('COMPLIANCE.RISK_ASSESSMENT.EVALUATED');
   });
 
+  it('shows where an evaluated risk falls on the matrix, painted with the level the server returned', () => {
+    setup(EVALUATED);
+    const cell = el().querySelector('[data-test-position] [data-cell="3-4"]')!;
+    expect(cell.getAttribute('aria-current')).toBe('true');
+    expect(cell.className).toContain('bg-orange-50');
+    expect(el().querySelectorAll('[data-test-position] [data-cell][aria-current="true"]').length).toBe(1);
+  });
+
+  it('does not show a position for a risk that has not been evaluated', () => {
+    setup(RISK);
+    expect(el().querySelector('[data-test-position]')).toBeNull();
+  });
+
+  it('starts the form on the saved cell when evaluating again, so a small change is one click away', () => {
+    setup(EVALUATED);
+    click('[data-test-start-evaluation]');
+    expect(el().querySelector('[data-test-picked]')!.textContent).toContain('COMPLIANCE.RISK_ASSESSMENT.PICKED');
+    expect(el().querySelector('[data-cell="3-4"]')!.getAttribute('aria-pressed')).toBe('true');
+  });
+  it('offers the treatment decisions that the backend serves', () => {
+    setup(EVALUATED);
+    click('[data-test-start-treatment]');
+    const options = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-decision] option')).map((o) => o.value).filter(Boolean);
+    expect(options).toEqual(COMPLIANCE_OPTIONS['risk_treatment_decision'].map((o) => o.value));
+  });
+
   it('shows the message of the server when the evaluation is refused', () => {
     setup(RISK);
     api.evaluate.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Este riesgo está dado de baja.' } })));
     click('[data-test-start-evaluation]');
-    pick('[data-test-likelihood]', '2');
-    pick('[data-test-impact]', '2');
+    click('[data-cell="2-2"]');
     click('[data-test-save-evaluation]');
     expect(text()).toContain('Este riesgo está dado de baja.');
     expect(changed).toBe(0);

@@ -52,5 +52,18 @@ export type CatalogName =
   | 'connection_method'
   | 'aws_region'
   | 'resource_kind'
+  // Cumplimiento (compliance-catalogs.ts del Backend): salen de los enums de Postgres
+  | 'risk_criterion'
+  | 'failure_category'
+  | 'risk_level'
+  | 'risk_treatment_decision'
+  | 'responsible_type'
+  | 'cause_control_effect'
+  | 'exclusion_status'
+  | 'dimension'
+  | 'control_type'
+  | 'catalog_origin'
+  | 'loss_type'
+  | 'risk_scale'
   // Las regiones de una plataforma (`aws_region`…) salen de la base (D67): una plataforma nueva con regiones no exige cambiar esta lista.
   | `${string}_region`;

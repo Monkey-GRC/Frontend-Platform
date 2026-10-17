@@ -212,8 +212,6 @@
       "SCORE": "Probabilidad {{likelihood}} × impacto {{impact}} = {{value}}",
       "EVALUATE": "Evaluar",
       "RE_EVALUATE": "Evaluar de nuevo",
-      "LIKELIHOOD": "Probabilidad (1 a 5)",
-      "IMPACT": "Impacto (1 a 5)",
       "SELECT": "Selecciona",
       "SAVE_EVALUATION": "Guardar evaluación",
       "SAVING": "Guardando…",
@@ -232,7 +230,14 @@
       "DUE_DATE": "Fecha límite",
       "NO_RESPONSIBLES": "Aún no hay cargos responsables en la organización. Hace falta crear uno para poder asignar el tratamiento.",
       "SAVE_TREATMENT": "Guardar tratamiento",
-      "TREATED": "Tratamiento registrado."
+      "TREATED": "Tratamiento registrado.",
+      "MATRIX_TITLE": "Matriz de riesgo 5×5",
+      "MATRIX_LIKELIHOOD": "Probabilidad",
+      "MATRIX_IMPACT": "Impacto",
+      "MATRIX_HINT": "Elige la casilla con la probabilidad (vertical) y el impacto (horizontal). El nivel lo calcula el sistema al guardar.",
+      "CELL_ARIA": "Probabilidad {{likelihood}}, impacto {{impact}}",
+      "PICKED": "Elegiste probabilidad {{likelihood}} × impacto {{impact}}.",
+      "PICK_PROMPT": "Aún no eliges una casilla."
     },
     "TREATMENT_DECISION": {
       "MITIGATE": "Mitigar",

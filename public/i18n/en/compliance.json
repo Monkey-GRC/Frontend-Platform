@@ -212,8 +212,6 @@
       "SCORE": "Likelihood {{likelihood}} × impact {{impact}} = {{value}}",
       "EVALUATE": "Evaluate",
       "RE_EVALUATE": "Evaluate again",
-      "LIKELIHOOD": "Likelihood (1 to 5)",
-      "IMPACT": "Impact (1 to 5)",
       "SELECT": "Select",
       "SAVE_EVALUATION": "Save evaluation",
       "SAVING": "Saving…",
@@ -232,7 +230,14 @@
       "DUE_DATE": "Due date",
       "NO_RESPONSIBLES": "The organization has no responsible roles yet. One must be created before a treatment can be assigned.",
       "SAVE_TREATMENT": "Save treatment",
-      "TREATED": "Treatment recorded."
+      "TREATED": "Treatment recorded.",
+      "MATRIX_TITLE": "5×5 risk matrix",
+      "MATRIX_LIKELIHOOD": "Likelihood",
+      "MATRIX_IMPACT": "Impact",
+      "MATRIX_HINT": "Pick the cell with the likelihood (vertical) and the impact (horizontal). The system calculates the level when you save.",
+      "CELL_ARIA": "Likelihood {{likelihood}}, impact {{impact}}",
+      "PICKED": "You picked likelihood {{likelihood}} × impact {{impact}}.",
+      "PICK_PROMPT": "You have not picked a cell yet."
     },
     "TREATMENT_DECISION": {
       "MITIGATE": "Mitigate",

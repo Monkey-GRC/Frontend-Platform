@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { RESPONSIBLE_TYPES, Responsible } from '../../../domain/models/risk.models';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { CatalogService } from '@shared/domain/services/catalog.service';
+import { Responsible } from '../../../domain/models/risk.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { ResponsibleService } from '../../../domain/services/responsible.service';
@@ -26,7 +28,8 @@ export class ResponsiblesView implements OnInit {
   readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
 
-  readonly types = RESPONSIBLE_TYPES;
+  // Los tipos de cargo salen del backend (enum de Postgres `responsible_type`).
+  readonly types = toSignal(inject(CatalogService).options('responsible_type'), { initialValue: [] });
 
   readonly stage = signal<Stage>('loading');
   readonly items = signal<Responsible[]>([]);

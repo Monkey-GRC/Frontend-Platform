@@ -17,6 +17,11 @@ const LOOKS: Record<string, Look> = {
 };
 const UNEVALUATED: Look = { icon: 'hourglass_empty', chip: 'bg-transparent text-gray-700 border border-dashed border-gray-400 dark:text-gray-300 dark:border-gray-500' };
 
+/** El aspecto (ícono y clases de color) de un nivel; un riesgo sin evaluar (o un nivel desconocido) sale neutro. Lo comparten la etiqueta y la matriz 5×5. */
+export function riskLevelLook(level: string | null | undefined): Look {
+  return LOOKS[level ?? ''] ?? UNEVALUATED;
+}
+
 @Component({
   selector: 'app-risk-level-badge',
   imports: [TranslatePipe],

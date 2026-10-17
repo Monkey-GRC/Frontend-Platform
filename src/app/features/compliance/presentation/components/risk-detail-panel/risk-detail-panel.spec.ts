@@ -1,3 +1,4 @@
+import { provideCatalogStub } from '../../../testing/catalog-options';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
@@ -25,7 +26,7 @@ describe('RiskDetailPanel', () => {
     api = jasmine.createSpyObj<RiskService>('RiskService', ['getRisk', 'listAllCauses', 'linkCause', 'unlinkCause', 'deactivateRisk']);
     api.getRisk.and.returnValue(of(detail));
     api.listAllCauses.and.returnValue(of([cause('c1'), cause('c2'), cause('c3', false)]));
-    TestBed.configureTestingModule({ imports: [RiskDetailPanel], providers: [provideTranslateService(), { provide: RiskService, useValue: api }, { provide: ResponsibleService, useValue: jasmine.createSpyObj<ResponsibleService>('ResponsibleService', ['list']) }] });
+    TestBed.configureTestingModule({ imports: [RiskDetailPanel], providers: [provideCatalogStub(), provideTranslateService(), { provide: RiskService, useValue: api }, { provide: ResponsibleService, useValue: jasmine.createSpyObj<ResponsibleService>('ResponsibleService', ['list']) }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(RiskDetailPanel);
     fixture.componentRef.setInput('riskId', detail.id);
