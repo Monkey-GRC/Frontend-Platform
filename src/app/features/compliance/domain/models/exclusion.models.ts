@@ -3,8 +3,6 @@
 
 export type ExclusionStatus = 'pending' | 'approved' | 'rejected';
 
-export const EXCLUSION_STATUSES: readonly ExclusionStatus[] = ['pending', 'approved', 'rejected'];
-
 export interface ExclusionPerson {
   id: string;
   name: string | null;

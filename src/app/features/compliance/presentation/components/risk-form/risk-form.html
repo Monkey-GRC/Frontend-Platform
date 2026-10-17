@@ -1,0 +1,55 @@
+<app-side-panel [titleKey]="'COMPLIANCE.RISK_FORM.TITLE_' + (editing() ? 'EDIT_' : 'NEW_') + kind().toUpperCase()" (closed)="closed.emit()">
+  <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
+
+    @if (banner(); as b) {
+    <div class="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300" role="alert" data-banner>
+      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ b }}</span>
+    </div>
+    }
+
+    <label class="flex flex-col gap-1.5 text-sm font-medium text-gray-900 dark:text-white">
+      {{ 'COMPLIANCE.RISK_FORM.NAME' | translate }}
+      <input type="text" name="name" data-field="name" [value]="name()" (input)="name.set($any($event.target).value)" maxlength="200"
+        class="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+      @if (errors()['name']; as e) {<span class="text-xs font-normal text-error-600" data-error="name">{{ e }}</span>}
+    </label>
+
+    <label class="flex flex-col gap-1.5 text-sm font-medium text-gray-900 dark:text-white">
+      {{ 'COMPLIANCE.RISK_FORM.DESCRIPTION' | translate }}
+      <textarea name="description" data-field="description" rows="4" [value]="description()" (input)="description.set($any($event.target).value)"
+        class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-normal text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"></textarea>
+      @if (errors()['description']; as e) {<span class="text-xs font-normal text-error-600" data-error="description">{{ e }}</span>}
+    </label>
+
+    <label class="flex flex-col gap-1.5 text-sm font-medium text-gray-900 dark:text-white">
+      {{ (kind() === 'risk' ? 'COMPLIANCE.RISK_FORM.CRITERION' : 'COMPLIANCE.RISK_FORM.CATEGORY') | translate }}
+      <select name="group" data-field="group" (change)="group.set($any($event.target).value)"
+        class="h-10 rounded-lg border border-gray-300 bg-white px-2 text-sm font-normal text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+        <option value="" [selected]="!group()">{{ 'COMPLIANCE.RISK_FORM.CHOOSE' | translate }}</option>
+        @for (o of groups(); track o.value) { <option [value]="o.value" [selected]="group() === o.value">{{ o.label }}</option> }
+      </select>
+      @if (errors()[groupField()]; as e) {<span class="text-xs font-normal text-error-600" data-error="group">{{ e }}</span>}
+    </label>
+
+    @if (kind() === 'risk') {
+    <fieldset class="flex flex-col gap-2">
+      <legend class="mb-1 text-sm font-medium text-gray-900 dark:text-white">{{ 'COMPLIANCE.RISK_FORM.IMPACT' | translate }}</legend>
+      <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_FORM.IMPACT_HINT' | translate }}</p>
+      @for (o of losses(); track o.value) {
+      <label class="flex items-center gap-2 text-sm text-gray-800 dark:text-gray-200">
+        <input type="checkbox" [attr.data-impact]="o.value" [checked]="impacts().includes(o.value)" (change)="toggleImpact(o.value, $any($event.target).checked)"
+          class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30" />
+        {{ o.label }}
+      </label>
+      }
+      @if (errors()['potential_impact']; as e) {<span class="text-xs text-error-600" data-error="potential_impact">{{ e }}</span>}
+    </fieldset>
+    }
+  </form>
+
+  <button panelFooter type="button" (click)="closed.emit()" data-cancel class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+  <button panelFooter type="button" (click)="save()" [disabled]="!canSave()" data-save
+    class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
+    {{ (sending() ? 'COMPLIANCE.RISK_FORM.SAVING' : 'COMPLIANCE.RISK_FORM.SAVE') | translate }}
+  </button>
+</app-side-panel>

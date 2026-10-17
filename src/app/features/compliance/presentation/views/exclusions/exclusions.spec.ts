@@ -1,3 +1,4 @@
+import { COMPLIANCE_OPTIONS, provideCatalogStub } from '../../../testing/catalog-options';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
@@ -29,7 +30,7 @@ describe('ExclusionsView', () => {
     );
     TestBed.configureTestingModule({
       imports: [ExclusionsView],
-      providers: [
+      providers: [provideCatalogStub(), 
         provideTranslateService({ fallbackLang: 'es' }),
         { provide: ExclusionService, useValue: api },
         { provide: ActivatedRoute, useValue: { parent: { paramMap: of(convertToParamMap({ id: 's1' })) } } },
@@ -49,6 +50,12 @@ describe('ExclusionsView', () => {
     el().querySelector<HTMLButtonElement>(selector)!.click();
     fixture.detectChanges();
   };
+
+  it('builds the status filters from the statuses that the backend serves, with their labels', () => {
+    setup('consultor');
+    const filters = Array.from(el().querySelectorAll('[data-test-filter]')).map((b) => b.getAttribute('data-test-filter'));
+    expect(filters).toEqual(['all', ...COMPLIANCE_OPTIONS['exclusion_status'].map((o) => o.value)]);
+  });
 
   it('asks for the exclusions of the service of the route', () => {
     setup('consultor');

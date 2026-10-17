@@ -75,6 +75,21 @@ export interface Cause {
   controls: ControlLink[];
 }
 
+/** Lo que se manda para crear o editar un riesgo propio (`POST /services/{id}/risks`, `PATCH /risks/{id}`). */
+export interface RiskInput {
+  name: string;
+  description: string;
+  trust_criterion: string;
+  potential_impact: string[];
+}
+
+/** Lo que se manda para crear o editar una causa propia. */
+export interface CauseInput {
+  name: string;
+  description: string;
+  failure_category: string;
+}
+
 export interface Page<T> {
   items: T[];
   page: number;
@@ -91,10 +106,7 @@ export interface LinkedControl {
 }
 
 // Evaluación 5×5 y tratamiento de un riesgo (compliance-risks.md, MD-123). El valor y el nivel los calcula el servidor.
-export const RISK_SCALE: readonly number[] = [1, 2, 3, 4, 5];
-// enums.md `risk_treatment_decision`: el backend no lo sirve como catálogo, así que el formulario usa estos cuatro valores y el texto sale del i18n por valor.
-export const TREATMENT_DECISIONS: readonly string[] = ['mitigate', 'accept', 'transfer', 'avoid'];
-
+// Las listas (escala de la matriz, decisiones de tratamiento, tipos de cargo…) las sirve el backend en `GET /v1/catalogs/{nombre}`: no se escriben aquí.
 export interface RiskScore {
   likelihood: number;
   impact: number;
@@ -108,9 +120,6 @@ export interface RiskEvaluationEntry extends RiskScore {
   evaluated_by: { id: string; name: string | null; last_name: string | null } | null;
   evaluated_at: string;
 }
-
-// enums.md `responsible_type`: el backend no lo sirve como catálogo; el texto de cada valor sale del i18n.
-export const RESPONSIBLE_TYPES: readonly string[] = ['coo', 'it', 'compliance', 'process', 'ciso', 'asset_owner'];
 
 export interface Responsible {
   id: string;

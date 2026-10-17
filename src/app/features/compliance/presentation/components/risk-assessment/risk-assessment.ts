@@ -2,18 +2,21 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output, si
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
-import { RISK_SCALE, Responsible, RiskDetail, RiskEvaluationEntry, TREATMENT_DECISIONS } from '../../../domain/models/risk.models';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { CatalogService } from '@shared/domain/services/catalog.service';
+import { Responsible, RiskDetail, RiskEvaluationEntry } from '../../../domain/models/risk.models';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { ResponsibleService } from '../../../domain/services/responsible.service';
 import { RiskService } from '../../../domain/services/risk.service';
 import { RiskLevelBadge } from '../risk-level-badge/risk-level-badge';
+import { MatrixCell, MatrixPosition, RiskMatrix } from '../risk-matrix/risk-matrix';
 
 // La evaluación 5×5 de un riesgo y su tratamiento (MD-123). Cada evaluación y cada decisión se AGREGA (nunca pisa la anterior) y el servidor calcula el valor y el
 // nivel: aquí solo se eligen probabilidad e impacto de 1 a 5. Evalúa y trata el administrador de la empresa; los demás roles leen. El historial se pide al abrirlo,
 // porque no todos los roles pueden leerlo.
 @Component({
   selector: 'app-risk-assessment',
-  imports: [TranslatePipe, RiskLevelBadge],
+  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix],
   templateUrl: './risk-assessment.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -29,12 +32,23 @@ export class RiskAssessment {
   // Se evaluó o se trató: el riesgo cambió y quien lo muestra lo vuelve a pedir.
   readonly changed = output<void>();
 
-  readonly scale = RISK_SCALE;
-  readonly decisions = TREATMENT_DECISIONS;
+  // Las decisiones salen del backend (enum de Postgres `risk_treatment_decision`), con su texto en el idioma de la sesión.
+  readonly decisions = toSignal(inject(CatalogService).options('risk_treatment_decision'), { initialValue: [] });
   /** Hoy en UTC, que es el día contra el que el backend compara la fecha límite. */
   readonly today = new Date().toISOString().slice(0, 10);
 
   readonly evaluated = computed(() => this.risk().inherent_risk_value !== null);
+  /** Dónde cae el riesgo guardado en la matriz, con el nivel que devolvió el servidor. */
+  readonly position = computed<MatrixPosition | null>(() => {
+    const r = this.risk();
+    return r.likelihood !== null && r.impact !== null ? { likelihood: r.likelihood, impact: r.impact, level: r.inherent_risk_level } : null;
+  });
+  /** La casilla elegida en el formulario, aún sin guardar. */
+  readonly cell = computed<MatrixCell | null>(() => {
+    const l = this.likelihood();
+    const i = this.impact();
+    return l !== null && i !== null ? { likelihood: l, impact: i } : null;
+  });
 
   readonly saving = signal(false);
   readonly notice = signal<string | null>(null);
@@ -63,6 +77,11 @@ export class RiskAssessment {
     this.likelihood.set(this.risk().likelihood);
     this.impact.set(this.risk().impact);
     this.evaluating.set(true);
+  }
+
+  onCell(cell: MatrixCell): void {
+    this.likelihood.set(cell.likelihood);
+    this.impact.set(cell.impact);
   }
 
   cancelEvaluation(): void {

@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { Cause, LinkedControl, NewTreatment, Page, RiskDetail, RiskEvaluationEntry, RiskListItem, RiskTreatmentRecord } from '../models/risk.models';
+import { Cause, CauseInput, LinkedControl, RiskInput, NewTreatment, Page, RiskDetail, RiskEvaluationEntry, RiskListItem, RiskTreatmentRecord } from '../models/risk.models';
 
 const PAGE_SIZE = 100;
 
@@ -22,6 +22,24 @@ export class RiskService {
   /** Todas las causas del servicio. */
   listAllCauses(serviceId: string, view?: 'technical'): Observable<Cause[]> {
     return this.all<Cause>(`${this.base}/services/${serviceId}/causes`, view);
+  }
+
+  /** Crea un riesgo propio del servicio. Sin `code`, el servidor asigna el siguiente libre. */
+  createRisk(serviceId: string, body: RiskInput): Observable<RiskDetail> {
+    return this.http.post<SuccessResponse<RiskDetail>>(`${this.base}/services/${serviceId}/risks`, body).pipe(map((r) => r.data!));
+  }
+
+  /** Edita solo lo que se manda; la evaluación no se toca desde aquí. */
+  updateRisk(id: string, body: Partial<RiskInput>): Observable<RiskDetail> {
+    return this.http.patch<SuccessResponse<RiskDetail>>(`${this.base}/risks/${id}`, body).pipe(map((r) => r.data!));
+  }
+
+  createCause(serviceId: string, body: CauseInput): Observable<Cause> {
+    return this.http.post<SuccessResponse<Cause>>(`${this.base}/services/${serviceId}/causes`, body).pipe(map((r) => r.data!));
+  }
+
+  updateCause(id: string, body: Partial<CauseInput>): Observable<Cause> {
+    return this.http.patch<SuccessResponse<Cause>>(`${this.base}/causes/${id}`, body).pipe(map((r) => r.data!));
   }
 
   getRisk(id: string, view?: 'technical'): Observable<RiskDetail> {

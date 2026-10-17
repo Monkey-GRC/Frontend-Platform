@@ -18,9 +18,17 @@
 
 @default {
 <div class="flex flex-col gap-4">
-  <div>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+   <div>
     <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ (section() === 'risks' ? 'COMPLIANCE.GLOSSARY.RISKS' : 'COMPLIANCE.GLOSSARY.CAUSES') | translate }} <span class="font-normal text-gray-600 dark:text-gray-300">({{ current().length }})</span></h2>
     <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ (section() === 'risks' ? 'COMPLIANCE.RISKS.INTRO' : 'COMPLIANCE.RISKS.INTRO_CAUSES') | translate }}</p>
+   </div>
+   @if (view.canManage()) {
+   <button type="button" (click)="newItem()" data-new
+     class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:opacity-90 transition">
+     <span class="material-symbols-rounded text-[18px]" aria-hidden="true">add</span>{{ (section() === 'risks' ? 'COMPLIANCE.RISK_FORM.NEW_RISK' : 'COMPLIANCE.RISK_FORM.NEW_CAUSE') | translate }}
+   </button>
+   }
   </div>
 
   <div class="flex flex-col gap-3">
@@ -116,10 +124,13 @@
 </div>
 
 @if (selectedRisk(); as id) {
-<app-risk-detail-panel [riskId]="id" (closed)="closeRisk()" (changed)="refresh()" (openCause)="openCause($event)" />
+<app-risk-detail-panel [riskId]="id" (closed)="closeRisk()" (changed)="refresh()" (openCause)="openCause($event)" (edit)="editItem($event)" />
 }
 @if (selectedCause(); as id) {
-<app-cause-detail-panel [causeId]="id" (closed)="closeCause()" (changed)="refresh()" (openRisk)="openRisk($event)" />
+<app-cause-detail-panel [causeId]="id" (closed)="closeCause()" (changed)="refresh()" (openRisk)="openRisk($event)" (edit)="editItem($event)" />
+}
+@if (form(); as f) {
+<app-risk-form [kind]="section() === 'risks' ? 'risk' : 'cause'" [serviceId]="serviceId()" [existing]="f.existing" (saved)="onSaved($event)" (closed)="form.set(null)" />
 }
 }
 

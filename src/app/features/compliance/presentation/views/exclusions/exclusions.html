@@ -48,11 +48,11 @@
       [class]="filter() === null ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-700 hover:border-primary dark:border-gray-600 dark:text-gray-200'">
       {{ 'COMPLIANCE.EXCLUSIONS.ALL' | translate }} ({{ all().length }})
     </button>
-    @for (s of statuses; track s) {
-    <button type="button" (click)="filter.set(s)" [attr.aria-pressed]="filter() === s" [attr.data-test-filter]="s"
+    @for (s of statuses(); track s.value) {
+    <button type="button" (click)="filter.set($any(s.value))" [attr.aria-pressed]="filter() === s.value" [attr.data-test-filter]="s.value"
       class="rounded-full border px-3 py-1 text-xs font-medium transition"
-      [class]="filter() === s ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-700 hover:border-primary dark:border-gray-600 dark:text-gray-200'">
-      {{ labels.of('COMPLIANCE.EXCLUSION_STATUS', s) }} ({{ count(s) }})
+      [class]="filter() === s.value ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-700 hover:border-primary dark:border-gray-600 dark:text-gray-200'">
+      {{ s.label }} ({{ count($any(s.value)) }})
     </button>
     }
   </div>

@@ -23,6 +23,9 @@
     </div>
 
     @if (evaluated()) {
+    @if (!evaluating()) {
+    <div class="mt-3" data-test-position><app-risk-matrix [saved]="position()" /></div>
+    }
     <div class="mt-2 flex flex-wrap items-center gap-3">
       <app-risk-level-badge [level]="risk().inherent_risk_level" />
       <span class="text-sm text-gray-700 dark:text-gray-200" data-test-score>{{ 'COMPLIANCE.RISK_ASSESSMENT.SCORE' | translate: { likelihood: risk().likelihood, impact: risk().impact, value: risk().inherent_risk_value } }}</span>
@@ -33,24 +36,11 @@
 
     @if (evaluating()) {
     <div class="mt-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-      <div class="grid gap-3 sm:grid-cols-2">
-        <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-          {{ 'COMPLIANCE.RISK_ASSESSMENT.LIKELIHOOD' | translate }}
-          <select data-test-likelihood (change)="likelihood.set($any($event.target).value ? +$any($event.target).value : null)" [disabled]="saving()"
-            class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-            <option value="" [selected]="likelihood() === null">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
-            @for (n of scale; track n) {<option [value]="n" [selected]="likelihood() === n">{{ n }}</option>}
-          </select>
-        </label>
-        <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-          {{ 'COMPLIANCE.RISK_ASSESSMENT.IMPACT' | translate }}
-          <select data-test-impact (change)="impact.set($any($event.target).value ? +$any($event.target).value : null)" [disabled]="saving()"
-            class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-            <option value="" [selected]="impact() === null">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
-            @for (n of scale; track n) {<option [value]="n" [selected]="impact() === n">{{ n }}</option>}
-          </select>
-        </label>
-      </div>
+      <p class="mb-2 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_ASSESSMENT.MATRIX_HINT' | translate }}</p>
+      <app-risk-matrix [editable]="true" [disabled]="saving()" [selected]="cell()" [saved]="position()" (picked)="onCell($event)" />
+      <p class="mt-2 text-sm text-gray-800 dark:text-gray-100" data-test-picked>
+        @if (cell(); as c) { {{ 'COMPLIANCE.RISK_ASSESSMENT.PICKED' | translate: { likelihood: c.likelihood, impact: c.impact } }} } @else { {{ 'COMPLIANCE.RISK_ASSESSMENT.PICK_PROMPT' | translate }} }
+      </p>
       <div class="mt-3 flex items-center gap-3">
         <button type="button" (click)="saveEvaluation()" [disabled]="!canSaveEvaluation()" data-test-save-evaluation
           class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
@@ -131,7 +121,7 @@
           <select data-test-decision (change)="decision.set($any($event.target).value)" [disabled]="saving()"
             class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
             <option value="" [selected]="!decision()">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
-            @for (d of decisions; track d) {<option [value]="d" [selected]="decision() === d">{{ labels.of('COMPLIANCE.TREATMENT_DECISION', d) }}</option>}
+            @for (d of decisions(); track d.value) {<option [value]="d.value" [selected]="decision() === d.value">{{ d.label }}</option>}
           </select>
         </label>
         <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">

@@ -1,3 +1,4 @@
+import { COMPLIANCE_OPTIONS, provideCatalogStub } from '../../../testing/catalog-options';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
@@ -17,7 +18,7 @@ describe('ResponsiblesView', () => {
   function setup(role: string, items: Responsible[] | 'down' = [CISO, IT]): void {
     api = jasmine.createSpyObj<ResponsibleService>('ResponsibleService', ['list', 'create', 'rename', 'remove']);
     api.list.and.returnValue(items === 'down' ? throwError(() => new HttpErrorResponse({ status: 500 })) : of(items));
-    TestBed.configureTestingModule({ imports: [ResponsiblesView], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: ResponsibleService, useValue: api }] });
+    TestBed.configureTestingModule({ imports: [ResponsiblesView], providers: [provideCatalogStub(), provideTranslateService({ fallbackLang: 'es' }), { provide: ResponsibleService, useValue: api }] });
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('es', { COMPLIANCE: { RESPONSIBLE_TYPE: { CISO: 'CISO', IT: 'TI' } } });
     translate.use('es');
@@ -38,6 +39,13 @@ describe('ResponsiblesView', () => {
     el().querySelector<HTMLButtonElement>(selector)!.click();
     fixture.detectChanges();
   };
+
+  it('offers the types of role that the backend serves, not a list written in the screen', () => {
+    setup('admin_empresa');
+    const options = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-type] option')).map((o) => o.value).filter(Boolean);
+    expect(options).toEqual(COMPLIANCE_OPTIONS['responsible_type'].map((o) => o.value));
+    expect(el().querySelector('[data-test-type]')!.textContent).toContain('Propietario del activo');
+  });
 
   it('lists every role with its person and marks the ones something depends on', () => {
     setup('admin_empresa');

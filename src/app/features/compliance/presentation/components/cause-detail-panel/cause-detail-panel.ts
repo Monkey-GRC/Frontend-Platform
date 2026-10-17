@@ -34,6 +34,8 @@ export class CauseDetailPanel {
   // La causa cambió (un control vinculado o quitado, o una baja): la lista se vuelve a pedir.
   readonly changed = output<void>();
   readonly openRisk = output<string>();
+  /** Se pidió editar esta causa propia: la vista abre el formulario. */
+  readonly edit = output<Cause>();
 
   readonly codeOf = linkCode;
 
