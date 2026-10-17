@@ -4,6 +4,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { Cause, RiskDetail } from '../../../domain/models/risk.models';
+import { ResponsibleService } from '../../../domain/services/responsible.service';
 import { RiskService } from '../../../domain/services/risk.service';
 import { RiskDetailPanel } from './risk-detail-panel';
 
@@ -24,7 +25,7 @@ describe('RiskDetailPanel', () => {
     api = jasmine.createSpyObj<RiskService>('RiskService', ['getRisk', 'listAllCauses', 'linkCause', 'unlinkCause', 'deactivateRisk']);
     api.getRisk.and.returnValue(of(detail));
     api.listAllCauses.and.returnValue(of([cause('c1'), cause('c2'), cause('c3', false)]));
-    TestBed.configureTestingModule({ imports: [RiskDetailPanel], providers: [provideTranslateService(), { provide: RiskService, useValue: api }] });
+    TestBed.configureTestingModule({ imports: [RiskDetailPanel], providers: [provideTranslateService(), { provide: RiskService, useValue: api }, { provide: ResponsibleService, useValue: jasmine.createSpyObj<ResponsibleService>('ResponsibleService', ['list']) }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(RiskDetailPanel);
     fixture.componentRef.setInput('riskId', detail.id);
@@ -45,7 +46,7 @@ describe('RiskDetailPanel', () => {
   it('shows a risk that has not been evaluated as such and says there is no treatment yet', () => {
     setup('admin_empresa');
     expect(text()).toContain('COMPLIANCE.RISKS.NOT_EVALUATED');
-    expect(text()).toContain('COMPLIANCE.RISK_DETAIL.TREATMENT_NONE');
+    expect(text()).toContain('COMPLIANCE.RISK_ASSESSMENT.TREATMENT_NONE');
   });
 
   it('lets only the company admin manage, and only reads for the rest of the roles', () => {

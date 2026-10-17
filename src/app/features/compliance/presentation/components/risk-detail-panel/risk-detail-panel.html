@@ -35,9 +35,6 @@
         }
         <span class="text-xs text-gray-600 dark:text-gray-300">{{ labels.of('COMPLIANCE.RISK_CRITERION', d.trust_criterion) }}</span>
       </div>
-      @if (d.inherent_risk_value !== null && d.likelihood !== null && d.impact !== null) {
-      <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">{{ 'COMPLIANCE.RISK_DETAIL.EVALUATION' | translate: { likelihood: d.likelihood, impact: d.impact, value: d.inherent_risk_value } }}</p>
-      }
     </div>
 
     @if (notice(); as n) {
@@ -69,11 +66,8 @@
       }
     </section>
 
-    <!-- Tratamiento: llega con MD-123. -->
-    <section [attr.aria-label]="'COMPLIANCE.RISK_DETAIL.TREATMENT' | translate">
-      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.RISK_DETAIL.TREATMENT' | translate }}</h4>
-      <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_DETAIL.TREATMENT_NONE' | translate }}</p>
-    </section>
+    <!-- Evaluación 5×5 y tratamiento (MD-123) -->
+    <app-risk-assessment [risk]="d" [canManage]="view.canManage()" (changed)="assessed()" />
 
     <!-- El árbol: causas del riesgo y, en cada una, los controles que la mitigan -->
     <section [attr.aria-label]="'COMPLIANCE.GLOSSARY.CAUSES' | translate">

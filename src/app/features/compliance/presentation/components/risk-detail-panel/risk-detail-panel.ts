@@ -9,15 +9,16 @@ import { ComplianceViewService } from '../../../domain/services/compliance-view.
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { RiskService } from '../../../domain/services/risk.service';
 import { LinkPicker, PickerItem } from '../link-picker/link-picker';
+import { RiskAssessment } from '../risk-assessment/risk-assessment';
 import { RiskLevelBadge } from '../risk-level-badge/risk-level-badge';
 
 type Stage = 'loading' | 'error' | 'ready';
 
 // El detalle de un riesgo (MD-124): su descripción, el impacto potencial, y el árbol de causas con los controles que las mitigan. El administrador de la
-// empresa puede vincular y quitar causas y dar de baja un riesgo propio; el resto de roles solo lee. La evaluación 5×5 y el tratamiento llegan con MD-123.
+// empresa puede vincular y quitar causas y dar de baja un riesgo propio; el resto de roles solo lee. La evaluación 5×5 y el tratamiento los trae `app-risk-assessment` (MD-123).
 @Component({
   selector: 'app-risk-detail-panel',
-  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker, RiskLevelBadge],
+  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment],
   templateUrl: './risk-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -66,6 +67,12 @@ export class RiskDetailPanel {
       },
       error: () => this.stage.set('error'),
     });
+  }
+
+  /** Se evaluó o se trató el riesgo: el detalle y la lista se vuelven a pedir. */
+  assessed(): void {
+    this.load();
+    this.changed.emit();
   }
 
   startLink(): void {

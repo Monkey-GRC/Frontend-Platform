@@ -1,0 +1,163 @@
+<div class="flex flex-col gap-6">
+
+  @if (notice(); as n) {
+  <div class="flex items-start gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300" role="status">
+    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">check_circle</span><span>{{ n }}</span>
+  </div>
+  }
+  @if (error(); as e) {
+  <div class="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300" role="alert">
+    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ e }}</span>
+  </div>
+  }
+
+  <!-- Evaluación 5×5 -->
+  <section [attr.aria-label]="'COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE' | translate">
+    <div class="flex items-center justify-between gap-3">
+      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE' | translate }}</h4>
+      @if (canManage() && !evaluating()) {
+      <button type="button" (click)="startEvaluation()" [disabled]="saving()" data-test-start-evaluation class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40">
+        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">tune</span>{{ (evaluated() ? 'COMPLIANCE.RISK_ASSESSMENT.RE_EVALUATE' : 'COMPLIANCE.RISK_ASSESSMENT.EVALUATE') | translate }}
+      </button>
+      }
+    </div>
+
+    @if (evaluated()) {
+    <div class="mt-2 flex flex-wrap items-center gap-3">
+      <app-risk-level-badge [level]="risk().inherent_risk_level" />
+      <span class="text-sm text-gray-700 dark:text-gray-200" data-test-score>{{ 'COMPLIANCE.RISK_ASSESSMENT.SCORE' | translate: { likelihood: risk().likelihood, impact: risk().impact, value: risk().inherent_risk_value } }}</span>
+    </div>
+    } @else {
+    <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_ASSESSMENT.NOT_EVALUATED' | translate }}</p>
+    }
+
+    @if (evaluating()) {
+    <div class="mt-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+          {{ 'COMPLIANCE.RISK_ASSESSMENT.LIKELIHOOD' | translate }}
+          <select data-test-likelihood (change)="likelihood.set($any($event.target).value ? +$any($event.target).value : null)" [disabled]="saving()"
+            class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+            <option value="" [selected]="likelihood() === null">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
+            @for (n of scale; track n) {<option [value]="n" [selected]="likelihood() === n">{{ n }}</option>}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+          {{ 'COMPLIANCE.RISK_ASSESSMENT.IMPACT' | translate }}
+          <select data-test-impact (change)="impact.set($any($event.target).value ? +$any($event.target).value : null)" [disabled]="saving()"
+            class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+            <option value="" [selected]="impact() === null">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
+            @for (n of scale; track n) {<option [value]="n" [selected]="impact() === n">{{ n }}</option>}
+          </select>
+        </label>
+      </div>
+      <div class="mt-3 flex items-center gap-3">
+        <button type="button" (click)="saveEvaluation()" [disabled]="!canSaveEvaluation()" data-test-save-evaluation
+          class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+          @if (saving()) {<span class="material-symbols-rounded animate-spin text-[16px]" aria-hidden="true">progress_activity</span>}
+          {{ (saving() ? 'COMPLIANCE.RISK_ASSESSMENT.SAVING' : 'COMPLIANCE.RISK_ASSESSMENT.SAVE_EVALUATION') | translate }}
+        </button>
+        <button type="button" (click)="cancelEvaluation()" [disabled]="saving()" class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+      </div>
+    </div>
+    }
+
+    @if (evaluated()) {
+    <button type="button" (click)="toggleHistory()" [attr.aria-expanded]="historyOpen()" class="mt-2 text-xs font-medium text-primary hover:underline">
+      {{ (historyOpen() ? 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_HIDE' : 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_SHOW') | translate }}
+    </button>
+    @if (historyOpen()) {
+    @if (historyError()) {
+    <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_ERROR' | translate }}</p>
+    } @else if (history(); as items) {
+    <ul class="mt-2 flex flex-col gap-1.5" data-test-history>
+      @for (h of items; track h.evaluated_at) {
+      <li class="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-700 dark:bg-gray-800/60 dark:text-gray-200">
+        {{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_ENTRY' | translate: { date: dateTime(h.evaluated_at), likelihood: h.likelihood, impact: h.impact, value: h.inherent_risk_value, level: labels.of('COMPLIANCE.RISK_LEVEL', h.inherent_risk_level) } }}
+        @if (fullName(h.evaluated_by); as who) {· {{ who }}}
+        @if (h.previous; as p) {<span class="text-gray-600 dark:text-gray-300"> · {{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_BEFORE' | translate: { value: p.inherent_risk_value, level: labels.of('COMPLIANCE.RISK_LEVEL', p.inherent_risk_level) } }}</span>}
+      </li>
+      }
+    </ul>
+    }
+    }
+    }
+  </section>
+
+  <!-- Tratamiento -->
+  <section [attr.aria-label]="'COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE' | translate">
+    <div class="flex items-center justify-between gap-3">
+      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE' | translate }}</h4>
+      @if (canManage() && !treating()) {
+      <button type="button" (click)="startTreatment()" [disabled]="saving()" data-test-start-treatment class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40">
+        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">fact_check</span>{{ (risk().treatment ? 'COMPLIANCE.RISK_ASSESSMENT.CHANGE_TREATMENT' : 'COMPLIANCE.RISK_ASSESSMENT.DEFINE_TREATMENT') | translate }}
+      </button>
+      }
+    </div>
+
+    @if (risk().treatment; as t) {
+    <dl class="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-3" data-test-treatment>
+      <div><dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_ASSESSMENT.DECISION' | translate }}</dt><dd class="font-medium text-gray-900 dark:text-white">{{ labels.of('COMPLIANCE.TREATMENT_DECISION', t.decision) }}</dd></div>
+      <div>
+        <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_ASSESSMENT.RESPONSIBLE' | translate }}</dt>
+        <dd class="font-medium text-gray-900 dark:text-white">
+          @if (t.responsible; as r) {
+          {{ labels.of('COMPLIANCE.RESPONSIBLE_TYPE', r.type) }}@if (r.person_name) { · {{ r.person_name }} }
+          } @else {
+          —
+          }
+        </dd>
+      </div>
+      <div><dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_ASSESSMENT.DUE_DATE' | translate }}</dt><dd class="font-medium text-gray-900 dark:text-white">{{ day(t.due_date) }}</dd></div>
+    </dl>
+    } @else {
+    <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.RISK_ASSESSMENT.TREATMENT_NONE' | translate }}</p>
+    }
+
+    @if (treating()) {
+    <div class="mt-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      @if (responsibles() === null) {
+      <div class="flex justify-center py-3" role="status">
+        <span class="material-symbols-rounded animate-spin text-[20px] text-primary" aria-hidden="true">progress_activity</span>
+        <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
+      </div>
+      } @else if (responsibles()!.length === 0) {
+      <p class="text-sm text-gray-700 dark:text-gray-200" data-test-no-responsibles>{{ 'COMPLIANCE.RISK_ASSESSMENT.NO_RESPONSIBLES' | translate }}</p>
+      <button type="button" (click)="cancelTreatment()" class="mt-3 text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+      } @else {
+      <div class="grid gap-3 sm:grid-cols-3">
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+          {{ 'COMPLIANCE.RISK_ASSESSMENT.DECISION' | translate }}
+          <select data-test-decision (change)="decision.set($any($event.target).value)" [disabled]="saving()"
+            class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+            <option value="" [selected]="!decision()">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
+            @for (d of decisions; track d) {<option [value]="d" [selected]="decision() === d">{{ labels.of('COMPLIANCE.TREATMENT_DECISION', d) }}</option>}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+          {{ 'COMPLIANCE.RISK_ASSESSMENT.RESPONSIBLE' | translate }}
+          <select data-test-responsible (change)="responsibleId.set($any($event.target).value)" [disabled]="saving()"
+            class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+            <option value="" [selected]="!responsibleId()">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
+            @for (r of responsibles(); track r.id) {<option [value]="r.id" [selected]="responsibleId() === r.id">{{ labels.of('COMPLIANCE.RESPONSIBLE_TYPE', r.type) }}@if (r.person_name) { · {{ r.person_name }} }</option>}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+          {{ 'COMPLIANCE.RISK_ASSESSMENT.DUE_DATE' | translate }}
+          <input type="date" data-test-due-date [min]="today" [value]="dueDate()" (input)="dueDate.set($any($event.target).value)" [disabled]="saving()"
+            class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        </label>
+      </div>
+      <div class="mt-3 flex items-center gap-3">
+        <button type="button" (click)="saveTreatment()" [disabled]="!canSaveTreatment()" data-test-save-treatment
+          class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+          @if (saving()) {<span class="material-symbols-rounded animate-spin text-[16px]" aria-hidden="true">progress_activity</span>}
+          {{ (saving() ? 'COMPLIANCE.RISK_ASSESSMENT.SAVING' : 'COMPLIANCE.RISK_ASSESSMENT.SAVE_TREATMENT') | translate }}
+        </button>
+        <button type="button" (click)="cancelTreatment()" [disabled]="saving()" class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+      </div>
+      }
+    </div>
+    }
+  </section>
+</div>

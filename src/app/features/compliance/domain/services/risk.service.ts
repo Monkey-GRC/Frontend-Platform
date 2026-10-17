@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { Cause, LinkedControl, Page, RiskDetail, RiskListItem } from '../models/risk.models';
+import { Cause, LinkedControl, NewTreatment, Page, RiskDetail, RiskEvaluationEntry, RiskListItem, RiskTreatmentRecord } from '../models/risk.models';
 
 const PAGE_SIZE = 100;
 
@@ -46,6 +46,25 @@ export class RiskService {
 
   unlinkControl(causeId: string, controlId: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/causes/${causeId}/controls/${controlId}`);
+  }
+
+  /** Agrega una evaluación 5×5 (no pisa la anterior); el servidor calcula el valor y el nivel. */
+  evaluate(riskId: string, likelihood: number, impact: number): Observable<RiskEvaluationEntry> {
+    return this.http.post<SuccessResponse<RiskEvaluationEntry>>(`${this.base}/risks/${riskId}/evaluation`, { likelihood, impact }).pipe(map((r) => r.data!));
+  }
+
+  /** Las evaluaciones del riesgo, de la más reciente a la más antigua (no las lee el funcional). */
+  evaluationHistory(riskId: string): Observable<RiskEvaluationEntry[]> {
+    return this.page<RiskEvaluationEntry>(`${this.base}/risks/${riskId}/evaluation-history`, 1).pipe(map((p) => p.items));
+  }
+
+  /** Agrega una decisión de tratamiento; la vigente es la última. */
+  createTreatment(riskId: string, body: NewTreatment): Observable<RiskTreatmentRecord> {
+    return this.http.post<SuccessResponse<RiskTreatmentRecord>>(`${this.base}/risks/${riskId}/treatments`, body).pipe(map((r) => r.data!));
+  }
+
+  treatments(riskId: string): Observable<RiskTreatmentRecord[]> {
+    return this.page<RiskTreatmentRecord>(`${this.base}/risks/${riskId}/treatments`, 1).pipe(map((p) => p.items));
   }
 
   /** Baja lógica: el riesgo deja de aparecer, su historial se conserva. */
