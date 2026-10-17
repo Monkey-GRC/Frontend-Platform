@@ -17,6 +17,18 @@ describe('RiskService', () => {
 
   afterEach(() => http.verify());
 
+  it('asks for the risk matrix once and shares it, so that every screen paints the same levels', () => {
+    const got: unknown[] = [];
+    service.matrix().subscribe((m) => got.push(m));
+    service.matrix().subscribe((m) => got.push(m));
+    const req = http.expectOne((r) => r.url.endsWith('/risk-matrix'));
+    req.flush({ statusCode: 200, message: '', data: { min: 1, max: 5, cells: [{ likelihood: 5, impact: 5, value: 25, level: 'critical' }] } });
+    service.matrix().subscribe((m) => got.push(m));
+    http.expectNone((r) => r.url.endsWith('/risk-matrix'));
+    expect(got.length).toBe(3);
+    expect(got[0]).toBe(got[2]);
+  });
+
   it('loads every page of the risks of the service', () => {
     let result: unknown[] = [];
     service.listAllRisks('s1').subscribe((r) => (result = r));

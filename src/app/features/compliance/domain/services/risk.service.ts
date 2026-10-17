@@ -1,9 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
+import { EMPTY, Observable, expand, map, reduce, shareReplay } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { Cause, CauseInput, LinkedControl, RiskInput, NewTreatment, Page, RiskDetail, RiskEvaluationEntry, RiskListItem, RiskTreatmentRecord } from '../models/risk.models';
+import { Cause, CauseInput, LinkedControl, RiskInput, RiskMatrixData, NewTreatment, Page, RiskDetail, RiskEvaluationEntry, RiskListItem, RiskTreatmentRecord } from '../models/risk.models';
 
 const PAGE_SIZE = 100;
 
@@ -13,6 +13,8 @@ const PAGE_SIZE = 100;
 export class RiskService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiUrl;
+  // La matriz es la misma para todos y no cambia mientras la pantalla está abierta: se pide una vez.
+  private matrix$?: Observable<RiskMatrixData>;
 
   /** Todos los riesgos del servicio (recorre las páginas si hay más de 100). */
   listAllRisks(serviceId: string, view?: 'technical'): Observable<RiskListItem[]> {
@@ -22,6 +24,12 @@ export class RiskService {
   /** Todas las causas del servicio. */
   listAllCauses(serviceId: string, view?: 'technical'): Observable<Cause[]> {
     return this.all<Cause>(`${this.base}/services/${serviceId}/causes`, view);
+  }
+
+  /** La matriz 5×5 con el nivel de cada casilla, tal como lo calcula el servidor; con ella se pinta el mapa de calor sin escribir los cortes aquí. */
+  matrix(): Observable<RiskMatrixData> {
+    this.matrix$ ??= this.http.get<SuccessResponse<RiskMatrixData>>(`${this.base}/risk-matrix`).pipe(map((r) => r.data!), shareReplay({ bufferSize: 1, refCount: false }));
+    return this.matrix$;
   }
 
   /** Crea un riesgo propio del servicio. Sin `code`, el servidor asigna el siguiente libre. */

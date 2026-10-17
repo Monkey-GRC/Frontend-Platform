@@ -2,10 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { catchError, of } from 'rxjs';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { COMPLIANCE_ROUTE } from '../../../domain/models/compliance.models';
-import { RiskListItem } from '../../../domain/models/risk.models';
-import { RiskLevelBadge, riskLevelLook } from '../risk-level-badge/risk-level-badge';
+import { RiskListItem, RiskMatrixData } from '../../../domain/models/risk.models';
+import { RiskService } from '../../../domain/services/risk.service';
+import { RiskLevelBadge, riskLevelHeat } from '../risk-level-badge/risk-level-badge';
 
 interface Cell {
   likelihood: number;
@@ -13,10 +15,10 @@ interface Cell {
   risks: RiskListItem[];
 }
 
-// La matriz inherente del servicio (D76): dónde cae cada riesgo evaluado, por probabilidad e impacto, con cuántos hay en cada casilla. No decide si un riesgo está
-// mitigado (eso lo dicen los controles y sus pruebas) ni promedia: un promedio escondería el riesgo crítico. Los niveles los calcula el servidor al evaluar; la matriz no los
-// recalcula, así que una casilla vacía es neutra y la ocupada toma el nivel que el servidor le dio a sus riesgos. Los riesgos sin evaluar no están en la matriz: se cuentan aparte.
-// La residual no está: espera los datos de la fórmula (P22, MD-151).
+// La matriz inherente del servicio (D76): un mapa de calor de 5×5 (verde lo mejor, rojo lo peor) con dónde cae cada riesgo evaluado, por probabilidad e impacto. No decide si un
+// riesgo está mitigado (eso lo dicen los controles y sus pruebas) ni promedia: un promedio escondería el riesgo crítico. El nivel de CADA casilla lo sirve el backend
+// (`GET /risk-matrix`, la misma función que evalúa un riesgo), así que aquí no hay cortes escritos a mano: si la matriz no llega, una casilla ocupada toma el nivel que el servidor
+// dio a sus riesgos y las vacías quedan neutras. Los riesgos sin evaluar no están en la matriz: se cuentan aparte. La residual no está: espera los datos de la fórmula (P22, MD-151).
 @Component({
   selector: 'app-risk-heatmap',
   imports: [TranslatePipe, RouterLink, RiskLevelBadge],
@@ -30,9 +32,10 @@ export class RiskHeatmap {
   readonly risks = input.required<RiskListItem[]>();
   readonly serviceId = input.required<string>();
 
-  // La escala (hoy 1 a 5) y los niveles, con su orden de menor a mayor, los sirve el backend.
+  // La escala (hoy 1 a 5) y los niveles, con su orden de menor a mayor, los sirve el backend; el nivel de cada casilla, también.
   private readonly scale = toSignal(this.catalogs.options('risk_scale'), { initialValue: [] });
   private readonly levels = toSignal(this.catalogs.options('risk_level'), { initialValue: [] });
+  private readonly matrix = toSignal(inject(RiskService).matrix().pipe(catchError(() => of(null as RiskMatrixData | null))), { initialValue: null as RiskMatrixData | null });
 
   readonly likelihoods = computed(() => this.scale().map((o) => Number(o.value)).sort((a, b) => b - a));
   readonly impacts = computed(() => this.scale().map((o) => Number(o.value)).sort((a, b) => a - b));
@@ -54,6 +57,11 @@ export class RiskHeatmap {
     return map;
   });
 
+  private readonly served = computed(() => new Map((this.matrix()?.cells ?? []).map((c) => [`${c.likelihood}-${c.impact}`, c])));
+
+  /** La leyenda: cada nivel, de menor a mayor, con su color y el nombre que sirve el backend. */
+  readonly legend = computed(() => this.levels().map((o) => ({ value: o.value, label: o.label, soft: riskLevelHeat(o.value).soft })));
+
   /** El nivel más alto que hay entre los riesgos evaluados (no un promedio); `null` si ninguno está evaluado. */
   readonly worstLevel = computed<string | null>(() => {
     const order = this.levels().map((o) => o.value);
@@ -74,9 +82,20 @@ export class RiskHeatmap {
     return this.cells().get(`${l}-${i}`)?.risks.length ?? 0;
   }
 
-  /** El color de una casilla ocupada sale del nivel que el servidor dio a sus riesgos. */
-  protected chip(l: number, i: number): string {
-    return riskLevelLook(this.cells().get(`${l}-${i}`)?.risks[0]?.inherent_risk_level).chip;
+  /** El nivel de una casilla: el que sirve el backend; si no llegó, el de sus riesgos (el mismo que les dio el servidor). */
+  protected levelOf(l: number, i: number): string | null {
+    return this.served().get(`${l}-${i}`)?.level ?? this.cells().get(`${l}-${i}`)?.risks[0]?.inherent_risk_level ?? null;
+  }
+
+  /** El valor de la casilla (probabilidad × impacto), tal como lo sirve el backend; sin matriz no se escribe. */
+  protected valueOf(l: number, i: number): number | null {
+    return this.served().get(`${l}-${i}`)?.value ?? null;
+  }
+
+  /** Casilla vacía: tono suave del nivel. Casilla con riesgos: tono intenso. */
+  protected tone(l: number, i: number): string {
+    const heat = riskLevelHeat(this.levelOf(l, i));
+    return this.count(l, i) > 0 ? heat.solid : heat.soft;
   }
 
   protected isPicked(l: number, i: number): boolean {

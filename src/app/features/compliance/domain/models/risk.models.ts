@@ -90,6 +90,20 @@ export interface CauseInput {
   failure_category: string;
 }
 
+/** Una casilla de la matriz 5×5 con su valor (probabilidad × impacto) y el nivel que le da el servidor (`GET /risk-matrix`). */
+export interface RiskMatrixCell {
+  likelihood: number;
+  impact: number;
+  value: number;
+  level: string;
+}
+
+export interface RiskMatrixData {
+  min: number;
+  max: number;
+  cells: RiskMatrixCell[];
+}
+
 export interface Page<T> {
   items: T[];
   page: number;
