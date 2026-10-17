@@ -22,7 +22,8 @@
       "NOT_MEASURED": "Sin medir"
     },
     "TABS": {
-      "SUMMARY": "Resumen"
+      "SUMMARY": "Resumen",
+      "EXCLUSIONS": "Exclusiones"
     },
     "SHELL": {
       "TITLE": "Cumplimiento",
@@ -238,6 +239,62 @@
       "ACCEPT": "Aceptar",
       "TRANSFER": "Transferir",
       "AVOID": "Evitar"
+    },
+    "RESPONSIBLES": {
+      "TITLE": "Responsables",
+      "INTRO": "Los cargos de la organización —COO, TI, Cumplimiento, Proceso, CISO y propietarios de activo— con el nombre de la persona que responde. A ellos se asignan los tratamientos de riesgo y las evidencias.",
+      "ADD": "Agregar responsable",
+      "TYPE": "Cargo",
+      "PERSON": "Persona",
+      "SELECT": "Selecciona",
+      "SAVE": "Guardar",
+      "CHANGE_PERSON": "Cambiar persona",
+      "REMOVE": "Quitar",
+      "IN_USE": "En uso",
+      "IN_USE_HINT": "Tiene tratamientos, evidencias o activos asignados: reasígnalos para poder quitarlo.",
+      "EMPTY": "La organización aún no tiene responsables.",
+      "EMPTY_ADMIN": "Aún no hay responsables. Agrega el primero para poder asignar tratamientos y evidencias.",
+      "LOAD_ERROR": "No se pudieron cargar los responsables",
+      "SAVE_ERROR": "No se pudo completar la acción. Inténtalo de nuevo.",
+      "CREATED": "Responsable agregado.",
+      "UPDATED": "Persona actualizada.",
+      "REMOVED": "Responsable quitado.",
+      "REMOVE_CONFIRM_TITLE": "¿Quitar a «{{name}}» de los responsables?",
+      "REMOVE_CONFIRM_BODY": "Solo se quita el cargo. Si algo depende de él, no se podrá quitar hasta reasignarlo."
+    },
+    "EXCLUSION_STATUS": {
+      "PENDING": "Pendiente",
+      "APPROVED": "Aprobada",
+      "REJECTED": "Rechazada"
+    },
+    "EXCLUSIONS": {
+      "TITLE": "Exclusiones",
+      "INTRO": "Sacar un activo de una prueba cambia lo que se mide. La propone la empresa y la decide el consultor. Mientras está pendiente no cambia nada: el activo sigue contando.",
+      "FILTER": "Filtrar por estado",
+      "ALL": "Todas",
+      "EMPTY": "Este servicio no tiene exclusiones.",
+      "EMPTY_FILTER": "No hay exclusiones con ese estado.",
+      "ASSET": "Activo: {{name}}",
+      "JUSTIFICATION": "Justificación",
+      "TECHNICAL_JUSTIFICATION": "Justificación técnica",
+      "VALIDITY": "Vigencia",
+      "PROPOSED_BY": "Propuesta por",
+      "EXPIRED": "Vencida",
+      "STILL_COUNTS": "Pendiente de decisión: el activo sigue contando hasta que el consultor la apruebe.",
+      "AWAITING_CONSULTANT": "Esperando consultor: la empresa no tiene uno asignado, así que el activo sigue contando.",
+      "REJECTED_NOTE": "Motivo del rechazo: {{note}}",
+      "DECIDED_BY": "Decidida por {{name}}",
+      "APPROVE": "Aprobar",
+      "REJECT": "Rechazar",
+      "REJECT_NOTE": "Motivo del rechazo",
+      "APPROVE_CONFIRM_TITLE": "¿Aprobar la exclusión de «{{name}}»?",
+      "APPROVE_CONFIRM_BODY": "El activo saldrá de lo que mide esta prueba hasta que la exclusión venza. La medición de la sonda no se borra.",
+      "APPROVED": "Exclusión aprobada.",
+      "REJECTED": "Exclusión rechazada.",
+      "LOAD_ERROR": "No se pudieron cargar las exclusiones",
+      "SAVE_ERROR": "No se pudo completar la acción. Inténtalo de nuevo.",
+      "FORBIDDEN_TITLE": "No tienes acceso a las exclusiones",
+      "FORBIDDEN_BODY": "Con tu rol no puedes ver las exclusiones de este servicio."
     },
     "CAUSE_DETAIL": {
       "LOAD_ERROR_TITLE": "No se pudo cargar la causa",

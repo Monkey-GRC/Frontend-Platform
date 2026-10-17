@@ -29,6 +29,7 @@ export const NAV_ITEMS: NavItem[] = [
     { icon: 'apartment', name: 'Mi empresa', labelKey: 'SHELL.NAV.MY_COMPANY', path: '/onboarding', section: 'Menu' },
     { icon: 'inventory_2', name: 'Mis servicios', labelKey: 'SHELL.NAV.MY_SERVICES', path: '/services', section: 'Menu' },
     { icon: 'verified_user', name: 'Cumplimiento', labelKey: 'SHELL.NAV.COMPLIANCE', path: '/cumplimiento', section: 'Menu' },
+    { icon: 'badge', name: 'Responsables', labelKey: 'SHELL.NAV.RESPONSIBLES', path: '/responsables', section: 'Menu' },
     // Se suma el dashboard cuando exista.
 ];
 

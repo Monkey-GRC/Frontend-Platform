@@ -1,0 +1,155 @@
+@switch (stage()) {
+
+@case ('loading') {
+<app-loading-spinner />
+}
+
+@case ('forbidden') {
+<div class="py-12 text-center">
+  <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">lock</span>
+  <h2 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.EXCLUSIONS.FORBIDDEN_TITLE' | translate }}</h2>
+  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.FORBIDDEN_BODY' | translate }}</p>
+</div>
+}
+
+@case ('error') {
+<div class="py-12 text-center">
+  <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
+  <h2 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.EXCLUSIONS.LOAD_ERROR' | translate }}</h2>
+  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+  <button type="button" (click)="load()" data-test-retry
+    class="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
+    <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
+  </button>
+</div>
+}
+
+@default {
+<div class="flex flex-col gap-4">
+  <div>
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.EXCLUSIONS.TITLE' | translate }} <span class="font-normal text-gray-600 dark:text-gray-300">({{ all().length }})</span></h2>
+    <p class="mt-0.5 max-w-3xl text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.INTRO' | translate }}</p>
+  </div>
+
+  @if (notice(); as n) {
+  <div class="flex items-start gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300" role="status">
+    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">check_circle</span><span>{{ n }}</span>
+  </div>
+  }
+  @if (error(); as e) {
+  <div class="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300" role="alert">
+    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ e }}</span>
+  </div>
+  }
+
+  <div class="flex flex-wrap gap-2" role="group" [attr.aria-label]="'COMPLIANCE.EXCLUSIONS.FILTER' | translate">
+    <button type="button" (click)="filter.set(null)" [attr.aria-pressed]="filter() === null" data-test-filter="all"
+      class="rounded-full border px-3 py-1 text-xs font-medium transition"
+      [class]="filter() === null ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-700 hover:border-primary dark:border-gray-600 dark:text-gray-200'">
+      {{ 'COMPLIANCE.EXCLUSIONS.ALL' | translate }} ({{ all().length }})
+    </button>
+    @for (s of statuses; track s) {
+    <button type="button" (click)="filter.set(s)" [attr.aria-pressed]="filter() === s" [attr.data-test-filter]="s"
+      class="rounded-full border px-3 py-1 text-xs font-medium transition"
+      [class]="filter() === s ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-700 hover:border-primary dark:border-gray-600 dark:text-gray-200'">
+      {{ labels.of('COMPLIANCE.EXCLUSION_STATUS', s) }} ({{ count(s) }})
+    </button>
+    }
+  </div>
+
+  @if (items().length === 0) {
+  <p class="text-sm text-gray-600 dark:text-gray-300" data-test-empty>{{ (all().length === 0 ? 'COMPLIANCE.EXCLUSIONS.EMPTY' : 'COMPLIANCE.EXCLUSIONS.EMPTY_FILTER') | translate }}</p>
+  } @else {
+  <ul class="flex flex-col gap-3" data-test-list>
+    @for (e of items(); track e.id) {
+    <li class="rounded-xl border border-gray-200 p-4 text-sm dark:border-gray-700" [attr.data-status]="e.status">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="font-medium text-gray-900 dark:text-white">{{ e.test.display_name }}</p>
+          <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.ASSET' | translate: { name: e.asset.name } }}</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" data-test-status
+            [class]="e.status === 'approved' ? 'bg-green-50 text-green-800 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-300' : e.status === 'rejected' ? 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/30 dark:text-red-300' : 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25 dark:bg-amber-900/30 dark:text-amber-300'">
+            {{ labels.of('COMPLIANCE.EXCLUSION_STATUS', e.status) }}
+          </span>
+          @if (e.is_expired) {
+          <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-200" data-test-expired>{{ 'COMPLIANCE.EXCLUSIONS.EXPIRED' | translate }}</span>
+          }
+        </div>
+      </div>
+
+      <dl class="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+        <div>
+          <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.JUSTIFICATION' | translate }}</dt>
+          <dd class="whitespace-pre-line text-gray-900 dark:text-white">{{ e.justification }}</dd>
+        </div>
+        @if (e.technical_justification) {
+        <div>
+          <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.TECHNICAL_JUSTIFICATION' | translate }}</dt>
+          <dd class="whitespace-pre-line text-gray-900 dark:text-white">{{ e.technical_justification }}</dd>
+        </div>
+        }
+        <div>
+          <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.VALIDITY' | translate }}</dt>
+          <dd class="text-gray-900 dark:text-white">{{ day(e.valid_from) }} – {{ day(e.valid_until) }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.PROPOSED_BY' | translate }}</dt>
+          <dd class="text-gray-900 dark:text-white">{{ fullName(e.proposed_by) }}</dd>
+        </div>
+      </dl>
+
+      @if (e.status === 'pending') {
+      <p class="mt-3 flex items-start gap-1.5 text-xs text-gray-700 dark:text-gray-200">
+        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">info</span>
+        <span data-test-pending-note>{{ (e.awaiting_consultant ? 'COMPLIANCE.EXCLUSIONS.AWAITING_CONSULTANT' : 'COMPLIANCE.EXCLUSIONS.STILL_COUNTS') | translate }}</span>
+      </p>
+      }
+      @if (e.status === 'rejected' && e.decision_note) {
+      <p class="mt-3 text-xs text-error-600" data-test-decision-note>{{ 'COMPLIANCE.EXCLUSIONS.REJECTED_NOTE' | translate: { note: e.decision_note } }}</p>
+      }
+      @if (e.status !== 'pending' && e.decided_by) {
+      <p class="mt-3 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.DECIDED_BY' | translate: { name: fullName(e.decided_by) } }}</p>
+      }
+
+      @if (view.canDecide() && e.status === 'pending') {
+      @if (rejecting() === e.id) {
+      <div class="mt-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+          {{ 'COMPLIANCE.EXCLUSIONS.REJECT_NOTE' | translate }}
+          <textarea data-test-note rows="3" maxlength="2000" [value]="note()" (input)="note.set($any($event.target).value)" [disabled]="saving()"
+            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"></textarea>
+        </label>
+        <div class="mt-3 flex items-center gap-3">
+          <button type="button" (click)="confirmReject()" [disabled]="!note().trim() || saving()" data-test-confirm-reject
+            class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-600 px-4 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+            {{ 'COMPLIANCE.EXCLUSIONS.REJECT' | translate }}
+          </button>
+          <button type="button" (click)="cancelReject()" [disabled]="saving()" class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+        </div>
+      </div>
+      } @else {
+      <div class="mt-3 flex items-center gap-4">
+        <button type="button" (click)="askApprove(e)" [disabled]="saving()" data-test-approve class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:opacity-40">
+          <span class="material-symbols-rounded text-[16px]" aria-hidden="true">check</span>{{ 'COMPLIANCE.EXCLUSIONS.APPROVE' | translate }}
+        </button>
+        <button type="button" (click)="startReject(e)" [disabled]="saving()" data-test-reject class="inline-flex items-center gap-1 text-sm font-medium text-error-600 hover:underline disabled:opacity-40">
+          <span class="material-symbols-rounded text-[16px]" aria-hidden="true">close</span>{{ 'COMPLIANCE.EXCLUSIONS.REJECT' | translate }}
+        </button>
+      </div>
+      }
+      }
+    </li>
+    }
+  </ul>
+  }
+</div>
+}
+
+}
+
+@if (approving(); as e) {
+<app-confirm-dialog titleKey="COMPLIANCE.EXCLUSIONS.APPROVE_CONFIRM_TITLE" [titleParams]="{ name: e.asset.name }" messageKey="COMPLIANCE.EXCLUSIONS.APPROVE_CONFIRM_BODY"
+  confirmLabelKey="COMPLIANCE.EXCLUSIONS.APPROVE" [busy]="saving()" (confirmed)="confirmApprove()" (cancelled)="approving.set(null)" />
+}

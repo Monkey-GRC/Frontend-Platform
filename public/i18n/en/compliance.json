@@ -22,7 +22,8 @@
       "NOT_MEASURED": "Not measured"
     },
     "TABS": {
-      "SUMMARY": "Summary"
+      "SUMMARY": "Summary",
+      "EXCLUSIONS": "Exclusions"
     },
     "SHELL": {
       "TITLE": "Compliance",
@@ -238,6 +239,62 @@
       "ACCEPT": "Accept",
       "TRANSFER": "Transfer",
       "AVOID": "Avoid"
+    },
+    "RESPONSIBLES": {
+      "TITLE": "Responsibles",
+      "INTRO": "The organization roles —COO, IT, Compliance, Process, CISO and asset owners— with the name of the person in charge. Risk treatments and evidence are assigned to them.",
+      "ADD": "Add responsible",
+      "TYPE": "Role",
+      "PERSON": "Person",
+      "SELECT": "Select",
+      "SAVE": "Save",
+      "CHANGE_PERSON": "Change person",
+      "REMOVE": "Remove",
+      "IN_USE": "In use",
+      "IN_USE_HINT": "It has treatments, evidence or assets assigned: reassign them to remove it.",
+      "EMPTY": "The organization has no responsibles yet.",
+      "EMPTY_ADMIN": "There are no responsibles yet. Add the first one to assign treatments and evidence.",
+      "LOAD_ERROR": "The responsibles could not be loaded",
+      "SAVE_ERROR": "The action could not be completed. Please try again.",
+      "CREATED": "Responsible added.",
+      "UPDATED": "Person updated.",
+      "REMOVED": "Responsible removed.",
+      "REMOVE_CONFIRM_TITLE": "Remove \"{{name}}\" from the responsibles?",
+      "REMOVE_CONFIRM_BODY": "Only the role is removed. If something depends on it, it cannot be removed until reassigned."
+    },
+    "EXCLUSION_STATUS": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "EXCLUSIONS": {
+      "TITLE": "Exclusions",
+      "INTRO": "Taking an asset out of a test changes what is measured. The company proposes it and the consultant decides. While pending nothing changes: the asset still counts.",
+      "FILTER": "Filter by status",
+      "ALL": "All",
+      "EMPTY": "This service has no exclusions.",
+      "EMPTY_FILTER": "There are no exclusions with that status.",
+      "ASSET": "Asset: {{name}}",
+      "JUSTIFICATION": "Justification",
+      "TECHNICAL_JUSTIFICATION": "Technical justification",
+      "VALIDITY": "Validity",
+      "PROPOSED_BY": "Proposed by",
+      "EXPIRED": "Expired",
+      "STILL_COUNTS": "Awaiting a decision: the asset still counts until the consultant approves it.",
+      "AWAITING_CONSULTANT": "Waiting for a consultant: the company has none assigned, so the asset still counts.",
+      "REJECTED_NOTE": "Reason for rejection: {{note}}",
+      "DECIDED_BY": "Decided by {{name}}",
+      "APPROVE": "Approve",
+      "REJECT": "Reject",
+      "REJECT_NOTE": "Reason for rejection",
+      "APPROVE_CONFIRM_TITLE": "Approve the exclusion of \"{{name}}\"?",
+      "APPROVE_CONFIRM_BODY": "The asset will leave what this test measures until the exclusion expires. The probe measurement is not erased.",
+      "APPROVED": "Exclusion approved.",
+      "REJECTED": "Exclusion rejected.",
+      "LOAD_ERROR": "The exclusions could not be loaded",
+      "SAVE_ERROR": "The action could not be completed. Please try again.",
+      "FORBIDDEN_TITLE": "You do not have access to exclusions",
+      "FORBIDDEN_BODY": "With your role you cannot see the exclusions of this service."
     },
     "CAUSE_DETAIL": {
       "LOAD_ERROR_TITLE": "The cause could not be loaded",
