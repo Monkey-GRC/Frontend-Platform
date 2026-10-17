@@ -182,6 +182,26 @@
       "NOTHING_TO_LINK": "There is nothing else to link",
       "LINK": "Link"
     },
+    "RISK_FORM": {
+      "TITLE_NEW_RISK": "New risk",
+      "TITLE_EDIT_RISK": "Edit risk",
+      "TITLE_NEW_CAUSE": "New cause",
+      "TITLE_EDIT_CAUSE": "Edit cause",
+      "NEW_RISK": "New risk",
+      "NEW_CAUSE": "New cause",
+      "EDIT": "Edit",
+      "NAME": "Name",
+      "DESCRIPTION": "Description",
+      "CRITERION": "Criterion",
+      "CATEGORY": "Failure category",
+      "CHOOSE": "Choose an option",
+      "IMPACT": "Potential impact",
+      "IMPACT_HINT": "What the company could lose if the risk happens (optional).",
+      "REQUIRED": "This field is required.",
+      "SAVE": "Save",
+      "SAVING": "Saving…",
+      "SAVE_ERROR": "Could not save. Please try again."
+    },
     "RISK_DETAIL": {
       "LOAD_ERROR_TITLE": "The risk could not be loaded",
       "SAVE_ERROR": "The action could not be completed. Please try again.",

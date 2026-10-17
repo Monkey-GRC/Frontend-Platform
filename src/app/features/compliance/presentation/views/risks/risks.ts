@@ -7,12 +7,13 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { COMPLIANCE_ROUTE } from '../../../domain/models/compliance.models';
-import { Cause, RiskListItem } from '../../../domain/models/risk.models';
+import { Cause, RiskDetail, RiskListItem } from '../../../domain/models/risk.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { RiskService } from '../../../domain/services/risk.service';
 import { CauseDetailPanel } from '../../components/cause-detail-panel/cause-detail-panel';
 import { RiskDetailPanel } from '../../components/risk-detail-panel/risk-detail-panel';
+import { RiskForm } from '../../components/risk-form/risk-form';
 import { RiskLevelBadge } from '../../components/risk-level-badge/risk-level-badge';
 
 type Stage = 'loading' | 'error' | 'ready';
@@ -32,7 +33,7 @@ interface Group<T> {
 // Un riesgo sin evaluar no es «bajo»: se muestra «Sin evaluar» hasta que exista la evaluación (MD-123).
 @Component({
   selector: 'app-risks',
-  imports: [FormsModule, TranslatePipe, OptionChips, LoadingSpinner, RiskLevelBadge, RiskDetailPanel, CauseDetailPanel],
+  imports: [FormsModule, TranslatePipe, OptionChips, LoadingSpinner, RiskLevelBadge, RiskDetailPanel, CauseDetailPanel, RiskForm],
   templateUrl: './risks.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -62,6 +63,9 @@ export class RisksView {
 
   readonly selectedRisk = signal<string | null>(null);
   readonly selectedCause = signal<string | null>(null);
+
+  /** El formulario abierto: uno nuevo (existing: null) o la edición de un riesgo o causa propios. Solo el administrador de la empresa. */
+  readonly form = signal<{ existing: RiskDetail | Cause | null } | null>(null);
 
   private requestSeq = 0;
 
@@ -155,6 +159,22 @@ export class RisksView {
   openCause(id: string): void {
     if (this.section() === 'causes') this.selectedCause.set(id);
     else this.jump('causas', id);
+  }
+
+  newItem(): void {
+    this.form.set({ existing: null });
+  }
+
+  editItem(existing: RiskDetail | Cause): void {
+    this.form.set({ existing });
+  }
+
+  /** Se guardó: la lista se vuelve a pedir y el elemento se abre (uno nuevo, para vincularlo; uno editado, para ver el cambio). */
+  onSaved(id: string): void {
+    this.form.set(null);
+    this.refresh();
+    if (this.section() === 'risks') this.selectedRisk.set(id);
+    else this.selectedCause.set(id);
   }
 
   closeRisk(): void {

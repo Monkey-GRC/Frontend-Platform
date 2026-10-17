@@ -182,6 +182,26 @@
       "NOTHING_TO_LINK": "No hay nada más que vincular",
       "LINK": "Vincular"
     },
+    "RISK_FORM": {
+      "TITLE_NEW_RISK": "Nuevo riesgo",
+      "TITLE_EDIT_RISK": "Editar riesgo",
+      "TITLE_NEW_CAUSE": "Nueva causa",
+      "TITLE_EDIT_CAUSE": "Editar causa",
+      "NEW_RISK": "Nuevo riesgo",
+      "NEW_CAUSE": "Nueva causa",
+      "EDIT": "Editar",
+      "NAME": "Nombre",
+      "DESCRIPTION": "Descripción",
+      "CRITERION": "Criterio",
+      "CATEGORY": "Categoría de falla",
+      "CHOOSE": "Elige una opción",
+      "IMPACT": "Impacto potencial",
+      "IMPACT_HINT": "Qué podría perder la empresa si el riesgo ocurre (opcional).",
+      "REQUIRED": "Este campo es obligatorio.",
+      "SAVE": "Guardar",
+      "SAVING": "Guardando…",
+      "SAVE_ERROR": "No se pudo guardar. Inténtalo de nuevo."
+    },
     "RISK_DETAIL": {
       "LOAD_ERROR_TITLE": "No se pudo cargar el riesgo",
       "SAVE_ERROR": "No se pudo completar la acción. Inténtalo de nuevo.",

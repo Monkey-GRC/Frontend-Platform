@@ -37,8 +37,15 @@
       </div>
     </div>
 
-    @if (notice(); as n) {
-    <div class="flex items-start gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300" role="status">
+    @if (canRemove()) {
+    <div>
+      <button type="button" (click)="edit.emit(d)" data-edit class="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">edit</span>{{ 'COMPLIANCE.RISK_FORM.EDIT' | translate }}
+      </button>
+    </div>
+    }
+
+    @if (notice(); as n) {    <div class="flex items-start gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300" role="status">
       <span class="material-symbols-rounded text-[18px]" aria-hidden="true">check_circle</span><span>{{ n }}</span>
     </div>
     }

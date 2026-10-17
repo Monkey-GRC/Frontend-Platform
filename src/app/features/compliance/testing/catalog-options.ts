@@ -10,6 +10,9 @@ export const COMPLIANCE_OPTIONS: Record<string, CatalogOption[]> = {
   risk_treatment_decision: [option('mitigate', 'Mitigar'), option('accept', 'Aceptar'), option('transfer', 'Transferir'), option('avoid', 'Evitar')],
   responsible_type: [option('coo', 'COO'), option('it', 'TI'), option('compliance', 'Cumplimiento'), option('process', 'Proceso'), option('ciso', 'CISO'), option('asset_owner', 'Propietario del activo')],
   exclusion_status: [option('pending', 'Pendiente'), option('approved', 'Aprobada'), option('rejected', 'Rechazada')],
+  risk_criterion: [option('confidentiality', 'Confidencialidad'), option('integrity', 'Integridad'), option('security', 'Seguridad')],
+  failure_category: [option('human_resource', 'Recurso humano'), option('processes', 'Procesos')],
+  loss_type: [option('reputational', 'Reputacional'), option('financial_loss', 'Pérdida financiera')],
   risk_scale: ['1', '2', '3', '4', '5'].map((v) => option(v, v)),
 };
 

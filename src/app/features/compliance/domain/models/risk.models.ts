@@ -75,6 +75,21 @@ export interface Cause {
   controls: ControlLink[];
 }
 
+/** Lo que se manda para crear o editar un riesgo propio (`POST /services/{id}/risks`, `PATCH /risks/{id}`). */
+export interface RiskInput {
+  name: string;
+  description: string;
+  trust_criterion: string;
+  potential_impact: string[];
+}
+
+/** Lo que se manda para crear o editar una causa propia. */
+export interface CauseInput {
+  name: string;
+  description: string;
+  failure_category: string;
+}
+
 export interface Page<T> {
   items: T[];
   page: number;
