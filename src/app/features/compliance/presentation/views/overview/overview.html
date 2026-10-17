@@ -114,6 +114,19 @@
     </div>
   </section>
 
+  <!-- La matriz inherente: dónde cae cada riesgo evaluado del servicio -->
+  @if (risks(); as list) {
+  <section [attr.aria-label]="'COMPLIANCE.HEATMAP.TITLE' | translate" data-heatmap-section>
+    <div class="mb-3">
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.HEATMAP.TITLE' | translate }}</h3>
+      <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.HEATMAP.INTRO' | translate }}</p>
+    </div>
+    <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
+      <app-risk-heatmap [risks]="list" [serviceId]="serviceId()" />
+    </div>
+  </section>
+  }
+
   <!-- Controles que requieren atención -->
   <section [attr.aria-label]="'COMPLIANCE.OVERVIEW.ATTENTION_TITLE' | translate">
     <div class="mb-2 flex items-center justify-between gap-3">

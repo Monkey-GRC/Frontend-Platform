@@ -72,6 +72,17 @@
       "NO_FRAMEWORKS_TITLE": "Este servicio aún no tiene un marco contratado",
       "NO_FRAMEWORKS_BODY": "Cuando contrates un marco verás aquí su estado de cumplimiento."
     },
+    "HEATMAP": {
+      "TITLE": "Matriz inherente",
+      "INTRO": "Dónde cae cada riesgo evaluado según su probabilidad y su impacto, antes de contar con los controles. No dice si un riesgo está mitigado: eso lo deciden los controles y sus pruebas.",
+      "EVALUATED": "{{evaluated}} de {{total}} riesgos evaluados",
+      "WORST": "Nivel más alto presente:",
+      "NOT_EVALUATED": "Sin evaluar: {{count}}. Evalúalos desde Riesgos para que aparezcan aquí.",
+      "EMPTY": "Aún no hay riesgos evaluados. Evalúa un riesgo (probabilidad e impacto) y aparecerá aquí.",
+      "HINT": "Pulsa una casilla para ver sus riesgos.",
+      "RESIDUAL_NOTE": "La matriz residual se mostrará cuando existan los datos de la fórmula de mitigación.",
+      "CELL_ARIA": "Probabilidad {{likelihood}}, impacto {{impact}}: {{count}} riesgos"
+    },
     "ENTRY": {
       "LOAD_ERROR_TITLE": "No se pudieron cargar los servicios",
       "FORBIDDEN_TITLE": "Aún no hay servicios para mostrar",

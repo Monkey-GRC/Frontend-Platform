@@ -18,6 +18,25 @@
     "ASSETS_TITLE": "Technical control",
     "ASSETS_BODY": "Define where the service is hosted and connect its assets so Monkey assesses them automatically. You can go step by step.",
     "ALL_READY_TITLE": "Organization and service configured",
-    "ALL_READY_BODY": "The control catalog is generated and the deployment scenario is defined. You can review what was declared and register more assets whenever you need."
+    "ALL_READY_BODY": "The control catalog is generated and the deployment scenario is defined. You can review what was declared and register more assets whenever you need.",
+    "DASHBOARD": {
+      "LOAD_ERROR": "Your company summary could not be loaded.",
+      "COMPANY_TITLE": "Your company",
+      "SERVICES": "Services",
+      "ASSETS": "Assets",
+      "FRAMEWORKS": "Contracted frameworks",
+      "RISKS_EVALUATED": "{{evaluated}} evaluated",
+      "STATUS_TITLE": "How each service is doing",
+      "STATUS_INTRO": "Compliance is measured per service and per framework: there is no single score for the whole company.",
+      "SERVICE_COUNTS": "{{assets}} assets · {{controls}} controls · {{risks}} risks · {{causes}} causes",
+      "SEE_COMPLIANCE": "See compliance",
+      "NO_FRAMEWORK": "This service has no framework yet.",
+      "PROGRESS": "Progress {{percent}}",
+      "COVERAGE": "coverage {{percent}}",
+      "NOT_MEASURED": "No results yet",
+      "ATTENTION_TITLE": "What needs attention",
+      "ATTENTION_EMPTY": "No control is failing for now.",
+      "ATTENTION_MORE": "And {{count}} more in Compliance."
+    }
   }
 }
