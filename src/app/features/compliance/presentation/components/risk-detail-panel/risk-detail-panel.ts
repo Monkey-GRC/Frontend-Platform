@@ -33,6 +33,8 @@ export class RiskDetailPanel {
   // El riesgo cambió (un vínculo nuevo o quitado, o una baja): la lista se vuelve a pedir.
   readonly changed = output<void>();
   readonly openCause = output<string>();
+  /** Se pidió editar este riesgo propio: la vista abre el formulario. */
+  readonly edit = output<RiskDetail>();
 
   readonly codeOf = linkCode;
 

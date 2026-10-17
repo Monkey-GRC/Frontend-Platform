@@ -61,6 +61,17 @@ describe('RiskDetailPanel', () => {
     }
   });
 
+  it('offers to edit only a risk of the company, and asks the view to open the form with it', () => {
+    setup('admin_empresa', DETAIL);
+    expect(fixture.nativeElement.querySelector('[data-edit]')).toBeNull();
+    TestBed.resetTestingModule();
+    const panel = setup('admin_empresa', OWN);
+    const asked: RiskDetail[] = [];
+    panel.edit.subscribe((r) => asked.push(r));
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-edit]')!.click();
+    expect(asked).toEqual([OWN]);
+  });
+
   it('offers to retire only a risk of the company, never one of the catalog', () => {
     expect(setup('admin_empresa', DETAIL).canRemove()).toBeFalse();
     TestBed.resetTestingModule();
