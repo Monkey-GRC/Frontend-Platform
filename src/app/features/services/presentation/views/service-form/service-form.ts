@@ -22,6 +22,7 @@ import {
 } from '../../../domain/models/service.models';
 import { ServiceDraftService } from '../../../domain/services/service-draft.service';
 import { ServiceService } from '../../../domain/services/service.service';
+import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
 interface Catalogs {
   type: CatalogOption[];
@@ -91,7 +92,7 @@ type SubserviceTextKey = 'service_provided' | 'responsibility';
 
 @Component({
   selector: 'app-service-form',
-  imports: [OptionChips, RouterLink, TranslatePipe],
+  imports: [PageHeader, OptionChips, RouterLink, TranslatePipe],
   templateUrl: './service-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

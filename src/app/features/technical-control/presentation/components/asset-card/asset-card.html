@@ -1,4 +1,4 @@
-<article class="border-t border-gray-200 pt-5 dark:border-gray-700">
+<article class="mk-card p-4">
 
   <!-- Quién es -->
   <div class="flex flex-wrap items-start justify-between gap-3">
@@ -6,7 +6,7 @@
       @if (providerLogo(); as logo) {
       <app-provider-logo [logoKey]="logo" size="sm" />
       } @else {
-      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <span class="material-symbols-rounded">{{ isCloud() ? 'cloud' : 'dns' }}</span>
       </span>
       }
@@ -86,12 +86,12 @@
   <p class="mt-4 text-sm text-gray-700 dark:text-gray-200">{{ 'TECHNICAL_CONTROL.CARD.AUTO_EVALUATION' | translate }}: <strong>{{ frequencyLabel(freq) }}</strong></p>
   }
   @if (keysWarning(); as w) {
-  <p class="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+  <p class="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3.5 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
     <span class="material-symbols-rounded text-[16px]">warning</span>{{ w }}
   </p>
   }
   @if (demo()) {
-  <p class="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+  <p class="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3.5 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
     <span class="material-symbols-rounded text-[16px]">science</span>
     {{ 'TECHNICAL_CONTROL.CARD.DEMO' | translate }}
   </p>
@@ -140,7 +140,7 @@
     @default {
     @if (!needsRolePanel()) {
     <button type="button" (click)="validate()" [disabled]="busy() !== null"
-      class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:opacity-60">
+      class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:opacity-60">
       <span class="material-symbols-rounded text-[18px]" [class.animate-spin]="busy() === 'validate'">{{ busy() === 'validate' ? 'progress_activity' : 'power' }}</span>
       {{ (step() === 'failed' ? 'TECHNICAL_CONTROL.CARD.CHECK_AGAIN' : 'TECHNICAL_CONTROL.CARD.CHECK_CONNECTION') | translate }}
     </button>
@@ -151,7 +151,7 @@
 
   <!-- Lo que la conexión reconoció: es la prueba de que Monkey ve los activos del cliente -->
   @if (isCloud() && connected()) {
-  <div class="mt-5 border-t border-gray-200 pt-5 dark:border-gray-700">
+  <div class="mt-4 border-t border-gray-200 pt-5 dark:border-gray-700">
     <app-discovered-assets [asset]="asset()" [serviceId]="serviceId()" [probeMode]="probeMode()" [refreshing]="busy() === 'validate'" (refreshRequested)="validate()" />
   </div>
 

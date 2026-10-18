@@ -60,18 +60,22 @@
   --color-tertiary-500: #113549;
   --color-tertiary-700: #03131c;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  /* La escala de la marca sigue el azul de Monkey (#046cc4, el del logo y los botones). Antes era el índigo de la plantilla: el menú y los enfoques salían de otro azul. */
+  --color-brand-25: #f4f9ff;
+  --color-brand-50: #e9f3fd;
+  --color-brand-100: #d3e7fa;
+  --color-brand-200: #a9d0f4;
+  --color-brand-300: #72b0ea;
+  --color-brand-400: #3a8dda;
+  --color-brand-500: #046cc4;
+  --color-brand-600: #0357a2;
+  --color-brand-700: #024380;
+  --color-brand-800: #013362;
+  --color-brand-900: #01264a;
+  --color-brand-950: #001127;
+
+  /* El fondo de la página: un gris azulado muy claro, para que las tarjetas blancas se distingan en vez de perderse en un fondo casi blanco. */
+  --color-canvas: #f1f5fa;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -166,7 +170,9 @@
   --shadow-theme-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08),
     0px 8px 8px -4px rgba(16, 24, 40, 0.03);
   --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(4, 108, 196, 0.16);
+  --shadow-card: 0px 1px 2px 0px rgba(16, 24, 40, 0.04), 0px 6px 16px -6px rgba(16, 40, 80, 0.10);
+  --shadow-card-hover: 0px 2px 4px 0px rgba(16, 24, 40, 0.05), 0px 14px 28px -10px rgba(16, 40, 80, 0.18);
   --shadow-slider-navigation: 0px 1px 2px 0px rgba(16, 24, 40, 0.1),
     0px 1px 3px 0px rgba(16, 24, 40, 0.1);
   --shadow-tooltip: 0px 4px 6px -2px rgba(16, 24, 40, 0.05),
@@ -200,7 +206,53 @@
   }
 
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-outfit z-1 bg-canvas;
+  }
+}
+
+/* Botones. El principal es el azul de Monkey, lleno; el secundario, con borde. Los del bloque azul (`mk-hero`) son translúcidos o blancos. */
+@utility mk-btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/25 disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility mk-btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800;
+}
+@utility mk-hero-btn {
+  @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-white/15 px-3.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/25 transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-40;
+}
+@utility mk-hero-btn-solid {
+  @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-white px-3.5 text-sm font-semibold text-brand-700 shadow-theme-xs transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+/* Modo oscuro: superficies en un gris grafito casi neutro. Los grises de la plantilla tiran a azul marino y, junto al azul de la marca, todo se veía de un solo color; así el azul queda
+   para lo que es de la marca (encabezados, pestaña activa, enlaces) y los colores de estado (rojo, ámbar, verde) se leen como tales. Sin capa: gana sobre los tokens del tema. */
+.dark {
+  --color-gray-950: #0b0d11;
+  --color-gray-900: #15181e;
+  --color-gray-800: #1f232b;
+  --color-gray-700: #2c313b;
+  --color-gray-dark: #1a1d24;
+  --color-canvas: #0e1116;
+}
+.dark body {
+  background-color: var(--color-canvas);
+}
+
+/* La tarjeta de Monkey: blanca, esquinas amplias y una sombra suave con un toque azulado. */
+@utility mk-card {
+  @apply rounded-2xl border border-gray-200/80 bg-white shadow-card dark:border-gray-800 dark:bg-gray-900;
+}
+
+/* El encabezado de una pantalla: el azul marino y el azul de Monkey en degradado, con dos círculos de luz de fondo. Todo lo que lleva dentro va en blanco. */
+@utility mk-hero {
+  @apply relative overflow-hidden rounded-2xl bg-linear-to-br from-brand-800 via-brand-700 to-brand-500 text-white shadow-card dark:from-brand-900 dark:via-brand-800 dark:to-tertiary-300;
+  &::before {
+    content: '';
+    @apply pointer-events-none absolute -right-10 -top-28 h-60 w-60 rounded-full bg-white/10;
+  }
+  &::after {
+    content: '';
+    @apply pointer-events-none absolute -bottom-32 right-36 h-52 w-52 rounded-full bg-white/5;
   }
 }
 
@@ -209,7 +261,7 @@
 }
 
 @utility menu-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-brand-50 text-brand-600 font-semibold shadow-[inset_3px_0_0_0_var(--color-brand-500)] dark:bg-brand-500/[0.14] dark:text-brand-300 dark:shadow-[inset_3px_0_0_0_var(--color-brand-400)];
 }
 
 @utility menu-item-inactive {

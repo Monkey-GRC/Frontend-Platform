@@ -14,19 +14,19 @@ interface Look {
 const LOOKS: Record<Readiness, Look> = {
   ready: {
     icon: 'check_circle',
-    chip: 'bg-green-50 text-green-800 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-300 dark:ring-green-400/30',
+    chip: 'bg-green-600 text-white shadow-theme-xs dark:bg-green-500 dark:text-green-950',
     labelKey: 'COMPLIANCE.STATUS.READY',
     hintKey: 'COMPLIANCE.STATUS_HINT.READY',
   },
   almost_ready: {
     icon: 'timelapse',
-    chip: 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-400/30',
+    chip: 'bg-amber-400 text-amber-950 shadow-theme-xs dark:bg-amber-400 dark:text-amber-950',
     labelKey: 'COMPLIANCE.STATUS.ALMOST_READY',
     hintKey: 'COMPLIANCE.STATUS_HINT.ALMOST_READY',
   },
   needs_work: {
     icon: 'build_circle',
-    chip: 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-400/30',
+    chip: 'bg-red-700 text-white shadow-theme-xs dark:bg-red-600 dark:text-white',
     labelKey: 'COMPLIANCE.STATUS.NEEDS_WORK',
     hintKey: 'COMPLIANCE.STATUS_HINT.NEEDS_WORK',
   },

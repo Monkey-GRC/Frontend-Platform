@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -6,6 +6,7 @@ import { catchError, of } from 'rxjs';
 import { FrameworkOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { COMPLIANCE_ROUTE, COMPLIANCE_TABS, ComplianceServiceRef, DEFAULT_COMPLIANCE_TAB } from '../../../domain/models/compliance.models';
+import { ComplianceContextService } from '../../../domain/services/compliance-context.service';
 import { ComplianceServicesService } from '../../../domain/services/compliance-services.service';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 
@@ -24,6 +25,8 @@ export class ComplianceShellView implements OnInit {
   private readonly servicesApi = inject(ComplianceServicesService);
   private readonly catalogs = inject(CatalogService);
   readonly view = inject(ComplianceViewService);
+  /** Lo que el Resumen le cuenta al encabezado: el período de la evaluación y si los marcos se pueden elegir. */
+  readonly context = inject(ComplianceContextService);
 
   readonly tabs = COMPLIANCE_TABS;
   private readonly params = toSignal(this.route.paramMap, { requireSync: true });
@@ -38,8 +41,26 @@ export class ComplianceShellView implements OnInit {
   readonly others = computed(() => this.services() ?? []);
   readonly canSwitch = computed(() => (this.services()?.length ?? 0) > 1);
 
+  constructor() {
+    // Si el encabezado muestra los marcos del servicio, el Resumen no repite sus propios botones.
+    effect(() => {
+      const shows = (this.current()?.frameworks.length ?? 0) > 0;
+      untracked(() => this.context.headerShowsFrameworks.set(shows));
+    });
+    inject(DestroyRef).onDestroy(() => this.context.headerShowsFrameworks.set(false));
+  }
+
   ngOnInit(): void {
     this.servicesApi.list().pipe(catchError(() => of(null))).subscribe((list) => this.services.set(list));
+  }
+
+  /** Elegir un marco en el encabezado: solo tiene efecto en el Resumen, que es lo que lo escucha (por eso solo se puede pulsar ahí). */
+  pickFramework(code: string): void {
+    this.context.selected.set(code);
+  }
+
+  isSelected(code: string): boolean {
+    return this.context.selected() === code;
   }
 
   frameworkLabel(code: string): string {

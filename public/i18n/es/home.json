@@ -37,6 +37,8 @@
       "ATTENTION_TITLE": "Lo que requiere atención",
       "ATTENTION_EMPTY": "Ningún control incumple por ahora.",
       "ATTENTION_MORE": "Y {{count}} más en Cumplimiento."
-    }
+    },
+    "WELCOME": "Hola, {{name}}",
+    "WELCOME_SUB": "Así va tu empresa hoy."
   }
 }

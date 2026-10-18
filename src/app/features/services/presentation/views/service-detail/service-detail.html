@@ -10,9 +10,9 @@
     <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
     <h1 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.LOAD_ERROR_TITLE' | translate }}</h1>
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
-    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+    <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
       <button type="button" (click)="load()"
-        class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
+        class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 transition">
         <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
       </button>
       <a routerLink="/services" class="text-sm font-medium text-primary hover:underline">{{ 'SERVICES.DETAIL.BACK_TO_SERVICES' | translate }}</a>
@@ -22,37 +22,20 @@
 
   @default {
   @if (service(); as s) {
-  <a routerLink="/services" class="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-primary">
-    <span class="material-symbols-rounded text-[16px]">arrow_back</span>{{ 'SHELL.NAV.MY_SERVICES' | translate }}
-  </a>
-
   <!-- Encabezado del servicio -->
-  <div class="mt-3 flex flex-wrap items-center justify-between gap-4 pb-5">
-    <div class="flex min-w-0 items-center gap-4">
-      <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <span class="material-symbols-rounded text-[26px]">inventory_2</span>
-      </span>
-      <div class="min-w-0">
-        <h1 class="truncate text-2xl font-semibold text-gray-900 dark:text-white">{{ s.name }}</h1>
-        <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-200">{{ label('service_type', s.type) }}</p>
-      </div>
-    </div>
-    <div class="flex flex-wrap items-center gap-2">
-      <a [routerLink]="['/services', s.id, 'cumplimiento']"
-        class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-white shadow transition hover:opacity-90">
-        <span class="material-symbols-rounded text-[18px]">verified_user</span>{{ 'SHELL.NAV.COMPLIANCE' | translate }}
-      </a>
-      <a [routerLink]="['/services', s.id, 'edit']"
-        class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-800 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800">
-        <span class="material-symbols-rounded text-[18px]">edit</span>{{ 'COMMON.EDIT' | translate }}
-      </a>
-    </div>
-  </div>
+  <app-page-header [title]="s.name" [subtitle]="label('service_type', s.type)" [backLink]="['/services']" [backLabel]="'SHELL.NAV.MY_SERVICES' | translate">
+    <a actions [routerLink]="['/services', s.id, 'cumplimiento']" class="mk-hero-btn-solid">
+      <span class="material-symbols-rounded text-[18px]">verified_user</span>{{ 'SHELL.NAV.COMPLIANCE' | translate }}
+    </a>
+    <a actions [routerLink]="['/services', s.id, 'edit']" class="mk-hero-btn">
+      <span class="material-symbols-rounded text-[18px]">edit</span>{{ 'COMMON.EDIT' | translate }}
+    </a>
+  </app-page-header>
 
-  <!-- Detalles, en tres paneles como las vistas de recurso de AWS -->
-  <div class="mt-6 grid gap-x-10 gap-y-6 xl:grid-cols-3">
+  <!-- Detalles, en tres paneles -->
+  <div class="mt-4 grid gap-4 xl:grid-cols-3">
 
-    <section class="border-t border-gray-200 pt-4 dark:border-gray-700" [attr.aria-label]="'SERVICES.DETAIL.WHAT_ARIA' | translate">
+    <section class="mk-card p-4" [attr.aria-label]="'SERVICES.DETAIL.WHAT_ARIA' | translate">
       <h2 class="pb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.WHAT_IS' | translate }}</h2>
       <dl class="space-y-5 text-sm">
         <div>
@@ -70,7 +53,7 @@
       </dl>
     </section>
 
-    <section class="border-t border-gray-200 pt-4 dark:border-gray-700" [attr.aria-label]="'SERVICES.DETAIL.COMPLIANCE' | translate">
+    <section class="mk-card p-4" [attr.aria-label]="'SERVICES.DETAIL.COMPLIANCE' | translate">
       <h2 class="pb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.COMPLIANCE' | translate }}</h2>
       <dl class="space-y-5 text-sm">
         <div>
@@ -100,7 +83,7 @@
       </dl>
     </section>
 
-    <section class="border-t border-gray-200 pt-4 dark:border-gray-700" [attr.aria-label]="'SERVICES.DETAIL.CLIENTS_DATA' | translate">
+    <section class="mk-card p-4" [attr.aria-label]="'SERVICES.DETAIL.CLIENTS_DATA' | translate">
       <h2 class="pb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.CLIENTS_DATA' | translate }}</h2>
       <dl class="space-y-5 text-sm">
         <div>
@@ -120,7 +103,7 @@
   </div>
 
   <!-- Dónde vive -->
-  <div class="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
+  <div class="mk-card mt-3 p-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.WHERE_TITLE' | translate }}</h2>
@@ -134,7 +117,7 @@
     </div>
 
     @if (choosing()) {
-    <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       @for (o of scenarios(); track o.value) {
       <button type="button" (click)="pending.set(o.value)" [attr.aria-pressed]="pending() === o.value"
         class="flex items-start gap-3 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
@@ -148,13 +131,13 @@
       }
     </div>
     @if (error(); as e) {
-    <p class="mt-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/20" role="alert">
+    <p class="mt-3 flex items-start gap-2 rounded-xl bg-red-50 p-3.5 text-sm text-error-600 dark:bg-red-900/20 border border-red-200 dark:border-red-800" role="alert">
       <span class="material-symbols-rounded text-[18px]">error</span><span>{{ e }}</span>
     </p>
     }
-    <div class="mt-5 flex items-center gap-3">
+    <div class="mt-4 flex items-center gap-3">
       <button type="button" (click)="saveScenario()" [disabled]="!pending() || saving()"
-        class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:opacity-60">
+        class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:opacity-60">
         @if (saving()) { <span class="material-symbols-rounded animate-spin text-[18px]">progress_activity</span> }
 {{ 'COMMON.SAVE' | translate }}
       </button>
@@ -167,7 +150,7 @@
   </div>
 
   <!-- Conexiones -->
-  <div class="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
+  <div class="mk-card mt-3 p-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.LIST.COL_CONNECTIONS' | translate }}</h2>
@@ -175,7 +158,7 @@
       </div>
       @if (scenario()) {
       <a [routerLink]="['/services', s.id, 'connections', 'new']"
-        class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow transition hover:opacity-90">
+        class="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
         <span class="material-symbols-rounded text-[18px]">add</span>{{ 'SERVICES.DETAIL.NEW_CONNECTION' | translate }}
       </a>
       }
@@ -186,8 +169,8 @@
       <app-connections-list [serviceId]="s.id" [assets]="assets()" [labels]="capabilityLabels()" />
     </div>
     } @else {
-    <div class="mt-5 rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700">
-      <span class="material-symbols-rounded text-3xl text-gray-500 dark:text-gray-300">cable</span>
+    <div class="mt-4 rounded-xl border border-dashed border-gray-300 p-6 text-center dark:border-gray-700">
+      <span class="material-symbols-rounded text-2xl text-gray-500 dark:text-gray-300">cable</span>
       <p class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.NO_CONNECTIONS_TITLE' | translate }}</p>
       <p class="mx-auto mt-1 max-w-md text-sm text-gray-500 dark:text-gray-300">
         @if (scenario()) {

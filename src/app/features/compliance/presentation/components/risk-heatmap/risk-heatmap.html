@@ -12,11 +12,11 @@
           @for (i of impacts(); track i) {
           @if (count(l, i) > 0) {
           <button type="button" role="gridcell" [attr.data-cell]="l + '-' + i" [attr.data-count]="count(l, i)" [attr.aria-label]="label(l, i)" [attr.aria-pressed]="isPicked(l, i)" (click)="pick(l, i)"
-            class="flex h-12 w-12 items-center justify-center rounded-md border text-base font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            [class]="tone(l, i) + (isPicked(l, i) ? ' ring-2 ring-offset-1 ring-primary' : '')">{{ count(l, i) }}</button>
+            class="flex h-10 w-10 items-center justify-center rounded-md border text-base font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            [class]="tone(l, i) + (isPicked(l, i) ? ' ring-2 ring-offset-1 ring-primary' : '')"><span class="flex h-7 min-w-7 items-center justify-center rounded-full bg-white px-1 text-sm font-bold text-gray-900 shadow-theme-sm">{{ count(l, i) }}</span></button>
           } @else {
           <div role="gridcell" [attr.data-cell]="l + '-' + i" [attr.data-count]="0" [attr.aria-label]="label(l, i)"
-            class="flex h-12 w-12 items-center justify-center rounded-md border text-[11px] font-medium opacity-90" [class]="tone(l, i)">{{ valueOf(l, i) }}</div>
+            class="flex h-10 w-10 items-center justify-center rounded-md border text-[11px] font-medium opacity-90" [class]="tone(l, i)">{{ valueOf(l, i) }}</div>
           }
           }
         </div>
@@ -53,7 +53,7 @@
     <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.HEATMAP.RESIDUAL_NOTE' | translate }}</p>
 
     @if (selectedRisks().length > 0) {
-    <ul class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900" data-picked-risks>
+    <ul class="mk-card divide-y divide-gray-100 dark:divide-gray-800" data-picked-risks>
       @for (r of selectedRisks(); track r.id) {
       <li>
         <a [routerLink]="riskLink()" [queryParams]="riskQuery(r.id)" class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/60">

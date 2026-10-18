@@ -1,8 +1,8 @@
 <app-side-panel [titleKey]="'COMPLIANCE.RISK_FORM.TITLE_' + (editing() ? 'EDIT_' : 'NEW_') + kind().toUpperCase()" (closed)="closed.emit()">
-  <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
+  <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" data-form novalidate>
 
     @if (banner(); as b) {
-    <div class="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300" role="alert" data-banner>
+    <div class="flex items-start gap-2 rounded-xl bg-red-50 p-3.5 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800" role="alert" data-banner>
       <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ b }}</span>
     </div>
     }
@@ -49,7 +49,7 @@
 
   <button panelFooter type="button" (click)="closed.emit()" data-cancel class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
   <button panelFooter type="button" (click)="save()" [disabled]="!canSave()" data-save
-    class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
+    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-40">
     {{ (sending() ? 'COMPLIANCE.RISK_FORM.SAVING' : 'COMPLIANCE.RISK_FORM.SAVE') | translate }}
   </button>
 </app-side-panel>
