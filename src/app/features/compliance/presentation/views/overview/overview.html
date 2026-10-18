@@ -42,7 +42,7 @@
   <!-- El veredicto, el avance y los conteos, en una sola franja. El avance no es el estado: el veredicto va aparte, en su color. -->
   <div class="flex flex-col gap-3 lg:flex-row lg:items-stretch">
     @if (banner(); as b) {
-    <section class="relative flex items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 shadow-card lg:w-[23rem] lg:shrink-0" [class]="bannerClass()" [attr.data-verdict]="b.tone" aria-live="polite">
+    <section class="relative flex items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 shadow-card lg:w-[19rem] lg:shrink-0" [class]="bannerClass()" [attr.data-verdict]="b.tone" aria-live="polite">
       <span class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-inset ring-white/40">
         <span class="material-symbols-rounded text-[24px]" aria-hidden="true">{{ b.icon }}</span>
       </span>
@@ -54,8 +54,8 @@
     </section>
     }
 
-    <section class="mk-card flex flex-1 flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3" data-progress>
-      <div class="flex max-w-[16rem] items-center gap-3">
+    <section class="mk-card flex items-center gap-3 px-4 py-3 lg:w-[18rem] lg:shrink-0" data-progress>
+      <div class="flex items-center gap-3">
         <app-progress-ring [value]="value(fw.progress.done, fw.progress.total)" [text]="measured() ? pct(fw.progress.done, fw.progress.total) : '—'"
           [tone]="tone(fw.readiness)" [size]="60" [ariaLabel]="('COMPLIANCE.OVERVIEW.PROGRESS' | translate) + ' ' + (measured() ? pct(fw.progress.done, fw.progress.total) : '—')" />
         <div class="text-xs">
@@ -67,23 +67,24 @@
         </div>
       </div>
 
-      @if (counts(); as c) {
-      <ul class="grid flex-1 grid-cols-2 gap-x-6 gap-y-1.5 border-gray-200 text-sm dark:border-gray-700 lg:border-l lg:pl-6" data-kpis>
+    </section>
+
+    @if (counts(); as c) {
+    <ul class="mk-card grid grid-cols-2 content-center gap-x-4 gap-y-1.5 px-4 py-3 text-xs lg:flex-1" data-kpis>
         <li class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-rounded text-[20px] text-brand-500" aria-hidden="true">fact_check</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_EVALUATED' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="evaluated">{{ c.measured }}<span class="text-sm font-medium text-gray-500 dark:text-gray-400">/{{ c.total }}</span></span></li>
         <li class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-rounded text-[20px] text-green-600 dark:text-green-400" aria-hidden="true">check_circle</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_EFFECTIVE' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="effective">{{ c.done }}</span></li>
         <li class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-rounded text-[20px] text-red-700 dark:text-red-400" aria-hidden="true">cancel</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_INEFFECTIVE' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="ineffective">{{ c.notEffective }}</span></li>
         <li class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-rounded text-[20px] text-amber-500" aria-hidden="true">schedule</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_PENDING' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="pending">{{ c.pending }}</span></li>
       </ul>
-      }
-    </section>
+    }
   </div>
 
   <!-- Criterios de confianza: el color de la franja es el del estado, no el de la categoría -->
   <section [attr.aria-label]="'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate">
     <h3 class="mb-2 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-primary" aria-hidden="true"></span>{{ 'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate }}</h3>
-    <div class="mk-card grid overflow-hidden sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       @for (cat of fw.categories; track cat.trust_criterion) {
-      <article class="flex items-center gap-3 border-l-4 px-4 py-2.5" [class]="accent(cat.readiness)" [attr.data-category]="cat.trust_criterion">
+      <article class="mk-card flex items-center gap-3 overflow-hidden border-l-4 px-4 py-2.5" [class]="accent(cat.readiness)" [attr.data-category]="cat.trust_criterion">
         <app-progress-ring [value]="value(cat.progress.done, cat.progress.total)" [text]="cat.readiness === 'not_measured' ? '—' : pct(cat.progress.done, cat.progress.total)" [tone]="tone(cat.readiness)" [size]="52"
           [ariaLabel]="criterionLabel(cat.trust_criterion)" />
         <div class="min-w-0">

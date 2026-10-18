@@ -93,7 +93,13 @@ export class AppSidebarComponent {
   }
 
   isActive(path: string): boolean {
-    return this.router.url === path;
+    const url = this.router.url.split(/[?#]/)[0];
+    if (path === '/') return url === '/';
+    // El ítem de «Cumplimiento» cubre /cumplimiento y la ruta de cumplimiento de un servicio (/services/:id/cumplimiento/…), que no es «Mis servicios».
+    const inCompliance = url.includes('/cumplimiento');
+    if (path === '/cumplimiento') return inCompliance;
+    if (path === '/services' && inCompliance) return false;
+    return url === path || url.startsWith(path + '/');
   }
 
   toggleSubmenu(itemName: string) {
