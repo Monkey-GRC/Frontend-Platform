@@ -8,7 +8,7 @@ export type RingTone = 'green' | 'amber' | 'red' | 'gray';
 const STROKE: Record<RingTone, string> = {
   green: 'stroke-green-600 dark:stroke-green-400',
   amber: 'stroke-amber-500 dark:stroke-amber-400',
-  red: 'stroke-red-600 dark:stroke-red-400',
+  red: 'stroke-red-700 dark:stroke-red-400',
   gray: 'stroke-gray-400 dark:stroke-gray-500',
 };
 
@@ -24,7 +24,7 @@ const STROKE: Record<RingTone, string> = {
         <circle cx="50" cy="50" [attr.r]="radius" fill="none" stroke-width="9" stroke-linecap="round" [class]="stroke()" [attr.stroke-dasharray]="dash()" />
       </svg>
       <span class="absolute inset-0 flex flex-col items-center justify-center text-center leading-tight">
-        <span class="font-semibold text-gray-900 dark:text-white" [class]="size() >= 110 ? 'text-2xl' : 'text-base'">{{ text() }}</span>
+        <span class="font-semibold text-gray-900 dark:text-white" [class]="size() >= 110 ? 'text-2xl' : size() >= 70 ? 'text-base' : 'text-xs'">{{ text() }}</span>
         @if (caption(); as c) {<span class="text-[11px] text-gray-600 dark:text-gray-300">{{ c }}</span>}
       </span>
     </div>

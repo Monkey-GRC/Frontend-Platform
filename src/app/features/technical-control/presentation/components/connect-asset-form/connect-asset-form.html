@@ -6,7 +6,7 @@
     {{ 'TECHNICAL_CONTROL.FORM.READ_ONLY_NOTE' | translate }}
   </p>
 
-  <div class="mt-6 space-y-6">
+  <div class="mt-4 space-y-4">
     <div>
       <label for="asset-name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
         {{ 'TECHNICAL_CONTROL.FORM.NAME_LABEL' | translate }} <span class="text-error-500">*</span>
@@ -112,19 +112,19 @@
   </div>
 
   @if (error()) {
-  <div class="mt-6 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/20" role="alert">
+  <div class="mt-4 flex items-start gap-2 rounded-xl bg-red-50 p-3.5 text-sm text-error-600 dark:bg-red-900/20 border border-red-200 dark:border-red-800" role="alert">
     <span class="material-symbols-rounded text-[18px]">error</span>
     <span>{{ error() }}</span>
   </div>
   }
 
-  <div class="mt-8 flex items-center justify-between gap-3">
+  <div class="mt-5 flex items-center justify-between gap-3">
     <button type="button" (click)="cancelled.emit()" [disabled]="saving()"
       class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
       {{ 'COMMON.CANCEL' | translate }}
     </button>
     <button type="button" (click)="submit()" [disabled]="saving()"
-      class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90 disabled:opacity-60">
+      class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:opacity-60">
       @if (saving()) {
       <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
       {{ 'COMMON.WIZARD.SAVING' | translate }}

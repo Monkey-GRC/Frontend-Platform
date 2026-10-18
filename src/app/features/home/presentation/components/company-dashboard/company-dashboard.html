@@ -9,86 +9,92 @@
 }
 
 @case ('error') {
-<div class="rounded-xl border border-dashed border-gray-300 p-6 text-center dark:border-gray-600" data-dashboard-error>
+<div class="mk-card border-dashed p-5 text-center" data-dashboard-error>
   <p class="text-sm text-gray-700 dark:text-gray-200">{{ 'HOME.DASHBOARD.LOAD_ERROR' | translate }}</p>
-  <button type="button" (click)="load()" class="mt-3 text-sm font-medium text-primary hover:underline">{{ 'COMMON.RETRY' | translate }}</button>
+  <button type="button" (click)="load()" class="mt-3 text-sm font-semibold text-primary hover:underline">{{ 'COMMON.RETRY' | translate }}</button>
 </div>
 }
 
 @default {
 @if (services().length > 0) {
-<div class="space-y-8" data-dashboard>
+<div class="space-y-5" data-dashboard>
 
-  <!-- Lo que tiene la empresa -->
+  <!-- Lo que tiene la empresa: una sola franja, no seis tarjetas -->
   <section [attr.aria-label]="'HOME.DASHBOARD.COMPANY_TITLE' | translate">
-    <h2 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ 'HOME.DASHBOARD.COMPANY_TITLE' | translate }}</h2>
+    <h2 class="mb-2 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-primary" aria-hidden="true"></span>{{ 'HOME.DASHBOARD.COMPANY_TITLE' | translate }}</h2>
     @if (totals(); as t) {
-    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.SERVICES' | translate }}</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white" data-total="services">{{ t.services }}</p>
+    <div class="mk-card grid grid-cols-2 divide-gray-100 px-2 py-1 dark:divide-gray-800 sm:grid-cols-3 lg:grid-cols-6 lg:divide-x">
+      <div class="flex items-center gap-2.5 px-3 py-2">
+        <span class="material-symbols-rounded text-[22px] text-brand-500" aria-hidden="true">inventory_2</span>
+        <div><p class="text-xl font-bold leading-none text-gray-900 dark:text-white" data-total="services">{{ t.services }}</p><p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.SERVICES' | translate }}</p></div>
       </div>
-      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.ASSETS' | translate }}</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white" data-total="assets">{{ t.assets }}</p>
+      <div class="flex items-center gap-2.5 px-3 py-2">
+        <span class="material-symbols-rounded text-[22px] text-brand-500" aria-hidden="true">dns</span>
+        <div><p class="text-xl font-bold leading-none text-gray-900 dark:text-white" data-total="assets">{{ t.assets }}</p><p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.ASSETS' | translate }}</p></div>
       </div>
-      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.FRAMEWORKS' | translate }}</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white" data-total="frameworks">{{ t.frameworks }}</p>
+      <div class="flex items-center gap-2.5 px-3 py-2">
+        <span class="material-symbols-rounded text-[22px] text-brand-500" aria-hidden="true">workspace_premium</span>
+        <div><p class="text-xl font-bold leading-none text-gray-900 dark:text-white" data-total="frameworks">{{ t.frameworks }}</p><p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.FRAMEWORKS' | translate }}</p></div>
       </div>
-      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.GLOSSARY.CONTROLS' | translate }}</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white" data-total="controls">{{ t.controls }}</p>
+      <div class="flex items-center gap-2.5 px-3 py-2">
+        <span class="material-symbols-rounded text-[22px] text-brand-500" aria-hidden="true">shield</span>
+        <div><p class="text-xl font-bold leading-none text-gray-900 dark:text-white" data-total="controls">{{ t.controls }}</p><p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.GLOSSARY.CONTROLS' | translate }}</p></div>
       </div>
-      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.GLOSSARY.RISKS' | translate }}</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white" data-total="risks">{{ t.risks }}</p>
-        <p class="text-xs text-gray-600 dark:text-gray-300" data-total="risks-evaluated">{{ 'HOME.DASHBOARD.RISKS_EVALUATED' | translate: { evaluated: t.risksEvaluated } }}</p>
+      <div class="flex items-center gap-2.5 px-3 py-2">
+        <span class="material-symbols-rounded text-[22px] text-brand-500" aria-hidden="true">warning</span>
+        <div><p class="text-xl font-bold leading-none text-gray-900 dark:text-white" data-total="risks">{{ t.risks }}</p><p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.GLOSSARY.RISKS' | translate }} · <span class="font-medium text-brand-600 dark:text-brand-300" data-total="risks-evaluated">{{ 'HOME.DASHBOARD.RISKS_EVALUATED' | translate: { evaluated: t.risksEvaluated } }}</span></p></div>
       </div>
-      <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.GLOSSARY.CAUSES' | translate }}</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white" data-total="causes">{{ t.causes }}</p>
+      <div class="flex items-center gap-2.5 px-3 py-2">
+        <span class="material-symbols-rounded text-[22px] text-brand-500" aria-hidden="true">troubleshoot</span>
+        <div><p class="text-xl font-bold leading-none text-gray-900 dark:text-white" data-total="causes">{{ t.causes }}</p><p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.GLOSSARY.CAUSES' | translate }}</p></div>
       </div>
     </div>
     }
   </section>
 
-  <!-- Cómo va cada servicio, por marco -->
+  <!-- Cómo va cada servicio, por marco. El color de la franja es el del estado. -->
   <section [attr.aria-label]="'HOME.DASHBOARD.STATUS_TITLE' | translate">
-    <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'HOME.DASHBOARD.STATUS_TITLE' | translate }}</h2>
-    <p class="mb-3 mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.STATUS_INTRO' | translate }}</p>
-    <div class="grid gap-4 lg:grid-cols-2">
-      @for (s of services(); track s.id) {
-      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900" [attr.data-service]="s.id">
+    <h2 class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-primary" aria-hidden="true"></span>{{ 'HOME.DASHBOARD.STATUS_TITLE' | translate }}</h2>
+    <p class="mb-2 mt-0.5 pl-3 text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.STATUS_INTRO' | translate }}</p>
+    <div class="grid gap-3 lg:grid-cols-2">
+      @for (s of ordered(); track s.id) {
+      <article class="mk-card overflow-hidden border-t-4 px-4 py-3 transition hover:shadow-card-hover" [class]="strip(s)" [attr.data-service]="s.id">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <h3 class="truncate text-base font-semibold text-gray-900 dark:text-white">{{ s.name }}</h3>
-            <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">
+            <p class="text-xs text-gray-600 dark:text-gray-300">
               {{ 'HOME.DASHBOARD.SERVICE_COUNTS' | translate: { assets: s.assets, controls: s.controls, risks: s.risks, causes: s.causes } }}
             </p>
           </div>
-          <a [routerLink]="link(s)" class="shrink-0 text-sm font-medium text-primary hover:underline">{{ 'HOME.DASHBOARD.SEE_COMPLIANCE' | translate }}</a>
+          <a [routerLink]="link(s)" class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-brand-200 bg-brand-25 px-2.5 py-1 text-xs font-semibold text-primary transition hover:bg-brand-50 dark:border-brand-800 dark:bg-transparent">{{ 'HOME.DASHBOARD.SEE_COMPLIANCE' | translate }}<span class="material-symbols-rounded text-[16px]" aria-hidden="true">arrow_forward</span></a>
         </div>
 
         @if (s.frameworks.length === 0) {
-        <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.NO_FRAMEWORK' | translate }}</p>
+        <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.NO_FRAMEWORK' | translate }}</p>
         } @else {
-        <ul class="mt-4 divide-y divide-gray-100 dark:divide-gray-800">
+        <ul class="mt-2 divide-y divide-gray-100 dark:divide-gray-800">
           @for (f of s.frameworks; track f.code) {
-          <li class="flex flex-wrap items-center gap-x-4 gap-y-2 py-3" [attr.data-framework]="f.code">
-            <span class="w-20 shrink-0 font-semibold text-gray-900 dark:text-white">{{ f.name }}</span>
-            <app-status-badge [status]="f.readiness" size="sm" />
-            @if (verdictKey(f); as v) {
-            <span class="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-semibold uppercase text-gray-800 dark:bg-gray-800 dark:text-gray-200" data-verdict>{{ v | translate }}</span>
-            }
-            <span class="ml-auto text-right text-xs text-gray-700 dark:text-gray-200">
-              @if (measured(f)) {
-              <span class="font-medium" data-progress>{{ 'HOME.DASHBOARD.PROGRESS' | translate: { percent: pct(f.progress.done, f.progress.total) } }}</span>
-              · {{ 'HOME.DASHBOARD.COVERAGE' | translate: { percent: pct(f.coverage.measured, f.coverage.applicable) } }}
-              } @else {
-              <span data-not-measured>{{ 'HOME.DASHBOARD.NOT_MEASURED' | translate }}</span>
+          <li class="py-2" [attr.data-framework]="f.code">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-sm font-bold text-gray-900 dark:text-white">{{ f.name }}</span>
+              <app-status-badge [status]="f.readiness" size="sm" />
+              @if (verdictKey(f); as v) {
+              <span class="rounded-md px-1.5 py-0.5 text-[11px] font-bold uppercase" [class]="verdictClass(f)" data-verdict>{{ v | translate }}</span>
               }
-            </span>
+            </div>
+            @if (measured(f)) {
+            <div class="mt-1.5 flex items-center gap-3">
+              <div class="h-1.5 w-28 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10" aria-hidden="true">
+                <div class="h-full rounded-full" [class]="bar(f)" [style.width.%]="progressValue(f)"></div>
+              </div>
+              <p class="text-xs text-gray-700 dark:text-gray-200">
+                <span class="font-semibold" data-progress>{{ 'HOME.DASHBOARD.PROGRESS' | translate: { percent: pct(f.progress.done, f.progress.total) } }}</span>
+                · {{ 'HOME.DASHBOARD.COVERAGE' | translate: { percent: pct(f.coverage.measured, f.coverage.applicable) } }}
+              </p>
+            </div>
+            } @else {
+            <p class="mt-1 text-xs text-gray-600 dark:text-gray-300" data-not-measured>{{ 'HOME.DASHBOARD.NOT_MEASURED' | translate }}</p>
+            }
           </li>
           }
         </ul>
@@ -100,17 +106,17 @@
 
   <!-- Lo que requiere atención -->
   <section [attr.aria-label]="'HOME.DASHBOARD.ATTENTION_TITLE' | translate">
-    <h2 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ 'HOME.DASHBOARD.ATTENTION_TITLE' | translate }}</h2>
+    <h2 class="mb-3 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-red-600" aria-hidden="true"></span>{{ 'HOME.DASHBOARD.ATTENTION_TITLE' | translate }}</h2>
     @if (attention().length === 0) {
-    <p class="rounded-xl border border-dashed border-gray-300 p-5 text-center text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300" data-attention-empty>{{ 'HOME.DASHBOARD.ATTENTION_EMPTY' | translate }}</p>
+    <p class="mk-card border-dashed p-5 text-center text-sm text-gray-600 dark:text-gray-300" data-attention-empty>{{ 'HOME.DASHBOARD.ATTENTION_EMPTY' | translate }}</p>
     } @else {
-    <ul class="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900" data-attention>
+    <ul class="mk-card divide-y divide-gray-100 overflow-hidden dark:divide-gray-800" data-attention>
       @for (a of attention(); track a.controlId) {
       <li>
-        <a [routerLink]="controlsLink(a.serviceId)" class="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/60">
-          <span class="w-20 shrink-0 font-mono text-xs font-semibold text-gray-700 dark:text-gray-200">{{ a.code }}</span>
-          <span class="min-w-0 flex-1 text-gray-900 dark:text-white">{{ a.name }}</span>
-          <span class="shrink-0 text-xs text-gray-600 dark:text-gray-300">{{ a.serviceName }}</span>
+        <a [routerLink]="controlsLink(a.serviceId)" class="flex items-center gap-3 px-4 py-2 transition hover:bg-brand-25 dark:hover:bg-white/5">
+          <span class="w-20 shrink-0 rounded-md bg-brand-50 px-2 py-1 text-center font-mono text-xs font-bold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">{{ a.code }}</span>
+          <span class="min-w-0 flex-1 font-medium text-gray-900 dark:text-white">{{ a.name }}</span>
+          <span class="shrink-0 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-300">{{ a.serviceName }}</span>
         </a>
       </li>
       }

@@ -10,6 +10,7 @@ import { Responsible } from '../../../domain/models/risk.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { ResponsibleService } from '../../../domain/services/responsible.service';
+import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -18,7 +19,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // El administrador de la empresa crea, cambia la persona y quita; el resto de roles solo lee. Un cargo del que algo depende no se puede quitar (409).
 @Component({
   selector: 'app-responsibles',
-  imports: [TranslatePipe, ConfirmDialog, LoadingSpinner],
+  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner],
   templateUrl: './responsibles.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

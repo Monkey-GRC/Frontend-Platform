@@ -9,6 +9,7 @@ import { Capability, ConnectionMethod, Platform } from '../../../domain/models/t
 import { TechnicalControlService } from '../../../domain/services/technical-control.service';
 import { ProviderLogo } from '../../components/provider-logo/provider-logo';
 import { categoryLabel } from '../../../domain/utils/category-label';
+import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -16,7 +17,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // si están disponibles salen del catálogo del backend; esta pantalla no fija ninguna. Las que aún no tienen flujo se muestran bloqueadas.
 @Component({
   selector: 'app-new-connection',
-  imports: [Breadcrumb, ProviderLogo, RouterLink, LoadingSpinner, TranslatePipe],
+  imports: [PageHeader, Breadcrumb, ProviderLogo, RouterLink, LoadingSpinner, TranslatePipe],
   templateUrl: './new-connection.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

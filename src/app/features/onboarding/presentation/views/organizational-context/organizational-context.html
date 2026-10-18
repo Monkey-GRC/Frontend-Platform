@@ -1,4 +1,5 @@
 <section class="w-full pb-10" [class]="step() === reviewStep ? 'max-w-5xl' : 'max-w-3xl'">
+<div class="mk-card p-5 md:p-6">
 
   @switch (stage()) {
 
@@ -10,7 +11,7 @@
     <div class="py-8">
       <div class="h-7 w-2/3 rounded bg-gray-200 dark:bg-gray-800"></div>
       <div class="mt-3 h-4 w-1/2 rounded bg-gray-100 dark:bg-gray-800/60"></div>
-      <div class="mt-8 h-28 rounded-xl bg-gray-100 dark:bg-gray-800/60"></div>
+      <div class="mt-5 h-28 rounded-xl bg-gray-100 dark:bg-gray-800/60"></div>
     </div>
   </div>
   }
@@ -24,7 +25,7 @@
       {{ 'ONBOARDING.LOAD_ERROR_BODY' | translate }}
     </p>
     <button type="button" (click)="load()"
-      class="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 transition">
+      class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 transition">
       <span class="material-symbols-rounded text-[18px]">refresh</span>
       {{ 'COMMON.RETRY' | translate }}
     </button>
@@ -37,12 +38,12 @@
     <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
       <span class="material-symbols-rounded text-4xl">task_alt</span>
     </span>
-    <h1 class="mt-6 text-2xl font-semibold text-gray-900 md:text-3xl dark:text-white">{{ 'ONBOARDING.DONE_TITLE' | translate }}</h1>
+    <h1 class="mt-4 text-2xl font-semibold text-gray-900 md:text-3xl dark:text-white">{{ 'ONBOARDING.DONE_TITLE' | translate }}</h1>
     <p class="mx-auto mt-3 max-w-md text-sm text-gray-500 md:text-base dark:text-gray-400">
       {{ 'ONBOARDING.DONE_BODY' | translate: { name: companyName() } }}
     </p>
     <button type="button" (click)="finish()"
-      class="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:opacity-90 transition">
+      class="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 transition">
       {{ 'COMMON.CONTINUE' | translate }}
       <span class="material-symbols-rounded text-[20px]">arrow_forward</span>
     </button>
@@ -54,7 +55,7 @@
 
   @if (step() < reviewStep) {
   <!-- Encabezado: dónde va y cuánto falta -->
-  <header class="mb-6">
+  <header class="mb-4">
     <div class="flex items-center justify-between text-sm">
       <span class="font-medium text-gray-900 dark:text-white">{{ 'ONBOARDING.STEP_OF' | translate: { current: step() + 1, total: steps.length } }}</span>
       <span class="text-gray-400">{{ steps[step()].labelKey | translate }}</span>
@@ -95,7 +96,7 @@
     <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S1_TITLE' | translate }}</h1>
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'ONBOARDING.S1_BODY' | translate }}</p>
 
-    <div class="mt-8 space-y-7">
+    <div class="mt-5 space-y-7">
       <div>
         <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'ONBOARDING.LEGAL_NAME' | translate }}</label>
         <div class="relative">
@@ -132,7 +133,7 @@
     <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S2_TITLE' | translate }}</h1>
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'ONBOARDING.S2_BODY' | translate }}</p>
 
-    <div class="mt-8 space-y-8">
+    <div class="mt-5 space-y-5">
       <div>
         <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'ONBOARDING.EMPLOYEES_LABEL' | translate }} <span class="text-error-500">*</span>
@@ -164,7 +165,7 @@
     <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S3_TITLE' | translate }}</h1>
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'ONBOARDING.S3_BODY' | translate }}</p>
 
-    <div class="mt-8 space-y-8">
+    <div class="mt-5 space-y-5">
       <div>
         <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'ONBOARDING.INDUSTRY_LABEL' | translate }} <span class="text-error-500">*</span>
@@ -198,7 +199,7 @@
     <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S4_TITLE' | translate }}</h1>
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'COMMON.WIZARD.MULTI_EACH' | translate }}</p>
 
-    <div class="mt-8 space-y-8">
+    <div class="mt-5 space-y-5">
       <div>
         <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'ONBOARDING.INCORP_LABEL' | translate }} <span class="text-error-500">*</span>
@@ -239,7 +240,7 @@
     <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S5_TITLE' | translate }}</h1>
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'ONBOARDING.S5_BODY' | translate }}</p>
 
-    <div class="mt-8 space-y-8">
+    <div class="mt-5 space-y-5">
       <div>
         <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'ONBOARDING.MATURITY_LABEL' | translate }} <span class="text-error-500">*</span>
@@ -271,7 +272,7 @@
     <!-- La ficha de la empresa: sin tarjeta, directamente sobre la página, con secciones y datos con su etiqueta -->
     <header class="flex items-center gap-4">
       <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <span class="material-symbols-rounded text-3xl" aria-hidden="true">apartment</span>
+        <span class="material-symbols-rounded text-2xl" aria-hidden="true">apartment</span>
       </span>
       <div class="min-w-0">
         <h1 class="truncate text-2xl font-semibold text-gray-900 dark:text-white">{{ companyName() }}</h1>
@@ -281,7 +282,7 @@
       </div>
     </header>
 
-    <div class="mt-8 space-y-6 border-b border-gray-200 pb-6 dark:border-gray-700">
+    <div class="mt-5 space-y-4 border-b border-gray-200 pb-6 dark:border-gray-700">
       <section class="border-t border-gray-200 pt-4 dark:border-gray-700">
         <div class="flex items-center justify-between">
           <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
@@ -378,7 +379,7 @@
     }
 
     @if (saveError()) {
-    <div class="mt-6 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-error-600 dark:bg-red-900/20" role="alert">
+    <div class="mt-4 flex items-start gap-2 rounded-xl bg-red-50 p-3.5 text-sm text-error-600 dark:bg-red-900/20 border border-red-200 dark:border-red-800" role="alert">
       <span class="material-symbols-rounded text-[18px]">error</span>
       <span>{{ saveError() }}</span>
     </div>
@@ -399,13 +400,13 @@
 
         @if (step() < reviewStep) {
         <button type="button" (click)="next()"
-          class="group inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90">
+          class="group inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
           {{ (step() === steps.length - 1 ? 'COMMON.WIZARD.REVIEW' : 'COMMON.NEXT') | translate }}
           <span class="material-symbols-rounded text-[18px] transition group-hover:translate-x-0.5">arrow_forward</span>
         </button>
         } @else {
         <button type="button" (click)="save()" [disabled]="stage() === 'saving' || !allValid()"
-          class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
+          class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60">
           @if (stage() === 'saving') {
           <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
           {{ 'COMMON.WIZARD.SAVING' | translate }}
@@ -426,4 +427,5 @@
   }
   }
   }
+</div>
 </section>

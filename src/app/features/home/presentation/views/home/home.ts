@@ -17,6 +17,8 @@ export class Home {
 
   // El backend dice en qué paso va el cliente; aquí solo se traduce a una invitación clara.
   readonly nextStep = computed(() => this.session.onboarding()?.next_step ?? null);
+  /** Con el onboarding terminado ya no se le dice que «su cuenta está activa»: se le da la bienvenida a su resumen. */
+  readonly onboarded = computed(() => this.session.onboarding() !== null && this.nextStep() === null);
   readonly pendingCompanyContext = computed(() => this.nextStep() === 'organizational_context');
   readonly pendingService = computed(() => this.nextStep() === 'service_context');
   readonly pendingTechnicalControl = computed(() => this.nextStep() === 'technical_control');

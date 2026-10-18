@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
@@ -11,6 +11,7 @@ import { StatusBadge } from '@shared/presentation/components/status-badge/status
 import { COMPLIANCE_ROUTE } from '../../../domain/models/compliance.models';
 import { RiskListItem } from '../../../domain/models/risk.models';
 import { FailingAffected, OverviewCategory, OverviewFailingControl, OverviewFramework, OverviewReadiness, RollupState } from '../../../domain/models/overview.models';
+import { ComplianceContextService } from '../../../domain/services/compliance-context.service';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { OverviewService } from '../../../domain/services/overview.service';
 import { RiskService } from '../../../domain/services/risk.service';
@@ -41,16 +42,22 @@ interface AttentionRow {
 
 // Los colores del banner y de los anillos: el rojo es «no cumple», el verde «cumple», el ámbar «casi / en evaluación» y el gris «sin medir» (leyenda del comité).
 const BANNER_CLASS: Record<Tone, string> = {
-  green: 'border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-900/20 dark:text-green-100',
-  amber: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-100',
-  red: 'border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-900/20 dark:text-red-100',
-  gray: 'border-dashed border-gray-300 bg-gray-50 text-gray-900 dark:border-gray-600 dark:bg-gray-800/60 dark:text-gray-100',
+  // Tonos profundos, no los más brillantes de cada color: el veredicto se lee de lejos sin gritar.
+  // En modo oscuro el veredicto se apaga un escalón (más oscuro y con un filo de su color): sobre un fondo oscuro, el rojo de día deslumbra.
+  green: 'bg-linear-to-br from-success-700 to-success-800 text-white dark:from-success-800 dark:to-success-950 dark:ring-1 dark:ring-inset dark:ring-success-500/30',
+  amber: 'bg-linear-to-br from-amber-300 to-amber-400 text-amber-950 dark:from-amber-700 dark:to-amber-800 dark:text-white dark:ring-1 dark:ring-inset dark:ring-amber-400/30',
+  red: 'bg-linear-to-br from-error-700 to-error-800 text-white dark:from-error-800 dark:to-error-950 dark:ring-1 dark:ring-inset dark:ring-error-500/30',
+  gray: 'bg-linear-to-br from-gray-600 to-gray-700 text-white dark:from-gray-700 dark:to-gray-800 dark:ring-1 dark:ring-inset dark:ring-white/10',
 };
-const ICON_CLASS: Record<Tone, string> = {
-  green: 'bg-green-600 text-white',
-  amber: 'bg-amber-500 text-white',
-  red: 'bg-red-600 text-white',
-  gray: 'bg-gray-400 text-white dark:bg-gray-600',
+// El veredicto lleva su color lleno: es lo primero que se lee de la pantalla. El icono ya no necesita su propio color (va sobre un cristal blanco).
+const ICON_CLASS: Record<Tone, string> = { green: '', amber: '', red: '', gray: '' };
+
+// El acento de una tarjeta de categoría sale del estado (semáforo), nunca de la categoría: Seguridad y Disponibilidad se distinguen por su nombre, no por un color propio.
+const ACCENT_CLASS: Record<string, string> = {
+  ready: 'border-l-green-600',
+  almost_ready: 'border-l-amber-500',
+  needs_work: 'border-l-red-700',
+  not_measured: 'border-l-gray-300 dark:border-l-gray-600',
 };
 
 // La pestaña «Resumen» de un servicio (MD-140), según la pantalla «Estado de cumplimiento» del comité: el veredicto del marco (todo o nada), el avance y la cobertura por
@@ -68,7 +75,11 @@ export class OverviewView {
   private readonly riskApi = inject(RiskService);
   private readonly catalogs = inject(CatalogService);
   private readonly language = inject(LanguageService);
+  private readonly translate = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
   readonly view = inject(ComplianceViewService);
+  /** Lo que se comparte con el encabezado del servicio: el marco elegido y el período de su evaluación. */
+  readonly context = inject(ComplianceContextService);
 
   // La vista es hija de `services/:id/cumplimiento`: el id del servicio está en la ruta del padre.
   private readonly params = toSignal(this.route.parent!.paramMap, { requireSync: true });
@@ -76,9 +87,7 @@ export class OverviewView {
 
   readonly stage = signal<Stage>('loading');
   readonly frameworks = signal<OverviewFramework[]>([]);
-  readonly pickedCode = signal<string | null>(null);
-  /** Los riesgos del servicio, para la matriz inherente; 
-ull mientras llegan o si no se pudieron leer (la matriz solo se muestra con ellos). */
+  /** Los riesgos del servicio, para la matriz inherente; `null` mientras llegan o si no se pudieron leer (la matriz solo se muestra con ellos). */
   readonly risks = signal<RiskListItem[] | null>(null);
 
   // Los nombres de las categorías y de las dimensiones salen del catálogo del backend (según el idioma de la sesión); aquí no hay listas escritas a mano.
@@ -90,7 +99,7 @@ ull mientras llegan o si no se pudieron leer (la matriz solo se muestra con ello
 
   readonly framework = computed<OverviewFramework | null>(() => {
     const all = this.frameworks();
-    return all.find((f) => f.framework_code === this.pickedCode()) ?? all[0] ?? null;
+    return all.find((f) => f.framework_code === this.context.selected()) ?? all[0] ?? null;
   });
 
   /** Sin período auditado ni fecha de corte el motor no ejecuta (P26): se dice, en vez de dejar una pantalla en «Sin medir» sin explicación. */
@@ -164,6 +173,22 @@ ull mientras llegan o si no se pudieron leer (la matriz solo se muestra con ello
       this.view.viewParam();
       untracked(() => this.load());
     });
+    // El encabezado muestra el período de la evaluación y deja elegir el marco: aquí se le dice cuál es y si hay más de uno.
+    effect(() => {
+      this.language.current();
+      const fw = this.framework();
+      const e = fw?.evaluation;
+      const text = fw && this.evaluationDefined() && e
+        ? this.translate.instant('COMPLIANCE.OVERVIEW.EVALUATION', { start: this.day(e.period_start), end: this.day(e.period_end), cutoff: this.day(e.cutoff_date), version: e.catalog_version })
+        : null;
+      untracked(() => {
+        this.context.evaluationText.set(text);
+        this.context.selectable.set(this.frameworks().length > 1);
+        if (fw && this.context.selected() !== fw.framework_code) this.context.selected.set(fw.framework_code);
+      });
+    });
+    // El período y el marco son de esta pestaña: al salir, el encabezado vuelve a estar sin ellos.
+    this.destroyRef.onDestroy(() => this.context.clear());
   }
 
   load(): void {
@@ -184,7 +209,7 @@ ull mientras llegan o si no se pudieron leer (la matriz solo se muestra con ello
   }
 
   pick(code: string): void {
-    this.pickedCode.set(code);
+    this.context.selected.set(code);
   }
 
   // ---- lo que se pinta ------------------------------------------------------------------------------------------------------------------------
@@ -201,6 +226,10 @@ ull mientras llegan o si no se pudieron leer (la matriz solo se muestra con ello
   /** El color de un anillo sale del semáforo; sin medir es gris, no rojo. */
   tone(readiness: string): RingTone {
     return readiness === 'ready' ? 'green' : readiness === 'needs_work' ? 'red' : readiness === 'almost_ready' ? 'amber' : 'gray';
+  }
+
+  accent(readiness: string): string {
+    return ACCENT_CLASS[readiness] ?? ACCENT_CLASS['not_measured'];
   }
 
   criterionLabel(value: string): string {

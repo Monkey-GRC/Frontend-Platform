@@ -6,6 +6,7 @@ import { BehaviorSubject, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ComplianceServiceRef } from '../../../domain/models/compliance.models';
+import { ComplianceContextService } from '../../../domain/services/compliance-context.service';
 import { ComplianceServicesService } from '../../../domain/services/compliance-services.service';
 import { ComplianceShellView } from './compliance-shell';
 
@@ -47,6 +48,36 @@ describe('ComplianceShellView', () => {
     setup('admin_empresa');
     expect(text()).toContain('Plataforma de facturación');
     expect(text()).toContain('SOC 2');
+  });
+
+  it('shows the frameworks as plain labels, and as buttons to choose one only when the summary says there are several to choose from', () => {
+    setup('admin_empresa', [{ ...SERVICES[0], frameworks: [{ code: 'soc2', status: 'active' }, { code: 'iso27001', status: 'active' }] }]);
+    const context = TestBed.inject(ComplianceContextService);
+    expect(fixture.nativeElement.querySelector('[data-framework-pick]')).toBeNull();
+    context.selectable.set(true);
+    context.selected.set('iso27001');
+    fixture.detectChanges();
+    const picks = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('[data-framework-pick]'));
+    expect(picks.map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
+    picks[0].click();
+    expect(context.selected()).toBe('soc2');
+  });
+
+  it('shows the period of the evaluation next to the service when the summary gives it, and nothing when it does not', () => {
+    setup('admin_empresa');
+    const context = TestBed.inject(ComplianceContextService);
+    expect(fixture.nativeElement.querySelector('[data-evaluation]')).toBeNull();
+    context.evaluationText.set('Período 1 ene 2026 – 31 dic 2026');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-evaluation]').textContent).toContain('Período 1 ene 2026');
+  });
+
+  it('tells the summary that the header already shows the frameworks only when the service has some', () => {
+    setup('admin_empresa');
+    expect(TestBed.inject(ComplianceContextService).headerShowsFrameworks()).toBeTrue();
+    TestBed.resetTestingModule();
+    setup('admin_empresa', 'forbidden');
+    expect(TestBed.inject(ComplianceContextService).headerShowsFrameworks()).toBeFalse();
   });
 
   it('offers to switch between services only when the company has more than one', () => {

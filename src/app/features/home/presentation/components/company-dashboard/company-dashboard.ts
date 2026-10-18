@@ -52,10 +52,25 @@ export class CompanyDashboard {
     };
   });
 
-  /** Lo más urgente de todos los servicios: los controles que no cumplen, los primeros de cada uno. */
+  /**
+   * Los servicios del más urgente al menos: primero los que no cumplen, luego los que van bien encaminados, luego los que aún no tienen resultados y al final los que ya
+   * cumplen. Con muchos servicios, lo que hay que atender queda arriba sin buscarlo; a igual urgencia, por nombre.
+   */
+  readonly ordered = computed(() => {
+    const urgency = (s: DashboardServiceSummary) => {
+      const fws = s.frameworks;
+      if (fws.some((f) => f.readiness === 'needs_work' || (this.measured(f) && f.verdict === 'non_compliant'))) return 0;
+      if (fws.some((f) => f.readiness === 'almost_ready')) return 1;
+      if (fws.length === 0 || fws.every((f) => f.readiness === 'not_measured')) return 2;
+      return fws.every((f) => f.readiness === 'ready') ? 4 : 3;
+    };
+    return [...this.services()].sort((a, b) => urgency(a) - urgency(b) || a.name.localeCompare(b.name, 'es'));
+  });
+
+  /** Lo más urgente de todos los servicios: los controles que no cumplen, empezando por el servicio más urgente. */
   readonly attention = computed<Attention[]>(() => {
     const list: Attention[] = [];
-    for (const s of this.services()) for (const f of s.failing) list.push({ ...f, serviceId: s.id, serviceName: s.name });
+    for (const s of this.ordered()) for (const f of s.failing) list.push({ ...f, serviceId: s.id, serviceName: s.name });
     return list.slice(0, MAX_ATTENTION);
   });
   readonly attentionTotal = computed(() => this.services().reduce((n, s) => n + s.failing.length, 0));
@@ -83,6 +98,28 @@ export class CompanyDashboard {
   /** Un marco sin nada decidido no muestra porcentaje: «Sin medir» no es un cero. */
   measured(f: DashboardFramework): boolean {
     return f.readiness !== 'not_measured';
+  }
+
+  /** La franja de una tarjeta de servicio lleva el color del estado más delicado de sus marcos (rojo, ámbar, verde); sin resultados, gris. */
+  strip(s: DashboardServiceSummary): string {
+    const fws = s.frameworks;
+    if (fws.some((f) => f.readiness === 'needs_work' || (this.measured(f) && f.verdict === 'non_compliant'))) return 'border-t-red-700';
+    if (fws.some((f) => f.readiness === 'almost_ready')) return 'border-t-amber-500';
+    if (fws.length > 0 && fws.every((f) => f.readiness === 'ready')) return 'border-t-green-600';
+    return 'border-t-gray-300 dark:border-t-gray-600';
+  }
+
+  /** El veredicto del motor, con su color lleno: rojo no cumple, verde cumple, ámbar en evaluación. */
+  verdictClass(f: DashboardFramework): string {
+    return f.verdict === 'non_compliant' ? 'bg-red-700 text-white' : f.verdict === 'compliant' ? 'bg-green-700 text-white' : 'bg-amber-400 text-amber-950';
+  }
+
+  bar(f: DashboardFramework): string {
+    return f.readiness === 'ready' ? 'bg-green-600' : f.readiness === 'almost_ready' ? 'bg-amber-500' : 'bg-red-700';
+  }
+
+  progressValue(f: DashboardFramework): number {
+    return percentOf(f.progress.done, f.progress.total) ?? 0;
   }
 
   link(s: DashboardServiceSummary): string[] {

@@ -66,6 +66,15 @@ describe('CompanyDashboard', () => {
     expect(el().textContent).not.toMatch(/nota única de la empresa|company score/i);
   });
 
+  it('orders the services from the most urgent to the least: failing first, then on track, then without results, and the ones that comply last', () => {
+    const ok = service('ok', { name: 'Cumple', failing: [], frameworks: [framework({ readiness: 'ready', verdict: 'compliant' })] });
+    const none = service('none', { name: 'Sin datos', failing: [], frameworks: [framework({ readiness: 'not_measured', verdict: 'evaluating' })] });
+    const close = service('close', { name: 'Casi', failing: [], frameworks: [framework({ readiness: 'almost_ready', verdict: 'evaluating' })] });
+    const bad = service('bad', { name: 'Falla' });
+    setup('admin_empresa', { services: [ok, none, close, bad] });
+    expect(Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('[data-service]')).map((e) => e.getAttribute('data-service'))).toEqual(['bad', 'close', 'none', 'ok']);
+  });
+
   it('puts the engine verdict next to the status, and the progress with the coverage', () => {
     setup('admin_empresa', { services: [service('s1')] });
     const row = q('[data-framework="soc2"]')!;

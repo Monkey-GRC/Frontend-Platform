@@ -37,6 +37,8 @@
       "ATTENTION_TITLE": "What needs attention",
       "ATTENTION_EMPTY": "No control is failing for now.",
       "ATTENTION_MORE": "And {{count}} more in Compliance."
-    }
+    },
+    "WELCOME": "Hello, {{name}}",
+    "WELCOME_SUB": "Here is how your company is doing today."
   }
 }

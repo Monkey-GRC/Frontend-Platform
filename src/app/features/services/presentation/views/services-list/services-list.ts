@@ -11,6 +11,7 @@ import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ServiceListItem } from '../../../domain/models/service.models';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { ServiceService } from '../../../domain/services/service.service';
+import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -18,7 +19,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // actúan sobre lo seleccionado (ver, editar, eliminar uno o varios).
 @Component({
   selector: 'app-services-list',
-  imports: [RouterLink, LoadingSpinner, TranslatePipe],
+  imports: [PageHeader, RouterLink, LoadingSpinner, TranslatePipe],
   templateUrl: './services-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -15,6 +15,7 @@ import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/
 import { Service } from '../../../domain/models/service.models';
 import { ServiceService } from '../../../domain/services/service.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
 type Stage = 'loading' | 'error' | 'ready';
 const CATALOGS: CatalogName[] = ['service_type', 'served_industry', 'service_country', 'data_type', 'trust_criterion', 'expected_availability', 'previous_certification', 'deployment_scenario'];
@@ -22,7 +23,7 @@ const CATALOGS: CatalogName[] = ['service_type', 'served_industry', 'service_cou
 // El servicio del cliente: su información ordenada arriba y, debajo, las conexiones con las que Monkey llega a sus activos (Componente 3).
 @Component({
   selector: 'app-service-detail',
-  imports: [RouterLink, ConnectionsList, LoadingSpinner, TranslatePipe],
+  imports: [PageHeader, RouterLink, ConnectionsList, LoadingSpinner, TranslatePipe],
   templateUrl: './service-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

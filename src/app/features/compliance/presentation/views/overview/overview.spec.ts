@@ -6,6 +6,7 @@ import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
 import { convertToParamMap } from '@angular/router';
 import { SessionService } from '@core/domain/services/session.service';
 import { ComplianceOverview, OverviewCategory, OverviewFramework } from '../../../domain/models/overview.models';
+import { ComplianceContextService } from '../../../domain/services/compliance-context.service';
 import { OverviewService } from '../../../domain/services/overview.service';
 import { RiskService } from '../../../domain/services/risk.service';
 import { RISK_MATRIX, provideCatalogStub } from '../../../testing/catalog-options';
@@ -104,10 +105,39 @@ describe('OverviewView', () => {
     expect(q('[data-attention-empty]')!.textContent).toContain('ATTENTION_EMPTY_UNMEASURED');
   });
 
-  it('shows the evaluation (period, cutoff and catalog version) once it is defined', () => {
+  it('tells the header of the service the period of the evaluation (it is shown there, not in the page), and takes it back when it is not defined', () => {
     setup('admin_empresa', [framework({ technical: technical('non_compliant') })]);
+    const context = TestBed.inject(ComplianceContextService);
     expect(q('[data-not-defined]')).toBeNull();
-    expect(q('[data-evaluation]')).not.toBeNull();
+    expect(q('[data-evaluation]')).toBeNull();
+    expect(context.evaluationText()).toContain('COMPLIANCE.OVERVIEW.EVALUATION');
+    TestBed.resetTestingModule();
+    setup('admin_empresa', [framework({ evaluation: UNDEFINED, technical: technical('evaluating') })]);
+    expect(TestBed.inject(ComplianceContextService).evaluationText()).toBeNull();
+  });
+
+  it('with several frameworks it tells the header they can be chosen there, and follows the choice', () => {
+    const view = setup('admin_empresa', [framework(), framework({ framework_code: 'iso27001', name: 'ISO 27001', technical: technical('compliant') })]);
+    const context = TestBed.inject(ComplianceContextService);
+    expect(context.selectable()).toBeTrue();
+    expect(context.selected()).toBe('soc2');
+    context.headerShowsFrameworks.set(true);
+    fixture.detectChanges();
+    expect(el().querySelector('button[aria-pressed]')).toBeNull(); // el encabezado ya los muestra: aquí no se repiten
+    context.selected.set('iso27001');
+    fixture.detectChanges();
+    expect(view.framework()!.framework_code).toBe('iso27001');
+    expect(q('[data-verdict-title]')!.textContent).toContain('VERDICT.COMPLIANT');
+  });
+
+  it('leaves the header as it was when the tab is closed', () => {
+    setup('admin_empresa', [framework(), framework({ framework_code: 'iso27001', name: 'ISO 27001' })]);
+    const context = TestBed.inject(ComplianceContextService);
+    expect(context.selectable()).toBeTrue();
+    fixture.destroy();
+    expect(context.selectable()).toBeFalse();
+    expect(context.selected()).toBeNull();
+    expect(context.evaluationText()).toBeNull();
   });
 
   it('derives the four counts: evaluated, effective, not effective and pending', () => {
