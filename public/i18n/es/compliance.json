@@ -134,9 +134,12 @@
       "ASSET_OWNER": "Propietario del activo"
     },
     "EVIDENCE_STATUS": {
-      "PENDING": "pendiente",
-      "APPROVED": "aprobada",
-      "REJECTED": "rechazada"
+      "COMPLIANT": "cumple",
+      "NON_COMPLIANT": "no cumple",
+      "PENDING": "pendiente de revisión",
+      "IN_REVIEW": "en revisión",
+      "EXPIRED": "vencida",
+      "NOT_APPLICABLE": "no aplica"
     },
     "CHANGE_TYPE": {
       "EDIT_INTERPRETATION": "Editar interpretación",
@@ -411,7 +414,6 @@
       "DOWNLOAD_ERROR": "No se pudo generar el enlace de descarga. Inténtalo de nuevo.",
       "SHOW_VERSIONS": "Ver versiones anteriores ({{count}})",
       "HIDE_VERSIONS": "Ocultar versiones anteriores",
-      "REJECTED_NOTE": "Motivo del rechazo: {{note}}",
       "AI_SUGGESTION": "Sugerencia generada por IA: {{verdict}}",
       "UPLOAD": "Subir evidencia",
       "UPLOAD_NEW": "Subir una versión nueva",
@@ -422,6 +424,30 @@
       "UPLOAD_ERROR": "No se pudo subir la evidencia. Inténtalo de nuevo.",
       "LOAD_ERROR": "No se pudieron cargar las evidencias.",
       "SUMMARY_NOTE": "La entrega de evidencias aún no está disponible en este entorno."
+    },
+    "EVIDENCE_INBOX": {
+      "INTRO": "Lo que cada control pide que aportes y cómo va. Abre una fila para subir el archivo o descargar lo entregado. La empresa solo aporta: la revisión es del consultor y del auditor.",
+      "FILTER": "Mostrar",
+      "ALL": "Todas ({{count}})",
+      "MISSING": "Sin entregar ({{count}})",
+      "TO_REVIEW": "Por revisar ({{count}})",
+      "REVIEWED": "Revisadas ({{count}})",
+      "TABLE_CAPTION": "Evidencias requeridas de los controles del servicio, con su responsable y el estado de la última entrega",
+      "COLUMN_CONTROL": "Control",
+      "COLUMN_EVIDENCE": "Evidencia requerida",
+      "COLUMN_RESPONSIBLE": "Responsable",
+      "COLUMN_STATE": "Estado",
+      "NOT_DELIVERED": "Sin entregar",
+      "LAST_DELIVERY": "v{{version}} · {{date}}",
+      "OPEN": "Abrir el control para subir o descargar",
+      "LOADING": "Revisando las evidencias de los controles… {{done}} de {{total}}",
+      "PARTIAL": "No se pudieron cargar las evidencias de {{count}} controles; la lista puede estar incompleta.",
+      "LOAD_ERROR_TITLE": "No se pudieron cargar las evidencias",
+      "EMPTY_TITLE": "Ningún control de este servicio pide evidencias",
+      "EMPTY_BODY": "Cuando un control exija evidencias, aparecerán aquí.",
+      "EMPTY_FILTERED_TITLE": "Ninguna evidencia en este grupo",
+      "EMPTY_FILTERED_BODY": "Prueba con otro grupo.",
+      "SHOW_ALL": "Ver todas"
     },
     "REQUIRES": {
       "TITLE": "Lo que pide este control",

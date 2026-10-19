@@ -134,9 +134,12 @@
       "ASSET_OWNER": "Asset owner"
     },
     "EVIDENCE_STATUS": {
-      "PENDING": "pending",
-      "APPROVED": "approved",
-      "REJECTED": "rejected"
+      "COMPLIANT": "compliant",
+      "NON_COMPLIANT": "non-compliant",
+      "PENDING": "awaiting review",
+      "IN_REVIEW": "in review",
+      "EXPIRED": "expired",
+      "NOT_APPLICABLE": "not applicable"
     },
     "CHANGE_TYPE": {
       "EDIT_INTERPRETATION": "Edit interpretation",
@@ -411,7 +414,6 @@
       "DOWNLOAD_ERROR": "The download link could not be generated. Please try again.",
       "SHOW_VERSIONS": "Show previous versions ({{count}})",
       "HIDE_VERSIONS": "Hide previous versions",
-      "REJECTED_NOTE": "Reason for the rejection: {{note}}",
       "AI_SUGGESTION": "AI-generated suggestion: {{verdict}}",
       "UPLOAD": "Upload evidence",
       "UPLOAD_NEW": "Upload a new version",
@@ -422,6 +424,30 @@
       "UPLOAD_ERROR": "The evidence could not be uploaded. Please try again.",
       "LOAD_ERROR": "The evidence could not be loaded.",
       "SUMMARY_NOTE": "Delivering evidence is not available in this environment yet."
+    },
+    "EVIDENCE_INBOX": {
+      "INTRO": "What each control asks you to provide, and where it stands. Open a row to upload the file or download what was delivered. The company only provides evidence: the consultant and the auditor review it.",
+      "FILTER": "Show",
+      "ALL": "All ({{count}})",
+      "MISSING": "Not delivered ({{count}})",
+      "TO_REVIEW": "To review ({{count}})",
+      "REVIEWED": "Reviewed ({{count}})",
+      "TABLE_CAPTION": "Evidence required by the controls of the service, with the responsible person and the state of the latest delivery",
+      "COLUMN_CONTROL": "Control",
+      "COLUMN_EVIDENCE": "Required evidence",
+      "COLUMN_RESPONSIBLE": "Responsible",
+      "COLUMN_STATE": "State",
+      "NOT_DELIVERED": "Not delivered",
+      "LAST_DELIVERY": "v{{version}} · {{date}}",
+      "OPEN": "Open the control to upload or download",
+      "LOADING": "Checking the evidence of the controls… {{done}} of {{total}}",
+      "PARTIAL": "The evidence of {{count}} controls could not be loaded; the list may be incomplete.",
+      "LOAD_ERROR_TITLE": "The evidence could not be loaded",
+      "EMPTY_TITLE": "No control in this service asks for evidence",
+      "EMPTY_BODY": "When a control requires evidence, it will show up here.",
+      "EMPTY_FILTERED_TITLE": "No evidence in this group",
+      "EMPTY_FILTERED_BODY": "Try another group.",
+      "SHOW_ALL": "Show all"
     },
     "REQUIRES": {
       "TITLE": "What this control requires",

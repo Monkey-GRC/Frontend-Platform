@@ -1,4 +1,5 @@
 import { Readiness } from '@shared/domain/models/readiness.models';
+import { EvidenceState } from './evidence.models';
 
 // Acciones de protección = controles del cliente (contracts/modules/compliance-controls.md). En el cable se llaman `controls`.
 
@@ -66,7 +67,7 @@ export interface ControlEvidence {
   requirement_id: string;
   description: string;
   responsible: { id: string; type: string; person_name: string | null } | null;
-  latest_submission: { id: string; version: number; validation_status: 'pending' | 'approved' | 'rejected' } | null;
+  latest_submission: { id: string; version: number; evidence_state: EvidenceState } | null;
 }
 
 // «En qué falla»: por dimensión, el activo o la prueba afectados (de una prueba, solo su nombre neutro).

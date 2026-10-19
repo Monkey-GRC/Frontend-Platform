@@ -48,7 +48,7 @@
       </p>
       <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
         @if (e.latest_submission; as s) {
-        {{ 'COMPLIANCE.EVIDENCE.LATEST_VERSION' | translate: { version: s.version, status: labels.of('COMPLIANCE.EVIDENCE_STATUS', s.validation_status) } }}
+        {{ 'COMPLIANCE.EVIDENCE.LATEST_VERSION' | translate: { version: s.version, status: labels.of('COMPLIANCE.EVIDENCE_STATUS', s.evidence_state) } }}
         } @else {
         {{ 'COMPLIANCE.EVIDENCE.NOT_DELIVERED' | translate }}
         }
@@ -105,16 +105,13 @@
           </div>
           <div class="flex items-center gap-3">
             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-              [class]="s.validation_status === 'approved' ? 'bg-green-50 text-green-800 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-300' : s.validation_status === 'rejected' ? 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/30 dark:text-red-300' : 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25 dark:bg-amber-900/30 dark:text-amber-300'"
-              [attr.data-validation]="s.validation_status">{{ labels.of('COMPLIANCE.EVIDENCE_STATUS', s.validation_status) }}</span>
+              [class]="s.evidence_state === 'compliant' ? 'bg-green-50 text-green-800 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-300' : (s.evidence_state === 'non_compliant' || s.evidence_state === 'expired') ? 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/30 dark:text-red-300' : 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25 dark:bg-amber-900/30 dark:text-amber-300'"
+              [attr.data-validation]="s.evidence_state">{{ labels.of('COMPLIANCE.EVIDENCE_STATUS', s.evidence_state) }}</span>
             <button type="button" (click)="download(s)" class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
               <span class="material-symbols-rounded text-[16px]" aria-hidden="true">download</span>{{ 'COMPLIANCE.EVIDENCE.DOWNLOAD' | translate }}
             </button>
           </div>
         </div>
-        @if (s.validation_status === 'rejected' && s.decision_note) {
-        <p class="mt-1 text-xs text-error-600">{{ 'COMPLIANCE.EVIDENCE.REJECTED_NOTE' | translate: { note: s.decision_note } }}</p>
-        }
         @if (s.ai; as ai) {
         <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EVIDENCE.AI_SUGGESTION' | translate: { verdict: ai.verdict } }}</p>
         }

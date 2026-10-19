@@ -9,15 +9,15 @@ import { EvidenceService } from '../../../domain/services/evidence.service';
 import { ControlEvidence } from './control-evidence';
 
 const person = { id: 'u1', name: 'Laura', last_name: 'Gómez' };
-const submission = (version: number, status: EvidenceSubmission['validation_status'] = 'pending', note: string | null = null): EvidenceSubmission => ({
+const submission = (version: number, state: EvidenceSubmission['evidence_state'] = 'pending'): EvidenceSubmission => ({
   id: `s${version}`, version, file_name: `politica-v${version}.pdf`, file_type: 'application/pdf', file_size: 482113, integrity_hash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
-  validation_status: status, submitted_by: person, submitted_at: '2026-10-14T17:05:12Z', approved_by: null, approved_at: null, decision_note: note, ai: null,
+  submitted_by: person, submitted_at: '2026-10-14T17:05:12Z', evidence_state: state, ai: null,
 });
 const requirement = (id: string, submissions: EvidenceSubmission[] = []): EvidenceRequirement => ({
   id, code: `EV-${id}`, sequence: 1, description: `Documento ${id}`, dimension: 'policy', validity_within_period: 'Dentro del período de evaluación', origin: 'catalog',
   responsible: { id: 'r1', type: 'compliance', person_name: 'Marta Ruiz' }, submissions,
 });
-const SUMMARY: Summary[] = [{ requirement_id: 'e9', description: 'Política de accesos', responsible: null, latest_submission: { id: 's1', version: 2, validation_status: 'pending' } }];
+const SUMMARY: Summary[] = [{ requirement_id: 'e9', description: 'Política de accesos', responsible: null, latest_submission: { id: 's1', version: 2, evidence_state: 'pending' } }];
 
 describe('ControlEvidence', () => {
   let api: jasmine.SpyObj<EvidenceService>;
@@ -65,9 +65,11 @@ describe('ControlEvidence', () => {
     expect(text()).toContain('politica-v1.pdf');
   });
 
-  it('shows the note of a rejected evidence so the user knows what to fix', () => {
-    setup('admin_empresa', true, [requirement('e1', [submission(1, 'rejected', 'No está firmado por la dirección.')])]);
-    expect(text()).toContain('COMPLIANCE.EVIDENCE.REJECTED_NOTE');
+  it('shows the state the server derived from the review, and offers no way to approve or reject (D84)', () => {
+    setup('admin_empresa', true, [requirement('e1', [submission(1, 'non_compliant')])]);
+    expect(fixture.nativeElement.querySelector('[data-validation="non_compliant"]')).not.toBeNull();
+    expect(text()).not.toContain('COMPLIANCE.EVIDENCE.APPROVE');
+    expect(text()).not.toContain('COMPLIANCE.EVIDENCE.REJECT');
   });
 
   it('offers to upload only to the roles that can, and "new version" when there is already one', () => {

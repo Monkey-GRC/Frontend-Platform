@@ -94,8 +94,7 @@ export const routes: Routes = [
           { path: 'acciones', redirectTo: 'controles', pathMatch: 'full' },
           {
             path: 'evidencias',
-            data: { titleKey: 'COMPLIANCE.GLOSSARY.EVIDENCE', icon: 'upload_file' },
-            loadComponent: () => import('@features/compliance/presentation/views/compliance-section/compliance-section').then(m => m.ComplianceSectionView),
+            loadComponent: () => import('@features/compliance/presentation/views/evidence-inbox/evidence-inbox').then(m => m.EvidenceInboxView),
           },
           {
             path: 'exclusiones',
