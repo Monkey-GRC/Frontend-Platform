@@ -15,6 +15,7 @@ import { ComplianceContextService } from '../../../domain/services/compliance-co
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { OverviewService } from '../../../domain/services/overview.service';
 import { RiskService } from '../../../domain/services/risk.service';
+import { EvaluationPeriodForm } from '../../components/evaluation-period-form/evaluation-period-form';
 import { ProgressRing, RingTone } from '../../components/progress-ring/progress-ring';
 import { RiskHeatmap } from '../../components/risk-heatmap/risk-heatmap';
 
@@ -65,7 +66,7 @@ const ACCENT_CLASS: Record<string, string> = {
 // vencido nunca cuenta como cumplido, y sin resultados no se inventa ningún porcentaje. El cumplimiento se mide por servicio × marco; nunca hay un total de la empresa.
 @Component({
   selector: 'app-overview',
-  imports: [TranslatePipe, RouterLink, StatusBadge, LoadingSpinner, ProgressRing, RiskHeatmap],
+  imports: [TranslatePipe, RouterLink, StatusBadge, LoadingSpinner, ProgressRing, RiskHeatmap, EvaluationPeriodForm],
   templateUrl: './overview.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -102,11 +103,16 @@ export class OverviewView {
     return all.find((f) => f.framework_code === this.context.selected()) ?? all[0] ?? null;
   });
 
-  /** Sin período auditado ni fecha de corte el motor no ejecuta (P26): se dice, en vez de dejar una pantalla en «Sin medir» sin explicación. */
+  /** Sin período auditado el motor no ejecuta (D87): se dice, en vez de dejar una pantalla en «Sin medir» sin explicación. La fecha de corte no hace falta: sin congelar es hoy. */
   readonly evaluationDefined = computed(() => {
     const e = this.framework()?.evaluation;
-    return !!e && e.period_start !== null && e.period_end !== null && e.cutoff_date !== null;
+    return !!e && e.period_start !== null && e.period_end !== null;
   });
+
+  /** Solo el administrador de la empresa declara el período (la API lo exige: 403 al resto). */
+  readonly canEditPeriod = computed(() => this.view.canManage());
+  readonly periodOpen = signal(false);
+  readonly notice = signal<string | null>(null);
 
   readonly measured = computed(() => (this.framework()?.readiness ?? 'not_measured') !== 'not_measured');
 
@@ -210,6 +216,18 @@ export class OverviewView {
 
   pick(code: string): void {
     this.context.selected.set(code);
+  }
+
+  openPeriod(): void {
+    this.notice.set(null);
+    this.periodOpen.set(true);
+  }
+
+  /** Se guardó el período: se cierra el panel, se avisa y se vuelve a pedir el resumen (el motor ya puede medir). */
+  onPeriodSaved(): void {
+    this.periodOpen.set(false);
+    this.notice.set(this.translate.instant('COMPLIANCE.PERIOD.SAVED'));
+    this.load();
   }
 
   // ---- lo que se pinta ------------------------------------------------------------------------------------------------------------------------

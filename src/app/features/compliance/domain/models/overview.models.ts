@@ -49,7 +49,26 @@ export interface OverviewEvaluation {
   catalog_version: string | null;
   period_start: string | null;
   period_end: string | null;
+  /** La fecha de corte con la que se evalúa (D87): la congelada o, si no hay, hoy. Nula solo si no hay período. */
   cutoff_date: string | null;
+  /** `true` si la fecha de corte está congelada; `false` si es «hoy». Nulo si no hay período. */
+  cutoff_frozen: boolean | null;
+}
+
+/** Lo que se manda para declarar el período de un marco (`PUT …/evaluation-period`, D87). `cutoff_date` en `null` = «hoy» (y descongela). */
+export interface EvaluationPeriodBody {
+  period_start: string;
+  period_end: string;
+  cutoff_date: string | null;
+}
+
+export interface EvaluationPeriodResult {
+  framework_code: string;
+  catalog_version: string;
+  period_start: string;
+  period_end: string;
+  cutoff_date: string;
+  cutoff_frozen: boolean;
 }
 
 export interface OverviewFramework {

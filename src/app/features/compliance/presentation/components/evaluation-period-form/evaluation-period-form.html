@@ -1,0 +1,50 @@
+<app-side-panel titleKey="COMPLIANCE.PERIOD.TITLE" subtitleKey="COMPLIANCE.PERIOD.SUBTITLE" [subtitleParams]="{ name: framework().name }" (closed)="closed.emit()">
+  <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" data-form novalidate>
+
+    <p class="text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.PERIOD.INTRO' | translate }}</p>
+
+    @if (banner(); as b) {
+    <div class="flex items-start gap-2 rounded-xl bg-red-50 p-3.5 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800" role="alert" data-banner>
+      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ b }}</span>
+    </div>
+    }
+
+    <label class="flex flex-col gap-1.5 text-sm font-medium text-gray-900 dark:text-white">
+      {{ 'COMPLIANCE.PERIOD.START' | translate }}
+      <input type="date" name="period_start" data-field="start" [value]="start()" (input)="start.set($any($event.target).value)" [disabled]="sending()"
+        class="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+      @if (errors()['period_start']; as e) {<span class="text-xs font-normal text-error-600" data-error="period_start">{{ e }}</span>}
+    </label>
+
+    <label class="flex flex-col gap-1.5 text-sm font-medium text-gray-900 dark:text-white">
+      {{ 'COMPLIANCE.PERIOD.END' | translate }}
+      <input type="date" name="period_end" data-field="end" [value]="end()" [min]="start()" (input)="end.set($any($event.target).value)" [disabled]="sending()"
+        class="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+      @if (errors()['period_end']; as e) {<span class="text-xs font-normal text-error-600" data-error="period_end">{{ e }}</span>}
+      <span class="text-xs font-normal text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.PERIOD.SINGLE_DAY_HINT' | translate }}</span>
+    </label>
+
+    <fieldset class="flex flex-col gap-2 rounded-xl border border-gray-200 p-3.5 dark:border-gray-700">
+      <label class="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+        <input type="checkbox" data-field="freeze" [checked]="freeze()" (change)="freeze.set($any($event.target).checked)" [disabled]="sending()"
+          class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30" />
+        {{ 'COMPLIANCE.PERIOD.FREEZE' | translate }}
+      </label>
+      <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.PERIOD.FREEZE_HINT' | translate }}</p>
+      @if (freeze()) {
+      <label class="flex flex-col gap-1.5 text-sm font-medium text-gray-900 dark:text-white">
+        {{ 'COMPLIANCE.PERIOD.CUTOFF' | translate }}
+        <input type="date" name="cutoff_date" data-field="cutoff" [value]="cutoff()" [max]="today" (input)="cutoff.set($any($event.target).value)" [disabled]="sending()"
+          class="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        @if (errors()['cutoff_date']; as e) {<span class="text-xs font-normal text-error-600" data-error="cutoff_date">{{ e }}</span>}
+      </label>
+      }
+    </fieldset>
+  </form>
+
+  <button panelFooter type="button" (click)="closed.emit()" data-cancel class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+  <button panelFooter type="button" (click)="save()" [disabled]="!canSave()" data-save
+    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-40">
+    {{ (sending() ? 'COMPLIANCE.PERIOD.SAVING' : 'COMPLIANCE.PERIOD.SAVE') | translate }}
+  </button>
+</app-side-panel>
