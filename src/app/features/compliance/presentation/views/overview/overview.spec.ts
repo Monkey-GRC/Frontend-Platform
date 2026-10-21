@@ -12,8 +12,8 @@ import { RiskService } from '../../../domain/services/risk.service';
 import { RISK_MATRIX, provideCatalogStub } from '../../../testing/catalog-options';
 import { OverviewView } from './overview';
 
-const DEFINED = { catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: '2026-10-14' };
-const UNDEFINED = { catalog_version: null, period_start: null, period_end: null, cutoff_date: null };
+const DEFINED = { catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: '2026-10-14', cutoff_frozen: false };
+const UNDEFINED = { catalog_version: null, period_start: null, period_end: null, cutoff_date: null, cutoff_frozen: null };
 
 const category = (criterion: string, patch: Partial<OverviewCategory> = {}): OverviewCategory => ({
   trust_criterion: criterion, readiness: 'almost_ready', progress: { done: 3, total: 4 }, coverage: { measured: 4, applicable: 4 }, failing_controls: [], ...patch,
@@ -35,7 +35,7 @@ describe('OverviewView', () => {
   let fixture: ComponentFixture<OverviewView>;
 
   function setup(role: string, frameworks: OverviewFramework[], result: 'ok' | 'error' | 'pending' = 'ok'): OverviewView {
-    api = jasmine.createSpyObj<OverviewService>('OverviewService', ['get']);
+    api = jasmine.createSpyObj<OverviewService>('OverviewService', ['get', 'setEvaluationPeriod']);
     riskApi = jasmine.createSpyObj<RiskService>('RiskService', ['listAllRisks', 'matrix']);
     riskApi.matrix.and.returnValue(of(RISK_MATRIX));
     riskApi.listAllRisks.and.returnValue(of([]));
@@ -114,6 +114,63 @@ describe('OverviewView', () => {
     TestBed.resetTestingModule();
     setup('admin_empresa', [framework({ evaluation: UNDEFINED, technical: technical('evaluating') })]);
     expect(TestBed.inject(ComplianceContextService).evaluationText()).toBeNull();
+  });
+
+  describe('the audited period (D87, MD-168)', () => {
+    const undefinedFw = () => framework({ readiness: 'not_measured', evaluation: UNDEFINED, technical: technical('evaluating') });
+
+    it('the company admin can set the period when it is missing: the button opens the form', () => {
+      setup('admin_empresa', [undefinedFw()]);
+      expect(q('[data-define-period]')).not.toBeNull();
+      expect(q('app-evaluation-period-form')).toBeNull();
+      (q('[data-define-period]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(q('app-evaluation-period-form')).not.toBeNull();
+    });
+
+    it('the other roles are told to ask the administrator, with no button (the API would answer 403)', () => {
+      for (const role of ['auditor', 'consultor', 'funcional']) {
+        setup(role, [undefinedFw()]);
+        expect(q('[data-define-period]')).toBeNull();
+        expect(text()).toContain('COMPLIANCE.PERIOD.ASK_ADMIN');
+        TestBed.resetTestingModule();
+      }
+    });
+
+    it('with the period defined, the admin sees which cutoff is used (today, or the frozen one) and can change the period', () => {
+      setup('admin_empresa', [framework({ evaluation: { ...DEFINED, cutoff_frozen: false } })]);
+      expect(q('[data-not-defined]')).toBeNull();
+      expect(q('[data-cutoff]')!.textContent).toContain('COMPLIANCE.PERIOD.CUTOFF_TODAY');
+      TestBed.resetTestingModule();
+      setup('admin_empresa', [framework({ evaluation: { ...DEFINED, cutoff_frozen: true } })]);
+      expect(q('[data-cutoff]')!.textContent).toContain('COMPLIANCE.PERIOD.CUTOFF_FROZEN');
+      (q('[data-edit-period]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(q('app-evaluation-period-form')).not.toBeNull();
+    });
+
+    it('the period is not an action of the other roles: they get no bar and no button', () => {
+      setup('auditor', [framework()]);
+      expect(q('[data-period-bar]')).toBeNull();
+      expect(q('[data-edit-period]')).toBeNull();
+    });
+
+    it('the evaluation counts as defined with a start and an end, even without a stored cutoff', () => {
+      const view = setup('admin_empresa', [framework({ evaluation: { ...DEFINED, cutoff_date: null, cutoff_frozen: null } })]);
+      expect(view.evaluationDefined()).toBeTrue();
+    });
+
+    it('once saved it closes the form, says so and asks for the summary again (the engine can measure now)', () => {
+      const view = setup('admin_empresa', [undefinedFw()]);
+      (q('[data-define-period]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      api.get.calls.reset();
+      view.onPeriodSaved();
+      fixture.detectChanges();
+      expect(view.periodOpen()).toBeFalse();
+      expect(api.get).toHaveBeenCalledTimes(1);
+      expect(q('[data-notice]')!.textContent).toContain('COMPLIANCE.PERIOD.SAVED');
+    });
   });
 
   it('with several frameworks it tells the header they can be chosen there, and follows the choice', () => {
