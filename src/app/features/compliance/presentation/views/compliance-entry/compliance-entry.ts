@@ -4,16 +4,17 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
+import { ComplianceGeneral } from '../../components/compliance-general/compliance-general';
 import { COMPLIANCE_ROUTE, ComplianceServiceRef } from '../../../domain/models/compliance.models';
 import { ComplianceServicesService } from '../../../domain/services/compliance-services.service';
 
 type Stage = 'loading' | 'error' | 'forbidden' | 'empty' | 'choose';
 
 // Entrada del menú «Cumplimiento». El módulo vive dentro de cada servicio, así que desde aquí se llega a uno:
-// con un solo servicio se entra directo; con varios, se elige.
+// con un solo servicio se entra directo; con varios, se ve el General: cómo va cada servicio en cada marco.
 @Component({
   selector: 'app-compliance-entry',
-  imports: [RouterLink, TranslatePipe, EmptyState, LoadingSpinner],
+  imports: [RouterLink, TranslatePipe, EmptyState, LoadingSpinner, ComplianceGeneral],
   templateUrl: './compliance-entry.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

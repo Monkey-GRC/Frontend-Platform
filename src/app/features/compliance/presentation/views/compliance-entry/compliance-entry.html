@@ -30,18 +30,7 @@
   }
 
   @default {
-  <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.ENTRY.CHOOSE_TITLE' | translate }}</h1>
-  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.ENTRY.CHOOSE_BODY' | translate }}</p>
-  <ul class="mt-4 mk-card divide-y divide-gray-100 overflow-hidden dark:divide-gray-800">
-    @for (s of services(); track s.id) {
-    <li>
-      <a [routerLink]="['/services', s.id, 'cumplimiento']" class="flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50 dark:text-white dark:hover:bg-gray-800">
-        <span class="truncate">{{ s.name }}</span>
-        <span class="material-symbols-rounded text-[18px] text-gray-500" aria-hidden="true">chevron_right</span>
-      </a>
-    </li>
-    }
-  </ul>
+  <app-compliance-general [services]="services()" />
   }
 
   }

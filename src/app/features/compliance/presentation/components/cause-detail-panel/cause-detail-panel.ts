@@ -10,6 +10,7 @@ import { ComplianceViewService } from '../../../domain/services/compliance-view.
 import { ControlService } from '../../../domain/services/control.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { RiskService } from '../../../domain/services/risk.service';
+import { DetailCard } from '../detail-card/detail-card';
 import { LinkPicker, PickerItem } from '../link-picker/link-picker';
 
 type Stage = 'loading' | 'error' | 'ready';
@@ -18,7 +19,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // controles y dar de baja una causa propia; el resto de roles solo lee.
 @Component({
   selector: 'app-cause-detail-panel',
-  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker],
+  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker, DetailCard],
   templateUrl: './cause-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -53,17 +53,12 @@
           <label for="service-switch" class="text-xs font-medium text-white/80">{{ 'COMPLIANCE.SHELL.SERVICE' | translate }}</label>
           <select id="service-switch" (change)="switchTo($any($event.target).value)"
             class="h-9 max-w-[16rem] rounded-lg border-0 bg-white px-3 text-sm font-medium text-gray-900 shadow-theme-xs focus:outline-none focus:ring-2 focus:ring-white/60">
+            <option [value]="GENERAL">{{ 'COMPLIANCE.SHELL.GENERAL' | translate }}</option>
             @for (s of others(); track s.id) {
             <option [value]="s.id" [selected]="s.id === serviceId()">{{ s.name }}</option>
             }
           </select>
         </div>
-        }
-        @if (view.isTechnicalView()) {
-        <!-- Informa, no se pulsa: la vista técnica es de este rol, no un modo que se active (D63, D64). -->
-        <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-700 shadow-theme-xs">
-          <span class="material-symbols-rounded text-[16px]" aria-hidden="true">verified_user</span>{{ 'COMPLIANCE.SHELL.TECHNICAL_VIEW' | translate }}
-        </span>
         }
       </div>
     </div>

@@ -142,7 +142,7 @@ describe('RiskAssessment', () => {
     setup(EVALUATED);
     api.evaluationHistory.and.returnValue(of([entry(3, 4, { likelihood: 2, impact: 4, inherent_risk_value: 8, inherent_risk_level: 'moderate' })]));
     expect(api.evaluationHistory).not.toHaveBeenCalled();
-    click('button[aria-expanded]');
+    click('[data-test-history-toggle]');
     expect(api.evaluationHistory).toHaveBeenCalledOnceWith('r1');
     const history = el().querySelector('[data-test-history]')!.textContent ?? '';
     expect(history).toContain('Laura Gómez');
@@ -152,7 +152,7 @@ describe('RiskAssessment', () => {
   it('says the history could not be read instead of failing', () => {
     setup(EVALUATED);
     api.evaluationHistory.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
-    click('button[aria-expanded]');
+    click('[data-test-history-toggle]');
     expect(text()).toContain('COMPLIANCE.RISK_ASSESSMENT.HISTORY_ERROR');
   });
 
