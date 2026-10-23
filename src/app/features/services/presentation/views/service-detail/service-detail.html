@@ -149,6 +149,12 @@
     }
   </div>
 
+  <!-- D89 · Retomar la evaluación de riesgos: el mismo asistente del alta del servicio, aquí mismo (no en Cumplimiento). -->
+  @if (evaluating()) {
+  <div class="mk-card mt-3 p-5" data-risk-wizard>
+    <app-risk-wizard [serviceId]="s.id" finishKey="SERVICES.DETAIL.RISKS_DONE_CTA" (finished)="finishEvaluating()" />
+  </div>
+  } @else {
   <!-- Conexiones -->
   <div class="mk-card mt-3 p-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -157,12 +163,33 @@
         <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-300">{{ 'SERVICES.DETAIL.CONNECTIONS_HELP' | translate }}</p>
       </div>
       @if (scenario()) {
+      @if (risksPending()) {
+      <span aria-disabled="true" data-new-connection-blocked
+        class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">lock</span>{{ 'SERVICES.DETAIL.NEW_CONNECTION' | translate }}
+      </span>
+      } @else {
       <a [routerLink]="['/services', s.id, 'connections', 'new']"
         class="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
         <span class="material-symbols-rounded text-[18px]">add</span>{{ 'SERVICES.DETAIL.NEW_CONNECTION' | translate }}
       </a>
       }
+      }
     </div>
+
+    <!-- D89 · Antes de declarar los activos del servicio se evalúan sus riesgos: probabilidad e impacto cambian de un servicio a otro. -->
+    @if (risksPending(); as r) {
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4" data-risk-gate>
+      <div class="min-w-0 text-sm">
+        <p class="font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.RISKS_FIRST_TITLE' | translate }}</p>
+        <p class="mt-0.5 text-gray-700 dark:text-gray-200">{{ 'SERVICES.DETAIL.RISKS_FIRST_BODY' | translate: { pending: r.pending, total: r.total } }}</p>
+      </div>
+      <button type="button" (click)="startEvaluating()" data-risk-gate-cta
+        class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
+        {{ 'SERVICES.DETAIL.RISKS_FIRST_CTA' | translate }}<span class="material-symbols-rounded text-[18px]" aria-hidden="true">arrow_forward</span>
+      </button>
+    </div>
+    }
 
     @if (assets().length > 0) {
     <div class="mt-4">
@@ -182,6 +209,7 @@
     </div>
     }
   </div>
+  }
   }
   }
   }

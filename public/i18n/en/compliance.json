@@ -89,9 +89,9 @@
       "LOAD_ERROR_TITLE": "The services could not be loaded",
       "FORBIDDEN_TITLE": "There are no services to show yet",
       "FORBIDDEN_BODY": "Your role cannot pick a service from the menu yet.",
-      "EMPTY_TITLE": "You have no services yet",
-      "EMPTY_BODY": "Declare a service to review its compliance.",
-      "DECLARE_SERVICE": "Declare a service",
+      "EMPTY_TITLE": "No services created",
+      "EMPTY_BODY": "To measure your compliance in a service, first create a service.",
+      "DECLARE_SERVICE": "Create a service",
       "GENERAL_TITLE": "Overall compliance",
       "GENERAL_BODY": "Each service is measured separately against each framework. Here you see how each one is doing; open one to see its detail. There is no combined percentage across services.",
       "SERVICE_COUNT": "{{count}} services with this framework",
@@ -488,6 +488,39 @@
     "REQUIRES": {
       "TITLE": "What this control requires",
       "INTRO": "The tests that verify it and the evidence to provide to meet them, in one place."
+    },
+    "RISK_WIZARD": {
+      "TITLE": "Service risk evaluation",
+      "LOAD_ERROR": "Your service risks could not be loaded.",
+      "POSITION": "Risk {{current}} of {{total}}",
+      "EVALUATED": "{{done}} of {{total}} evaluated",
+      "Q_LIKELIHOOD": "How likely is this to happen in your service?",
+      "Q_IMPACT": "If it happened, how serious would the impact be?",
+      "LIKELIHOOD": {
+        "L1": { "LABEL": "Rare", "DESC": "May occur only in exceptional circumstances" },
+        "L2": { "LABEL": "Unlikely", "DESC": "Could occur at some time" },
+        "L3": { "LABEL": "Possible", "DESC": "Could occur occasionally" },
+        "L4": { "LABEL": "Likely", "DESC": "Occurs in most circumstances" },
+        "L5": { "LABEL": "Almost certain", "DESC": "Expected to occur in most cases" }
+      },
+      "IMPACT": {
+        "L1": { "LABEL": "Insignificant", "DESC": "Minimal effect, no relevant consequences" },
+        "L2": { "LABEL": "Minor", "DESC": "Slight impact, manageable with normal resources" },
+        "L3": { "LABEL": "Moderate", "DESC": "Notable impact, requires specific management" },
+        "L4": { "LABEL": "Major", "DESC": "Significant impact on operations or compliance" },
+        "L5": { "LABEL": "Critical", "DESC": "Severe impact, threatens continuity or leads to serious penalties" }
+      },
+      "SAVE_NEXT": "Save and continue",
+      "SAVE_LAST": "Save and finish",
+      "SAVING": "Saving…",
+      "BACK": "Previous",
+      "SAVE_ERROR": "The evaluation could not be saved. Please try again.",
+      "ADMIN_ONLY": "Only the company administrator evaluates the service risks.",
+      "DONE_TITLE": "Risks evaluated",
+      "DONE_BODY": "All {{total}} risks of your service have likelihood and impact.",
+      "REVIEW": "Review the last one",
+      "EDIT_LATER": "You can correct any rating later, in Compliance › Risks.",
+      "FINISH": "Declare the assets"
     },
     "TESTS": {
       "TITLE": "Tests",
