@@ -34,10 +34,26 @@ export interface EvidenceRequirement {
   sequence: number;
   description: string;
   dimension: string;
+  // D88 · La prueba documental de ESTE control a la que sirve la evidencia. `null` = compartida con todas las pruebas documentales del control
+  // (así llegan las plantillas del catálogo, que no dicen a cuál sirve cada documento).
+  test: { id: string; code: string; display_name: string | null } | null;
   validity_within_period: string;
   origin: 'catalog' | 'own';
   responsible: { id: string; type: string; person_name: string | null } | null;
   submissions: EvidenceSubmission[];
+}
+
+/**
+ * Lo que se entregó PARA una prueba documental EN SU CONTROL (D88). Un documento que el catálogo sugiere sin decir a qué prueba sirve (`test` nulo) no cuenta para
+ * ninguna prueba: el servidor tampoco lo tiene en cuenta. El estado de la prueba lo calcula el servidor; aquí solo se decide qué se muestra bajo cada una.
+ */
+export function evidenceForTest(requirements: readonly EvidenceRequirement[], dimension: string, testId: string): EvidenceRequirement[] {
+  return requirements.filter((r) => r.dimension === dimension && r.test?.id === testId);
+}
+
+/** Los documentos que el catálogo sugiere para el control sin decir a qué prueba sirven: una guía para quien sube, no un requisito de ninguna prueba. */
+export function suggestedEvidence(requirements: readonly EvidenceRequirement[], dimension: string): EvidenceRequirement[] {
+  return requirements.filter((r) => r.dimension === dimension && r.test === null && r.origin === 'catalog');
 }
 
 // ── La pestaña «Evidencias» (MD-129): una fila por evidencia requerida, con el control que la pide ──

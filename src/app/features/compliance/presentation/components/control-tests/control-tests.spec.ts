@@ -9,9 +9,9 @@ const DIMENSIONS: ControlDimensionDetail[] = [
   { dimension: 'server', applies: true, type: 'automated', reason_not_applicable: null },
 ];
 const TESTS: ControlTest[] = [
-  { test_code: 'T-SRV-001', display_name: 'Evaluación de configuración de servidores', dimension: 'server', state: 'no_assets' },
-  { test_code: 'T-DOC-002', display_name: 'Validación de la ejecución de la revisión', dimension: 'policy', state: 'pending' },
-  { test_code: 'T-DOC-001', display_name: 'Revisión de diseño y vigencia de la política', dimension: 'policy', state: 'compliant' },
+  { test_id: 'id-srv-1', test_code: 'T-SRV-001', display_name: 'Evaluación de configuración de servidores', dimension: 'server', state: 'no_assets' },
+  { test_id: 'id-doc-2', test_code: 'T-DOC-002', display_name: 'Validación de la ejecución de la revisión', dimension: 'policy', state: 'pending' },
+  { test_id: 'id-doc-1', test_code: 'T-DOC-001', display_name: 'Revisión de diseño y vigencia de la política', dimension: 'policy', state: 'compliant' },
 ];
 
 @Component({
@@ -19,7 +19,7 @@ const TESTS: ControlTest[] = [
   imports: [ControlTests],
   template: `
     <app-control-tests [tests]="tests" [dimensions]="dimensions" [total]="3" [evidenceTpl]="upload" />
-    <ng-template #upload let-dimension><button type="button" data-upload [attr.data-dimension]="dimension">subir</button></ng-template>
+    <ng-template #upload let-dimension let-testId="testId" let-testCode="testCode"><button type="button" data-upload [attr.data-dimension]="dimension" [attr.data-test-id]="testId" [attr.data-test-code]="testCode">subir</button></ng-template>
   `,
 })
 class Host {
@@ -77,15 +77,18 @@ describe('ControlTests', () => {
     expect(codes).toEqual(['T-DOC-001', 'T-DOC-002', 'T-SRV-001']);
   });
 
-  it('offers the evidence upload under the manual tests only, never under the automatic ones', () => {
+  it('offers the evidence under EACH manual test, with the id and the code of that test, and never under the automatic ones (D88)', () => {
     TestBed.configureTestingModule({ imports: [Host], providers: [provideTranslateService({ fallbackLang: 'es' })] });
     const host = TestBed.createComponent(Host);
     host.detectChanges();
     const el = host.nativeElement as HTMLElement;
-    const slots = el.querySelectorAll('[data-test-evidence] [data-upload]');
-    expect(slots.length).toBe(1);
-    expect(slots[0].getAttribute('data-dimension')).toBe('policy');
-    expect(slots[0].closest('[data-test-evidence]')!.previousElementSibling!.textContent).toContain('T-DOC-002');
+    const slots = Array.from(el.querySelectorAll('[data-test-evidence] [data-upload]'));
+    expect(slots.map((s) => s.getAttribute('data-test-code'))).toEqual(['T-DOC-001', 'T-DOC-002']);
+    expect(slots.map((s) => s.getAttribute('data-test-id'))).toEqual(['id-doc-1', 'id-doc-2']);
+    for (const s of slots) expect(s.getAttribute('data-dimension')).toBe('policy');
+    // cada espacio queda dentro de la fila de SU prueba
+    for (const s of slots) expect(s.closest('li')!.textContent).toContain(s.getAttribute('data-test-code')!);
+    expect(Array.from(el.querySelectorAll('li')).find((li) => li.textContent!.includes('T-SRV-001'))!.querySelector('[data-test-evidence]')).toBeNull();
   });
 
   describe('short description', () => {

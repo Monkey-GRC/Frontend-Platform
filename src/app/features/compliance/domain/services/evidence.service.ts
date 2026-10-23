@@ -20,6 +20,13 @@ export class EvidenceService {
       .pipe(map((r) => r.data?.items ?? []));
   }
 
+  /** Sube el archivo como la evidencia de UNA prueba documental en este control (D88). La primera vez crea el lugar de esa prueba; las siguientes son versiones nuevas. */
+  uploadForTest(controlId: string, testId: string, file: File): Observable<EvidenceSubmission> {
+    const body = new FormData();
+    body.append('file', file, file.name);
+    return this.http.post<SuccessResponse<EvidenceSubmission>>(`${this.base}/controls/${controlId}/tests/${testId}/evidence`, body).pipe(map((r) => r.data!));
+  }
+
   /** Sube el archivo como una evidencia entregada nueva (una versión más) del requerimiento. */
   upload(requirementId: string, file: File): Observable<EvidenceSubmission> {
     const body = new FormData();
