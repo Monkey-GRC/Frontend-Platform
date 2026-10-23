@@ -56,6 +56,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "vps": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/app/config/environments/environment.ts",
+                  "with": "src/app/config/environments/environment.vps.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -68,6 +79,9 @@
             },
             "development": {
               "buildTarget": "frontend:build:development"
+            },
+            "vps": {
+              "buildTarget": "frontend:build:vps"
             }
           },
           "defaultConfiguration": "development"
