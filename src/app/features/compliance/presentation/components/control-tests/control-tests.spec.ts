@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { ControlDimensionDetail } from '../../../domain/models/control.models';
+import { FindingService } from '../../../domain/services/finding.service';
 import { ControlTest, ControlTests } from './control-tests';
 
 const DIMENSIONS: ControlDimensionDetail[] = [
@@ -91,6 +92,25 @@ describe('ControlTests', () => {
     expect(Array.from(el.querySelectorAll('li')).find((li) => li.textContent!.includes('T-SRV-001'))!.querySelector('[data-test-evidence]')).toBeNull();
   });
 
+  it('offers what failed and how to fix it only under a cloud test that does not comply, and only when it knows the control (D90)', () => {
+    const cloud: ControlTest = { test_id: 'id-cld-1', test_code: 'T-CLD-001', display_name: 'Acceso público', dimension: 'cloud', state: 'non_compliant' };
+    const passing: ControlTest = { ...cloud, test_id: 'id-cld-2', test_code: 'T-CLD-002', state: 'compliant' };
+    const withControl = (id: string | null) => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [ControlTests], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: FindingService, useValue: {} }] });
+      fixture = TestBed.createComponent(ControlTests);
+      fixture.componentRef.setInput('tests', [cloud, passing, TESTS[0]]);
+      fixture.componentRef.setInput('dimensions', [...DIMENSIONS, { dimension: 'cloud', applies: true, type: 'automated', reason_not_applicable: null }]);
+      fixture.componentRef.setInput('controlId', id);
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    };
+    const el = withControl('c1');
+    const rows = Array.from(el.querySelectorAll('li')).filter((li) => li.querySelector('app-test-findings'));
+    expect(rows.length).toBe(1);
+    expect(rows[0].textContent).toContain('T-CLD-001');
+    expect(withControl(null).querySelector('app-test-findings')).toBeNull();
+  });
   describe('short description', () => {
     const SHORT = 'Verifica que existe una política vigente.';
     const LONG = 'Verificar que los servidores en alcance cumplen la línea base de configuración segura definida, comprobándola de forma automática sobre el 100% de los servidores y dejando constancia de las desviaciones.';

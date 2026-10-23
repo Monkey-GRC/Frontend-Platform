@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, TemplateRef, computed, inject, inpu
 import { TranslatePipe } from '@ngx-translate/core';
 import { ControlDimensionDetail, ControlTechnical } from '../../../domain/models/control.models';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
+import { TestFindings } from '../test-findings/test-findings';
 
 export type ControlTest = NonNullable<ControlTechnical['tests']>[number];
 
@@ -39,7 +40,7 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
 // que no es un fallo: es lo que el control va a pedir. De cada prueba solo se ve su nombre neutro y su resultado (D70), nunca el texto del comité.
 @Component({
   selector: 'app-control-tests',
-  imports: [TranslatePipe, NgTemplateOutlet],
+  imports: [TranslatePipe, NgTemplateOutlet, TestFindings],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-label]="'COMPLIANCE.TESTS.TITLE' | translate">
@@ -72,6 +73,10 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
                   </div>
                 }
                 <!-- D88 · La evidencia de una prueba documental es de ESTE control: se entrega y se valida bajo la prueba que respalda. -->
+                <!-- D90 · Una prueba técnica que no cumple dice qué falló y cómo corregirlo. -->
+                @if (t.dimension === 'cloud' && t.state === 'non_compliant' && controlId(); as cid) {
+                  <app-test-findings [controlId]="cid" [testId]="t.test_id" />
+                }
                 @if (t.manual && evidenceTpl(); as tpl) {
                   <div data-test-evidence>
                     <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="{ $implicit: t.dimension, testId: t.test_id, testCode: t.test_code }" />
@@ -114,6 +119,8 @@ export class ControlTests {
   readonly total = input(0);
   /** La evidencia de cada prueba manual (D88): se pinta bajo CADA prueba de una dimensión manual, con el id y el código de esa prueba. */
   readonly evidenceTpl = input<TemplateRef<EvidenceSlot> | null>(null);
+  /** El control al que pertenecen las pruebas: con él, una prueba técnica que no cumple puede decir qué falló y cómo corregirlo (D90). */
+  readonly controlId = input<string | null>(null);
 
   /** Las pruebas en el orden de `rows`, cada una con si es manual (de ahí sale si lleva su evidencia debajo). */
   protected readonly items = computed(() => {
