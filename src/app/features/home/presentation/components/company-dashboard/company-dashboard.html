@@ -127,6 +127,16 @@
     }
   </section>
 </div>
+} @else {
+<!-- D89 · Terminado el contexto de la empresa, los servicios se declaran cuando el cliente quiera: aquí se le invita a crear el primero. -->
+<div class="mk-card border-dashed p-6 text-center" data-no-services>
+  <span class="material-symbols-rounded text-3xl text-gray-500 dark:text-gray-300" aria-hidden="true">inventory_2</span>
+  <h2 class="mt-2 text-base font-semibold text-gray-900 dark:text-white">{{ 'HOME.DASHBOARD.NO_SERVICES_TITLE' | translate }}</h2>
+  <p class="mx-auto mt-1 max-w-md text-sm text-gray-600 dark:text-gray-300">{{ 'HOME.DASHBOARD.NO_SERVICES_BODY' | translate }}</p>
+  <a routerLink="/services/new" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
+    {{ 'HOME.DASHBOARD.NO_SERVICES_CTA' | translate }}<span class="material-symbols-rounded text-[18px]" aria-hidden="true">arrow_forward</span>
+  </a>
+</div>
 }
 }
 

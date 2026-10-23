@@ -89,9 +89,9 @@
       "LOAD_ERROR_TITLE": "No se pudieron cargar los servicios",
       "FORBIDDEN_TITLE": "Aún no hay servicios para mostrar",
       "FORBIDDEN_BODY": "Tu rol todavía no puede elegir un servicio desde el menú.",
-      "EMPTY_TITLE": "Aún no tienes servicios",
-      "EMPTY_BODY": "Declara un servicio para consultar su cumplimiento.",
-      "DECLARE_SERVICE": "Declarar un servicio",
+      "EMPTY_TITLE": "No hay servicios creados",
+      "EMPTY_BODY": "Para medir tu cumplimiento en un servicio, primero crea un servicio.",
+      "DECLARE_SERVICE": "Crear un servicio",
       "GENERAL_TITLE": "Cumplimiento general",
       "GENERAL_BODY": "Cada servicio se mide por separado frente a cada marco. Aquí ves cómo va cada uno; entra a uno para ver su detalle. No hay un porcentaje combinado de varios servicios.",
       "SERVICE_COUNT": "{{count}} servicios con este marco",
@@ -488,6 +488,39 @@
     "REQUIRES": {
       "TITLE": "Lo que pide este control",
       "INTRO": "Las pruebas que lo verifican y las evidencias que hay que aportar para cumplirlas, en un solo lugar."
+    },
+    "RISK_WIZARD": {
+      "TITLE": "Evaluación de los riesgos del servicio",
+      "LOAD_ERROR": "No se pudieron cargar los riesgos de tu servicio.",
+      "POSITION": "Riesgo {{current}} de {{total}}",
+      "EVALUATED": "{{done}} de {{total}} evaluados",
+      "Q_LIKELIHOOD": "¿Qué tan probable es que esto ocurra en tu servicio?",
+      "Q_IMPACT": "Si ocurriera, ¿qué tan grave sería el impacto?",
+      "LIKELIHOOD": {
+        "L1": { "LABEL": "Raro", "DESC": "Puede ocurrir solo en circunstancias excepcionales" },
+        "L2": { "LABEL": "Improbable", "DESC": "Podría ocurrir en algún momento" },
+        "L3": { "LABEL": "Posible", "DESC": "Podría ocurrir ocasionalmente" },
+        "L4": { "LABEL": "Probable", "DESC": "Ocurre en la mayoría de las circunstancias" },
+        "L5": { "LABEL": "Casi seguro", "DESC": "Se espera que ocurra en la mayoría de los casos" }
+      },
+      "IMPACT": {
+        "L1": { "LABEL": "Insignificante", "DESC": "Efecto mínimo, sin consecuencias relevantes" },
+        "L2": { "LABEL": "Menor", "DESC": "Impacto leve, manejable con recursos normales" },
+        "L3": { "LABEL": "Moderado", "DESC": "Impacto notable, requiere gestión específica" },
+        "L4": { "LABEL": "Mayor", "DESC": "Impacto significativo en la operación o el cumplimiento" },
+        "L5": { "LABEL": "Crítico", "DESC": "Impacto severo, amenaza la continuidad o genera sanciones graves" }
+      },
+      "SAVE_NEXT": "Guardar y seguir",
+      "SAVE_LAST": "Guardar y terminar",
+      "SAVING": "Guardando…",
+      "BACK": "Anterior",
+      "SAVE_ERROR": "No se pudo guardar la evaluación. Inténtalo de nuevo.",
+      "ADMIN_ONLY": "Solo el administrador de la empresa evalúa los riesgos del servicio.",
+      "DONE_TITLE": "Riesgos evaluados",
+      "DONE_BODY": "Los {{total}} riesgos de tu servicio tienen probabilidad e impacto.",
+      "REVIEW": "Revisar el último",
+      "EDIT_LATER": "Puedes corregir cualquier calificación después, en Cumplimiento › Riesgos.",
+      "FINISH": "Declarar los activos"
     },
     "TESTS": {
       "TITLE": "Pruebas",

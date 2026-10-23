@@ -53,6 +53,14 @@ describe('CompanyDashboard', () => {
     expect(q('[data-total="risks-evaluated"]')!.textContent).toContain('HOME.DASHBOARD.RISKS_EVALUATED');
   });
 
+  it('invites a company with no services to create the first one, with a link to the same screen as "My services" (D89)', () => {
+    setup('admin_empresa', { services: [] });
+    expect(q('[data-dashboard]')).toBeNull();
+    const cta = q('[data-no-services] a')!;
+    expect(cta.getAttribute('href')).toBe('/services/new');
+    expect(q('[data-no-services]')!.textContent).toContain('HOME.DASHBOARD.NO_SERVICES_TITLE');
+  });
+
   it('counts a framework once even when two services contract it', () => {
     setup('admin_empresa', { services: [service('s1'), service('s2')] });
     expect(total('frameworks')).toBe('1');

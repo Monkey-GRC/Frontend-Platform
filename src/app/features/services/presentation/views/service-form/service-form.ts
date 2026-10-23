@@ -22,6 +22,7 @@ import {
 } from '../../../domain/models/service.models';
 import { ServiceDraftService } from '../../../domain/services/service-draft.service';
 import { ServiceService } from '../../../domain/services/service.service';
+import { RiskWizard } from '@features/compliance/presentation/components/risk-wizard/risk-wizard';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
 interface Catalogs {
@@ -83,7 +84,7 @@ const CRITERION_INFO: Record<string, CriterionInfo> = {
   },
 };
 
-type Stage = 'loading' | 'error' | 'form' | 'saving' | 'done';
+type Stage = 'loading' | 'error' | 'form' | 'saving' | 'risks' | 'done';
 type MultiKey = 'industries_served' | 'countries' | 'data_types';
 type SingleKey = 'type' | 'active_client_count' | 'expected_availability' | 'previous_certification';
 type TextKey = 'name' | 'description' | 'scope_statement';
@@ -92,7 +93,7 @@ type SubserviceTextKey = 'service_provided' | 'responsibility';
 
 @Component({
   selector: 'app-service-form',
-  imports: [PageHeader, OptionChips, RouterLink, TranslatePipe],
+  imports: [PageHeader, OptionChips, RouterLink, TranslatePipe, RiskWizard],
   templateUrl: './service-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -421,6 +422,8 @@ export class ServiceFormView implements OnInit {
     }
     const input = inputFromDraft(this.draft());
     const id = this.serviceId();
+    // Se decide antes de guardar: al subir el archivo el formulario ya guarda el id del servicio nuevo y parecería una edición (D89).
+    const creating = !id;
     const file = this.systemFile();
     this.stage.set('saving');
     this.saveError.set(null);
@@ -449,7 +452,8 @@ export class ServiceFormView implements OnInit {
         // Primero se refresca la sesión (el siguiente paso del onboarding lo calcula el backend) y
         // solo después se muestra «¡Listo!»: así Inicio nunca enseña por un instante el paso anterior.
         this.auth.validate().subscribe(() => {
-          this.stage.set('done');
+          // D89 · Un servicio nuevo sigue la cadena en esta misma pantalla: crear → evaluar sus riesgos → declarar sus activos. Editar uno existente se queda en «Listo».
+          this.stage.set(creating ? 'risks' : 'done');
           this.scrollTop();
         });
       },
@@ -487,6 +491,12 @@ export class ServiceFormView implements OnInit {
         );
       },
     });
+  }
+
+  /** Terminada la evaluación de los riesgos, sigue declarar los activos del servicio (el detalle pide primero dónde vive y luego conecta). */
+  goToAssets(): void {
+    const id = this.saved()?.id;
+    this.router.navigateByUrl(id ? `/services/${id}` : '/services');
   }
 
   addAnother(): void {

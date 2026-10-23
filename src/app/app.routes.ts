@@ -5,6 +5,7 @@ import { NotFoundLayout } from '@core/presentation/pages/not-found-layout/not-fo
 import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layout.component';
 import { authGuard } from '@core/domain/guards/auth.guard';
 import { guestGuard } from '@core/domain/guards/guest.guard';
+import { risksEvaluatedGuard } from '@features/services/domain/guards/risks-evaluated.guard';
 
 export const routes: Routes = [
   {
@@ -12,8 +13,8 @@ export const routes: Routes = [
     component: AppLayoutComponent,
     canActivate: [authGuard],
     children: [
-      // Bienvenida provisional. Aquí entran los 3 componentes del onboarding (MD-74, MD-78, MD-85)
-      // y el dashboard cuando se reconstruya.
+      // Bienvenida provisional. El onboarding es solo el contexto de la empresa (D89); los servicios se declaran desde «Mis servicios» o desde Cumplimiento.
+      // El dashboard la reemplaza cuando se reconstruya.
       {
         path: '',
         loadComponent: () => import('@features/home/presentation/views/home/home').then(m => m.Home),
@@ -24,7 +25,7 @@ export const routes: Routes = [
         path: 'onboarding',
         loadComponent: () => import('@features/onboarding/presentation/views/organizational-context/organizational-context').then(m => m.OrganizationalContextView),
       },
-      // Componente 2 del onboarding: los servicios de la empresa. `new` va antes que `:id`.
+      // Los servicios de la empresa (antes, Componente 2 del onboarding; desde D89 se declaran cuando el cliente quiera). `new` va antes que `:id`.
       {
         path: 'services',
         loadComponent: () => import('@features/services/presentation/views/services-list/services-list').then(m => m.ServicesListView),
@@ -35,13 +36,16 @@ export const routes: Routes = [
       },
       // El servicio del cliente: su información y las conexiones con las que Monkey llega a sus activos (Componente 3).
       // Las rutas más específicas van antes que `:id`.
+      // D89: no se declaran activos hasta evaluar los riesgos del servicio (el guard manda a evaluarlos).
       {
         path: 'services/:id/connections/new',
+        canActivate: [risksEvaluatedGuard],
         loadComponent: () => import('@features/technical-control/presentation/views/new-connection/new-connection').then(m => m.NewConnectionView),
       },
       // El paso a paso de una plataforma elegida en el marketplace (D67).
       {
         path: 'services/:id/connections/new/:catalog/:platform',
+        canActivate: [risksEvaluatedGuard],
         loadComponent: () => import('@features/technical-control/presentation/views/connect-platform/connect-platform').then(m => m.ConnectPlatformView),
       },
       {

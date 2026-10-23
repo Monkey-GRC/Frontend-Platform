@@ -2,12 +2,15 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, s
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { apiErrorCode, apiErrorMessage } from '@core/domain/utils/api-error';
 import { AuthService } from '@features/auth/domain/services/auth.service';
+import { RiskReadinessService } from '@features/compliance/domain/services/risk-readiness.service';
+import { RiskProgress } from '@features/compliance/domain/utils/risk-progress';
 import { Asset, SCENARIO_HELP, SCENARIO_ICON, TechnicalControlState } from '@features/technical-control/domain/models/technical-control.models';
 import { categoryLabel } from '@features/technical-control/domain/utils/category-label';
 import { TechnicalControlService } from '@features/technical-control/domain/services/technical-control.service';
+import { RiskWizard } from '@features/compliance/presentation/components/risk-wizard/risk-wizard';
 import { ConnectionsList } from '@features/technical-control/presentation/components/connections-list/connections-list';
 import { CatalogName, CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
@@ -23,7 +26,7 @@ const CATALOGS: CatalogName[] = ['service_type', 'served_industry', 'service_cou
 // El servicio del cliente: su información ordenada arriba y, debajo, las conexiones con las que Monkey llega a sus activos (Componente 3).
 @Component({
   selector: 'app-service-detail',
-  imports: [PageHeader, RouterLink, ConnectionsList, LoadingSpinner, TranslatePipe],
+  imports: [PageHeader, RouterLink, ConnectionsList, LoadingSpinner, TranslatePipe, RiskWizard],
   templateUrl: './service-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -33,6 +36,7 @@ export class ServiceDetailView implements OnInit {
   private readonly api = inject(TechnicalControlService);
   private readonly catalogs = inject(CatalogService);
   private readonly auth = inject(AuthService);
+  private readonly readiness = inject(RiskReadinessService);
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
 
@@ -44,6 +48,12 @@ export class ServiceDetailView implements OnInit {
   readonly service = signal<Service | null>(null);
   readonly state = signal<TechnicalControlState | null>(null);
   readonly assets = signal<Asset[]>([]);
+  /** D89 · Cuántos riesgos del servicio faltan por evaluar. 
+ull = no se pudo saber: no se bloquea nada. */
+  readonly risks = signal<RiskProgress | null>(null);
+  /** D89 · ¿Está abierto el asistente de riesgos aquí mismo? Se abre con el botón del aviso o al llegar con ?evaluar=riesgos (el guard de las rutas de conexión). */
+  readonly evaluating = signal(false);
+  readonly risksPending = computed(() => (this.risks() && !this.risks()!.ready ? this.risks() : null));
   private readonly options = signal<Partial<Record<CatalogName, CatalogOption[]>>>({});
 
   // «Dónde vive»: se elige al principio y se puede cambiar.
@@ -81,10 +91,13 @@ export class ServiceDetailView implements OnInit {
       service: this.services.get(id),
       state: this.api.state(id),
       assets: this.api.listAssets(id),
+      risks: this.readiness.progress(id).pipe(catchError(() => of(null))),
       catalogs: forkJoin(CATALOGS.map((c) => this.catalogs.options(c))),
     }).subscribe({
-      next: ({ service, state, assets, catalogs }) => {
+      next: ({ service, state, assets, risks, catalogs }) => {
         this.service.set(service);
+        this.risks.set(risks);
+        if (risks && !risks.ready && this.route.snapshot.queryParamMap.get('evaluar') === 'riesgos') this.evaluating.set(true);
         this.state.set(state);
         this.assets.set(assets.items);
         this.options.set(Object.fromEntries(CATALOGS.map((c, i) => [c, catalogs[i]])));
@@ -95,6 +108,19 @@ export class ServiceDetailView implements OnInit {
       },
       error: () => this.stage.set('error'),
     });
+  }
+
+  startEvaluating(): void {
+    this.evaluating.set(true);
+  }
+
+  /** Terminó el asistente: se vuelve a preguntar cuántos faltan (ahora ninguno) y se abre el candado de «Nueva conexión». */
+  finishEvaluating(): void {
+    this.evaluating.set(false);
+    this.readiness
+      .progress(this.serviceId())
+      .pipe(catchError(() => of(null)))
+      .subscribe((risks) => this.risks.set(risks));
   }
 
   label(catalog: CatalogName, value: string | null | undefined): string {
