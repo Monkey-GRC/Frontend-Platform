@@ -39,6 +39,7 @@ export class ComplianceShellView implements OnInit {
 
   readonly current = computed(() => this.services()?.find((s) => s.id === this.serviceId()) ?? null);
   readonly others = computed(() => this.services() ?? []);
+  protected readonly GENERAL = 'general';
   readonly canSwitch = computed(() => (this.services()?.length ?? 0) > 1);
 
   constructor() {
@@ -67,9 +68,14 @@ export class ComplianceShellView implements OnInit {
     return this.frameworks().find((f) => f.code === code)?.label ?? code;
   }
 
-  /** Cambia de servicio y se queda en la misma pestaña. */
+  /** Cambia de servicio y se queda en la misma pestaña; «General» vuelve a la vista de todos los servicios. */
   switchTo(serviceId: string): void {
     if (!serviceId || serviceId === this.serviceId()) return;
+    // «General»: cómo va cada servicio en cada marco.
+    if (serviceId === this.GENERAL) {
+      this.router.navigate(['/', COMPLIANCE_ROUTE]);
+      return;
+    }
     const tab = new RegExp(`/${COMPLIANCE_ROUTE}/([^/?#]+)`).exec(this.router.url)?.[1] ?? DEFAULT_COMPLIANCE_TAB;
     this.router.navigate(['/services', serviceId, COMPLIANCE_ROUTE, tab]);
   }
