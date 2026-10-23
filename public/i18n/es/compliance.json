@@ -529,6 +529,28 @@
       "SHOW_MORE": "Ver más",
       "SHOW_LESS": "Ver menos"
     },
+    "FINDINGS": {
+      "OPEN": "Ver qué falló y cómo corregirlo",
+      "CLOSE": "Ocultar",
+      "LOAD_ERROR": "No pudimos cargar lo que falló. Inténtalo de nuevo.",
+      "NONE": "La última evaluación no dejó nada que corregir en esta prueba.",
+      "SUMMARY": "{{count}} cosas por corregir, de la más grave a la menos grave.",
+      "AFFECTED": "Afecta a {{count}} recursos",
+      "SHOW_ALL": "Ver los {{count}}",
+      "PARTIAL": "Se muestran {{shown}} de {{total}} recursos afectados.",
+      "HOW_TO_FIX": "Cómo corregirlo",
+      "AI_NOTE": "Traducción automática hecha por IA, sin revisar por una persona. Compruébala antes de aplicarla.",
+      "ORIGINAL_NOTE": "Guía original en inglés: aún no tiene traducción.",
+      "NO_GUIDE": "Esta comprobación no trae una guía de corrección. Consulta a tu consultor.",
+      "MORE": "Ver más",
+      "SEVERITY": {
+        "CRITICAL": "Crítica",
+        "HIGH": "Alta",
+        "MEDIUM": "Media",
+        "LOW": "Baja",
+        "INFORMATIONAL": "Informativa"
+      }
+    },
     "TEST_STATE": {
       "COMPLIANT": "Cumple",
       "NON_COMPLIANT": "No cumple",

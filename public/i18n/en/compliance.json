@@ -529,6 +529,28 @@
       "SHOW_MORE": "Show more",
       "SHOW_LESS": "Show less"
     },
+    "FINDINGS": {
+      "OPEN": "See what failed and how to fix it",
+      "CLOSE": "Hide",
+      "LOAD_ERROR": "We could not load what failed. Try again.",
+      "NONE": "The latest assessment left nothing to fix in this test.",
+      "SUMMARY": "{{count}} things to fix, from most to least severe.",
+      "AFFECTED": "Affects {{count}} resources",
+      "SHOW_ALL": "Show all {{count}}",
+      "PARTIAL": "Showing {{shown}} of {{total}} affected resources.",
+      "HOW_TO_FIX": "How to fix it",
+      "AI_NOTE": "Automatic translation by AI, not reviewed by a person. Check it before applying it.",
+      "ORIGINAL_NOTE": "Original guidance in English: it has no translation yet.",
+      "NO_GUIDE": "This check has no remediation guidance. Ask your consultant.",
+      "MORE": "Show more",
+      "SEVERITY": {
+        "CRITICAL": "Critical",
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low",
+        "INFORMATIONAL": "Informational"
+      }
+    },
     "TEST_STATE": {
       "COMPLIANT": "Compliant",
       "NON_COMPLIANT": "Non-compliant",

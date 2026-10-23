@@ -185,7 +185,7 @@
     <app-detail-card titleKey="COMPLIANCE.REQUIRES.TITLE" icon="fact_check">
       <p class="text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.REQUIRES.INTRO' | translate }}</p>
       <div class="mt-4 flex flex-col gap-5">
-      <app-control-tests [tests]="d.technical?.tests" [dimensions]="d.dimensions" [total]="d.progress.total" [evidenceTpl]="evidenceUnderTests(d) ? manualEvidence : null" />
+      <app-control-tests [controlId]="d.id" [tests]="d.technical?.tests" [dimensions]="d.dimensions" [total]="d.progress.total" [evidenceTpl]="evidenceUnderTests(d) ? manualEvidence : null" />
       <!-- D88 · La evidencia de una prueba manual se entrega y se valida bajo ELLA, en este control; sin el detalle de las pruebas (otros roles) o sin pruebas manuales, se muestra aparte. -->
       <ng-template #manualEvidence let-dimension let-testId="testId">
         <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" [dimension]="dimension" [testId]="testId" [embedded]="true" (changed)="changed.emit()" />
