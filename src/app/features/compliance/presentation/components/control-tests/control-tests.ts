@@ -6,6 +6,13 @@ import { EnumLabelService } from '../../../domain/services/enum-label.service';
 
 export type ControlTest = NonNullable<ControlTechnical['tests']>[number];
 
+/** Lo que recibe la plantilla de evidencia de cada prueba manual: su dimensión y la prueba a la que pertenece (D88). */
+export interface EvidenceSlot {
+  $implicit: string;
+  testId: string;
+  testCode: string;
+}
+
 interface Look {
   icon: string;
   chip: string;
@@ -45,7 +52,8 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
           @for (g of groups(); track g.dimension) {
           <ul class="mt-2 flex flex-col gap-2">
             @for (t of g.tests; track t.test_code) {
-              <li class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700">
+              <li class="rounded-lg border border-gray-200 dark:border-gray-700">
+              <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
                 <div class="min-w-0 text-sm">
                   <p class="text-gray-900 dark:text-white"><span class="font-mono text-xs font-semibold text-gray-700 dark:text-gray-200">{{ t.test_code }}</span> · {{ t.display_name }}</p>
                   <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ labels.of('COMPLIANCE.DIMENSION', t.dimension) }} · {{ t.kind }}</p>
@@ -61,12 +69,16 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
                 <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="t.look.chip" [attr.data-test-state]="t.state">
                   <span class="material-symbols-rounded text-[14px] leading-none" aria-hidden="true">{{ t.look.icon }}</span>{{ labels.of('COMPLIANCE.TEST_STATE', t.state) }}
                 </span>
+              </div>
+              <!-- D88 · La evidencia de una prueba documental es de ESTE control: se entrega y se valida bajo la prueba que respalda. -->
+              @if (g.manual && evidenceTpl(); as tpl) {
+                <div class="border-t border-gray-100 px-3 pb-3 pt-2 dark:border-gray-800" data-test-evidence>
+                  <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="{ $implicit: g.dimension, testId: t.test_id, testCode: t.test_code }" />
+                </div>
+              }
               </li>
             }
           </ul>
-          @if (g.manual && evidenceTpl(); as tpl) {
-            <div class="mt-3" data-test-evidence><ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="{ $implicit: g.dimension }" /></div>
-          }
           }
         }
       } @else {
@@ -100,8 +112,8 @@ export class ControlTests {
   readonly dimensions = input<ControlDimensionDetail[]>([]);
   /** Cuántas pruebas cuenta el avance, para decirlo cuando no hay detalle. */
   readonly total = input(0);
-  /** La subida de evidencia: se pinta bajo las pruebas manuales de cada dimensión, que son las que se cumplen con un documento. */
-  readonly evidenceTpl = input<TemplateRef<{ $implicit: string }> | null>(null);
+  /** La evidencia de cada prueba manual (D88): se pinta bajo CADA prueba de una dimensión manual, con el id y el código de esa prueba. */
+  readonly evidenceTpl = input<TemplateRef<EvidenceSlot> | null>(null);
 
   protected readonly groups = computed(() => {
     const list = this.rows();

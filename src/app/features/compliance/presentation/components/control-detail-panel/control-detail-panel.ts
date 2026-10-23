@@ -97,6 +97,7 @@ export class ControlDetailPanel {
     return role !== null && UPLOADING_ROLES.includes(role);
   });
 
+
   private readonly pendingTypes = computed(() => new Set<ControlChangeType>(this.pending().map((c) => c.change_type)));
   readonly hasPending = (type: ControlChangeType): boolean => this.pendingTypes().has(type);
 

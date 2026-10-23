@@ -20,7 +20,7 @@ const submission = (version: number, state: EvidenceSubmission['evidence_state']
   submitted_by: person, submitted_at: '2026-10-14T17:05:12Z', evidence_state: state, ai: null,
 });
 const requirement = (id: string, submissions: EvidenceSubmission[] = []): EvidenceRequirement => ({
-  id, code: `EV-${id}`, sequence: 1, description: `Documento ${id}`, dimension: 'policy', validity_within_period: 'Dentro del período', origin: 'catalog',
+  id, code: `EV-${id}`, sequence: 1, description: `Documento ${id}`, dimension: 'policy', test: null, validity_within_period: 'Dentro del período', origin: 'catalog',
   responsible: { id: 'r1', type: 'compliance', person_name: 'Marta Ruiz' }, submissions,
 });
 

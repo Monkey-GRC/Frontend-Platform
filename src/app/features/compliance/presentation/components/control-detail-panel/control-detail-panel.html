@@ -180,10 +180,13 @@
         <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.REQUIRES.INTRO' | translate }}</p>
       </div>
       <app-control-tests [tests]="d.technical?.tests" [dimensions]="d.dimensions" [total]="d.progress.total" [evidenceTpl]="evidenceUnderTests(d) ? manualEvidence : null" />
-      <!-- La evidencia de una prueba manual se sube bajo ella; sin el detalle de las pruebas (otros roles) o sin pruebas manuales, se muestra aparte. -->
-      <ng-template #manualEvidence let-dimension>
-        <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" [dimension]="dimension" [embedded]="true" (changed)="changed.emit()" />
+      <!-- D88 · La evidencia de una prueba manual se entrega y se valida bajo ELLA, en este control; sin el detalle de las pruebas (otros roles) o sin pruebas manuales, se muestra aparte. -->
+      <ng-template #manualEvidence let-dimension let-testId="testId">
+        <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" [dimension]="dimension" [testId]="testId" [embedded]="true" (changed)="changed.emit()" />
       </ng-template>
+      @if (evidenceUnderTests(d)) {
+        <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [dimension]="'policy'" [suggested]="true" />
+      }
       @if (!evidenceUnderTests(d)) {
         <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" (changed)="changed.emit()" />
       }

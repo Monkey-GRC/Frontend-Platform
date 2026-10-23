@@ -14,7 +14,7 @@ const submission = (version: number, state: EvidenceSubmission['evidence_state']
   submitted_by: person, submitted_at: '2026-10-14T17:05:12Z', evidence_state: state, ai: null,
 });
 const requirement = (id: string, submissions: EvidenceSubmission[] = []): EvidenceRequirement => ({
-  id, code: `EV-${id}`, sequence: 1, description: `Documento ${id}`, dimension: 'policy', validity_within_period: 'Dentro del período de evaluación', origin: 'catalog',
+  id, code: `EV-${id}`, sequence: 1, description: `Documento ${id}`, dimension: 'policy', test: null, validity_within_period: 'Dentro del período de evaluación', origin: 'catalog',
   responsible: { id: 'r1', type: 'compliance', person_name: 'Marta Ruiz' }, submissions,
 });
 const SUMMARY: Summary[] = [{ requirement_id: 'e9', description: 'Política de accesos', responsible: null, latest_submission: { id: 's1', version: 2, evidence_state: 'pending' } }];
@@ -24,7 +24,7 @@ describe('ControlEvidence', () => {
   let fixture: ComponentFixture<ControlEvidence>;
 
   function setup(role: string, canUpload: boolean, items: EvidenceRequirement[] | 'missing' | 'down' = [requirement('e1', [submission(2), submission(1)]), requirement('e2')]): ControlEvidence {
-    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download']);
+    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download', 'uploadForTest']);
     api.list.and.returnValue(items === 'missing' ? throwError(() => new HttpErrorResponse({ status: 404 })) : items === 'down' ? throwError(() => new HttpErrorResponse({ status: 500 })) : of(items));
     TestBed.configureTestingModule({ imports: [ControlEvidence], providers: [provideTranslateService(), { provide: EvidenceService, useValue: api }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
@@ -135,8 +135,87 @@ describe('ControlEvidence', () => {
     expect(open).toHaveBeenCalledWith('https://storage/x', '_blank', 'noopener');
   });
 
+  describe('under a documentary test of the control (D88)', () => {
+    const T1 = { id: 'tid-1', code: 'T-DOC-001', display_name: 'Revisión de diseño' };
+    const T2 = { id: 'tid-2', code: 'T-DOC-002', display_name: 'Ejecución durante el período' };
+    const own = (id: string, test: typeof T1 | null): EvidenceRequirement => ({ ...requirement(id), origin: 'own', test });
+
+    function under(items: EvidenceRequirement[], canUpload = true): ControlEvidence {
+      const view = setup('admin_empresa', canUpload, items);
+      fixture.componentRef.setInput('dimension', 'policy');
+      fixture.componentRef.setInput('embedded', true);
+      fixture.componentRef.setInput('testId', T1.id);
+      fixture.detectChanges();
+      return view;
+    }
+
+    it('shows only what was delivered for THIS test: not another test of the control, not the document the catalog suggests', () => {
+      under([{ ...own('mine', T1), submissions: [submission(1)] }, { ...own('other', T2), submissions: [submission(7)] }, requirement('suggested')]);
+      expect(text()).toContain('politica-v1.pdf');
+      expect(text()).not.toContain('politica-v7.pdf');
+      expect(text()).not.toContain('Documento suggested');
+      expect(fixture.nativeElement.querySelector('[data-per-control-note]')).not.toBeNull();
+    });
+
+    it('with nothing delivered yet it says so and offers "upload evidence" straight away, with nothing to prepare first', () => {
+      under([own('other', T2)]);
+      expect(fixture.nativeElement.querySelector('[data-empty]').textContent).toContain('COMPLIANCE.EVIDENCE.NONE_FOR_TEST');
+      expect(fixture.nativeElement.querySelector('[data-upload-open]').textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD');
+      expect(fixture.nativeElement.querySelector('[data-upload-open]').textContent).not.toContain('UPLOAD_NEW');
+    });
+
+    it('offers "new version" once there is something delivered, and nothing to a role that cannot upload', () => {
+      under([{ ...own('mine', T1), submissions: [submission(2), submission(1)] }]);
+      expect(fixture.nativeElement.querySelector('[data-upload-open]').textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD_NEW');
+      TestBed.resetTestingModule();
+      under([own('mine', T1)], false);
+      expect(fixture.nativeElement.querySelector('[data-upload-open]')).toBeNull();
+    });
+
+    it('uploads the file for THIS test of the control in one step, reloads and tells the drawer', () => {
+      const view = under([]);
+      api.uploadForTest.and.returnValue(of(submission(1)));
+      let changed = 0;
+      view.changed.subscribe(() => changed++);
+      const file = new File(['x'], 'politica.pdf', { type: 'application/pdf' });
+
+      view.startUpload('__test__');
+      view.file.set(file);
+      view.send();
+
+      expect(api.uploadForTest).toHaveBeenCalledWith('c1', 'tid-1', file);
+      expect(api.upload).not.toHaveBeenCalled();
+      expect(view.uploadingFor()).toBeNull();
+      expect(view.notice()).not.toBeNull();
+      expect(api.list).toHaveBeenCalledTimes(2);
+      expect(changed).toBe(1);
+    });
+
+    it('keeps the message of the backend when the upload fails, and the form open', () => {
+      const view = under([]);
+      api.uploadForTest.and.returnValue(throwError(() => new HttpErrorResponse({ status: 415, error: { message: 'Ese tipo de archivo no está permitido.', error: { code: 'UNSUPPORTED_MEDIA_TYPE' } } })));
+      view.startUpload('__test__');
+      view.file.set(new File(['x'], 'raro.exe'));
+      view.send();
+      expect(view.error()).toBe('Ese tipo de archivo no está permitido.');
+      expect(view.uploadingFor()).toBe('__test__');
+    });
+  });
+
+  describe('suggested documents of the catalog', () => {
+    it('lists them as a guide only, with no upload and none of the deliveries of any test', () => {
+      setup('admin_empresa', true, [requirement('guide'), { ...requirement('mine'), origin: 'own', test: { id: 'tid-1', code: 'T-DOC-001', display_name: null } }]);
+      fixture.componentRef.setInput('dimension', 'policy');
+      fixture.componentRef.setInput('suggested', true);
+      fixture.detectChanges();
+      const box = fixture.nativeElement.querySelector('[data-suggested]');
+      expect(box.textContent).toContain('Documento guide');
+      expect(box.textContent).not.toContain('Documento mine');
+      expect(fixture.nativeElement.querySelector('[data-upload-open]')).toBeNull();
+    });
+  });
   it('waits for the backend before showing anything while it loads', () => {
-    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download']);
+    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download', 'uploadForTest']);
     api.list.and.returnValue(NEVER);
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({ imports: [ControlEvidence], providers: [provideTranslateService(), { provide: EvidenceService, useValue: api }] });

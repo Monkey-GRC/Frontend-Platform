@@ -33,7 +33,8 @@ export interface ControlTechnical {
   points_of_focus: string[];
   control_state: string;
   tests_count: number;
-  tests?: { test_code: string; display_name: string; display_description?: string | null; dimension: ControlDimension; state: string }[];
+  // `test_id` enlaza cada prueba documental con las evidencias que la respaldan en este control (`EvidenceRequirement.test`, D88).
+  tests?: { test_id: string; test_code: string; display_name: string; display_description?: string | null; dimension: ControlDimension; state: string }[];
 }
 
 export interface ControlListItem {

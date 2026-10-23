@@ -423,7 +423,12 @@
       "UPLOADED": "Evidencia entregada. Queda pendiente de revisión.",
       "UPLOAD_ERROR": "No se pudo subir la evidencia. Inténtalo de nuevo.",
       "LOAD_ERROR": "No se pudieron cargar las evidencias.",
-      "SUMMARY_NOTE": "La entrega de evidencias aún no está disponible en este entorno."
+      "SUMMARY_NOTE": "La entrega de evidencias aún no está disponible en este entorno.",
+      "TEST_NOTE": "Lee lo que pide esta prueba y sube tu documento. El consultor lo revisará.",
+      "NONE_FOR_TEST": "Aún no has subido evidencia para esta prueba.",
+      "SUGGESTED_TITLE": "Documentos que sugiere el catálogo para este control",
+      "SUGGESTED_NOTE": "Son una guía: la evidencia se sube bajo cada prueba.",
+      "FOR_TEST": "Respalda la prueba {{code}}"
     },
     "PERIOD": {
       "TITLE": "Período de la evaluación",
