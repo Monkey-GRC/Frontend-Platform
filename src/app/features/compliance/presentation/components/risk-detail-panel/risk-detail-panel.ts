@@ -8,6 +8,7 @@ import { RiskCauseNode, RiskDetail, linkCode } from '../../../domain/models/risk
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { RiskService } from '../../../domain/services/risk.service';
+import { DetailCard } from '../detail-card/detail-card';
 import { LinkPicker, PickerItem } from '../link-picker/link-picker';
 import { RiskAssessment } from '../risk-assessment/risk-assessment';
 import { RiskLevelBadge } from '../risk-level-badge/risk-level-badge';
@@ -18,7 +19,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // empresa puede vincular y quitar causas y dar de baja un riesgo propio; el resto de roles solo lee. La evaluación 5×5 y el tratamiento los trae `app-risk-assessment` (MD-123).
 @Component({
   selector: 'app-risk-detail-panel',
-  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment],
+  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailCard],
   templateUrl: './risk-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

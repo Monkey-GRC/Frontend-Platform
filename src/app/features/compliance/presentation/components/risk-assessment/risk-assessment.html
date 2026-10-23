@@ -12,15 +12,12 @@
   }
 
   <!-- Evaluación 5×5 -->
-  <section [attr.aria-label]="'COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE' | translate">
-    <div class="flex items-center justify-between gap-3">
-      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE' | translate }}</h4>
+  <app-detail-card titleKey="COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE" icon="grid_view" [forceOpen]="evaluating()">
       @if (canManage() && !evaluating()) {
-      <button type="button" (click)="startEvaluation()" [disabled]="saving()" data-test-start-evaluation class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40">
+      <button actions type="button" (click)="startEvaluation()" [disabled]="saving()" data-test-start-evaluation class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40">
         <span class="material-symbols-rounded text-[16px]" aria-hidden="true">tune</span>{{ (evaluated() ? 'COMPLIANCE.RISK_ASSESSMENT.RE_EVALUATE' : 'COMPLIANCE.RISK_ASSESSMENT.EVALUATE') | translate }}
       </button>
       }
-    </div>
 
     @if (evaluated()) {
     @if (!evaluating()) {
@@ -53,7 +50,7 @@
     }
 
     @if (evaluated()) {
-    <button type="button" (click)="toggleHistory()" [attr.aria-expanded]="historyOpen()" class="mt-2 text-xs font-medium text-primary hover:underline">
+    <button type="button" data-test-history-toggle (click)="toggleHistory()" [attr.aria-expanded]="historyOpen()" class="mt-2 text-xs font-medium text-primary hover:underline">
       {{ (historyOpen() ? 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_HIDE' : 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_SHOW') | translate }}
     </button>
     @if (historyOpen()) {
@@ -72,18 +69,15 @@
     }
     }
     }
-  </section>
+  </app-detail-card>
 
   <!-- Tratamiento -->
-  <section [attr.aria-label]="'COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE' | translate">
-    <div class="flex items-center justify-between gap-3">
-      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE' | translate }}</h4>
+  <app-detail-card titleKey="COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE" icon="fact_check" [forceOpen]="treating()">
       @if (canManage() && !treating()) {
-      <button type="button" (click)="startTreatment()" [disabled]="saving()" data-test-start-treatment class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40">
+      <button actions type="button" (click)="startTreatment()" [disabled]="saving()" data-test-start-treatment class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40">
         <span class="material-symbols-rounded text-[16px]" aria-hidden="true">fact_check</span>{{ (risk().treatment ? 'COMPLIANCE.RISK_ASSESSMENT.CHANGE_TREATMENT' : 'COMPLIANCE.RISK_ASSESSMENT.DEFINE_TREATMENT') | translate }}
       </button>
       }
-    </div>
 
     @if (risk().treatment; as t) {
     <dl class="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-3" data-test-treatment>
@@ -149,5 +143,5 @@
       }
     </div>
     }
-  </section>
+  </app-detail-card>
 </div>

@@ -19,9 +19,13 @@ import {
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { ControlService } from '../../../domain/services/control.service';
 import { ControlEvidence } from '../control-evidence/control-evidence';
+import { DetailCard } from '../detail-card/detail-card';
 import { ControlTests } from '../control-tests/control-tests';
 
 type Stage = 'loading' | 'error' | 'ready';
+
+/** Las cinco dimensiones, siempre en este orden: la fila de dimensiones muestra todas, con ✓ las que aplican y ✗ las que no. */
+const DIMENSION_ORDER: ControlDimension[] = ['policy', 'server', 'database', 'app', 'cloud'];
 type Mode = 'view' | 'interpretation' | 'dimensions';
 
 interface DimensionDraft {
@@ -41,7 +45,7 @@ const UPLOADING_ROLES: readonly string[] = ['admin_empresa', 'funcional'];
 // que el consultor apruebe el cambio (D65). Los errores 422 se muestran bajo cada campo.
 @Component({
   selector: 'app-control-detail-panel',
-  imports: [FormsModule, TranslatePipe, SidePanel, StatusBadge, ConfirmDialog, ControlEvidence, ControlTests],
+  imports: [FormsModule, TranslatePipe, SidePanel, StatusBadge, ConfirmDialog, ControlEvidence, ControlTests, DetailCard],
   templateUrl: './control-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -80,6 +84,16 @@ export class ControlDetailPanel {
 
   readonly interpretationDraft = signal('');
   readonly dimensionsDraft = signal<DimensionDraft[]>([]);
+
+  /** Las cinco dimensiones del control. Una que el detalle no trae no aplica (no hay prueba de esa dimensión). */
+  protected readonly dimensionRow = computed(() => {
+    const byDimension = new Map((this.detail()?.dimensions ?? []).map((x) => [x.dimension, x]));
+    return DIMENSION_ORDER.map((dimension) => ({
+      dimension,
+      applies: byDimension.get(dimension)?.applies ?? false,
+      reason: byDimension.get(dimension)?.reason_not_applicable ?? null,
+    }));
+  });
 
   readonly canPropose = computed(() => {
     const role = this.view.role();

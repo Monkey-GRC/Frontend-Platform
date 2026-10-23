@@ -1,7 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, TemplateRef, computed, inject, input, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ControlDimension, ControlDimensionDetail, ControlTechnical } from '../../../domain/models/control.models';
+import { ControlDimensionDetail, ControlTechnical } from '../../../domain/models/control.models';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 
 export type ControlTest = NonNullable<ControlTechnical['tests']>[number];
@@ -49,37 +49,37 @@ const UNKNOWN: Look = { icon: 'help', chip: 'bg-gray-100 text-gray-700 ring-1 ri
         @if (list.length === 0) {
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.TESTS.NONE' | translate }}</p>
         } @else {
-          @for (g of groups(); track g.dimension) {
-          <ul class="mt-2 flex flex-col gap-2">
-            @for (t of g.tests; track t.test_code) {
-              <li class="rounded-lg border border-gray-200 dark:border-gray-700">
-              <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-                <div class="min-w-0 text-sm">
-                  <p class="text-gray-900 dark:text-white"><span class="font-mono text-xs font-semibold text-gray-700 dark:text-gray-200">{{ t.test_code }}</span> · {{ t.display_name }}</p>
-                  <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ labels.of('COMPLIANCE.DIMENSION', t.dimension) }} · {{ t.kind }}</p>
-                  @if (t.display_description) {
-                    <p class="mt-1 text-xs text-gray-700 dark:text-gray-200" [class.line-clamp-2]="!isOpen(t.test_code)" data-test-description>{{ t.display_description }}</p>
+          <ul class="mt-3 flex flex-col divide-y divide-gray-200 border-y border-gray-200 dark:divide-gray-700 dark:border-gray-700">
+            @for (t of items(); track t.test_code) {
+              <li class="flex flex-col gap-2 py-4">
+                <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold leading-snug text-gray-900 dark:text-white"><span class="mr-2 inline-block rounded-md bg-gray-100 px-1.5 py-0.5 align-middle font-mono text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">{{ t.test_code }}</span>{{ t.display_name }}</p>
+                    <p class="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ labels.of('COMPLIANCE.DIMENSION', t.dimension) }} · {{ t.kind }}</p>
+                  </div>
+                  <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium" [class]="t.look.chip" [attr.data-test-state]="t.state">
+                    <span class="material-symbols-rounded text-[14px] leading-none" aria-hidden="true">{{ t.look.icon }}</span>{{ labels.of('COMPLIANCE.TEST_STATE', t.state) }}
+                  </span>
+                </div>
+                @if (t.display_description) {
+                  <div>
+                    <p class="text-sm leading-relaxed text-gray-700 dark:text-gray-200" [class.line-clamp-2]="!isOpen(t.test_code)" data-test-description>{{ t.display_description }}</p>
                     @if (t.display_description.length > LONG) {
-                      <button type="button" class="mt-0.5 text-xs font-medium text-primary hover:underline" [attr.aria-expanded]="isOpen(t.test_code)" (click)="toggle(t.test_code)">
+                      <button type="button" class="mt-1 text-xs font-medium text-primary hover:underline" [attr.aria-expanded]="isOpen(t.test_code)" (click)="toggle(t.test_code)">
                         {{ (isOpen(t.test_code) ? 'COMPLIANCE.TESTS.SHOW_LESS' : 'COMPLIANCE.TESTS.SHOW_MORE') | translate }}
                       </button>
                     }
-                  }
-                </div>
-                <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="t.look.chip" [attr.data-test-state]="t.state">
-                  <span class="material-symbols-rounded text-[14px] leading-none" aria-hidden="true">{{ t.look.icon }}</span>{{ labels.of('COMPLIANCE.TEST_STATE', t.state) }}
-                </span>
-              </div>
-              <!-- D88 · La evidencia de una prueba documental es de ESTE control: se entrega y se valida bajo la prueba que respalda. -->
-              @if (g.manual && evidenceTpl(); as tpl) {
-                <div class="border-t border-gray-100 px-3 pb-3 pt-2 dark:border-gray-800" data-test-evidence>
-                  <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="{ $implicit: g.dimension, testId: t.test_id, testCode: t.test_code }" />
-                </div>
-              }
+                  </div>
+                }
+                <!-- D88 · La evidencia de una prueba documental es de ESTE control: se entrega y se valida bajo la prueba que respalda. -->
+                @if (t.manual && evidenceTpl(); as tpl) {
+                  <div data-test-evidence>
+                    <ng-container [ngTemplateOutlet]="tpl" [ngTemplateOutletContext]="{ $implicit: t.dimension, testId: t.test_id, testCode: t.test_code }" />
+                  </div>
+                }
               </li>
             }
           </ul>
-          }
         }
       } @else {
         <!-- Sin el detalle de las pruebas (otros roles): al menos cuántas son, que es el denominador del avance. -->
@@ -115,13 +115,11 @@ export class ControlTests {
   /** La evidencia de cada prueba manual (D88): se pinta bajo CADA prueba de una dimensión manual, con el id y el código de esa prueba. */
   readonly evidenceTpl = input<TemplateRef<EvidenceSlot> | null>(null);
 
-  protected readonly groups = computed(() => {
-    const list = this.rows();
-    if (!list) return [];
+  /** Las pruebas en el orden de `rows`, cada una con si es manual (de ahí sale si lleva su evidencia debajo). */
+  protected readonly items = computed(() => {
+    const list = this.rows() ?? [];
     const typeOf = new Map(this.dimensions().map((d) => [d.dimension, d.type]));
-    const byDimension = new Map<ControlDimension, typeof list>();
-    for (const r of list) byDimension.set(r.dimension, [...(byDimension.get(r.dimension) ?? []), r]);
-    return [...byDimension].map(([dimension, tests]) => ({ dimension, tests, manual: typeOf.get(dimension) === 'manual' }));
+    return list.map((t) => ({ ...t, manual: typeOf.get(t.dimension) === 'manual' }));
   });
 
   protected readonly rows = computed(() => {

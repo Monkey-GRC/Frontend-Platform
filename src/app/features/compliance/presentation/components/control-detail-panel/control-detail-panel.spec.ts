@@ -74,6 +74,16 @@ describe('ControlDetailPanel', () => {
     expect(panel.pct(4, 5).replace(/\s/g, '')).toBe('80%');
   });
 
+  it('shows the five dimensions in one row, ticked when they apply and crossed when they do not (or the control has no test for them)', () => {
+    setup('admin_empresa');
+    const cells = Array.from(fixture.nativeElement.querySelectorAll('[data-dimension]')) as HTMLElement[];
+    expect(cells.map((c) => c.getAttribute('data-dimension'))).toEqual(['policy', 'server', 'database', 'app', 'cloud']);
+    expect(cells.map((c) => c.getAttribute('data-applies'))).toEqual(['true', 'false', 'false', 'false', 'false']);
+    expect(cells[0].textContent).toContain('check_circle');
+    expect(cells[2].textContent).toContain('cancel');
+    expect(text()).toContain('COMPLIANCE.DETAIL.REASON_IS');
+  });
+
   it('puts the evidence of the control inside the drawer, for this control, and lets only the company admin and the functional user upload it', () => {
     const panel = setup('admin_empresa');
     expect(fixture.nativeElement.querySelector('app-control-evidence')).not.toBeNull();

@@ -8,6 +8,7 @@ import { Responsible, RiskDetail, RiskEvaluationEntry } from '../../../domain/mo
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { ResponsibleService } from '../../../domain/services/responsible.service';
 import { RiskService } from '../../../domain/services/risk.service';
+import { DetailCard } from '../detail-card/detail-card';
 import { RiskLevelBadge } from '../risk-level-badge/risk-level-badge';
 import { MatrixCell, MatrixPosition, RiskMatrix } from '../risk-matrix/risk-matrix';
 
@@ -16,7 +17,7 @@ import { MatrixCell, MatrixPosition, RiskMatrix } from '../risk-matrix/risk-matr
 // porque no todos los roles pueden leerlo.
 @Component({
   selector: 'app-risk-assessment',
-  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix],
+  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix, DetailCard],
   templateUrl: './risk-assessment.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

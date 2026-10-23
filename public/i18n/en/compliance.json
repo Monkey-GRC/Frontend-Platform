@@ -31,7 +31,8 @@
       "TECHNICAL_VIEW": "Technical view",
       "COMING_SOON": "Section under construction.",
       "FRAMEWORKS": "Frameworks of the service",
-      "SERVICE": "Service"
+      "SERVICE": "Service",
+      "GENERAL": "General"
     },
     "OVERVIEW": {
       "TITLE": "Compliance status",
@@ -91,8 +92,11 @@
       "EMPTY_TITLE": "You have no services yet",
       "EMPTY_BODY": "Declare a service to review its compliance.",
       "DECLARE_SERVICE": "Declare a service",
-      "CHOOSE_TITLE": "Select a service",
-      "CHOOSE_BODY": "Compliance is measured per service and framework."
+      "GENERAL_TITLE": "Overall compliance",
+      "GENERAL_BODY": "Each service is measured separately against each framework. Here you see how each one is doing; open one to see its detail. There is no combined percentage across services.",
+      "SERVICE_COUNT": "{{count}} services with this framework",
+      "ROW_ERROR": "This service's summary could not be read.",
+      "NO_FRAMEWORK": "No framework contracted"
     },
     "CONTROLS": {
       "INTRO": "Controls of the service by category, with their compliance percentage and coverage.",
@@ -110,6 +114,8 @@
       "AWAITING_APPROVAL": "Awaiting approval",
       "CHANGE_PENDING": "Change proposed",
       "PROGRESS": "Compliance {{percent}} ({{done}} of {{total}})",
+      "PROGRESS_LABEL": "Compliance",
+      "PROGRESS_VALUE": "{{percent}} · {{done}} of {{total}}",
       "COVERAGE": "Coverage {{percent}} ({{measured}} of {{applicable}} measured)",
       "LOAD_ERROR_TITLE": "The controls could not be loaded",
       "EMPTY_TITLE": "There are no controls yet",

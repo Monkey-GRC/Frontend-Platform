@@ -31,7 +31,8 @@
       "TECHNICAL_VIEW": "Vista técnica",
       "COMING_SOON": "Sección en construcción.",
       "FRAMEWORKS": "Marcos del servicio",
-      "SERVICE": "Servicio"
+      "SERVICE": "Servicio",
+      "GENERAL": "General"
     },
     "OVERVIEW": {
       "TITLE": "Estado de cumplimiento",
@@ -91,8 +92,11 @@
       "EMPTY_TITLE": "Aún no tienes servicios",
       "EMPTY_BODY": "Declara un servicio para consultar su cumplimiento.",
       "DECLARE_SERVICE": "Declarar un servicio",
-      "CHOOSE_TITLE": "Selecciona un servicio",
-      "CHOOSE_BODY": "El cumplimiento se mide por servicio y marco."
+      "GENERAL_TITLE": "Cumplimiento general",
+      "GENERAL_BODY": "Cada servicio se mide por separado frente a cada marco. Aquí ves cómo va cada uno; entra a uno para ver su detalle. No hay un porcentaje combinado de varios servicios.",
+      "SERVICE_COUNT": "{{count}} servicios con este marco",
+      "ROW_ERROR": "No se pudo leer el resumen de este servicio.",
+      "NO_FRAMEWORK": "Sin marco contratado"
     },
     "CONTROLS": {
       "INTRO": "Controles del servicio por categoría, con su porcentaje de cumplimiento y su cobertura.",
@@ -110,6 +114,8 @@
       "AWAITING_APPROVAL": "Pendiente de aprobación",
       "CHANGE_PENDING": "Cambio propuesto",
       "PROGRESS": "Cumplimiento {{percent}} ({{done}} de {{total}})",
+      "PROGRESS_LABEL": "Cumplimiento",
+      "PROGRESS_VALUE": "{{percent}} · {{done}} de {{total}}",
       "COVERAGE": "Cobertura {{percent}} ({{measured}} de {{applicable}} medidos)",
       "LOAD_ERROR_TITLE": "No se pudieron cargar los controles",
       "EMPTY_TITLE": "Aún no hay controles",
