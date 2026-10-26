@@ -131,8 +131,13 @@ export class RegisterForm {
         password: this.passwordForm.getRawValue().password,
       })
       .subscribe({
-        next: (payload) => {
+        next: (outcome) => {
           this.loading.set(false);
+          if (outcome.kind === 'mfa') {
+            this.router.navigateByUrl('/mfa', { replaceUrl: true });
+            return;
+          }
+          const payload = outcome.payload;
           // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
           this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/', { replaceUrl: true });
         },

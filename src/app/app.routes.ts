@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from '@features/auth/presentation/views/login/login';
 import { Register } from '@features/auth/presentation/views/register/register';
+import { Mfa } from '@features/auth/presentation/views/mfa/mfa';
 import { NotFoundLayout } from '@core/presentation/pages/not-found-layout/not-found-layout';
 import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layout.component';
 import { authGuard } from '@core/domain/guards/auth.guard';
@@ -118,6 +119,11 @@ export const routes: Routes = [
   {
     path: 'signin',
     component: Login,
+    canActivate: [guestGuard],
+  },
+  {
+    path: 'mfa',
+    component: Mfa,
     canActivate: [guestGuard],
   },
   {

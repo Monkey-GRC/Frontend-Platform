@@ -49,3 +49,24 @@ export interface AuthPayload {
   company: AuthCompany;
   onboarding?: OnboardingProgress;
 }
+
+// Segundo factor (D94). Con el factor obligatorio, el login y el canje no abren sesión: devuelven este paso y dejan la cookie `mnk_mfa`.
+export interface MfaStep {
+  next_step: 'mfa_verify' | 'mfa_setup';
+  expires_at: string;
+}
+
+export interface MfaSetupStart {
+  secret: string;
+  otpauth_uri: string;
+  issuer: string;
+  account: string;
+}
+
+// `recovery_codes` solo viene al activar el factor (se muestran una sola vez); `recovery_codes_left`, al entrar con un código de recuperación.
+export interface AuthPayloadWithRecovery extends AuthPayload {
+  recovery_codes?: string[];
+  recovery_codes_left?: number | null;
+}
+
+export type LoginOutcome = { kind: 'session'; payload: AuthPayload } | { kind: 'mfa'; step: MfaStep };

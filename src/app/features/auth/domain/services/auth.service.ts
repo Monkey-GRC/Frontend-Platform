@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
   Observable,
@@ -15,7 +15,16 @@ import {
 import { environment } from '@environments/environment';
 import { SessionService } from '@core/domain/services/session.service';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { AccessKeyLookup, AuthPayload, LoginDto, RedeemDto } from '../models/auth.models';
+import {
+  AccessKeyLookup,
+  AuthPayload,
+  AuthPayloadWithRecovery,
+  LoginDto,
+  LoginOutcome,
+  MfaSetupStart,
+  MfaStep,
+  RedeemDto,
+} from '../models/auth.models';
 
 // Monkey Platform es para las empresas cliente; el equipo Monkey trabaja en Monkey Admin (D24).
 const PLATFORM_EXCLUDED_ROLE = 'admin_monkey';
@@ -30,12 +39,14 @@ export class AuthService {
   private readonly baseUrl = `${environment.apiUrl}/auth`;
   // Un solo refresh en vuelo aunque varias peticiones reciban 401 a la vez.
   private refreshInFlight$: Observable<boolean> | null = null;
+  // El paso del segundo factor que dejó el login o el canje; la pantalla `/mfa` lo lee. Se pierde al recargar (entonces se vuelve a iniciar sesión).
+  readonly pendingMfa = signal<MfaStep | null>(null);
 
-  /** Login con correo y contraseña (todas las veces después del primer acceso). */
-  login(dto: LoginDto): Observable<AuthPayload> {
+  /** Login con correo y contraseña (todas las veces después del primer acceso). Con el segundo factor obligatorio no abre sesión: pide el código (D94). */
+  login(dto: LoginDto): Observable<LoginOutcome> {
     return this.http
-      .post<SuccessResponse<AuthPayload>>(`${this.baseUrl}/login`, dto)
-      .pipe(switchMap((res) => this.acceptSession(res.data!)));
+      .post<SuccessResponse<AuthPayload | MfaStep>>(`${this.baseUrl}/login`, dto)
+      .pipe(switchMap((res) => this.outcome(res.data!)));
   }
 
   /** Paso 1 de la activación: con el código, la empresa y el correo que fijó Monkey (no gasta la clave). */
@@ -45,11 +56,44 @@ export class AuthService {
       .pipe(map((res) => res.data!));
   }
 
-  /** Paso 2: canjea la clave de acceso y crea la cuenta del administrador de la empresa. */
-  redeem(dto: RedeemDto): Observable<AuthPayload> {
+  /** Paso 2: canjea la clave de acceso y crea la cuenta del administrador de la empresa. Con el factor obligatorio, sigue la configuración del segundo factor. */
+  redeem(dto: RedeemDto): Observable<LoginOutcome> {
     return this.http
-      .post<SuccessResponse<AuthPayload>>(`${this.baseUrl}/redeem`, dto)
-      .pipe(switchMap((res) => this.acceptSession(res.data!)));
+      .post<SuccessResponse<AuthPayload | MfaStep>>(`${this.baseUrl}/redeem`, dto)
+      .pipe(switchMap((res) => this.outcome(res.data!)));
+  }
+
+  /** Segundo paso del ingreso: el código de 6 dígitos de la app o uno de recuperación. Abre la sesión. */
+  verifyMfa(input: { code: string } | { recovery_code: string }): Observable<AuthPayloadWithRecovery> {
+    return this.http.post<SuccessResponse<AuthPayloadWithRecovery>>(`${this.baseUrl}/mfa/verify`, input).pipe(
+      switchMap((res) => this.acceptSession(res.data!)),
+      tap(() => this.pendingMfa.set(null)),
+    );
+  }
+
+  /** Pide el secreto y la dirección del QR (el mismo mientras el desafío viva). */
+  startMfaSetup(): Observable<MfaSetupStart> {
+    return this.http.post<SuccessResponse<MfaSetupStart>>(`${this.baseUrl}/mfa/setup`, {}).pipe(map((res) => res.data!));
+  }
+
+  /**
+   * Confirma el primer código y activa el factor. El servidor ya abrió la sesión, pero aquí NO se guarda todavía: antes la persona debe ver sus códigos
+   * de recuperación (una sola vez); `finishMfaSetup` la deja entrar.
+   */
+  confirmMfaSetup(code: string): Observable<AuthPayloadWithRecovery> {
+    return this.http.post<SuccessResponse<AuthPayloadWithRecovery>>(`${this.baseUrl}/mfa/setup/confirm`, { code }).pipe(map((res) => res.data!));
+  }
+
+  /** Entra a la plataforma una vez guardados los códigos. */
+  finishMfaSetup(payload: AuthPayload): Observable<AuthPayload> {
+    return this.acceptSession(payload).pipe(tap(() => this.pendingMfa.set(null)));
+  }
+
+  /** Genera 10 códigos de recuperación nuevos (los anteriores dejan de servir). Pide un código vigente de la app. */
+  regenerateRecoveryCodes(code: string): Observable<string[]> {
+    return this.http
+      .post<SuccessResponse<{ recovery_codes: string[] }>>(`${this.baseUrl}/mfa/recovery-codes`, { code })
+      .pipe(map((res) => res.data!.recovery_codes));
   }
 
   /**
@@ -104,7 +148,15 @@ export class AuthService {
     );
   }
 
-  private acceptSession(payload: AuthPayload): Observable<AuthPayload> {
+  private outcome(data: AuthPayload | MfaStep): Observable<LoginOutcome> {
+    if ('next_step' in data && 'expires_at' in data) {
+      this.pendingMfa.set(data);
+      return of({ kind: 'mfa', step: data });
+    }
+    return this.acceptSession(data).pipe(map((payload) => ({ kind: 'session' as const, payload })));
+  }
+
+  private acceptSession<T extends AuthPayload>(payload: T): Observable<T> {
     if (payload.user.role === PLATFORM_EXCLUDED_ROLE) {
       return this.logout().pipe(switchMap(() => throwError(() => new Error(this.translate.instant(ADMIN_NOT_ALLOWED_MESSAGE)))));
     }

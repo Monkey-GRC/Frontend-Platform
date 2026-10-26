@@ -9,7 +9,7 @@ import { sanitizeHttpError } from '@core/domain/utils/sanitize-http-error';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 
 // Endpoints de auth: su 401 lo maneja AuthService (credenciales malas, sesión vencida), no aquí.
-const AUTH_ENDPOINT = /\/auth\/(login|redeem|refresh|logout|me)$/;
+const AUTH_ENDPOINT = /\/auth\/(login|redeem|refresh|logout|me|mfa\/(verify|setup|setup\/confirm|recovery-codes))$/;
 
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
