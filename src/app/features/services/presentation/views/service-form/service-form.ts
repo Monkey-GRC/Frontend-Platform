@@ -116,6 +116,8 @@ export class ServiceFormView implements OnInit {
 
   readonly stage = signal<Stage>('loading');
   readonly step = signal(0);
+  /** El asistente y el paso de riesgos usan todo el ancho; el resto del alta (cargando, error, terminado) queda en una columna angosta. */
+  readonly wide = computed(() => this.stage() === 'form' || this.stage() === 'saving' || this.stage() === 'risks');
   readonly draft = signal<ServiceDraft>(emptyServiceDraft());
   readonly catalogs = signal<Catalogs | null>(null);
   // Si hay id en la ruta se edita un servicio ya declarado; si no, se declara uno nuevo.
@@ -493,7 +495,7 @@ export class ServiceFormView implements OnInit {
     });
   }
 
-  /** Terminada la evaluación de los riesgos, sigue declarar los activos del servicio (el detalle pide primero dónde vive y luego conecta). */
+  /** Terminada la evaluación de los riesgos, sigue declarar los activos del servicio (el detalle ofrece directamente el catálogo de plataformas donde conectar). */
   goToAssets(): void {
     const id = this.saved()?.id;
     this.router.navigateByUrl(id ? `/services/${id}` : '/services');

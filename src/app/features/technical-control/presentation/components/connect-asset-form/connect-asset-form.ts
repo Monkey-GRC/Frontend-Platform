@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
@@ -137,15 +136,6 @@ export class ConnectAssetForm implements OnInit {
 
   private showError(error: unknown): void {
     const code = apiErrorCode(error);
-    if (code === 'CAPABILITY_NOT_APPLICABLE' || code === 'DEPLOYMENT_SCENARIO_NOT_SET') {
-      const service = error instanceof HttpErrorResponse ? error.error?.error?.service : null;
-      this.error.set(
-        code === 'CAPABILITY_NOT_APPLICABLE'
-          ? this.translate.instant(service ? 'TECHNICAL_CONTROL.FORM.NOT_APPLICABLE_SERVICE' : 'TECHNICAL_CONTROL.FORM.NOT_APPLICABLE', { service })
-          : this.translate.instant(service ? 'TECHNICAL_CONTROL.FORM.SCENARIO_NOT_SET_SERVICE' : 'TECHNICAL_CONTROL.FORM.SCENARIO_NOT_SET', { service }),
-      );
-      return;
-    }
     const fields = apiFieldErrors(error);
     if (fields.length > 0) {
       this.fieldErrors.set(Object.fromEntries(fields.map((f) => [f.field.replace(/^credentials\./, ''), f.message])));

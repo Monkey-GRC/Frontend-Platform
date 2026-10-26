@@ -37,6 +37,9 @@ export class RiskMatrix {
   readonly saved = input<MatrixPosition | null>(null);
   readonly editable = input(false);
   readonly disabled = input(false);
+  /** Casillas más chicas, para donde el espacio es poco (el asistente de riesgos). */
+  readonly compact = input(false);
+  protected readonly cell = computed(() => (this.compact() ? 'h-7 w-7' : 'h-10 w-10'));
 
   readonly picked = output<MatrixCell>();
 
@@ -47,7 +50,7 @@ export class RiskMatrix {
   readonly likelihoods = computed(() => [...this.scale()].reverse());
   readonly impacts = this.scale;
   /** Una columna para el número del eje y una por cada valor de la escala. */
-  protected readonly columns = computed(() => `1.25rem repeat(${this.scale().length}, 2.5rem)`);
+  protected readonly columns = computed(() => `1.25rem repeat(${this.scale().length}, ${this.compact() ? '1.75rem' : '2.5rem'})`);
 
   // La casilla que recibe el foco con Tab: la elegida, o la del riesgo guardado, o la del medio.
   private readonly focused = signal<MatrixCell | null>(null);

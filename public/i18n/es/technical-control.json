@@ -5,12 +5,6 @@
     "CRUMB_CONNECTION": "Conexión",
     "NEW_CONNECTION": "Nueva conexión",
     "AWS_ACCOUNT": "AWS · cuenta {{account}}",
-    "SCENARIO_HELP": {
-      "CLOUD_MANAGED_ONLY": "Usas servicios como AWS, Microsoft 365 o Google Workspace, sin servidores propios.",
-      "CLOUD_WITH_SERVERS": "Tienes servidores o bases de datos alojados en la nube.",
-      "ON_PREMISE": "Tus servidores, bases de datos y equipos están en tus propias oficinas o centro de datos.",
-      "HYBRID": "Una mezcla: algo en la nube y algo en tus propias instalaciones."
-    },
     "CATEGORY": {
       "AC_01": "Servicios en nube (gestionados, sin servidor)",
       "AC_02": "Servidores en nube / VPS",
@@ -139,10 +133,6 @@
       "ALSO_SUPPORTS": "¿También da soporte a otros servicios?",
       "ALSO_SUPPORTS_HELP": "Así no lo registras dos veces. Es opcional.",
       "REGISTER": "Registrar activo",
-      "NOT_APPLICABLE_SERVICE": "Esta conexión no aplica al escenario de «{{service}}». Quítalo de la lista o elige otra plataforma.",
-      "NOT_APPLICABLE": "Esta conexión no aplica al escenario de uno de los servicios elegidos. Quítalo de la lista o elige otra plataforma.",
-      "SCENARIO_NOT_SET_SERVICE": "Primero define dónde se aloja «{{service}}».",
-      "SCENARIO_NOT_SET": "Primero define dónde se aloja ese servicio.",
       "CHECK_MARKED": "Revisa los datos marcados y vuelve a intentarlo.",
       "METHOD_NOT_APPLICABLE": "Ese tipo de conexión no está disponible para esta plataforma. Elige otro.",
       "REGISTER_ERROR": "No pudimos registrar el activo. Inténtalo de nuevo."

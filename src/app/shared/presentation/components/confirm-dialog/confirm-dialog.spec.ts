@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
+import { SidePanel } from '../side-panel/side-panel';
 import { ConfirmDialog } from './confirm-dialog';
 
 describe('ConfirmDialog', () => {
@@ -61,6 +62,15 @@ describe('ConfirmDialog', () => {
     buttons().forEach((b) => expect(b.disabled).toBeTrue());
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(cancelled).toBe(0);
+  });
+
+  it('sits above the side panel it is opened from, so its buttons are never hidden behind it', () => {
+    const panel = TestBed.createComponent(SidePanel);
+    panel.componentRef.setInput('titleKey', 'TEST.PANEL');
+    panel.detectChanges();
+    const topLayer = (root: HTMLElement) =>
+      Math.max(...Array.from(root.querySelectorAll('[class*="z-["]')).map((e) => Number(/z-\[(\d+)\]/.exec(e.className)![1])));
+    expect(topLayer(el())).toBeGreaterThan(topLayer(panel.nativeElement));
   });
 
   it('paints the confirm button red for a dangerous action', () => {

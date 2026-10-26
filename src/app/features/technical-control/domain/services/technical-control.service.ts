@@ -15,8 +15,7 @@ import {
   ValidationResult,
 } from '../models/technical-control.models';
 
-// El Componente 3 (control técnico): escenario de despliegue de un servicio y las conexiones (activos) que el
-// cliente registra. Las credenciales solo viajan al registrar una conexión; la API no las devuelve.
+// El Componente 3 (control técnico): las conexiones (activos) que el cliente registra en un servicio. Las credenciales solo viajan al registrar una conexión; la API no las devuelve.
 @Injectable({ providedIn: 'root' })
 export class TechnicalControlService {
   private readonly http = inject(HttpClient);
@@ -27,12 +26,6 @@ export class TechnicalControlService {
     return this.http
       .get<SuccessResponse<TechnicalControlState>>(`${this.services}/${serviceId}/technical-control`)
       .pipe(map((r) => r.data!));
-  }
-
-  setScenario(serviceId: string, scenario: string): Observable<void> {
-    return this.http
-      .put<SuccessResponse>(`${this.services}/${serviceId}/deployment-scenario`, { deployment_scenario: scenario })
-      .pipe(map(() => undefined));
   }
 
   listAssets(serviceId: string): Observable<AssetPage> {

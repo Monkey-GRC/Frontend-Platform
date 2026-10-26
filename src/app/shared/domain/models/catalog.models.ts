@@ -45,7 +45,6 @@ export type CatalogName =
   | 'expected_availability'
   | 'previous_certification'
   // Componente 3 — el control técnico
-  | 'deployment_scenario'
   | 'asset_criticality'
   | 'schedule_frequency'
   // Conexión de nube (D53, D58)

@@ -36,7 +36,6 @@ export class ServicesListView implements OnInit {
   // Cuántos servicios tiene la empresa en total (lo que dice el backend), no solo los de la página que se ve.
   readonly total = signal(0);
   readonly types = signal<CatalogOption[]>([]);
-  readonly scenarios = signal<CatalogOption[]>([]);
   readonly query = signal('');
   readonly selected = signal<ReadonlySet<string>>(new Set());
   readonly confirming = signal(false);
@@ -66,7 +65,6 @@ export class ServicesListView implements OnInit {
       untracked(() => {
         if (this.stage() !== 'ready') return;
         this.catalogService.options('service_type').subscribe((t) => this.types.set(t));
-        this.catalogService.options('deployment_scenario').subscribe((s) => this.scenarios.set(s));
       });
     });
   }
@@ -80,22 +78,16 @@ export class ServicesListView implements OnInit {
     forkJoin({
       page: this.services.list(),
       types: this.catalogService.options('service_type'),
-      scenarios: this.catalogService.options('deployment_scenario'),
     }).subscribe({
-      next: ({ page, types, scenarios }) => {
+      next: ({ page, types }) => {
         this.items.set(page.items);
         this.total.set(page.total);
         this.types.set(types);
-        this.scenarios.set(scenarios);
         this.selected.set(new Set());
         this.stage.set('ready');
       },
       error: () => this.stage.set('error'),
     });
-  }
-
-  scenarioLabel(value: string): string {
-    return this.scenarios().find((s) => s.value === value)?.label ?? value;
   }
 
   typeLabel(value: string): string {

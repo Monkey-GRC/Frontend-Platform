@@ -72,14 +72,14 @@ export class ConnectPlatformView implements OnInit {
       next: ({ state, service, list, criticalities }) => {
         const capability = state.applicable_capabilities.find((c) => c.catalog_code === catalog) ?? null;
         const platform = capability?.platforms.find((p) => p.code === code) ?? null;
-        if (!state.deployment_scenario || !capability || !platform || platform.availability !== 'available') {
+        if (!capability || !platform || platform.availability !== 'available') {
           this.backToMarketplace();
           return;
         }
         this.capability.set(capability);
         this.platform.set(platform);
         this.service.set({ id: service.id, name: service.name });
-        this.otherServices.set(list.items.filter((s) => s.id !== id && s.technical_control.deployment_scenario).map((s) => ({ id: s.id, name: s.name })));
+        this.otherServices.set(list.items.filter((s) => s.id !== id).map((s) => ({ id: s.id, name: s.name })));
         this.criticalities.set(criticalities);
         this.stage.set('ready');
       },

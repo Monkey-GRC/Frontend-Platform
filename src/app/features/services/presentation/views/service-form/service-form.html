@@ -1,4 +1,5 @@
-<section class="w-full max-w-3xl pb-10">
+<!-- El asistente de riesgos (D93) usa todo el ancho; el resto del alta, una columna angosta. -->
+<section class="w-full pb-10" [class.max-w-3xl]="!wide()">
 <div class="mk-card p-5 md:p-6">
 
   @if (needsCompany()) {
@@ -53,7 +54,7 @@
   <!-- ===================== Terminado ===================== -->
   @case ('risks') {
   <!-- D89 · La cadena de declarar un servicio: crear → evaluar sus riesgos → declarar sus activos. Se evalúa aquí mismo, sin salir de la pantalla de crear el servicio. -->
-  <div class="mx-auto w-full max-w-4xl py-4 md:py-6">
+  <div class="w-full py-2 md:py-3">
     <ol class="flex items-center gap-2 text-xs font-medium sm:text-sm" [attr.aria-label]="'SERVICES.FORM.CHAIN_LABEL' | translate" data-chain>
       <li class="inline-flex items-center gap-1.5 text-green-700 dark:text-green-400">
         <span class="material-symbols-rounded text-[20px]" aria-hidden="true">check_circle</span>{{ 'SERVICES.FORM.CHAIN_CREATE' | translate }}
@@ -67,10 +68,10 @@
         <span class="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 text-[11px] font-bold dark:border-gray-600" aria-hidden="true">3</span>{{ 'SERVICES.FORM.CHAIN_ASSETS' | translate }}
       </li>
     </ol>
-    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.RISKS_TITLE' | translate: { name: saved()?.name } }}</h1>
-    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'SERVICES.FORM.RISKS_INTRO' | translate }}</p>
+    <h1 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.RISKS_TITLE' | translate: { name: saved()?.name } }}</h1>
+    <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'SERVICES.FORM.RISKS_INTRO' | translate }}</p>
     @if (saved(); as s) {
-    <div class="mt-4">
+    <div class="mt-3">
       <app-risk-wizard [serviceId]="s.id" finishKey="SERVICES.FORM.TO_ASSETS" (finished)="goToAssets()" />
     </div>
     }
@@ -126,53 +127,77 @@
   <!-- ===================== Asistente ===================== -->
   @default {
 
-  @if (step() < reviewStep) {
-  <!-- Encabezado: dónde va y cuánto falta -->
-  <header class="mb-4">
-    <div class="flex items-center justify-between text-sm">
-      <span class="font-medium text-gray-900 dark:text-white">{{ 'SERVICES.FORM.STEP_OF' | translate: { current: step() + 1, total: steps.length } }}</span>
-      <span class="text-gray-400">{{ steps[step()].labelKey | translate }}</span>
-    </div>
-    <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800" role="progressbar"
-      [attr.aria-valuenow]="step() + 1" aria-valuemin="1" [attr.aria-valuemax]="steps.length">
-      <div class="h-full rounded-full bg-primary transition-all duration-500"
-        [style.width.%]="((step() + 1) / steps.length) * 100"></div>
-    </div>
-    <ol class="mt-4 hidden justify-between sm:flex">
-      @for (s of steps; track s.key; let i = $index) {
-      <li class="flex items-center gap-2 text-xs"
-        [class]="i === step() ? 'font-semibold text-primary' : i < step() ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'">
-        <span class="flex h-6 w-6 items-center justify-center rounded-full border text-[11px]"
-          [class]="i < step() ? 'border-primary bg-primary text-white' : i === step() ? 'border-primary text-primary' : 'border-gray-300 dark:border-gray-700'">
-          @if (i < step()) {
-          <span class="material-symbols-rounded text-[14px]">check</span>
-          } @else {
-          {{ i + 1 }}
-          }
-        </span>
-        {{ s.labelKey | translate }}
-      </li>
-      }
-    </ol>
-  </header>
-  }
+  <div class="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)]">
 
-  <div>
+  <!-- A la izquierda: dónde va y cuánto falta. En pantallas chicas queda una barra arriba. -->
+  <aside class="lg:sticky lg:top-4 lg:self-start" data-service-rail>
+    <div class="lg:rounded-2xl lg:border lg:border-gray-200 lg:bg-gray-50/70 lg:p-4 dark:lg:border-gray-700 dark:lg:bg-gray-800/40">
+      <p class="hidden text-xs font-semibold uppercase tracking-wide text-gray-600 lg:block dark:text-gray-300">{{ (editing() ? 'SERVICES.FORM.RAIL_EDIT' : 'SERVICES.FORM.RAIL_TITLE') | translate }}</p>
+      <div class="flex items-center justify-between text-sm lg:mt-2">
+        <span class="font-medium text-gray-900 dark:text-white">{{ 'SERVICES.FORM.STEP_OF' | translate: { current: step() + 1, total: steps.length + 1 } }}</span>
+        <span class="text-gray-600 lg:hidden dark:text-gray-300">{{ (step() < reviewStep ? steps[step()].labelKey : 'COMMON.WIZARD.REVIEW') | translate }}</span>
+      </div>
+      <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700" role="progressbar"
+        [attr.aria-valuenow]="step() + 1" aria-valuemin="1" [attr.aria-valuemax]="steps.length + 1">
+        <div class="h-full rounded-full bg-linear-to-r from-primary to-brand-400 transition-all duration-500"
+          [style.width.%]="((step() + 1) / (steps.length + 1)) * 100"></div>
+      </div>
+      <ol class="mt-4 hidden flex-col lg:flex">
+        @for (s of steps; track s.key; let i = $index) {
+        <li class="relative">
+          <button type="button" (click)="i < step() ? goTo(i) : null" [disabled]="i >= step() || stage() === 'saving'" [attr.data-rail-step]="i"
+            [attr.aria-current]="i === step() ? 'step' : null"
+            class="flex w-full items-center gap-3 rounded-lg px-1.5 py-1.5 text-left text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 enabled:hover:bg-white dark:enabled:hover:bg-gray-800"
+            [class]="i === step() ? 'font-semibold text-primary' : i < step() ? 'text-gray-800 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs transition"
+              [class]="i < step() ? 'border-primary bg-primary text-white' : i === step() ? 'border-primary bg-primary/10 text-primary ring-4 ring-primary/10' : 'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-900'">
+              @if (i < step()) {
+              <span class="material-symbols-rounded text-[18px]" aria-hidden="true">check</span>
+              } @else {
+              <span class="material-symbols-rounded text-[18px]" aria-hidden="true">{{ s.icon }}</span>
+              }
+            </span>
+            {{ s.labelKey | translate }}
+          </button>
+          <span class="ml-5 block h-3 w-px" [class]="i < step() ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'" aria-hidden="true"></span>
+        </li>
+        }
+        <li class="relative">
+          <span class="flex items-center gap-3 px-1.5 py-1.5 text-sm" [attr.aria-current]="step() === reviewStep ? 'step' : null"
+            [class]="step() === reviewStep ? 'font-semibold text-primary' : 'text-gray-600 dark:text-gray-400'">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs"
+              [class]="step() === reviewStep ? 'border-primary bg-primary/10 text-primary ring-4 ring-primary/10' : 'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-900'">
+              <span class="material-symbols-rounded text-[18px]" aria-hidden="true">fact_check</span>
+            </span>
+            {{ 'COMMON.WIZARD.REVIEW' | translate }}
+          </span>
+        </li>
+      </ol>
+      @if (!editing() && step() < reviewStep) {
+      <p class="mt-4 hidden items-start gap-2 text-xs text-gray-600 lg:flex dark:text-gray-300">
+        <span class="material-symbols-rounded text-[16px] text-primary" aria-hidden="true">cloud_done</span>{{ 'COMMON.WIZARD.PROGRESS_SAVED' | translate }}
+      </p>
+      }
+    </div>
+  </aside>
+  <div class="min-w-0">
 
     @switch (step()) {
 
     <!-- ---------- 1. Tu servicio ---------- -->
     @case (0) {
-    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-      <span class="material-symbols-rounded">inventory_2</span>
-    </span>
-    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S1_TITLE' | translate }}</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ 'SERVICES.FORM.S1_BODY' | translate }}
-    </p>
+    <div class="flex items-start gap-3">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary">
+        <span class="material-symbols-rounded">inventory_2</span>
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S1_TITLE' | translate }}</h1>
+        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'SERVICES.FORM.S1_BODY' | translate }}</p>
+      </div>
+    </div>
 
-    <div class="mt-5 space-y-7">
-      <div>
+    <div class="mt-5 grid gap-5 lg:grid-cols-2">
+      <div class="lg:col-span-2">
         <label for="name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'SERVICES.FORM.NAME_LABEL' | translate }} <span class="text-error-500">*</span>
         </label>
@@ -220,13 +245,17 @@
 
     <!-- ---------- 2. Tus clientes ---------- -->
     @case (1) {
-    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-      <span class="material-symbols-rounded">groups</span>
-    </span>
-    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S2_TITLE' | translate }}</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'SERVICES.FORM.S2_BODY' | translate }}</p>
+    <div class="flex items-start gap-3">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary">
+        <span class="material-symbols-rounded">groups</span>
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S2_TITLE' | translate }}</h1>
+        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'SERVICES.FORM.S2_BODY' | translate }}</p>
+      </div>
+    </div>
 
-    <div class="mt-5 space-y-5">
+    <div class="mt-5 grid gap-x-8 gap-y-5 lg:grid-cols-2">
       <div>
         <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'SERVICES.FORM.TYPE_LABEL' | translate }} <span class="text-error-500">*</span>
@@ -250,7 +279,7 @@
         }
       </div>
 
-      <div>
+      <div class="lg:col-span-2">
         <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'SERVICES.FORM.CLIENTS_LABEL' | translate }} <span class="font-normal text-gray-400">({{ 'COMMON.OPTIONAL' | translate }})</span>
         </p>
@@ -264,13 +293,17 @@
 
     <!-- ---------- 3. Datos y alcance ---------- -->
     @case (2) {
-    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-      <span class="material-symbols-rounded">database</span>
-    </span>
-    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S3_TITLE' | translate }}</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'SERVICES.FORM.S3_BODY' | translate }}</p>
+    <div class="flex items-start gap-3">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary">
+        <span class="material-symbols-rounded">database</span>
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S3_TITLE' | translate }}</h1>
+        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'SERVICES.FORM.S3_BODY' | translate }}</p>
+      </div>
+    </div>
 
-    <div class="mt-5 space-y-5">
+    <div class="mt-5 grid gap-x-8 gap-y-5 lg:grid-cols-2">
       <div>
         <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'SERVICES.FORM.COUNTRIES_LABEL' | translate }} <span class="text-error-500">*</span>
@@ -297,7 +330,7 @@
         }
       </div>
 
-      <div>
+      <div class="lg:col-span-2">
         <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'SERVICES.FORM.AVAILABILITY_LABEL' | translate }} <span class="text-error-500">*</span>
         </p>
@@ -313,13 +346,15 @@
 
     <!-- ---------- 4. Marco ---------- -->
     @case (3) {
-    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-      <span class="material-symbols-rounded">verified_user</span>
-    </span>
-    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S4_TITLE' | translate }}</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ 'SERVICES.FORM.S4_BODY' | translate }}
-    </p>
+    <div class="flex items-start gap-3">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary">
+        <span class="material-symbols-rounded">verified_user</span>
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S4_TITLE' | translate }}</h1>
+        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'SERVICES.FORM.S4_BODY' | translate }}</p>
+      </div>
+    </div>
 
     <div class="mt-5 space-y-5">
       <div>
@@ -329,7 +364,7 @@
         <p class="mb-3 text-xs text-gray-400">
           {{ 'SERVICES.FORM.FRAMEWORK_HELP' | translate }}
         </p>
-        <div class="grid gap-3">
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           @for (f of catalogs()!.frameworks; track f.code) {
           <button type="button" (click)="pickFramework(f)" [attr.aria-pressed]="draft().framework_codes.includes(f.code)"
             [attr.data-testid]="'framework-' + f.code"
@@ -374,7 +409,7 @@
         <p class="mb-3 text-xs text-gray-400">
           {{ 'SERVICES.FORM.CATEGORIES_HELP' | translate }}
         </p>
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           @for (c of catalogs()!.trustCriteria; track c.value) {
           <button type="button" (click)="toggleCriterion(c.value)" [attr.aria-pressed]="draft().trust_criteria.includes(c.value)"
             [disabled]="c.value === security"
@@ -409,13 +444,15 @@
 
     <!-- ---------- 5. Proveedores ---------- -->
     @case (4) {
-    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-      <span class="material-symbols-rounded">cloud</span>
-    </span>
-    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S5_TITLE' | translate }}</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ 'SERVICES.FORM.S5_BODY' | translate }}
-    </p>
+    <div class="flex items-start gap-3">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary">
+        <span class="material-symbols-rounded">cloud</span>
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S5_TITLE' | translate }}</h1>
+        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'SERVICES.FORM.S5_BODY' | translate }}</p>
+      </div>
+    </div>
 
     <div class="mt-5 space-y-4">
       <div>
@@ -430,8 +467,8 @@
       </div>
 
       @if (draft().subservices.length > 0) {
-      <div class="space-y-4">
-        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div class="grid gap-3 lg:grid-cols-2">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 lg:col-span-2">
           {{ 'SERVICES.FORM.MORE_DETAIL' | translate }} <span class="font-normal text-gray-400">({{ 'SERVICES.FORM.OPTIONAL_BLANK' | translate }})</span>
         </p>
         @for (s of draft().subservices; track s.type) {
@@ -453,13 +490,17 @@
 
     <!-- ---------- 6. Cumplimiento ---------- -->
     @case (5) {
-    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-      <span class="material-symbols-rounded">gavel</span>
-    </span>
-    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S6_TITLE' | translate }}</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'SERVICES.FORM.S6_BODY' | translate }}</p>
+    <div class="flex items-start gap-3">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary">
+        <span class="material-symbols-rounded">gavel</span>
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.FORM.S6_TITLE' | translate }}</h1>
+        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'SERVICES.FORM.S6_BODY' | translate }}</p>
+      </div>
+    </div>
 
-    <div class="mt-5 space-y-5">
+    <div class="mt-5 grid gap-x-8 gap-y-5 lg:grid-cols-2">
       <div>
         <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ 'SERVICES.FORM.CERT_LABEL' | translate }} <span class="font-normal text-gray-400">({{ 'COMMON.OPTIONAL' | translate }})</span>
@@ -533,18 +574,20 @@
 
     <!-- ---------- Revisión ---------- -->
     @default {
-    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-      <span class="material-symbols-rounded">fact_check</span>
-    </span>
-    <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">
+    <div class="flex items-start gap-3">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 text-primary">
+        <span class="material-symbols-rounded">fact_check</span>
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
       {{ (editing() ? 'SERVICES.FORM.REVIEW_TITLE_EDIT' : 'SERVICES.FORM.REVIEW_TITLE') | translate }}
     </h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ (editing() ? 'COMMON.WIZARD.REVIEW_BODY_EDIT' : 'SERVICES.FORM.REVIEW_BODY') | translate }}
-    </p>
+        <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ (editing() ? 'COMMON.WIZARD.REVIEW_BODY_EDIT' : 'SERVICES.FORM.REVIEW_BODY') | translate }}</p>
+      </div>
+    </div>
 
-    <dl class="mt-5 divide-y divide-gray-100 dark:divide-gray-800">
-      <div class="flex items-start justify-between gap-4 py-4">
+    <dl class="mt-5 grid gap-3 lg:grid-cols-2">
+      <div class="flex items-start justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         <div class="min-w-0">
           <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">{{ 'SERVICES.FORM.REVIEW_SERVICE' | translate }}</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-white"><strong>{{ draft().name }}</strong></dd>
@@ -554,7 +597,7 @@
         <button type="button" (click)="goTo(0)" class="shrink-0 text-sm font-medium text-primary hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
       </div>
 
-      <div class="flex items-start justify-between gap-4 py-4">
+      <div class="flex items-start justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         <div class="min-w-0">
           <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">{{ 'SERVICES.FORM.REVIEW_CLIENTS' | translate }}</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ labelOf(catalogs()!.type, draft().type) }}</dd>
@@ -566,7 +609,7 @@
         <button type="button" (click)="goTo(1)" class="shrink-0 text-sm font-medium text-primary hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
       </div>
 
-      <div class="flex items-start justify-between gap-4 py-4">
+      <div class="flex items-start justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         <div class="min-w-0">
           <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">{{ 'SERVICES.FORM.STEPS.DATA' | translate }}</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ 'SERVICES.FORM.REVIEW_COUNTRIES' | translate: { value: labelsOf(catalogs()!.countries, draft().countries) } }}</dd>
@@ -576,7 +619,7 @@
         <button type="button" (click)="goTo(2)" class="shrink-0 text-sm font-medium text-primary hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
       </div>
 
-      <div class="flex items-start justify-between gap-4 py-4">
+      <div class="flex items-start justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         <div class="min-w-0">
           <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">{{ 'SERVICES.FORM.STEPS.FRAMEWORK' | translate }}</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ frameworkLabels() }}</dd>
@@ -585,7 +628,7 @@
         <button type="button" (click)="goTo(3)" class="shrink-0 text-sm font-medium text-primary hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
       </div>
 
-      <div class="flex items-start justify-between gap-4 py-4">
+      <div class="flex items-start justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         <div class="min-w-0">
           <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">{{ 'SERVICES.FORM.STEPS.PROVIDERS' | translate }}</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ labelsOf(catalogs()!.subserviceTypes, selectedSubserviceTypes()) }}</dd>
@@ -593,7 +636,7 @@
         <button type="button" (click)="goTo(4)" class="shrink-0 text-sm font-medium text-primary hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
       </div>
 
-      <div class="flex items-start justify-between gap-4 py-4">
+      <div class="flex items-start justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         <div class="min-w-0">
           <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">{{ 'SERVICES.FORM.STEPS.COMPLIANCE' | translate }}</dt>
           @if (draft().previous_certification) {
@@ -622,7 +665,7 @@
     }
 
     <!-- Navegación -->
-    <div class="mt-10 flex items-center justify-between gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">
+    <div class="mt-6 flex items-center justify-between gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
       @if (step() > 0) {
       <button type="button" (click)="back()" [disabled]="stage() === 'saving'"
         class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
@@ -653,9 +696,10 @@
       }
     </div>
   </div>
+  </div>
 
   @if (!editing() && step() < reviewStep) {
-  <p class="mt-4 text-center text-xs text-gray-400">
+  <p class="mt-4 text-center text-xs text-gray-600 lg:hidden dark:text-gray-300">
     {{ 'COMMON.WIZARD.PROGRESS_SAVED' | translate }}
   </p>
   }
@@ -665,7 +709,7 @@
 
   <!-- ===================== Marco no contratado: invitación a ventas (mock, DT-38) ===================== -->
   @if (salesFramework(); as fw) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true"
+  <div class="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true"
     aria-labelledby="sales-title" (click)="closeSales()" (keydown.escape)="closeSales()">
     <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl md:p-6 dark:bg-gray-900" (click)="$event.stopPropagation()">
       <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -695,7 +739,7 @@
 
   <!-- ===================== Cobertura parcial: lo recomendable es cubrir todo ===================== -->
   @if (coverageWarning()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="alertdialog" aria-modal="true"
+  <div class="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50 p-4" role="alertdialog" aria-modal="true"
     aria-labelledby="coverage-title" (click)="dismissCoverageWarning()">
     <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl md:p-6 dark:bg-gray-900" (click)="$event.stopPropagation()">
       <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
