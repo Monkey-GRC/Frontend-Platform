@@ -5,12 +5,6 @@
     "CRUMB_CONNECTION": "Connection",
     "NEW_CONNECTION": "New connection",
     "AWS_ACCOUNT": "AWS · account {{account}}",
-    "SCENARIO_HELP": {
-      "CLOUD_MANAGED_ONLY": "You use services such as AWS, Microsoft 365 or Google Workspace, with no servers of your own.",
-      "CLOUD_WITH_SERVERS": "You have servers or databases hosted in the cloud.",
-      "ON_PREMISE": "Your servers, databases and equipment are in your own offices or data center.",
-      "HYBRID": "A mix: some in the cloud and some on your own premises."
-    },
     "CATEGORY": {
       "AC_01": "Cloud services (managed, serverless)",
       "AC_02": "Cloud servers / VPS",
@@ -139,10 +133,6 @@
       "ALSO_SUPPORTS": "Does it also support other services?",
       "ALSO_SUPPORTS_HELP": "This way you don't register it twice. It's optional.",
       "REGISTER": "Register asset",
-      "NOT_APPLICABLE_SERVICE": "This connection doesn't apply to the scenario of “{{service}}”. Remove it from the list or choose another platform.",
-      "NOT_APPLICABLE": "This connection doesn't apply to the scenario of one of the chosen services. Remove it from the list or choose another platform.",
-      "SCENARIO_NOT_SET_SERVICE": "First define where “{{service}}” is hosted.",
-      "SCENARIO_NOT_SET": "First define where that service is hosted.",
       "CHECK_MARKED": "Check the marked fields and try again.",
       "METHOD_NOT_APPLICABLE": "That connection type isn't available for this platform. Choose another one.",
       "REGISTER_ERROR": "We couldn't register the asset. Please try again."

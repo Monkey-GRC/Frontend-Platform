@@ -92,7 +92,6 @@
               <th scope="col" class="px-4 py-3">{{ 'SERVICES.LIST.COL_NAME' | translate }}</th>
               <th scope="col" class="px-4 py-3">{{ 'SERVICES.LIST.COL_TYPE' | translate }}</th>
               <th scope="col" class="px-4 py-3">{{ 'SERVICES.LIST.COL_FRAMEWORKS' | translate }}</th>
-              <th scope="col" class="px-4 py-3">{{ 'SERVICES.LIST.COL_WHERE' | translate }}</th>
               <th scope="col" class="px-4 py-3">{{ 'SERVICES.LIST.COL_CONNECTIONS' | translate }}</th>
               <th scope="col" class="px-4 py-3">{{ 'SERVICES.LIST.COL_CATALOG' | translate }}</th>
             </tr>
@@ -115,9 +114,6 @@
                   } @empty { <span class="text-gray-600 dark:text-gray-300">—</span> }
                 </div>
               </td>
-              <td class="px-4 py-3.5 text-gray-900 dark:text-white">
-                {{ item.technical_control.deployment_scenario ? scenarioLabel(item.technical_control.deployment_scenario) : ('SERVICES.LIST.UNDEFINED' | translate) }}
-              </td>
               <td class="px-4 py-3.5">
                 @if (item.technical_control.connection_count > 0) {
                 <span class="text-gray-900 dark:text-white">{{ (item.technical_control.connection_count === 1 ? 'SERVICES.LIST.CONNECTION_ONE' : 'SERVICES.LIST.CONNECTION_MANY') | translate: { count: item.technical_control.connection_count } }}</span>
@@ -134,7 +130,7 @@
               </td>
             </tr>
             } @empty {
-            <tr><td colspan="7" class="px-4 py-10 text-center text-gray-700 dark:text-gray-200">{{ 'SERVICES.LIST.NO_MATCH' | translate: { query: query() } }}</td></tr>
+            <tr><td colspan="6" class="px-4 py-10 text-center text-gray-700 dark:text-gray-200">{{ 'SERVICES.LIST.NO_MATCH' | translate: { query: query() } }}</td></tr>
             }
           </tbody>
         </table>

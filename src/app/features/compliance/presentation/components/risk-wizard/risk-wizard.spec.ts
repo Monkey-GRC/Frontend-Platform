@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { RiskDetail, RiskEvaluationEntry, RiskListItem } from '../../../domain/models/risk.models';
 import { RiskService } from '../../../domain/services/risk.service';
+import { RISK_MATRIX, provideCatalogStub } from '../../../testing/catalog-options';
 import { RiskWizard } from './risk-wizard';
 
 const risk = (id: string, code: string, patch: Partial<RiskListItem> = {}): RiskListItem => ({
@@ -21,10 +22,12 @@ describe('RiskWizard (D89)', () => {
   let fixture: ComponentFixture<RiskWizard>;
 
   function setup(risks: RiskListItem[], role = 'admin_empresa'): RiskWizard {
-    api = jasmine.createSpyObj<RiskService>('RiskService', ['listAllRisks', 'getRisk', 'evaluate']);
+    api = jasmine.createSpyObj<RiskService>('RiskService', ['listAllRisks', 'getRisk', 'evaluate', 'matrix', 'deactivateRisk', 'reactivateRisk', 'listAllCauses', 'linkCause', 'unlinkCause', 'getCause']);
+    api.listAllCauses.and.returnValue(of([]));
+    api.matrix.and.returnValue(of(RISK_MATRIX));
     api.listAllRisks.and.returnValue(of(risks));
     api.getRisk.and.callFake((id: string) => of(detailOf(risks.find((r) => r.id === id)!)));
-    TestBed.configureTestingModule({ imports: [RiskWizard], providers: [provideTranslateService(), { provide: RiskService, useValue: api }] });
+    TestBed.configureTestingModule({ imports: [RiskWizard], providers: [provideTranslateService(), provideCatalogStub(), { provide: RiskService, useValue: api }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(RiskWizard);
     fixture.componentRef.setInput('serviceId', 's1');
@@ -53,6 +56,26 @@ describe('RiskWizard (D89)', () => {
     expect(q('[data-wizard-risk]')!.textContent).toContain('Qué es R002'); // la descripción del riesgo
   });
 
+  it('puts «Anterior» to the left of «Guardar», and the removal apart, in red, below the matrix', () => {
+    setup([done('r1', 'R001'), risk('r2', 'R002')]);
+    const nav = q('[data-wizard-nav]')!;
+    const back = nav.querySelector('[data-wizard-back]')!;
+    const save = nav.querySelector('[data-wizard-save]')!;
+    expect(back.compareDocumentPosition(save) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy(); // Anterior va antes (a la izquierda) que Guardar
+    const skip = q('[data-wizard-danger] [data-wizard-skip]')!;
+    expect(skip.className).toContain('text-error-600');
+    expect(q('[data-wizard-preview]')!.contains(skip)).toBeFalse(); // no está pegado a los botones de guardar
+    expect(q('[data-wizard-preview]')!.compareDocumentPosition(skip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy(); // y queda debajo
+  });
+
+  it('names what the risk belongs to: the criterion it affects and the losses it could cause', () => {
+    setup(THREE);
+    expect(q('[data-wizard-criterion]')!.textContent).toContain('security');
+    expect(q('[data-wizard-belongs]')!.textContent).toContain('COMPLIANCE.RISK_WIZARD.CRITERION_LABEL');
+    expect(q('[data-wizard-belongs]')!.textContent).toContain('COMPLIANCE.RISK_WIZARD.LOSSES_LABEL');
+    expect(q('[data-wizard-losses]')!.textContent).toContain('reputational');
+    expect(q('[data-wizard-losses] .material-symbols-rounded')!.textContent).toContain('campaign');
+  });
   it('asks two questions with five levels each, and starts with no answer chosen', () => {
     const wizard = setup(THREE);
     expect(el().querySelectorAll('[data-wizard-likelihood] [data-level]').length).toBe(5);
@@ -126,6 +149,130 @@ describe('RiskWizard (D89)', () => {
     expect(wizard.likelihood()).toBe(4); // lo que respondió no se pierde
   });
 
+  it('colors each level of both scales from green to red, and shows where the answer would land before saving', () => {
+    setup(THREE);
+    const tone = (question: 'likelihood' | 'impact', level: number) => q(`[data-wizard-${question}] [data-level="${level}"]`)!.className;
+    expect(tone('likelihood', 1)).toContain('border-green');
+    expect(tone('likelihood', 5)).toContain('border-red');
+    expect(tone('impact', 3)).toContain('border-yellow');
+    expect(q('[data-wizard-value]')).toBeNull(); // sin las dos respuestas no hay nivel que mostrar
+    choose('likelihood', 4);
+    choose('impact', 4);
+    expect(q('[data-wizard-value]')!.textContent).toContain('COMPLIANCE.RISK_WIZARD.RESULT_VALUE');
+    expect(q('[data-wizard-preview] app-risk-level-badge [data-level]')!.getAttribute('data-level')).toBe('high'); // 4 × 4 = 16
+    expect(tone('likelihood', 4)).toContain('ring-2'); // la elegida se marca
+  });
+
+  it('paints one chip per risk in the strip, and jumps to a risk when its chip is pressed', () => {
+    const wizard = setup(THREE);
+    expect(el().querySelectorAll('[data-wizard-stepper] [data-step]').length).toBe(3);
+    q<HTMLButtonElement>('[data-step="2"]')!.click();
+    fixture.detectChanges();
+    expect(wizard.current()!.code).toBe('R010');
+  });
+
+  describe('retiring a risk that does not apply (D93)', () => {
+    const open = () => {
+      q<HTMLButtonElement>('[data-wizard-skip]')!.click();
+      fixture.detectChanges();
+    };
+    const write = (text: string) => {
+      const box = q<HTMLTextAreaElement>('[data-wizard-reason]')!;
+      box.value = text;
+      box.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+    const confirm = () => {
+      q<HTMLButtonElement>('[data-wizard-remove-confirm]')!.click();
+      fixture.detectChanges();
+    };
+
+    it('asks why first, and does not let it be removed without a reason', () => {
+      setup(THREE);
+      expect(q('[data-wizard-remove]')).toBeNull();
+      open();
+      expect(q('[data-wizard-remove]')).not.toBeNull();
+      expect(q<HTMLButtonElement>('[data-wizard-remove-confirm]')!.disabled).toBeTrue();
+      write('  ab ');
+      expect(q<HTMLButtonElement>('[data-wizard-remove-confirm]')!.disabled).toBeTrue();
+      write('No usamos portátiles');
+      expect(q<HTMLButtonElement>('[data-wizard-remove-confirm]')!.disabled).toBeFalse();
+    });
+
+    it('sends the reason, takes the risk out of the pending ones and moves on to the next', () => {
+      const wizard = setup(THREE);
+      api.deactivateRisk.and.returnValue(of(undefined));
+      open();
+      write('  No usamos portátiles  ');
+      confirm();
+      expect(api.deactivateRisk).toHaveBeenCalledOnceWith('r2', 'No usamos portátiles');
+      expect(wizard.risks().map((r) => r.code)).toEqual(['R001', 'R010']);
+      expect(wizard.current()!.code).toBe('R010');
+      expect(wizard.progress()).toEqual(jasmine.objectContaining({ total: 2, evaluated: 1, pending: 1 }));
+      expect(wizard.removedCount()).toBe(1);
+      expect(q('[data-wizard-remove]')).toBeNull(); // el siguiente riesgo empieza sin el cuadro abierto
+    });
+
+    it('finishes when the risk removed was the last one missing, and says how many were removed', () => {
+      const wizard = setup([done('r1', 'R001'), risk('r2', 'R002')]);
+      api.deactivateRisk.and.returnValue(of(undefined));
+      open();
+      write('No aplica a este servicio');
+      confirm();
+      expect(wizard.stage()).toBe('done');
+      expect(q('[data-wizard-removed]')!.textContent).toContain('COMPLIANCE.RISK_WIZARD.DONE_REMOVED');
+    });
+
+    it('keeps the risk and shows the message of the server when it cannot be removed, and lets the person cancel', () => {
+      const wizard = setup(THREE);
+      api.deactivateRisk.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403, error: { message: 'Solo el administrador puede retirarlo.', error: { code: 'FORBIDDEN' } } })));
+      open();
+      write('No aplica');
+      confirm();
+      expect(wizard.current()!.code).toBe('R002');
+      expect(wizard.removeError()).toBe('Solo el administrador puede retirarlo.');
+      q<HTMLButtonElement>('[data-wizard-remove-cancel]')!.click();
+      fixture.detectChanges();
+      expect(q('[data-wizard-remove]')).toBeNull();
+      expect(wizard.removedCount()).toBe(0);
+    });
+  });
+  describe('adding a risk and bringing back a removed one (D93)', () => {
+    const gone = risk('r9', 'R009', { is_active: false });
+
+    it('lists the removed risks with a button to include them again, and shows the risk once it is back', () => {
+      const wizard = setup([...THREE, gone]);
+      expect(api.listAllRisks).toHaveBeenCalledWith('s1', undefined, true); // incluye los retirados
+      expect(wizard.risks().map((r) => r.code)).toEqual(['R001', 'R002', 'R010']);
+      expect(wizard.removed().map((r) => r.code)).toEqual(['R009']);
+      api.reactivateRisk.and.returnValue(of(detailOf(risk('r9', 'R009'))));
+      api.listAllRisks.and.returnValue(of([...THREE, risk('r9', 'R009')]));
+      api.getRisk.and.returnValue(of(detailOf(risk('r9', 'R009'))));
+      q<HTMLButtonElement>('[data-restore="r9"]')!.click();
+      fixture.detectChanges();
+      expect(api.reactivateRisk).toHaveBeenCalledOnceWith('r9');
+      expect(wizard.removed()).toEqual([]);
+      expect(wizard.current()!.code).toBe('R009'); // el asistente lo muestra para calificarlo
+    });
+
+    it('opens the form to add a risk, and after saving it goes on to choose its causes', () => {
+      const wizard = setup(THREE);
+      q<HTMLButtonElement>('[data-wizard-add]')!.click();
+      fixture.detectChanges();
+      expect(q('app-risk-form')).not.toBeNull();
+      api.listAllRisks.and.returnValue(of([...THREE, risk('r11', 'R011', { origin: 'own' })]));
+      api.getRisk.and.returnValue(of(detailOf(risk('r11', 'R011', { origin: 'own' }))));
+      wizard.onRiskCreated('r11');
+      fixture.detectChanges();
+      expect(wizard.stage()).toBe('causes');
+      expect(q('app-risk-form')).toBeNull();
+      expect(q('[data-causes-picker]')).not.toBeNull();
+      q<HTMLButtonElement>('[data-causes-done]')!.click();
+      fixture.detectChanges();
+      expect(wizard.stage()).toBe('ready');
+      expect(wizard.current()!.code).toBe('R011'); // el riesgo nuevo queda por calificar
+    });
+  });
   it('shows who can evaluate, instead of the questions, to a role that cannot', () => {
     setup(THREE, 'auditor');
     expect(q('[data-wizard-readonly]')).not.toBeNull();

@@ -42,9 +42,7 @@ export interface ConnectionSetup {
 }
 
 export interface TechnicalControlState {
-  deployment_scenario: string | null;
   applicable_capabilities: Capability[];
-  is_complete: boolean;
   probe_mode: ProbeMode;
 }
 
@@ -177,17 +175,3 @@ export interface NewAssetInput {
   regions?: string[];
 }
 
-// Claves de traducción (technical-control.json), no texto: la pantalla las pasa por `translate`.
-export const SCENARIO_HELP: Record<string, string> = {
-  cloud_managed_only: 'TECHNICAL_CONTROL.SCENARIO_HELP.CLOUD_MANAGED_ONLY',
-  cloud_with_servers: 'TECHNICAL_CONTROL.SCENARIO_HELP.CLOUD_WITH_SERVERS',
-  on_premise: 'TECHNICAL_CONTROL.SCENARIO_HELP.ON_PREMISE',
-  hybrid: 'TECHNICAL_CONTROL.SCENARIO_HELP.HYBRID',
-};
-
-export const SCENARIO_ICON: Record<string, string> = {
-  cloud_managed_only: 'cloud',
-  cloud_with_servers: 'cloud_sync',
-  on_premise: 'domain',
-  hybrid: 'hub',
-};

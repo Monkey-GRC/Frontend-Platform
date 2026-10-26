@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { ServiceService } from '@features/services/domain/services/service.service';
@@ -23,7 +23,6 @@ type Stage = 'loading' | 'error' | 'ready';
 })
 export class NewConnectionView implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly api = inject(TechnicalControlService);
   private readonly services = inject(ServiceService);
   private readonly translate = inject(TranslateService);
@@ -31,7 +30,7 @@ export class NewConnectionView implements OnInit {
   readonly stage = signal<Stage>('loading');
   readonly serviceId = signal('');
   readonly serviceName = signal<string | null>(null);
-  // Un grupo por tipo de conexión que aplica al escenario del servicio.
+  // Un grupo por tipo de conexión del catálogo; el cliente elige la plataforma, no declara dónde vive el servicio (D92).
   readonly groups = signal<Capability[]>([]);
 
   // Mis servicios › {servicio} › Nueva conexión
@@ -51,11 +50,6 @@ export class NewConnectionView implements OnInit {
     const id = this.serviceId();
     forkJoin({ state: this.api.state(id), service: this.services.get(id) }).subscribe({
       next: ({ state, service }) => {
-        // Sin escenario no hay conexiones que proponer: se vuelve al servicio, donde se le pregunta dónde vive.
-        if (!state.deployment_scenario) {
-          this.router.navigate(['/services', id]);
-          return;
-        }
         this.serviceName.set(service.name);
         this.groups.set(state.applicable_capabilities.filter((c) => c.platforms.length > 0));
         this.stage.set('ready');

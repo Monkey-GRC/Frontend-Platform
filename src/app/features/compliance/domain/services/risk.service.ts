@@ -16,9 +16,9 @@ export class RiskService {
   // La matriz es la misma para todos y no cambia mientras la pantalla está abierta: se pide una vez.
   private matrix$?: Observable<RiskMatrixData>;
 
-  /** Todos los riesgos del servicio (recorre las páginas si hay más de 100). */
-  listAllRisks(serviceId: string, view?: 'technical'): Observable<RiskListItem[]> {
-    return this.all<RiskListItem>(`${this.base}/services/${serviceId}/risks`, view);
+  /** Todos los riesgos del servicio (recorre las páginas si hay más de 100). Con `includeInactive` trae también los retirados (D93). */
+  listAllRisks(serviceId: string, view?: 'technical', includeInactive = false): Observable<RiskListItem[]> {
+    return this.all<RiskListItem>(`${this.base}/services/${serviceId}/risks`, view, includeInactive);
   }
 
   /** Todas las causas del servicio. */
@@ -94,8 +94,14 @@ export class RiskService {
   }
 
   /** Baja lógica: el riesgo deja de aparecer, su historial se conserva. */
-  deactivateRisk(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/risks/${id}`);
+  /** Da de baja un riesgo. `reason` (por qué no aplica al servicio) queda en el rastro de auditoría; el asistente del alta del servicio lo manda siempre (D93). */
+  deactivateRisk(id: string, reason?: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/risks/${id}`, reason ? { body: { reason } } : {});
+  }
+
+  /** D93 · Devuelve al servicio un riesgo retirado; conserva su evaluación anterior. */
+  reactivateRisk(id: string): Observable<RiskDetail> {
+    return this.http.post<SuccessResponse<RiskDetail>>(`${this.base}/risks/${id}/reactivation`, {}).pipe(map((r) => r.data!));
   }
 
   deactivateCause(id: string): Observable<void> {
@@ -106,15 +112,16 @@ export class RiskService {
     return view ? new HttpParams().set('view', view) : undefined;
   }
 
-  private page<T>(url: string, page: number, view?: 'technical'): Observable<Page<T>> {
+  private page<T>(url: string, page: number, view?: 'technical', includeInactive = false): Observable<Page<T>> {
     let params = new HttpParams().set('page', page).set('page_size', PAGE_SIZE);
     if (view) params = params.set('view', view);
+    if (includeInactive) params = params.set('include_inactive', true);
     return this.http.get<SuccessResponse<Page<T>>>(url, { params }).pipe(map((r) => r.data!));
   }
 
-  private all<T>(url: string, view?: 'technical'): Observable<T[]> {
-    return this.page<T>(url, 1, view).pipe(
-      expand((p) => (p.page < p.total_pages ? this.page<T>(url, p.page + 1, view) : EMPTY)),
+  private all<T>(url: string, view?: 'technical', includeInactive = false): Observable<T[]> {
+    return this.page<T>(url, 1, view, includeInactive).pipe(
+      expand((p) => (p.page < p.total_pages ? this.page<T>(url, p.page + 1, view, includeInactive) : EMPTY)),
       reduce<Page<T>, T[]>((acc, p) => acc.concat(p.items), []),
     );
   }
