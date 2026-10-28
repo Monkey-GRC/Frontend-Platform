@@ -12,19 +12,22 @@ import { ExclusionsView } from './exclusions';
 const person = { id: 'u1', name: 'Laura', last_name: 'Gómez' };
 const exclusion = (id: string, patch: Partial<Exclusion> = {}): Exclusion => ({
   id, service_id: 's1', test: { id: 't1', display_name: 'Cuentas privilegiadas con doble factor' }, asset: { id: 'a1', name: `servidor-${id}` },
-  justification: 'Se apaga en noviembre.', technical_justification: 'Aislado de la red.', status: 'pending', is_expired: false, awaiting_consultant: false,
+  justification: 'Se apaga en noviembre.', technical_justification: 'Aislado de la red.', status: 'approved', is_expired: false,
   valid_from: '2026-10-14', valid_until: '2026-12-31', proposed_by: person, requested_at: '2026-10-14T19:00:00Z', decided_by: null, decision_note: null, decided_at: null, ...patch,
 });
-const PENDING = exclusion('e1');
-const APPROVED = exclusion('e2', { status: 'approved', decided_by: { id: 'c1', name: 'Marta', last_name: 'Ruiz' }, decided_at: '2026-10-15T10:00:00Z' });
-const REJECTED = exclusion('e3', { status: 'rejected', decision_note: 'Sigue guardando datos de clientes.', decided_by: { id: 'c1', name: 'Marta', last_name: 'Ruiz' } });
+// D96: la crea y la decide el administrador en un solo acto, así que nace aprobada y con quién la decidió. Los estados pending y rejected quedan sin uso (datos viejos).
+const ADMIN = { id: 'c1', name: 'Marta', last_name: 'Ruiz' };
+const APPROVED = exclusion('e2', { decided_by: ADMIN, decided_at: '2026-10-15T10:00:00Z' });
+const EXPIRED = exclusion('e5', { is_expired: true, decided_by: ADMIN });
+const LEGACY_PENDING = exclusion('e1', { status: 'pending' });
+const LEGACY_REJECTED = exclusion('e3', { status: 'rejected', decision_note: 'Sigue guardando datos de clientes.', decided_by: ADMIN });
 
 describe('ExclusionsView', () => {
   let api: jasmine.SpyObj<ExclusionService>;
   let fixture: ComponentFixture<ExclusionsView>;
 
-  function setup(role: string, items: Exclusion[] | 'forbidden' | 'down' = [PENDING, APPROVED, REJECTED]): void {
-    api = jasmine.createSpyObj<ExclusionService>('ExclusionService', ['listAll', 'decide']);
+  function setup(role: string, items: Exclusion[] | 'forbidden' | 'down' = [APPROVED, LEGACY_PENDING, LEGACY_REJECTED]): void {
+    api = jasmine.createSpyObj<ExclusionService>('ExclusionService', ['listAll']);
     api.listAll.and.returnValue(
       items === 'forbidden' ? throwError(() => new HttpErrorResponse({ status: 403 })) : items === 'down' ? throwError(() => new HttpErrorResponse({ status: 500 })) : of(items),
     );
@@ -52,35 +55,38 @@ describe('ExclusionsView', () => {
   };
 
   it('builds the status filters from the statuses that the backend serves, with their labels', () => {
-    setup('consultor');
+    setup('admin_empresa');
     const filters = Array.from(el().querySelectorAll('[data-test-filter]')).map((b) => b.getAttribute('data-test-filter'));
     expect(filters).toEqual(['all', ...COMPLIANCE_OPTIONS['exclusion_status'].map((o) => o.value)]);
   });
 
   it('asks for the exclusions of the service of the route', () => {
-    setup('consultor');
+    setup('admin_empresa');
     expect(api.listAll).toHaveBeenCalledOnceWith('s1');
   });
 
-  it('shows each exclusion with its test, its asset, its justification and its status', () => {
-    setup('admin_empresa');
-    expect(el().querySelectorAll('[data-test-list] > li').length).toBe(3);
+  it('shows each exclusion with its test, its asset, its justification, its status and who decided it', () => {
+    setup('admin_empresa', [APPROVED]);
+    expect(el().querySelectorAll('[data-test-list] > li').length).toBe(1);
     expect(text()).toContain('Cuentas privilegiadas con doble factor');
     expect(text()).toContain('COMPLIANCE.EXCLUSIONS.ASSET');
     expect(text()).toContain('Se apaga en noviembre.');
     expect(text()).toContain('Aislado de la red.');
+    expect(text()).toContain('COMPLIANCE.EXCLUSIONS.DECIDED_BY');
   });
 
-  it('says a pending exclusion changes nothing yet, and when no consultant is assigned', () => {
-    setup('admin_empresa', [PENDING]);
-    expect(el().querySelector('[data-test-pending-note]')!.textContent).toContain('COMPLIANCE.EXCLUSIONS.STILL_COUNTS');
-    TestBed.resetTestingModule();
-    setup('admin_empresa', [exclusion('e4', { awaiting_consultant: true })]);
-    expect(el().querySelector('[data-test-pending-note]')!.textContent).toContain('COMPLIANCE.EXCLUSIONS.AWAITING_CONSULTANT');
+  it('has nothing to decide: the administrator decides when creating, so no screen offers to approve or reject', () => {
+    for (const role of ['admin_empresa', 'auditor']) {
+      TestBed.resetTestingModule();
+      setup(role, [APPROVED, LEGACY_PENDING]);
+      expect(el().querySelector('[data-test-approve]')).toBeNull();
+      expect(el().querySelector('[data-test-reject]')).toBeNull();
+      expect(el().querySelector('app-confirm-dialog')).toBeNull();
+    }
   });
 
-  it('shows the reason of a rejection and marks an approved exclusion that already expired', () => {
-    setup('admin_empresa', [REJECTED, exclusion('e5', { status: 'approved', is_expired: true })]);
+  it('shows the reason of an old rejection and marks an approved exclusion that already expired', () => {
+    setup('admin_empresa', [LEGACY_REJECTED, EXPIRED]);
     expect(el().querySelector('[data-test-decision-note]')!.textContent).toContain('COMPLIANCE.EXCLUSIONS.REJECTED_NOTE');
     expect(el().querySelector('[data-test-expired]')).not.toBeNull();
   });
@@ -95,53 +101,6 @@ describe('ExclusionsView', () => {
     expect(el().querySelectorAll('[data-test-list] > li').length).toBe(3);
   });
 
-  it('lets only the consultant decide, and only what is pending', () => {
-    setup('consultor');
-    expect(el().querySelectorAll('[data-test-approve]').length).toBe(1);
-    for (const role of ['admin_empresa', 'auditor']) {
-      TestBed.resetTestingModule();
-      setup(role);
-      expect(el().querySelector('[data-test-approve]')).toBeNull();
-      expect(el().querySelector('[data-test-reject]')).toBeNull();
-    }
-  });
-
-  it('asks before approving, and approves once confirmed', () => {
-    setup('consultor', [PENDING]);
-    api.decide.and.returnValue(of({ ...PENDING, status: 'approved' }));
-    click('[data-test-approve]');
-    expect(api.decide).not.toHaveBeenCalled();
-    expect(el().querySelector('app-confirm-dialog')).not.toBeNull();
-    fixture.componentInstance.confirmApprove();
-    fixture.detectChanges();
-    expect(api.decide).toHaveBeenCalledOnceWith('e1', { status: 'approved' });
-    expect(api.listAll).toHaveBeenCalledTimes(2);
-    expect(text()).toContain('COMPLIANCE.EXCLUSIONS.APPROVED');
-  });
-
-  it('does not reject without a reason, and sends it when there is one', () => {
-    setup('consultor', [PENDING]);
-    api.decide.and.returnValue(of({ ...PENDING, status: 'rejected' }));
-    click('[data-test-reject]');
-    expect(el().querySelector<HTMLButtonElement>('[data-test-confirm-reject]')!.disabled).toBeTrue();
-    const note = el().querySelector<HTMLTextAreaElement>('[data-test-note]')!;
-    note.value = '  Sigue guardando datos. ';
-    note.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-    click('[data-test-confirm-reject]');
-    expect(api.decide).toHaveBeenCalledOnceWith('e1', { status: 'rejected', decision_note: 'Sigue guardando datos.' });
-  });
-
-  it('shows the message of the server when the decision is refused', () => {
-    setup('consultor', [PENDING]);
-    api.decide.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Esa exclusión ya fue decidida.' } })));
-    click('[data-test-approve]');
-    fixture.componentInstance.confirmApprove();
-    fixture.detectChanges();
-    expect(text()).toContain('Esa exclusión ya fue decidida.');
-    expect(el().querySelector('app-confirm-dialog')).toBeNull();
-  });
-
   it('says so when the role has no access, when the service has none and when it cannot be loaded', () => {
     setup('funcional', 'forbidden');
     expect(text()).toContain('COMPLIANCE.EXCLUSIONS.FORBIDDEN_TITLE');
@@ -151,7 +110,7 @@ describe('ExclusionsView', () => {
     TestBed.resetTestingModule();
     setup('admin_empresa', 'down');
     expect(text()).toContain('COMPLIANCE.EXCLUSIONS.LOAD_ERROR');
-    api.listAll.and.returnValue(of([PENDING]));
+    api.listAll.and.returnValue(of([APPROVED]));
     click('[data-test-retry]');
     expect(el().querySelectorAll('[data-test-list] > li').length).toBe(1);
   });

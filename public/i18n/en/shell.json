@@ -6,7 +6,8 @@
       "MY_COMPANY": "My company",
       "MY_SERVICES": "My services",
       "COMPLIANCE": "Compliance",
-      "RESPONSIBLES": "Responsibles"
+      "RESPONSIBLES": "Responsibles",
+      "TEAM": "Team"
     },
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Search or type a command...",

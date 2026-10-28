@@ -1,0 +1,62 @@
+{
+  "TEAM": {
+    "TITLE": "Team",
+    "INTRO": "Invite your people, give each person a specialty and split the work: who takes charge of each dimension in each service.",
+    "YOU": "You",
+    "LOAD_ERROR": "We could not load the team.",
+    "TABS": { "PEOPLE": "People", "WORK": "Work split" },
+    "ROLE": { "ADMIN_EMPRESA": "Administrator", "FUNCIONAL": "Functional", "AUDITOR": "Auditor" },
+    "STATUS": { "ACTIVE": "Active", "PENDING": "To activate", "INACTIVE": "Deactivated" },
+    "INVITE": {
+      "TITLE": "Invite a person",
+      "EMAIL": "Email",
+      "ROLE": "Role",
+      "SUBMIT": "Invite",
+      "DIMENSIONS": "Specialties",
+      "DIMENSIONS_HELP": "A functional person carries out and uploads the evidence of the dimensions they specialize in. Choose at least one.",
+      "AUDITOR_HELP": "An auditor reviews everything in your company read-only and leaves observations; they have no specialties."
+    },
+    "CODE": {
+      "TITLE": "Activation code for {{email}}",
+      "BODY": "Hand it to the person now: this is the only time you will see it. With it they activate their account and create their password.",
+      "COPY": "Copy code",
+      "COPIED": "Copied",
+      "NOTED": "I wrote it down",
+      "EXPIRES": "Expires on {{date}}. If it gets lost, issue a new one."
+    },
+    "ACTIONS": {
+      "EDIT_DIMENSIONS": "Change specialties",
+      "NEW_CODE": "New code",
+      "DEACTIVATE": "Deactivate",
+      "REACTIVATE": "Reactivate",
+      "RESET_MFA": "Reset second factor"
+    },
+    "CONFIRM": {
+      "DEACTIVATE_TITLE": "Deactivate {{email}}?",
+      "DEACTIVATE_BODY": "Their session closes immediately and they will not be able to sign in again until you reactivate them. What they already did is kept.",
+      "RESET_MFA_TITLE": "Reset the second factor of {{email}}?",
+      "RESET_MFA_BODY": "Their sessions are closed and, on their next sign-in, they will set up the second factor again. Use it only if they lost their phone and their recovery codes."
+    },
+    "WORK": {
+      "SERVICE": "Service",
+      "INTRO": "The owner of a dimension takes charge of every control of the service that has tests in that dimension. If you change the owner, it changes for every control that has no exception.",
+      "NO_SERVICES": "You have no services yet. Declare one in “My services” to split its work.",
+      "CONTROLS": "{{count}} controls with tests in this dimension",
+      "EXCEPTIONS": "{{count}} with another owner",
+      "WITHOUT_OWNER": "{{count}} controls without an owner",
+      "OWNER": "Owner",
+      "NOBODY": "No owner",
+      "NO_CANDIDATES": "Nobody on the team has this specialty yet."
+    },
+    "NOTICE": {
+      "INVITED": "Done, we created the account. Hand over the activation code.",
+      "CODE_REISSUED": "Done, we issued a new code. The previous one no longer works.",
+      "UPDATED": "Done, we saved the specialties.",
+      "DEACTIVATED": "Done, we deactivated the account.",
+      "REACTIVATED": "Done, we reactivated the account.",
+      "MFA_RESET": "Done, we removed the second factor.",
+      "OWNER_SAVED": "Done, we saved the owner."
+    },
+    "ERROR": { "SAVE": "We could not save the change. Please try again." }
+  }
+}

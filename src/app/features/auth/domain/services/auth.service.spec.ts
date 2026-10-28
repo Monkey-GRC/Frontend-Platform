@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
 import { environment } from '@environments/environment';
-import { AuthPayload, LoginOutcome } from '../models/auth.models';
+import { AuthPayload, CodeLookup, LoginOutcome } from '../models/auth.models';
 import { AuthService } from './auth.service';
 
 const payload: AuthPayload = {
@@ -70,5 +70,51 @@ describe('AuthService · segundo factor (D94)', () => {
     service.finishMfaSetup(payload).subscribe();
     expect(session.user()?.email).toBe('ana@empresa.com');
     expect(service.pendingMfa()).toBeNull();
+  });
+});
+
+describe('AuthService · activar con cualquier código (D96)', () => {
+  let service: AuthService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslateService()] });
+    service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+  });
+  afterEach(() => http.verify());
+
+  it('reconoce la clave de una empresa y muestra su nombre', () => {
+    let found: CodeLookup | undefined;
+    service.lookupCode('MNK-AAAA-BBBB-CCCC').subscribe((f) => (found = f));
+    http.expectOne(`${api}/redeem/lookup`).flush({ data: { company: { name: 'ACME' }, admin_email: 'admin@acme.co', expires_at: '2026-11-04T00:00:00Z' } });
+    expect(found).toEqual({ kind: 'access_key', email: 'admin@acme.co', companyName: 'ACME', expiresAt: '2026-11-04T00:00:00Z' });
+  });
+
+  it('si no es una clave, prueba el código de activación de una persona del equipo', () => {
+    let found: CodeLookup | undefined;
+    service.lookupCode('MNK-7F3A-92KD-5QXB').subscribe((f) => (found = f));
+    http.expectOne(`${api}/redeem/lookup`).flush({ message: 'x', error: { code: 'ACCESS_KEY_INVALID' } }, { status: 404, statusText: 'Not Found' });
+    http.expectOne(`${api}/activate/lookup`).flush({ data: { email: 'juan@acme.co', expires_at: '2026-11-04T00:00:00Z' } });
+    expect(found).toEqual({ kind: 'activation', email: 'juan@acme.co', companyName: null, expiresAt: '2026-11-04T00:00:00Z' });
+  });
+
+  it('una clave vencida o ya usada se dice tal cual: no se prueba como código de activación', () => {
+    let failed = false;
+    service.lookupCode('MNK-AAAA-BBBB-CCCC').subscribe({ error: () => (failed = true) });
+    http.expectOne(`${api}/redeem/lookup`).flush({ message: 'vencida', error: { code: 'ACCESS_KEY_EXPIRED' } }, { status: 409, statusText: 'Conflict' });
+    http.expectNone(`${api}/activate/lookup`);
+    expect(failed).toBeTrue();
+  });
+
+  it('crea la cuenta por la puerta que corresponde al código', () => {
+    service.claimAccount({ kind: 'activation', email: 'juan@acme.co', companyName: null, expiresAt: '' }, 'MNK-7F3A-92KD-5QXB', 'UnaClaveLarga123!').subscribe();
+    const activate = http.expectOne(`${api}/activate`);
+    expect(activate.request.body).toEqual({ code: 'MNK-7F3A-92KD-5QXB', email: 'juan@acme.co', password: 'UnaClaveLarga123!' });
+    activate.flush({ data: { next_step: 'mfa_setup', expires_at: '2026-10-28T14:05:00Z' } });
+    expect(service.pendingMfa()?.next_step).toBe('mfa_setup');
+
+    service.claimAccount({ kind: 'access_key', email: 'admin@acme.co', companyName: 'ACME', expiresAt: '' }, 'MNK-AAAA-BBBB-CCCC', 'UnaClaveLarga123!').subscribe();
+    expect(http.expectOne(`${api}/redeem`).request.body.email).toBe('admin@acme.co');
   });
 });

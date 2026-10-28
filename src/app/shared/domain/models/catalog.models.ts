@@ -52,6 +52,7 @@ export type CatalogName =
   | 'aws_region'
   | 'resource_kind'
   // Cumplimiento (compliance-catalogs.ts del Backend): salen de los enums de Postgres
+  | 'dimension'
   | 'risk_criterion'
   | 'failure_category'
   | 'risk_level'

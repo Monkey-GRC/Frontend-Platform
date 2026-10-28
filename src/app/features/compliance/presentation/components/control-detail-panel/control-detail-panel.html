@@ -71,25 +71,10 @@
     </div>
     }
 
-    <!-- Lo que ya se propuso y espera al consultor -->
-    @if (pending().length) {
-    <section class="rounded-lg border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-700/40 dark:bg-amber-900/20" [attr.aria-label]="'COMPLIANCE.DETAIL.PENDING_TITLE' | translate">
-      <h4 class="flex items-center gap-1.5 text-sm font-semibold text-amber-900 dark:text-amber-200">
-        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">schedule</span>{{ 'COMPLIANCE.DETAIL.PENDING_TITLE' | translate }}
-      </h4>
-      <p class="mt-1 text-xs text-amber-900/80 dark:text-amber-200/80">{{ 'COMPLIANCE.DETAIL.PENDING_BODY' | translate }}</p>
-      <ul class="mt-2 list-disc pl-5 text-sm text-amber-900 dark:text-amber-100">
-        @for (c of pending(); track c.id) {
-        <li>{{ ('COMPLIANCE.CHANGE_TYPE.' + c.change_type.toUpperCase()) | translate }}</li>
-        }
-      </ul>
-    </section>
-    }
-
     <!-- Interpretación: cómo se cumple esta acción en la empresa -->
     <app-detail-card titleKey="COMPLIANCE.DETAIL.INTERPRETATION" icon="description" [forceOpen]="mode() === 'interpretation'">
-        @if (canPropose() && mode() === 'view') {
-        <button actions type="button" (click)="startInterpretation()" [disabled]="hasPending('edit_interpretation') || saving()"
+        @if (canEdit() && mode() === 'view') {
+        <button actions type="button" (click)="startInterpretation()" [disabled]="saving()"
           class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:no-underline">
           <span class="material-symbols-rounded text-[16px]" aria-hidden="true">edit</span>{{ 'COMMON.EDIT' | translate }}
         </button>
@@ -99,9 +84,9 @@
       <form class="mt-2" (ngSubmit)="submitInterpretation()">
         <label class="sr-only" for="interpretation">{{ 'COMPLIANCE.DETAIL.INTERPRETATION' | translate }}</label>
         <textarea id="interpretation" name="interpretation" rows="5" [maxLength]="maxInterpretation" [ngModel]="interpretationDraft()" (ngModelChange)="interpretationDraft.set($event)"
-          [attr.aria-invalid]="fieldError('proposed_values.interpretation') ? 'true' : null"
+          [attr.aria-invalid]="fieldError('interpretation.text') ? 'true' : null"
           class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"></textarea>
-        @if (fieldError('proposed_values.interpretation'); as fe) {
+        @if (fieldError('interpretation.text'); as fe) {
         <p class="mt-1 text-xs text-error-600">{{ fe }}</p>
         }
         <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.DETAIL.PROPOSAL_NOTE' | translate }}</p>
@@ -121,8 +106,8 @@
 
     <!-- Dimensiones: dónde se comprueba, y por qué una no aplica -->
     <app-detail-card titleKey="COMPLIANCE.DETAIL.DIMENSIONS" icon="grid_view" [forceOpen]="mode() === 'dimensions'">
-        @if (canPropose() && mode() === 'view') {
-        <button actions type="button" (click)="startDimensions()" [disabled]="hasPending('edit_dimensions') || saving()"
+        @if (canEdit() && mode() === 'view') {
+        <button actions type="button" (click)="startDimensions()" [disabled]="saving()"
           class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:no-underline">
           <span class="material-symbols-rounded text-[16px]" aria-hidden="true">edit</span>{{ 'COMMON.EDIT' | translate }}
         </button>
@@ -142,9 +127,9 @@
             @if (!item.applies) {
             <label class="mt-2 block text-xs font-medium text-gray-700 dark:text-gray-200" [for]="'reason-' + item.dimension">{{ 'COMPLIANCE.DETAIL.REASON' | translate }}</label>
             <textarea [id]="'reason-' + item.dimension" [name]="'reason-' + item.dimension" rows="2" [ngModel]="item.reason" (ngModelChange)="setReason(i, $event)"
-              [attr.aria-invalid]="fieldError('proposed_values.dimensions[' + i + '].reason_not_applicable') ? 'true' : null"
+              [attr.aria-invalid]="fieldError('dimensions[' + i + '].reason_not_applicable') ? 'true' : null"
               class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"></textarea>
-            @if (fieldError('proposed_values.dimensions[' + i + '].reason_not_applicable'); as fe) {
+            @if (fieldError('dimensions[' + i + '].reason_not_applicable'); as fe) {
             <p class="mt-1 text-xs text-error-600">{{ fe }}</p>
             }
             }
@@ -180,6 +165,38 @@
       }
     </app-detail-card>
 
+    <!-- Quién es responsable de cada dimensión de este control (users-team.md, D96): el administrador lo cambia; el auditor lo lee -->
+    @if (canSeeResponsibles() && responsibles().length) {
+    <app-detail-card titleKey="COMPLIANCE.DETAIL.RESPONSIBLES" icon="groups">
+      <p class="text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.DETAIL.RESPONSIBLES_HELP' | translate }}</p>
+      <ul class="mt-3 flex flex-col gap-3" data-test-responsibles>
+        @for (r of responsibles(); track r.dimension) {
+        <li class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700" [attr.data-test-responsible]="r.dimension">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ('COMPLIANCE.DIMENSION.' + r.dimension.toUpperCase()) | translate }}</p>
+            <p class="text-xs text-gray-600 dark:text-gray-300">
+              @if (r.owner; as o) {
+              {{ personName(o) }} · {{ (r.source === 'control' ? 'COMPLIANCE.DETAIL.SOURCE_CONTROL' : 'COMPLIANCE.DETAIL.SOURCE_SERVICE') | translate }}
+              } @else {
+              <span class="font-medium text-amber-800 dark:text-amber-300" data-test-unowned>{{ 'COMPLIANCE.DETAIL.NO_RESPONSIBLE' | translate }}</span>
+              }
+            </p>
+          </div>
+          @if (canEdit()) {
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+            {{ 'COMPLIANCE.DETAIL.CHANGE_RESPONSIBLE' | translate }}
+            <select [attr.data-test-responsible-select]="r.dimension" (change)="setResponsible(r.dimension, $any($event.target).value)" [disabled]="saving()"
+              class="h-9 min-w-56 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+              <option value="" [selected]="r.source !== 'control'">{{ 'COMPLIANCE.DETAIL.USE_SERVICE_OWNER' | translate }}</option>
+              @for (c of candidatesFor(r.dimension); track c.id) {<option [value]="c.id" [selected]="r.source === 'control' && r.owner?.id === c.id">{{ personName(c) }}</option>}
+            </select>
+          </label>
+          }
+        </li>
+        }
+      </ul>
+    </app-detail-card>
+    }
     <!-- Lo que pide este control, todo en un solo lugar: las pruebas que lo verifican (documentales y las que valida la sonda), con su estado, y las
          evidencias que hay que aportar para cumplirlas, que se suben desde aquí mismo (D80). -->
     <app-detail-card titleKey="COMPLIANCE.REQUIRES.TITLE" icon="fact_check">
@@ -241,9 +258,9 @@
     }
 
     <!-- Dar de baja: también es una propuesta -->
-    @if (canPropose() && mode() === 'view') {
+    @if (canEdit() && mode() === 'view') {
     <section class="border-t border-gray-200 pt-4 dark:border-gray-700" [attr.aria-label]="'COMPLIANCE.DETAIL.RETIRE' | translate">
-      <button type="button" (click)="askRetire()" [disabled]="hasPending('retire') || saving()"
+      <button type="button" (click)="askRetire()" [disabled]="saving()"
         class="inline-flex items-center gap-1.5 text-sm font-medium text-error-600 hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:no-underline">
         <span class="material-symbols-rounded text-[18px]" aria-hidden="true">delete</span>{{ 'COMPLIANCE.DETAIL.RETIRE' | translate }}
       </button>
@@ -259,5 +276,5 @@
 
 @if (confirmingRetire()) {
 <app-confirm-dialog titleKey="COMPLIANCE.DETAIL.RETIRE_CONFIRM_TITLE" messageKey="COMPLIANCE.DETAIL.RETIRE_CONFIRM_BODY" tone="danger"
-  confirmLabelKey="COMPLIANCE.DETAIL.SEND_PROPOSAL" [busy]="saving()" (confirmed)="confirmRetire()" (cancelled)="confirmingRetire.set(false)" />
+  confirmLabelKey="COMPLIANCE.DETAIL.RETIRE" [busy]="saving()" (confirmed)="confirmRetire()" (cancelled)="confirmingRetire.set(false)" />
 }

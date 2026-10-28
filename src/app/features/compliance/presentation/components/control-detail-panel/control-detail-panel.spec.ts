@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ControlChange, ControlDetail } from '../../../domain/models/control.models';
+import { ControlDetail, ControlResponsible, ResponsibleCandidate } from '../../../domain/models/control.models';
 import { ControlService } from '../../../domain/services/control.service';
 import { EvidenceService } from '../../../domain/services/evidence.service';
 import { ControlDetailPanel } from './control-detail-panel';
@@ -21,7 +21,6 @@ const DETAIL: ControlDetail = {
   progress: { done: 0, total: 5 },
   coverage: { measured: 0, applicable: 5 },
   assigned_to: null,
-  has_pending_change: false,
   interpretation: { text: 'Los accesos se otorgan con el formulario de TI.', is_customized: false },
   dimensions: [
     { dimension: 'policy', applies: true, type: 'manual', reason_not_applicable: null },
@@ -32,17 +31,25 @@ const DETAIL: ControlDetail = {
   failing: [],
 };
 
-const PENDING_RETIRE: ControlChange = { id: 'p1', control_id: 'c1', change_type: 'retire', status: 'pending', requested_at: '2026-10-14T00:00:00Z', decision_note: null };
+const RESPONSIBLES: ControlResponsible[] = [
+  { dimension: 'policy', tests_count: 2, owner: { id: 'ana', email: 'ana@acme.co', name: 'Ana', last_name: 'Ruiz' }, source: 'service' },
+  { dimension: 'cloud', tests_count: 1, owner: null, source: null },
+];
+const CANDIDATES: ResponsibleCandidate[] = [
+  { id: 'ana', email: 'ana@acme.co', name: 'Ana', last_name: 'Ruiz', status: 'active', dimensions: ['policy'] },
+  { id: 'beto', email: 'beto@acme.co', name: null, last_name: null, status: 'active', dimensions: ['policy', 'cloud'] },
+];
 
 describe('ControlDetailPanel', () => {
   let api: jasmine.SpyObj<ControlService>;
   let evidence: jasmine.SpyObj<EvidenceService>;
   let fixture: ComponentFixture<ControlDetailPanel>;
 
-  function setup(role: string, detail: ControlDetail = DETAIL, pending: ControlChange[] = []): ControlDetailPanel {
-    api = jasmine.createSpyObj<ControlService>('ControlService', ['get', 'changes', 'proposeChange']);
+  function setup(role: string, detail: ControlDetail = DETAIL, responsibles: ControlResponsible[] = RESPONSIBLES): ControlDetailPanel {
+    api = jasmine.createSpyObj<ControlService>('ControlService', ['get', 'update', 'retire', 'responsibles', 'setResponsible', 'candidates']);
     api.get.and.returnValue(of(detail));
-    api.changes.and.returnValue(of(pending));
+    api.responsibles.and.returnValue(of(responsibles));
+    api.candidates.and.returnValue(of(CANDIDATES));
     evidence = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download']);
     evidence.list.and.returnValue(NEVER);
     TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), { provide: ControlService, useValue: api }, { provide: EvidenceService, useValue: evidence }] });
@@ -91,10 +98,8 @@ describe('ControlDetailPanel', () => {
     expect(panel.canUploadEvidence()).toBeTrue();
     TestBed.resetTestingModule();
     expect(setup('funcional').canUploadEvidence()).toBeTrue();
-    for (const role of ['auditor', 'consultor']) {
-      TestBed.resetTestingModule();
-      expect(setup(role).canUploadEvidence()).toBeFalse();
-    }
+    TestBed.resetTestingModule();
+    expect(setup('auditor').canUploadEvidence()).toBeFalse();
   });
 
   it('shows to the company admin every test of the control, next to the evidence it asks for', () => {
@@ -122,19 +127,19 @@ describe('ControlDetailPanel', () => {
     expect(fixture.nativeElement.querySelector('[data-test-state]')).toBeNull();
   });
 
-  it('lets the company admin propose changes, and only reads for the auditor and the consultant', () => {
-    expect(setup('admin_empresa').canPropose()).toBeTrue();
+  it('lets only the company admin edit and retire; the auditor and the functional user read', () => {
+    expect(setup('admin_empresa').canEdit()).toBeTrue();
     expect(text()).toContain('COMPLIANCE.DETAIL.RETIRE');
-    for (const role of ['auditor', 'consultor']) {
+    for (const role of ['auditor', 'funcional']) {
       TestBed.resetTestingModule();
-      expect(setup(role).canPropose()).toBeFalse();
+      expect(setup(role).canEdit()).toBeFalse();
       expect(text()).not.toContain('COMPLIANCE.DETAIL.RETIRE');
     }
   });
 
-  it('sends the interpretation as a proposal with the text trimmed, and asks the list to refresh', () => {
+  it('saves the interpretation at once with the text trimmed, shows the control already changed, and asks the list to refresh', () => {
     const panel = setup('admin_empresa');
-    api.proposeChange.and.returnValue(of({ id: 'n', control_id: 'c1', change_type: 'edit_interpretation', status: 'pending', requested_at: '', decision_note: null }));
+    api.update.and.returnValue(of({ ...DETAIL, interpretation: { text: 'Se revisa cada trimestre.', is_customized: true } }));
     let changed = 0;
     panel.changed.subscribe(() => changed++);
 
@@ -142,9 +147,10 @@ describe('ControlDetailPanel', () => {
     panel.interpretationDraft.set('  Se revisa cada trimestre.  ');
     panel.submitInterpretation();
 
-    expect(api.proposeChange).toHaveBeenCalledWith('c1', { change_type: 'edit_interpretation', proposed_values: { interpretation: 'Se revisa cada trimestre.' } });
+    expect(api.update).toHaveBeenCalledWith('c1', { interpretation: { text: 'Se revisa cada trimestre.' } }, 'technical');
     expect(changed).toBe(1);
     expect(panel.mode()).toBe('view');
+    expect(panel.detail()?.interpretation.text).toBe('Se revisa cada trimestre.');
     expect(panel.notice()).not.toBeNull();
   });
 
@@ -154,26 +160,27 @@ describe('ControlDetailPanel', () => {
     panel.toggleDimension(0, false);
     expect(panel.dimensionsValid()).toBeFalse();
     panel.submitDimensions();
-    expect(api.proposeChange).not.toHaveBeenCalled();
+    expect(api.update).not.toHaveBeenCalled();
 
-    api.proposeChange.and.returnValue(of({ id: 'n', control_id: 'c1', change_type: 'edit_dimensions', status: 'pending', requested_at: '', decision_note: null }));
+    api.update.and.returnValue(of(DETAIL));
     panel.setReason(0, 'No usamos documentos.');
     panel.submitDimensions();
-    expect(api.proposeChange).toHaveBeenCalledWith('c1', {
-      change_type: 'edit_dimensions',
-      proposed_values: {
+    expect(api.update).toHaveBeenCalledWith(
+      'c1',
+      {
         dimensions: [
           { dimension: 'policy', applies: false, reason_not_applicable: 'No usamos documentos.' },
           { dimension: 'database', applies: false, reason_not_applicable: 'No operamos bases de datos propias.' },
         ],
       },
-    });
+      'technical',
+    );
   });
 
   it('shows the 422 error of a field under that field and keeps the editor open', () => {
     const panel = setup('admin_empresa');
-    const body = { message: 'validation.failed', error: { code: 'VALIDATION_FAILED', fields: [{ field: 'proposed_values.interpretation', code: 'string.max', message: 'Es demasiado largo.' }] } };
-    api.proposeChange.and.returnValue(throwError(() => new HttpErrorResponse({ status: 422, error: body })));
+    const body = { message: 'validation.failed', error: { code: 'VALIDATION_FAILED', fields: [{ field: 'interpretation.text', code: 'string.max', message: 'Es demasiado largo.' }] } };
+    api.update.and.returnValue(throwError(() => new HttpErrorResponse({ status: 422, error: body })));
 
     panel.startInterpretation();
     panel.interpretationDraft.set('texto');
@@ -181,25 +188,80 @@ describe('ControlDetailPanel', () => {
     fixture.detectChanges();
 
     expect(panel.mode()).toBe('interpretation');
-    expect(panel.fieldError('proposed_values.interpretation')).toBe('Es demasiado largo.');
+    expect(panel.fieldError('interpretation.text')).toBe('Es demasiado largo.');
     expect(text()).toContain('Es demasiado largo.');
   });
 
-  it('blocks proposing again what is already waiting for the consultant', () => {
-    const panel = setup('admin_empresa', DETAIL, [PENDING_RETIRE]);
-    expect(panel.hasPending('retire')).toBeTrue();
-    expect(panel.hasPending('edit_dimensions')).toBeFalse();
-  });
-
-  it('asks for confirmation before proposing to retire, and sends nothing until confirmed', () => {
+  it('asks for confirmation before retiring, sends nothing until confirmed, and then closes the drawer', () => {
     const panel = setup('admin_empresa');
+    api.retire.and.returnValue(of(undefined));
+    let changed = 0;
+    let closed = 0;
+    panel.changed.subscribe(() => changed++);
+    panel.closed.subscribe(() => closed++);
+
     panel.askRetire();
     expect(panel.confirmingRetire()).toBeTrue();
-    expect(api.proposeChange).not.toHaveBeenCalled();
+    expect(api.retire).not.toHaveBeenCalled();
 
-    api.proposeChange.and.returnValue(of({ id: 'n', control_id: 'c1', change_type: 'retire', status: 'pending', requested_at: '', decision_note: null }));
     panel.confirmRetire();
-    expect(api.proposeChange).toHaveBeenCalledWith('c1', { change_type: 'retire', proposed_values: {} });
+    expect(api.retire).toHaveBeenCalledWith('c1');
     expect(panel.confirmingRetire()).toBeFalse();
+    expect(changed).toBe(1);
+    expect(closed).toBe(1);
+  });
+
+  it('keeps the drawer open and says why when the control cannot be retired', () => {
+    const panel = setup('admin_empresa');
+    api.retire.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Este control ya fue dado de baja.' } })));
+    panel.askRetire();
+    panel.confirmRetire();
+    fixture.detectChanges();
+    expect(panel.error()).toBe('Este control ya fue dado de baja.');
+    expect(panel.confirmingRetire()).toBeFalse();
+  });
+
+  describe('responsibles by dimension (users-team.md)', () => {
+    const rows = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[data-test-responsible]'));
+
+    it('shows the company admin who owns each dimension and from where, and flags the ones without an owner', () => {
+      setup('admin_empresa');
+      expect(rows().map((r) => r.getAttribute('data-test-responsible'))).toEqual(['policy', 'cloud']);
+      expect(rows()[0].textContent).toContain('Ana Ruiz');
+      expect(rows()[0].textContent).toContain('COMPLIANCE.DETAIL.SOURCE_SERVICE');
+      expect(rows()[1].querySelector('[data-test-unowned]')).not.toBeNull();
+    });
+
+    it('offers only the people who have that specialty, and lets the admin change or clear the exception', () => {
+      const panel = setup('admin_empresa');
+      const options = (d: string) => Array.from(fixture.nativeElement.querySelectorAll(`[data-test-responsible-select="${d}"] option`) as NodeListOf<HTMLOptionElement>).map((o) => o.value);
+      expect(options('policy')).toEqual(['', 'ana', 'beto']);
+      expect(options('cloud')).toEqual(['', 'beto']);
+
+      api.setResponsible.and.returnValue(of({ dimension: 'cloud', tests_count: 1, owner: { id: 'beto', email: 'beto@acme.co', name: null, last_name: null }, source: 'control' }));
+      let changed = 0;
+      panel.changed.subscribe(() => changed++);
+      panel.setResponsible('cloud', 'beto');
+      fixture.detectChanges();
+      expect(api.setResponsible).toHaveBeenCalledWith('c1', 'cloud', 'beto');
+      expect(rows()[1].textContent).toContain('beto@acme.co');
+      expect(rows()[1].textContent).toContain('COMPLIANCE.DETAIL.SOURCE_CONTROL');
+      expect(changed).toBe(1);
+
+      api.setResponsible.and.returnValue(of({ dimension: 'cloud', tests_count: 1, owner: null, source: null }));
+      panel.setResponsible('cloud', '');
+      expect(api.setResponsible).toHaveBeenCalledWith('c1', 'cloud', null);
+    });
+
+    it('lets the auditor read who owns what but not change it, and shows nothing to the functional user', () => {
+      setup('auditor');
+      expect(rows().length).toBe(2);
+      expect(fixture.nativeElement.querySelector('[data-test-responsible-select]')).toBeNull();
+      expect(api.candidates).not.toHaveBeenCalled();
+      TestBed.resetTestingModule();
+      setup('funcional');
+      expect(rows().length).toBe(0);
+      expect(api.responsibles).not.toHaveBeenCalled();
+    });
   });
 });

@@ -2,10 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
-import { apiErrorMessage } from '@core/domain/utils/api-error';
-import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { Exclusion, ExclusionStatus } from '../../../domain/models/exclusion.models';
@@ -15,18 +13,16 @@ import { ExclusionService } from '../../../domain/services/exclusion.service';
 
 type Stage = 'loading' | 'error' | 'forbidden' | 'ready';
 
-// Las exclusiones del servicio (MD-144): sacar un activo del universo de una prueba. La propone la empresa y la decide el consultor; mientras está pendiente
-// no cambia nada y el activo sigue contando. El consultor aprueba o rechaza (rechazar exige el motivo); el administrador y el auditor la leen.
-// Proponer una exclusión desde un control espera a que el detalle del control traiga el id de cada prueba (PEDIDO-A-HECTOR.md, punto 4).
+// Las exclusiones del servicio (MD-144, D96): sacar un activo del universo de una prueba. La crea y la decide el administrador de la empresa en un solo acto: nace aprobada y el
+// activo deja de medirse en esa prueba hasta que venza (el fin del período). El administrador y el auditor las leen. Crear una desde un control está por construir.
 @Component({
   selector: 'app-exclusions',
-  imports: [TranslatePipe, ConfirmDialog, LoadingSpinner],
+  imports: [TranslatePipe, LoadingSpinner],
   templateUrl: './exclusions.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExclusionsView implements OnInit {
   private readonly api = inject(ExclusionService);
-  private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
   private readonly route = inject(ActivatedRoute);
   readonly view = inject(ComplianceViewService);
@@ -45,15 +41,6 @@ export class ExclusionsView implements OnInit {
     const f = this.filter();
     return f ? this.all().filter((e) => e.status === f) : this.all();
   });
-
-  readonly saving = signal(false);
-  readonly notice = signal<string | null>(null);
-  readonly error = signal<string | null>(null);
-
-  // La decisión: aprobar pide confirmar; rechazar pide el motivo.
-  readonly approving = signal<Exclusion | null>(null);
-  readonly rejecting = signal<string | null>(null);
-  readonly note = signal('');
 
   ngOnInit(): void {
     this.load();
@@ -74,34 +61,6 @@ export class ExclusionsView implements OnInit {
     return this.all().filter((e) => e.status === status).length;
   }
 
-  askApprove(e: Exclusion): void {
-    this.reset();
-    this.approving.set(e);
-  }
-
-  confirmApprove(): void {
-    const e = this.approving();
-    if (!e) return;
-    this.decide(e.id, { status: 'approved' }, 'COMPLIANCE.EXCLUSIONS.APPROVED', () => this.approving.set(null));
-  }
-
-  startReject(e: Exclusion): void {
-    this.reset();
-    this.note.set('');
-    this.rejecting.set(e.id);
-  }
-
-  cancelReject(): void {
-    this.rejecting.set(null);
-  }
-
-  confirmReject(): void {
-    const id = this.rejecting();
-    const note = this.note().trim();
-    if (!id || !note) return;
-    this.decide(id, { status: 'rejected', decision_note: note }, 'COMPLIANCE.EXCLUSIONS.REJECTED', () => this.rejecting.set(null));
-  }
-
   fullName(p: { name: string | null; last_name: string | null } | null): string {
     return p ? [p.name, p.last_name].filter(Boolean).join(' ') : '';
   }
@@ -109,29 +68,5 @@ export class ExclusionsView implements OnInit {
   /** `AAAA-MM-DD` es un día, sin hora ni zona: se muestra ese día en UTC para que no corra por la zona horaria. */
   day(value: string): string {
     return new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
-  }
-
-  private decide(id: string, body: { status: 'approved' | 'rejected'; decision_note?: string }, noticeKey: string, done: () => void): void {
-    this.saving.set(true);
-    this.reset();
-    this.api.decide(id, body).subscribe({
-      next: () => {
-        this.saving.set(false);
-        done();
-        this.notice.set(this.translate.instant(noticeKey));
-        this.load();
-      },
-      // `message` ya viene traducido por el backend (403: no es consultor; 409: ya se decidió; 422: falta el motivo).
-      error: (e) => {
-        this.saving.set(false);
-        this.approving.set(null);
-        this.error.set(apiErrorMessage(e, this.translate.instant('COMPLIANCE.EXCLUSIONS.SAVE_ERROR')));
-      },
-    });
-  }
-
-  private reset(): void {
-    this.notice.set(null);
-    this.error.set(null);
   }
 }

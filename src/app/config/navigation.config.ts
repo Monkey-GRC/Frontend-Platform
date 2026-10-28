@@ -16,6 +16,7 @@ export interface NavItem {
     path?: string;
     new?: boolean;
     section: string; // Define a qué sección pertenece
+    roles?: string[]; // Si se da, solo estos roles ven el elemento (la barrera real es el backend)
     subItems?: NavSubItem[];
 }
 
@@ -26,10 +27,11 @@ export interface SectionIcon {
 // Configuración de items de navegación
 export const NAV_ITEMS: NavItem[] = [
     { icon: 'home', name: 'Inicio', labelKey: 'SHELL.NAV.HOME', path: '/', section: 'Menu' },
-    { icon: 'apartment', name: 'Mi empresa', labelKey: 'SHELL.NAV.MY_COMPANY', path: '/onboarding', section: 'Menu' },
-    { icon: 'inventory_2', name: 'Mis servicios', labelKey: 'SHELL.NAV.MY_SERVICES', path: '/services', section: 'Menu' },
+    { icon: 'apartment', name: 'Mi empresa', labelKey: 'SHELL.NAV.MY_COMPANY', path: '/onboarding', section: 'Menu', roles: ['admin_empresa'] },
+    { icon: 'inventory_2', name: 'Mis servicios', labelKey: 'SHELL.NAV.MY_SERVICES', path: '/services', section: 'Menu', roles: ['admin_empresa'] },
     { icon: 'verified_user', name: 'Cumplimiento', labelKey: 'SHELL.NAV.COMPLIANCE', path: '/cumplimiento', section: 'Menu' },
     { icon: 'badge', name: 'Responsables', labelKey: 'SHELL.NAV.RESPONSIBLES', path: '/responsables', section: 'Menu' },
+    { icon: 'groups', name: 'Equipo', labelKey: 'SHELL.NAV.TEAM', path: '/equipo', section: 'Menu', roles: ['admin_empresa'] },
     // Se suma el dashboard cuando exista.
 ];
 

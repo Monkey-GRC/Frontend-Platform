@@ -13,12 +13,15 @@ import {
   throwError,
 } from 'rxjs';
 import { environment } from '@environments/environment';
+import { apiErrorCode } from '@core/domain/utils/api-error';
 import { SessionService } from '@core/domain/services/session.service';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import {
   AccessKeyLookup,
+  ActivationLookup,
   AuthPayload,
   AuthPayloadWithRecovery,
+  CodeLookup,
   LoginDto,
   LoginOutcome,
   MfaSetupStart,
@@ -54,6 +57,31 @@ export class AuthService {
     return this.http
       .post<SuccessResponse<AccessKeyLookup>>(`${this.baseUrl}/redeem/lookup`, { code })
       .pipe(map((res) => res.data!));
+  }
+
+  /**
+   * Paso 1 de la activación con CUALQUIER código: el de una empresa (clave de acceso) o el de una persona del equipo (D96). Se prueba primero como clave; si no es una
+   * clave, como código de activación. Cualquier otro error (vencido, ya usado, demasiados intentos) se muestra tal cual.
+   */
+  lookupCode(code: string): Observable<CodeLookup> {
+    return this.lookupAccessKey(code).pipe(
+      map((found): CodeLookup => ({ kind: 'access_key', email: found.admin_email, companyName: found.company.name, expiresAt: found.expires_at })),
+      catchError((error) => (apiErrorCode(error) === 'ACCESS_KEY_INVALID' ? this.lookupActivationCode(code) : throwError(() => error))),
+    );
+  }
+
+  /** Paso 2: crea la cuenta con la contraseña, por la puerta que corresponde al código. Con el factor obligatorio, sigue la configuración del segundo factor. */
+  claimAccount(found: CodeLookup, code: string, password: string): Observable<LoginOutcome> {
+    if (found.kind === 'access_key') return this.redeem({ code, email: found.email, password });
+    return this.http
+      .post<SuccessResponse<AuthPayload | MfaStep>>(`${this.baseUrl}/activate`, { code, email: found.email, password })
+      .pipe(switchMap((res) => this.outcome(res.data!)));
+  }
+
+  private lookupActivationCode(code: string): Observable<CodeLookup> {
+    return this.http
+      .post<SuccessResponse<ActivationLookup>>(`${this.baseUrl}/activate/lookup`, { code })
+      .pipe(map((res): CodeLookup => ({ kind: 'activation', email: res.data!.email, companyName: null, expiresAt: res.data!.expires_at })));
   }
 
   /** Paso 2: canjea la clave de acceso y crea la cuenta del administrador de la empresa. Con el factor obligatorio, sigue la configuración del segundo factor. */
