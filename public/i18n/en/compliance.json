@@ -92,6 +92,10 @@
       "EMPTY_TITLE": "No services created",
       "EMPTY_BODY": "To measure your compliance in a service, first create a service.",
       "DECLARE_SERVICE": "Create a service",
+      "EMPTY_FUNCIONAL_TITLE": "You have no assigned work yet",
+      "EMPTY_FUNCIONAL_BODY": "You will only see what is yours here. Your company administrator assigns you a dimension of a service; once they do, it will show up here.",
+      "EMPTY_READER_TITLE": "There are no services to review yet",
+      "EMPTY_READER_BODY": "Once the company administrator declares a service, you will see it here.",
       "GENERAL_TITLE": "Overall compliance",
       "GENERAL_BODY": "Each service is measured separately against each framework. Here you see how each one is doing; open one to see its detail. There is no combined percentage across services.",
       "SERVICE_COUNT": "{{count}} services with this framework",
@@ -325,8 +329,8 @@
       "AVOID": "Avoid"
     },
     "RESPONSIBLES": {
-      "TITLE": "Responsibles",
-      "INTRO": "The organization roles —COO, IT, Compliance, Process, CISO and asset owners— with the name of the person in charge. Risk treatments and evidence are assigned to them.",
+      "TITLE": "Responsible roles",
+      "INTRO": "The organization roles —COO, IT, Compliance, Process, CISO and asset owners— with the name of the person in charge. Risk treatments and evidence are assigned to them. They are not the people on your team with an account: those you invite and assign work to in “Team”.",
       "ADD": "Add responsible",
       "TYPE": "Role",
       "PERSON": "Person",
