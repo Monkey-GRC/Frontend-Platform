@@ -1,8 +1,9 @@
 {
   "TEAM": {
     "TITLE": "Team",
-    "INTRO": "Invite your people, give each person a specialty and split the work: who takes charge of each dimension in each service.",
+    "INTRO": "Invite your people and give each person a specialty. Whoever signs in as functional sees and handles everything in their specialties right away.",
     "YOU": "You",
+    "NO_NAME": "No name: fix it to identify them.",
     "LOAD_ERROR": "We could not load the team.",
     "TABS": { "PEOPLE": "People", "WORK": "Work split" },
     "ROLE": { "ADMIN_EMPRESA": "Administrator", "FUNCIONAL": "Functional", "AUDITOR": "Auditor" },
@@ -10,6 +11,12 @@
     "INVITE": {
       "TITLE": "Invite a person",
       "EMAIL": "Email",
+      "NAME": "First name",
+      "LAST_NAME": "Last name",
+      "EMAIL_TAKEN": "There is already a user registered with that email.",
+      "ALREADY_IN_TEAM": "There is already a user registered with that email: {{who}} ({{role}}).",
+      "FIX_NAME": "Fix their name",
+      "ADMIN_HELP": "An administrator manages the team and validates what is uploaded, like you. Only another administrator can create one.",
       "ROLE": "Role",
       "SUBMIT": "Invite",
       "DIMENSIONS": "Specialties",
@@ -25,6 +32,7 @@
       "EXPIRES": "Expires on {{date}}. If it gets lost, issue a new one."
     },
     "ACTIONS": {
+      "EDIT_NAME": "Edit name",
       "EDIT_DIMENSIONS": "Change specialties",
       "NEW_CODE": "New code",
       "DEACTIVATE": "Deactivate",
@@ -52,6 +60,7 @@
       "INVITED": "Done, we created the account. Hand over the activation code.",
       "CODE_REISSUED": "Done, we issued a new code. The previous one no longer works.",
       "UPDATED": "Done, we saved the specialties.",
+      "NAME_SAVED": "Done, we saved the name.",
       "DEACTIVATED": "Done, we deactivated the account.",
       "REACTIVATED": "Done, we reactivated the account.",
       "MFA_RESET": "Done, we removed the second factor.",

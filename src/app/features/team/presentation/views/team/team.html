@@ -44,6 +44,7 @@
   }
   @default {
 
+  @if (ownerAssignment) {
   <div class="mt-4 flex gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
     <button type="button" role="tab" [attr.aria-selected]="tab() === 'people'" (click)="tab.set('people')" data-test-tab-people
       class="-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition" [class]="tab() === 'people' ? 'border-primary text-primary' : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300'">
@@ -54,30 +55,52 @@
       {{ 'TEAM.TABS.WORK' | translate }}
     </button>
   </div>
+  }
 
   @if (tab() === 'people') {
 
-  <!-- Invitar -->
+  <!-- Invitar: primero el correo, que identifica a la persona -->
   <form class="mk-card mt-4 p-4" (submit)="$event.preventDefault(); invite()" [attr.aria-label]="'TEAM.INVITE.TITLE' | translate">
     <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'TEAM.INVITE.TITLE' | translate }}</h2>
-    <div class="mt-3 flex flex-wrap items-end gap-3">
-      <label class="flex min-w-56 flex-1 flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+    <div class="mt-3 grid gap-3 md:grid-cols-2">
+      <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200 md:col-span-2">
         {{ 'TEAM.INVITE.EMAIL' | translate }}
-        <input type="email" data-test-email maxlength="254" autocomplete="off" [value]="inviteEmail()" (input)="inviteEmail.set($any($event.target).value)" [disabled]="saving()"
+        <input type="email" data-test-email maxlength="254" autocomplete="off" [value]="inviteEmail()" (input)="setEmail($any($event.target).value)" [disabled]="saving()"
+          class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        @if (existing(); as e) {
+        <span class="text-xs font-normal text-amber-800 dark:text-amber-300" data-test-existing>
+          {{ 'TEAM.INVITE.ALREADY_IN_TEAM' | translate: { who: personName(e), role: ('TEAM.ROLE.' + e.role.toUpperCase() | translate) } }}
+          <button type="button" (click)="fixExisting()" data-test-fix-existing class="ml-1 font-semibold text-primary underline">{{ 'TEAM.INVITE.FIX_NAME' | translate }}</button>
+        </span>
+        } @else if (emailError(); as err) {
+        <span class="text-xs font-normal text-error-600" data-test-email-error>{{ err }}</span>
+        }
+      </label>
+      <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+        {{ 'TEAM.INVITE.NAME' | translate }}
+        <input type="text" data-test-name maxlength="100" autocomplete="off" [value]="inviteName()" (input)="inviteName.set($any($event.target).value)" [disabled]="saving()"
+          class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+      </label>
+      <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+        {{ 'TEAM.INVITE.LAST_NAME' | translate }}
+        <input type="text" data-test-last-name maxlength="100" autocomplete="off" [value]="inviteLastName()" (input)="inviteLastName.set($any($event.target).value)" [disabled]="saving()"
           class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
       </label>
       <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
         {{ 'TEAM.INVITE.ROLE' | translate }}
         <select data-test-role (change)="setRole($any($event.target).value)" [disabled]="saving()"
-          class="h-9 min-w-44 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+          class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
           <option value="funcional" [selected]="inviteRole() === 'funcional'">{{ 'TEAM.ROLE.FUNCIONAL' | translate }}</option>
           <option value="auditor" [selected]="inviteRole() === 'auditor'">{{ 'TEAM.ROLE.AUDITOR' | translate }}</option>
+          <option value="admin_empresa" [selected]="inviteRole() === 'admin_empresa'">{{ 'TEAM.ROLE.ADMIN_EMPRESA' | translate }}</option>
         </select>
       </label>
-      <button type="submit" [disabled]="!canInvite()" data-test-invite
-        class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50">
-        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">person_add</span>{{ 'TEAM.INVITE.SUBMIT' | translate }}
-      </button>
+      <div class="flex items-end">
+        <button type="submit" [disabled]="!canInvite()" data-test-invite
+          class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50">
+          <span class="material-symbols-rounded text-[18px]" aria-hidden="true">person_add</span>{{ 'TEAM.INVITE.SUBMIT' | translate }}
+        </button>
+      </div>
     </div>
     @if (inviteRole() === 'funcional') {
     <fieldset class="mt-3">
@@ -93,7 +116,7 @@
       </div>
     </fieldset>
     } @else {
-    <p class="mt-3 text-xs text-gray-600 dark:text-gray-300">{{ 'TEAM.INVITE.AUDITOR_HELP' | translate }}</p>
+    <p class="mt-3 text-xs text-gray-600 dark:text-gray-300">{{ (inviteRole() === 'auditor' ? 'TEAM.INVITE.AUDITOR_HELP' : 'TEAM.INVITE.ADMIN_HELP') | translate }}</p>
     }
   </form>
 
@@ -103,7 +126,7 @@
     <li class="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm" [attr.data-test-member]="m.email">
       <div class="min-w-0">
         <p class="font-medium text-gray-900 dark:text-white">{{ personName(m) }}@if (isMe(m)) {<span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-200">{{ 'TEAM.YOU' | translate }}</span>}</p>
-        @if (personName(m) !== m.email) {<p class="text-xs text-gray-600 dark:text-gray-300">{{ m.email }}</p>}
+        @if (personName(m) !== m.email) {<p class="text-xs text-gray-600 dark:text-gray-300">{{ m.email }}</p>} @else {<p class="text-xs text-amber-800 dark:text-amber-300" data-test-no-name>{{ 'TEAM.NO_NAME' | translate }}</p>}
         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
           <span class="rounded-full bg-primary/10 px-2.5 py-0.5 font-medium text-primary">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</span>
           <span class="rounded-full px-2.5 py-0.5 font-medium"
@@ -114,6 +137,19 @@
           <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-gray-800 dark:bg-gray-800 dark:text-gray-200">{{ dimensionLabel(d) }}</span>
           }
         </div>
+
+        @if (nameEditing() === m.id) {
+        <form class="mt-3 flex flex-wrap items-end gap-3" (submit)="$event.preventDefault(); saveName()">
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">{{ 'TEAM.INVITE.NAME' | translate }}
+            <input type="text" data-test-edit-name maxlength="100" [value]="nameDraft()" (input)="nameDraft.set($any($event.target).value)" [disabled]="saving()"
+              class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" /></label>
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">{{ 'TEAM.INVITE.LAST_NAME' | translate }}
+            <input type="text" data-test-edit-last-name maxlength="100" [value]="lastNameDraft()" (input)="lastNameDraft.set($any($event.target).value)" [disabled]="saving()"
+              class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" /></label>
+          <button type="submit" [disabled]="!canSaveName()" data-test-save-name class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'COMMON.SAVE' | translate }}</button>
+          <button type="button" (click)="nameEditing.set(null)" [disabled]="saving()" class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+        </form>
+        }
 
         @if (editing() === m.id) {
         <fieldset class="mt-3">
@@ -133,8 +169,11 @@
         }
       </div>
 
-      @if (!isMe(m) && m.role !== 'admin_empresa') {
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+        @if (nameEditing() !== m.id) {
+        <button type="button" (click)="startNameEdit(m)" [disabled]="saving()" data-test-edit-name-btn class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.EDIT_NAME' | translate }}</button>
+        }
+        @if (!isMe(m)) {
         @if (m.role === 'funcional' && editing() !== m.id) {
         <button type="button" (click)="startEdit(m)" [disabled]="saving()" data-test-edit class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.EDIT_DIMENSIONS' | translate }}</button>
         }
@@ -142,7 +181,7 @@
         <button type="button" (click)="reissue(m)" [disabled]="saving()" data-test-reissue class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.NEW_CODE' | translate }}</button>
         }
         @if (m.status === 'active') {
-        @if (m.is_mfa_enabled) {
+        @if (m.is_mfa_enabled && m.role !== 'admin_empresa') {
         <button type="button" (click)="ask('reset_mfa', m)" [disabled]="saving()" data-test-reset-mfa class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.RESET_MFA' | translate }}</button>
         }
         <button type="button" (click)="ask('deactivate', m)" [disabled]="saving()" data-test-deactivate class="text-sm font-medium text-error-600 hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.DEACTIVATE' | translate }}</button>
@@ -150,8 +189,8 @@
         @if (m.status === 'inactive') {
         <button type="button" (click)="reactivate(m)" [disabled]="saving()" data-test-reactivate class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.REACTIVATE' | translate }}</button>
         }
+        }
       </div>
-      }
     </li>
     }
   </ul>

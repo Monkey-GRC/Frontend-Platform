@@ -2,8 +2,9 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observable, forkJoin } from 'rxjs';
-import { apiErrorMessage } from '@core/domain/utils/api-error';
+import { Observable, forkJoin, of } from 'rxjs';
+import { OWNER_ASSIGNMENT_ENABLED } from '@config/features.config';
+import { apiErrorCode, apiErrorMessage } from '@core/domain/utils/api-error';
 import { SessionService } from '@core/domain/services/session.service';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
@@ -31,6 +32,8 @@ export class TeamView implements OnInit {
   private readonly api = inject(TeamService);
   private readonly translate = inject(TranslateService);
   readonly myId = inject(SessionService).user;
+  // D97: repartir el trabajo a personas concretas queda apagado; hoy el funcional atiende todo lo de su especialidad.
+  readonly ownerAssignment = inject(OWNER_ASSIGNMENT_ENABLED);
 
   // Las dimensiones salen del backend (enum `dimension`); el orden es el del contrato.
   readonly dimensionOptions = toSignal(inject(CatalogService).options('dimension'), { initialValue: [] });
@@ -47,11 +50,31 @@ export class TeamView implements OnInit {
 
   // Alta
   readonly inviteEmail = signal('');
-  readonly inviteRole = signal<'funcional' | 'auditor'>('funcional');
+  readonly inviteName = signal('');
+  readonly inviteLastName = signal('');
+  readonly inviteRole = signal<'funcional' | 'auditor' | 'admin_empresa'>('funcional');
   readonly inviteDimensions = signal<Dimension[]>([]);
+  // El correo identifica a la persona: si ya está en el equipo se avisa antes de intentar crear nada. Si es de otra empresa, lo dice el servidor al enviar (409).
+  readonly existing = computed(() => {
+    const email = this.inviteEmail().trim().toLowerCase();
+    return email ? (this.members().find((m) => m.email.toLowerCase() === email) ?? null) : null;
+  });
+  readonly emailError = signal<string | null>(null);
   readonly canInvite = computed(
-    () => /^\S+@\S+\.\S+$/.test(this.inviteEmail().trim()) && (this.inviteRole() === 'auditor' || this.inviteDimensions().length > 0) && !this.saving(),
+    () =>
+      /^\S+@\S+\.\S+$/.test(this.inviteEmail().trim()) &&
+      !!this.inviteName().trim() &&
+      !!this.inviteLastName().trim() &&
+      (this.inviteRole() !== 'funcional' || this.inviteDimensions().length > 0) &&
+      !this.existing() &&
+      !this.saving(),
   );
+
+  // Corregir el nombre de alguien del equipo
+  readonly nameEditing = signal<string | null>(null);
+  readonly nameDraft = signal('');
+  readonly lastNameDraft = signal('');
+  readonly canSaveName = computed(() => !!this.nameDraft().trim() && !!this.lastNameDraft().trim() && !this.saving());
 
   // Cambio de especialidades de un funcional
   readonly editing = signal<string | null>(null);
@@ -71,7 +94,7 @@ export class TeamView implements OnInit {
 
   load(): void {
     this.stage.set('loading');
-    forkJoin({ page: this.api.list(), services: this.api.services() }).subscribe({
+    forkJoin({ page: this.api.list(), services: this.ownerAssignment ? this.api.services() : of<ServiceRef[]>([]) }).subscribe({
       next: ({ page, services }) => {
         this.members.set(page.items);
         this.services.set(services);
@@ -95,22 +118,66 @@ export class TeamView implements OnInit {
     this.inviteDimensions.update((list) => (list.includes(dimension) ? list.filter((d) => d !== dimension) : [...list, dimension]));
   }
 
-  setRole(role: 'funcional' | 'auditor'): void {
+  setRole(role: 'funcional' | 'auditor' | 'admin_empresa'): void {
     this.inviteRole.set(role);
-    if (role === 'auditor') this.inviteDimensions.set([]);
+    if (role !== 'funcional') this.inviteDimensions.set([]);
+  }
+
+  setEmail(value: string): void {
+    this.inviteEmail.set(value);
+    this.emailError.set(null);
   }
 
   invite(): void {
     if (!this.canInvite()) return;
-    const email = this.inviteEmail().trim();
     const role = this.inviteRole();
-    this.run(this.api.invite({ email, role, ...(role === 'funcional' ? { dimensions: this.inviteDimensions() } : {}) }), 'TEAM.NOTICE.INVITED', (created) => {
-      this.showCode(created);
-      this.inviteEmail.set('');
-      this.inviteDimensions.set([]);
-    });
+    const body = {
+      email: this.inviteEmail().trim(),
+      name: this.inviteName().trim(),
+      last_name: this.inviteLastName().trim(),
+      role,
+      ...(role === 'funcional' ? { dimensions: this.inviteDimensions() } : {}),
+    };
+    this.run(
+      this.api.invite(body),
+      'TEAM.NOTICE.INVITED',
+      (created) => {
+        this.showCode(created);
+        this.inviteEmail.set('');
+        this.inviteName.set('');
+        this.inviteLastName.set('');
+        this.inviteDimensions.set([]);
+      },
+      undefined,
+      // Un correo que ya existe en la plataforma se dice bajo el campo del correo, no en un aviso general.
+      (e) => {
+        if (apiErrorCode(e) !== 'EMAIL_TAKEN') return false;
+        this.emailError.set(apiErrorMessage(e, this.translate.instant('TEAM.INVITE.EMAIL_TAKEN')));
+        return true;
+      },
+    );
   }
 
+  /** El correo ya es de alguien del equipo: en vez de crearlo otra vez, se le corrige el nombre. */
+  fixExisting(): void {
+    const m = this.existing();
+    if (!m) return;
+    this.inviteEmail.set('');
+    this.startNameEdit(m);
+  }
+
+  startNameEdit(m: TeamMember): void {
+    this.resetMessages();
+    this.nameEditing.set(m.id);
+    this.nameDraft.set(m.name ?? '');
+    this.lastNameDraft.set(m.last_name ?? '');
+  }
+
+  saveName(): void {
+    const id = this.nameEditing();
+    if (!id || !this.canSaveName()) return;
+    this.run(this.api.update(id, { name: this.nameDraft().trim(), last_name: this.lastNameDraft().trim() }), 'TEAM.NOTICE.NAME_SAVED', () => this.nameEditing.set(null));
+  }
   reissue(m: TeamMember): void {
     this.run(this.api.reissueCode(m.id), 'TEAM.NOTICE.CODE_REISSUED', (created) => this.showCode(created));
   }
@@ -212,7 +279,7 @@ export class TeamView implements OnInit {
   }
 
   // ─── común ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  private run<T>(call: Observable<T>, noticeKey: string, done: (result: T) => void, failed?: () => void): void {
+  private run<T>(call: Observable<T>, noticeKey: string, done: (result: T) => void, failed?: () => void, handled?: (error: unknown) => boolean): void {
     this.saving.set(true);
     this.resetMessages();
     call.subscribe({
@@ -226,6 +293,7 @@ export class TeamView implements OnInit {
       error: (e) => {
         this.saving.set(false);
         failed?.();
+        if (handled?.(e)) return;
         this.error.set(apiErrorMessage(e, this.translate.instant('TEAM.ERROR.SAVE')));
       },
     });
@@ -234,7 +302,7 @@ export class TeamView implements OnInit {
   private refresh(): void {
     this.api.list().subscribe({ next: (page) => this.members.set(page.items) });
     const serviceId = this.serviceId();
-    if (serviceId) this.api.dimensionOwners(serviceId).subscribe({ next: (owners) => this.owners.set(owners) });
+    if (this.ownerAssignment && serviceId) this.api.dimensionOwners(serviceId).subscribe({ next: (owners) => this.owners.set(owners) });
   }
 
   private resetMessages(): void {

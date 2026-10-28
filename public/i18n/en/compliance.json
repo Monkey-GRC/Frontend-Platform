@@ -93,7 +93,7 @@
       "EMPTY_BODY": "To measure your compliance in a service, first create a service.",
       "DECLARE_SERVICE": "Create a service",
       "EMPTY_FUNCIONAL_TITLE": "You have no assigned work yet",
-      "EMPTY_FUNCIONAL_BODY": "You will only see what is yours here. Your company administrator assigns you a dimension of a service; once they do, it will show up here.",
+      "EMPTY_FUNCIONAL_BODY": "Everything in your specialties shows up here. There is nothing yet: the company may not have services with controls in your specialty. If you think this is a mistake, tell your administrator.",
       "EMPTY_READER_TITLE": "There are no services to review yet",
       "EMPTY_READER_BODY": "Once the company administrator declares a service, you will see it here.",
       "GENERAL_TITLE": "Overall compliance",

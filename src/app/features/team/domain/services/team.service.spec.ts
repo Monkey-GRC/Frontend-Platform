@@ -19,10 +19,10 @@ describe('TeamService (D96)', () => {
 
   it('invites a person and keeps the activation code that comes back once', () => {
     let code = '';
-    service.invite({ email: 'juan@acme.co', role: 'funcional', dimensions: ['server'] }).subscribe((m) => (code = m.activation_code.code));
+    service.invite({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'funcional', dimensions: ['server'] }).subscribe((m) => (code = m.activation_code.code));
     const req = http.expectOne(`${api}/users`);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ email: 'juan@acme.co', role: 'funcional', dimensions: ['server'] });
+    expect(req.request.body).toEqual({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'funcional', dimensions: ['server'] });
     req.flush({ data: { id: 'u1', email: 'juan@acme.co', activation_code: { code: 'MNK-AAAA-BBBB-CCCC', status: 'pending', expires_at: '2026-11-04T00:00:00Z' } } });
     expect(code).toBe('MNK-AAAA-BBBB-CCCC');
   });
