@@ -7,7 +7,7 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
-import { ControlListItem, controlCode } from '../../../domain/models/control.models';
+import { ControlListItem } from '../../../domain/models/control.models';
 import {
   EVIDENCE_FILTERS,
   EvidenceFilter,
@@ -62,7 +62,7 @@ export class EvidenceInboxView {
   private readonly evidence = signal<ReadonlyMap<string, EvidenceRequirement[]>>(new Map());
   private requestSeq = 0;
 
-  readonly rows = computed(() => buildInboxRows(this.controls().map((c) => ({ id: c.id, name: c.name, code: controlCode(c) })), this.evidence()));
+  readonly rows = computed(() => buildInboxRows(this.controls().map((c) => ({ id: c.id, name: c.name, code: c.code })), this.evidence()));
   readonly visible = computed(() => {
     const f = this.filter();
     return f === 'all' ? this.rows() : this.rows().filter((r) => evidenceFilterOf(r) === f);
