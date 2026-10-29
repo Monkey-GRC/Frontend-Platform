@@ -3,20 +3,15 @@
 
 export type RiskOrigin = 'catalog' | 'own';
 
-// Un vínculo causa–control. `code` (D80) llega cuando el backend lo mueva a la vista de negocio; mientras tanto se usa `own_code`.
+// Un vínculo causa–control. `code` (D80) es el del catálogo (`IAC-12`) o el propio (`C01`); `own_code` es solo la numeración de los propios.
 export interface ControlLink {
   control_id: string;
-  code?: string | null;
+  code: string;
   own_code: string | null;
   name: string;
   is_mandatory: boolean;
   effect: string | null;
   technical?: { catalog_code: string | null };
-}
-
-/** El código que identifica al control en un vínculo (D80): el de la vista de negocio, o el técnico si el backend aún lo manda ahí, o el propio (`C01`). */
-export function linkCode(l: Pick<ControlLink, 'code' | 'own_code' | 'technical'>): string | null {
-  return l.code ?? l.technical?.catalog_code ?? l.own_code ?? null;
 }
 
 export interface RiskListItem {

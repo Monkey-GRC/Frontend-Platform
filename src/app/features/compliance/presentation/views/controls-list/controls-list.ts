@@ -13,7 +13,7 @@ import { DataTable, TableCell, TableColumn } from '@shared/presentation/componen
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
-import { ControlListItem, TrustCriterion, controlCode, requirementCodes } from '../../../domain/models/control.models';
+import { ControlListItem, TrustCriterion } from '../../../domain/models/control.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { ControlService } from '../../../domain/services/control.service';
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
@@ -72,20 +72,14 @@ export class ControlsListView {
     ...READINESS_LEVELS.map((level) => ({ value: level, label: this.t(`COMPLIANCE.STATUS.${level.toUpperCase()}`) })),
   ]);
 
-  // D80: el código se muestra siempre. La columna aparece en cuanto el backend manda códigos (hoy solo los trae en la vista técnica, para auditor y
-  // consultor); mientras no haya ninguno en la página no se pinta una columna vacía.
-  readonly hasCodes = computed(() => this.rows().some((r) => controlCode(r) !== null));
-
   readonly columns = computed<TableColumn<ControlListItem>[]>(() => [
-    ...(this.hasCodes() ? [{ key: 'code', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TECHNICAL' }] : []),
+    { key: 'code', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TECHNICAL' },
     { key: 'name', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_NAME' },
     { key: 'topics', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TOPIC' },
     { key: 'status', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_STATUS' },
     { key: 'counts', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_PROGRESS' },
   ]);
 
-  readonly codeOf = controlCode;
-  readonly requirementsOf = requirementCodes;
   readonly percentOf = percentOf;
 
   /** «60 %» (o «—» sin total), en el idioma de la sesión. */

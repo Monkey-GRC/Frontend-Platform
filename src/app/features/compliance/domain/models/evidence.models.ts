@@ -3,7 +3,7 @@
 //   · evidencia ENTREGADA (`evidence_submissions`): lo que se sube para cumplir ese requerimiento, con su versión y su huella.
 // «Prueba» no se usa aquí: en el cerebro una prueba es el test que ejecuta el motor.
 
-// Lo deriva el servidor de la revisión del consultor o del auditor; nadie lo escribe. La empresa solo aporta: no aprueba ni rechaza (D84).
+// Lo deriva el servidor de la revisión del `admin_empresa`; nadie lo escribe. El `funcional` solo sube: no aprueba ni rechaza (D96).
 export type EvidenceState = 'compliant' | 'non_compliant' | 'pending' | 'in_review' | 'expired' | 'not_applicable';
 
 export interface EvidencePerson {
@@ -58,7 +58,7 @@ export function suggestedEvidence(requirements: readonly EvidenceRequirement[], 
 
 // ── La pestaña «Evidencias» (MD-129): una fila por evidencia requerida, con el control que la pide ──
 
-/** Qué se busca en la bandeja. «Sin entregar» = nadie ha subido nada; «por revisar» = ya se entregó y falta (o está en) revisión del consultor o del auditor. */
+/** Qué se busca en la bandeja. «Sin entregar» = nadie ha subido nada; «por revisar» = ya se entregó y falta (o está en) revisión del administrador de la empresa. */
 export type EvidenceFilter = 'all' | 'missing' | 'to_review' | 'reviewed';
 export const EVIDENCE_FILTERS: readonly EvidenceFilter[] = ['all', 'missing', 'to_review', 'reviewed'];
 

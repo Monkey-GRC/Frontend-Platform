@@ -29,12 +29,10 @@
     <div>
       <!-- D80: el código se muestra siempre, con los requisitos del marco que el control cubre. -->
       <div class="flex flex-wrap items-center gap-2">
-        @if (codeOf(d); as code) {
-        <span class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 font-mono text-xs font-semibold text-primary ring-1 ring-inset ring-primary/30">{{ code }}</span>
-        }
-        @if (requirementsOf(d).length) {
+        <span class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 font-mono text-xs font-semibold text-primary ring-1 ring-inset ring-primary/30">{{ d.code }}</span>
+        @if (d.requirement_codes.length) {
         <span class="sr-only">{{ 'COMPLIANCE.DETAIL.TECH_REQUIREMENTS' | translate }}:</span>
-        @for (r of requirementsOf(d); track r) {
+        @for (r of d.requirement_codes; track r) {
         <span class="inline-flex items-center rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 dark:border-gray-600 dark:text-gray-200">{{ r }}</span>
         }
         }
@@ -247,7 +245,7 @@
     </app-detail-card>
     }
 
-    <!-- Vista técnica: solo auditor y consultor. Nunca el texto ni el nombre de una prueba del comité (P11). -->
+    <!-- Vista técnica: solo auditor y administrador de la empresa. Nunca el texto ni el nombre de una prueba del comité (P11). -->
     @if (d.technical; as tech) {
     <app-detail-card titleKey="COMPLIANCE.SHELL.TECHNICAL_VIEW" icon="verified_user" [startOpen]="false">
       <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs text-gray-700 dark:text-gray-200">

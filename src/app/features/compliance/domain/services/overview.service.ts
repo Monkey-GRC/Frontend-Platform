@@ -5,7 +5,7 @@ import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { ComplianceOverview, EvaluationPeriodBody, EvaluationPeriodResult } from '../models/overview.models';
 
-// El resumen de cumplimiento de un servicio. `view` es `technical` solo para auditor, consultor y administrador (`ComplianceViewService.viewParam`).
+// El resumen de cumplimiento de un servicio. `view` es `technical` solo para auditor y administrador de la empresa (`ComplianceViewService.viewParam`).
 @Injectable({ providedIn: 'root' })
 export class OverviewService {
   private readonly http = inject(HttpClient);

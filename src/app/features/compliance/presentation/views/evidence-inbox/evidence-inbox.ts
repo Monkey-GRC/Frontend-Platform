@@ -7,7 +7,7 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
-import { ControlListItem, controlCode } from '../../../domain/models/control.models';
+import { ControlListItem } from '../../../domain/models/control.models';
 import {
   EVIDENCE_FILTERS,
   EvidenceFilter,
@@ -30,7 +30,7 @@ const CONCURRENCY = 6;
 
 // La pestaña «Evidencias» de un servicio (MD-129): todo lo que los controles piden que se aporte, con su responsable y el estado de la última entrega,
 // para ver de un vistazo qué falta. Subir y descargar se hace en el panel del control (se abre con un clic en la fila), con el mismo componente de evidencia
-// del control. La empresa solo aporta (D84): no hay botones de aprobar ni rechazar; el estado lo calcula el servidor a partir de la revisión del consultor.
+// del control. La bandeja solo muestra (D96): no hay botones de aprobar ni rechazar aquí; el estado lo calcula el servidor a partir de la revisión del administrador de la empresa.
 // Hoy lo ve el administrador de la empresa; el detalle por rol espera a los permisos por pantalla (P3).
 @Component({
   selector: 'app-evidence-inbox',
@@ -62,7 +62,7 @@ export class EvidenceInboxView {
   private readonly evidence = signal<ReadonlyMap<string, EvidenceRequirement[]>>(new Map());
   private requestSeq = 0;
 
-  readonly rows = computed(() => buildInboxRows(this.controls().map((c) => ({ id: c.id, name: c.name, code: controlCode(c) })), this.evidence()));
+  readonly rows = computed(() => buildInboxRows(this.controls().map((c) => ({ id: c.id, name: c.name, code: c.code })), this.evidence()));
   readonly visible = computed(() => {
     const f = this.filter();
     return f === 'all' ? this.rows() : this.rows().filter((r) => evidenceFilterOf(r) === f);

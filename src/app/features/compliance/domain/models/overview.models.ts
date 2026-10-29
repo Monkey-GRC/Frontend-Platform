@@ -84,7 +84,6 @@ export interface OverviewFramework {
     unique_controls: number;
     failing: string[];
     pending: string[];
-    assessments: { consultant: unknown | null; auditor: unknown | null };
   };
 }
 

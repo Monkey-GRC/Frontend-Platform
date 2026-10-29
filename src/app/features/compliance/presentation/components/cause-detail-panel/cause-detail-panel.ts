@@ -4,8 +4,7 @@ import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
-import { controlCode } from '../../../domain/models/control.models';
-import { Cause, ControlLink, linkCode } from '../../../domain/models/risk.models';
+import { Cause, ControlLink } from '../../../domain/models/risk.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { ControlService } from '../../../domain/services/control.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
@@ -38,7 +37,6 @@ export class CauseDetailPanel {
   /** Se pidió editar esta causa propia: la vista abre el formulario. */
   readonly edit = output<Cause>();
 
-  readonly codeOf = linkCode;
 
   readonly stage = signal<Stage>('loading');
   readonly detail = signal<Cause | null>(null);
@@ -82,7 +80,7 @@ export class CauseDetailPanel {
     this.controls.listAll(d.service_id, this.view.viewParam()).subscribe({
       next: (all) =>
         this.candidates.set(
-          all.filter((c) => !linked.has(c.id)).map((c) => ({ id: c.id, label: [controlCode(c), c.name].filter(Boolean).join(' · ') })),
+          all.filter((c) => !linked.has(c.id)).map((c) => ({ id: c.id, label: [c.code, c.name].filter(Boolean).join(' · ') })),
         ),
       error: () => this.fail(null),
     });

@@ -14,7 +14,7 @@ describe('ComplianceViewService', () => {
     return TestBed.inject(ComplianceViewService);
   }
 
-  it('gives the technical view to the company admin and the auditor only (D96: there is no consultant)', () => {
+  it('gives the technical view to the company admin and the auditor only', () => {
     for (const role of ['admin_empresa', 'auditor']) {
       TestBed.resetTestingModule();
       const view = as(role);
@@ -24,7 +24,7 @@ describe('ComplianceViewService', () => {
   });
 
   it('keeps the business view for the functional user, with no view parameter', () => {
-    for (const role of ['funcional', 'consultor']) {
+    for (const role of ['funcional']) {
       TestBed.resetTestingModule();
       const view = as(role);
       expect(view.isTechnicalView()).toBeFalse();

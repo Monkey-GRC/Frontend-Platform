@@ -12,6 +12,8 @@ import { ControlDetailPanel } from './control-detail-panel';
 const DETAIL: ControlDetail = {
   id: 'c1',
   service_id: 's1',
+  code: 'IAC-12',
+  requirement_codes: [],
   own_code: null,
   name: 'Gestión de accesos de usuarios',
   origin: 'catalog',

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
-import { RiskCauseNode, RiskDetail, linkCode } from '../../../domain/models/risk.models';
+import { RiskCauseNode, RiskDetail } from '../../../domain/models/risk.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { RiskService } from '../../../domain/services/risk.service';
@@ -37,7 +37,6 @@ export class RiskDetailPanel {
   /** Se pidió editar este riesgo propio: la vista abre el formulario. */
   readonly edit = output<RiskDetail>();
 
-  readonly codeOf = linkCode;
 
   readonly stage = signal<Stage>('loading');
   readonly detail = signal<RiskDetail | null>(null);

@@ -10,6 +10,8 @@ import { ControlsListView } from './controls-list';
 
 const ITEM: ControlListItem = {
   id: 'c1',
+  code: 'IAC-12',
+  requirement_codes: ['CC6.1', 'CC6.2'],
   own_code: null,
   name: 'Gestión de accesos de usuarios',
   origin: 'catalog',
@@ -68,12 +70,7 @@ describe('ControlsListView', () => {
     expect(api.list.calls.mostRecent().args[2]).toBeUndefined();
   });
 
-  it('shows the code column as soon as the backend sends codes, and not an empty one before', () => {
-    // Sin códigos en la página (hoy el backend solo los manda dentro de `technical`): no hay columna vacía.
-    expect(setup('admin_empresa').columns().some((c) => c.key === 'code')).toBeFalse();
-    TestBed.resetTestingModule();
-
-    // Con el código en la vista de negocio (D80), se muestra siempre, con sus requisitos.
+  it('always shows the code column, with the control code and the requirements it covers (D80)', () => {
     const view = setup('admin_empresa');
     api.list.and.returnValue(of({ items: [{ ...ITEM, code: 'IAC-12', requirement_codes: ['CC6.1', 'CC6.2'] }], ...PAGE }));
     view.load();
@@ -81,13 +78,6 @@ describe('ControlsListView', () => {
     expect(view.columns()[0].key).toBe('code');
     expect(text()).toContain('IAC-12');
     expect(text()).toContain('CC6.1, CC6.2');
-  });
-
-  it('falls back to the technical code the backend still sends to the auditor, and to the own code', () => {
-    const view = setup('auditor');
-    expect(view.codeOf({ ...ITEM, technical: { control_code: 'IAC-3', points_of_focus: [], control_state: 'effective', tests_count: 1 } })).toBe('IAC-3');
-    expect(view.codeOf({ ...ITEM, own_code: 'C01' })).toBe('C01');
-    expect(view.codeOf(ITEM)).toBeNull();
   });
 
   it('shows compliance and coverage as percentages together with the counts, truncated and never a bare number', () => {

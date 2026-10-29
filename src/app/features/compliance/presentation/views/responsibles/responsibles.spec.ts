@@ -58,7 +58,7 @@ describe('ResponsiblesView', () => {
     setup('admin_empresa');
     expect(el().querySelector('[data-test-add]')).not.toBeNull();
     expect(el().querySelector('[data-test-edit]')).not.toBeNull();
-    for (const role of ['auditor', 'consultor', 'funcional']) {
+    for (const role of ['auditor', 'funcional']) {
       TestBed.resetTestingModule();
       setup(role);
       expect(text()).toContain('Marta Ruiz');

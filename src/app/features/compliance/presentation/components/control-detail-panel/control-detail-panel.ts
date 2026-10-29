@@ -14,8 +14,6 @@ import {
   ControlResponsible,
   ResponsibleCandidate,
   UpdateControlBody,
-  controlCode,
-  requirementCodes,
 } from '../../../domain/models/control.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { ControlService } from '../../../domain/services/control.service';
@@ -63,8 +61,6 @@ export class ControlDetailPanel {
   readonly maxInterpretation = INTERPRETATION_MAX;
 
   private readonly language = inject(LanguageService);
-  readonly codeOf = controlCode;
-  readonly requirementsOf = requirementCodes;
   readonly percentOf = percentOf;
 
   /** «60 %» (o «—» sin total), en el idioma de la sesión. */

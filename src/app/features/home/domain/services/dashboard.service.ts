@@ -33,7 +33,7 @@ export class HomeDashboardService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiUrl;
 
-  /** `technical` pide la vista técnica del resumen (solo el administrador, el consultor y el auditor la reciben). */
+  /** `technical` pide la vista técnica del resumen (solo el administrador de la empresa y el auditor la reciben). */
   load(technical: boolean): Observable<Dashboard> {
     return this.page<ServiceRef>(`${this.base}/services`, { page: 1, page_size: 100 }).pipe(
       switchMap((services) => (services.items.length === 0 ? of({ services: [] } as Dashboard) : forkJoin(services.items.map((s) => this.service(s, technical))).pipe(map((list) => ({ services: list }))))),
