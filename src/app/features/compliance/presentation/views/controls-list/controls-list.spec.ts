@@ -20,7 +20,6 @@ const ITEM: ControlListItem = {
   progress: { done: 0, total: 5 },
   coverage: { measured: 0, applicable: 5 },
   assigned_to: null,
-  has_pending_change: false,
 };
 
 const PAGE = { page: { page: 1, pageSize: 25, total: 1, totalPages: 1 } };

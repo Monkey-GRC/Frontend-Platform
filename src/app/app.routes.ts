@@ -1,10 +1,12 @@
 import { Routes } from '@angular/router';
 import { Login } from '@features/auth/presentation/views/login/login';
 import { Register } from '@features/auth/presentation/views/register/register';
+import { Mfa } from '@features/auth/presentation/views/mfa/mfa';
 import { NotFoundLayout } from '@core/presentation/pages/not-found-layout/not-found-layout';
 import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layout.component';
 import { authGuard } from '@core/domain/guards/auth.guard';
 import { guestGuard } from '@core/domain/guards/guest.guard';
+import { roleGuard } from '@core/domain/guards/role.guard';
 import { risksEvaluatedGuard } from '@features/services/domain/guards/risks-evaluated.guard';
 
 export const routes: Routes = [
@@ -63,6 +65,12 @@ export const routes: Routes = [
         path: 'cumplimiento',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
       },
+      // El equipo de la empresa y el reparto del trabajo por dimensión (D96): lo gestiona el administrador.
+      {
+        path: 'equipo',
+        canActivate: [roleGuard('admin_empresa')],
+        loadComponent: () => import('@features/team/presentation/views/team/team').then(m => m.TeamView),
+      },
       // Los cargos responsables son de la organización, no de un servicio (MD-135).
       {
         path: 'responsables',
@@ -118,6 +126,11 @@ export const routes: Routes = [
   {
     path: 'signin',
     component: Login,
+    canActivate: [guestGuard],
+  },
+  {
+    path: 'mfa',
+    component: Mfa,
     canActivate: [guestGuard],
   },
   {

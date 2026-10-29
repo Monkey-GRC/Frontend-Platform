@@ -42,11 +42,36 @@ describe('ControlService', () => {
     expect(result).toEqual({ page: 1, pageSize: 25, total: 80, totalPages: 4 });
   });
 
-  it('proposes a change on the control and does not touch any other resource', () => {
-    service.proposeChange('c1', { change_type: 'retire', proposed_values: {} }).subscribe();
-    const req = http.expectOne((r) => r.url.endsWith('/controls/c1/changes'));
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ change_type: 'retire', proposed_values: {} });
-    req.flush({ statusCode: 201, message: 'control_change.requested', data: { id: 'x' } });
+  it('edits the control in place with PATCH and retires it with DELETE (D96)', () => {
+    service.update('c1', { interpretation: { text: 'Nuevo texto.' } }).subscribe();
+    const patch = http.expectOne((r) => r.url.endsWith('/controls/c1'));
+    expect(patch.request.method).toBe('PATCH');
+    expect(patch.request.body).toEqual({ interpretation: { text: 'Nuevo texto.' } });
+    patch.flush({ statusCode: 200, message: 'control.updated', data: { id: 'c1' } });
+
+    service.retire('c1').subscribe();
+    const del = http.expectOne((r) => r.url.endsWith('/controls/c1'));
+    expect(del.request.method).toBe('DELETE');
+    del.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  it('reads who owns each dimension of a control, sets or clears the exception, and lists the people to choose from', () => {
+    let rows = 0;
+    service.responsibles('c1').subscribe((r) => (rows = r.length));
+    http.expectOne((r) => r.url.endsWith('/controls/c1/responsibles')).flush({ data: { items: [{ dimension: 'policy' }, { dimension: 'cloud' }] } });
+    expect(rows).toBe(2);
+
+    service.setResponsible('c1', 'cloud', null).subscribe();
+    const set = http.expectOne((r) => r.url.endsWith('/controls/c1/responsibles/cloud'));
+    expect(set.request.method).toBe('PATCH');
+    expect(set.request.body).toEqual({ user_id: null });
+    set.flush({ data: {} });
+
+    let people: string[] = [];
+    service.candidates().subscribe((c) => (people = c.map((x) => x.id)));
+    const req = http.expectOne((r) => r.url.endsWith('/users'));
+    expect(req.request.params.get('role')).toBe('funcional');
+    req.flush({ data: { items: [{ id: 'a', status: 'active' }, { id: 'b', status: 'inactive' }, { id: 'c', status: 'pending' }] } });
+    expect(people).toEqual(['a', 'c']); // una cuenta desactivada no recibe trabajo
   });
 });

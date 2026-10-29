@@ -17,10 +17,10 @@ export const DEFAULT_COMPLIANCE_TAB: ComplianceTabPath = 'resumen';
 
 export type ComplianceTabPath = (typeof COMPLIANCE_TABS)[number]['path'];
 
-// Qué roles reciben la vista técnica: auditor y consultor (D63, D64, SEG-54) y, mientras no se definan los permisos por pantalla (P3), también el
-// administrador de la empresa, que es quien conoce el cumplimiento y necesita ver todo lo que cada control pide (pruebas incluidas). Debe coincidir con
+// Qué roles reciben la vista técnica: el auditor (D63, SEG-54) y el administrador de la empresa (D81, D96; mientras no se definan los permisos por pantalla, P3),
+// que que es quien conoce el cumplimiento y necesita ver todo lo que cada control pide (pruebas incluidas). Debe coincidir con
 // `TECHNICAL_ROLES` del backend (`view-access.ts`), que responde 403 a `?view=technical` para cualquier otro rol.
-export const TECHNICAL_VIEW_ROLES: readonly string[] = ['auditor', 'consultor', 'admin_empresa'];
+export const TECHNICAL_VIEW_ROLES: readonly string[] = ['auditor', 'admin_empresa'];
 
 // Lo mínimo de un servicio para llegar a su Cumplimiento desde el menú y para decir de cuál se habla: el cumplimiento se mide por servicio × marco
 // (D62, D68) y cada servicio tiene su propia copia de controles, riesgos y causas (D28). `GET /services` solo manda el código del marco, no su nombre.

@@ -11,6 +11,21 @@ export interface AccessKeyLookup {
   expires_at: string;
 }
 
+// Paso 1 de la activación de una persona del equipo (D95, D96): el código lo entrega el administrador de la empresa y fija el correo.
+export interface ActivationLookup {
+  email: string;
+  expires_at: string;
+}
+
+// Lo que el paso 1 encontró, venga de una clave de acceso (el primer administrador de una empresa) o de un código de activación (alguien del equipo).
+export interface CodeLookup {
+  kind: 'access_key' | 'activation';
+  email: string;
+  /** Solo la clave de una empresa dice cuál es; el código de una persona, no. */
+  companyName: string | null;
+  expiresAt: string;
+}
+
 // Paso 2 — primer acceso: canjea la clave de acceso (una sola vez). El administrador se identifica por su
 // correo: solo se pide la contraseña.
 export interface RedeemDto {
@@ -19,7 +34,8 @@ export interface RedeemDto {
   password: string;
 }
 
-export type UserRole = 'admin_monkey' | 'admin_empresa' | 'funcional' | 'consultor' | 'auditor';
+// D96: cuatro roles.
+export type UserRole = 'admin_monkey' | 'admin_empresa' | 'funcional' | 'auditor';
 
 export interface AuthUser {
   id: string;
@@ -28,7 +44,7 @@ export interface AuthUser {
   name: string | null;
   last_name: string | null;
   role: UserRole;
-  status: 'active' | 'inactive' | 'suspended';
+  status: 'active' | 'inactive' | 'suspended' | 'pending';
   is_mfa_enabled: boolean;
   last_login_at: string | null;
   created_at: string;
@@ -49,3 +65,24 @@ export interface AuthPayload {
   company: AuthCompany;
   onboarding?: OnboardingProgress;
 }
+
+// Segundo factor (D94). Con el factor obligatorio, el login y el canje no abren sesión: devuelven este paso y dejan la cookie `mnk_mfa`.
+export interface MfaStep {
+  next_step: 'mfa_verify' | 'mfa_setup';
+  expires_at: string;
+}
+
+export interface MfaSetupStart {
+  secret: string;
+  otpauth_uri: string;
+  issuer: string;
+  account: string;
+}
+
+// `recovery_codes` solo viene al activar el factor (se muestran una sola vez); `recovery_codes_left`, al entrar con un código de recuperación.
+export interface AuthPayloadWithRecovery extends AuthPayload {
+  recovery_codes?: string[];
+  recovery_codes_left?: number | null;
+}
+
+export type LoginOutcome = { kind: 'session'; payload: AuthPayload } | { kind: 'mfa'; step: MfaStep };

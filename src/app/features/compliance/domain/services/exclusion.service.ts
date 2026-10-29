@@ -3,13 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { Exclusion, ExclusionDecision, ExclusionStatus } from '../models/exclusion.models';
+import { Exclusion, ExclusionStatus } from '../models/exclusion.models';
 import { Page } from '../models/risk.models';
 
 const PAGE_SIZE = 100;
 
-// Exclusiones de un servicio. Las ven el administrador, el consultor y el auditor (el funcional recibe 403); las decide solo el consultor.
-// Proponer una (`POST`) espera a que el detalle del control traiga el id de cada prueba (PEDIDO-A-HECTOR.md, punto 4).
+// Exclusiones de un servicio. Las ven el administrador y el auditor (el funcional recibe 403). Las crea y las decide el administrador en un solo acto (D96); crearlas
+// (`POST`) desde un control está por construir.
 @Injectable({ providedIn: 'root' })
 export class ExclusionService {
   private readonly http = inject(HttpClient);
@@ -27,10 +27,5 @@ export class ExclusionService {
       expand((p) => (p.page < p.total_pages ? page(p.page + 1) : EMPTY)),
       reduce<Page<Exclusion>, Exclusion[]>((acc, p) => acc.concat(p.items), []),
     );
-  }
-
-  /** El consultor aprueba o rechaza; rechazar exige el motivo. */
-  decide(id: string, decision: ExclusionDecision): Observable<Exclusion> {
-    return this.http.patch<SuccessResponse<Exclusion>>(`${this.base}/exclusions/${id}`, decision).pipe(map((r) => r.data!));
   }
 }

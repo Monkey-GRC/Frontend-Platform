@@ -9,7 +9,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
-import { AccessKeyLookup } from '@features/auth/domain/models/auth.models';
+import { CodeLookup } from '@features/auth/domain/models/auth.models';
 import { PasswordToggle } from '@shared/presentation/components/password-toggle/password-toggle';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 
@@ -24,10 +24,11 @@ const passwordsMatch = (group: AbstractControl): ValidationErrors | null =>
 
 type FieldName = 'code' | 'password' | 'password_confirmation';
 
-// Activación de la cuenta (primer y único uso de la clave de acceso), en dos pasos (D51):
-//   1. Solo el código. Con él se muestran la empresa y el correo que Monkey registró.
+// Activación de la cuenta (primer y único uso del código), en dos pasos (D51):
+//   1. Solo el código. Sirve el de la empresa (clave de acceso de su primer administrador) o el que el administrador entregó a una persona de su equipo (D96).
+//      Con él se muestran el correo fijado y, si es la clave de una empresa, la empresa.
 //   2. Esos datos quedan fijos; lo único que se escribe es la contraseña y su confirmación.
-// El administrador se identifica por su correo: no se le pide nombre ni apellido.
+// La cuenta se identifica por su correo: no se pide nombre ni apellido.
 @Component({
   selector: 'app-register-form',
   imports: [ReactiveFormsModule, RouterLink, TranslatePipe, PasswordToggle],
@@ -42,8 +43,8 @@ export class RegisterForm {
   private readonly translate = inject(TranslateService);
 
   readonly step = signal<1 | 2>(1);
-  // Lo que Monkey fijó para esta empresa; solo existe en el paso 2.
-  readonly lookup = signal<AccessKeyLookup | null>(null);
+  // Lo que se fijó para esta cuenta; solo existe en el paso 2.
+  readonly lookup = signal<CodeLookup | null>(null);
   readonly loading = signal(false);
   readonly showPassword = signal(false);
   readonly showConfirmation = signal(false);
@@ -89,7 +90,7 @@ export class RegisterForm {
     this.errorMessage.set(null);
     this.serverErrors.set({});
 
-    this.authService.lookupAccessKey(this.codeForm.getRawValue().code.trim()).subscribe({
+    this.authService.lookupCode(this.codeForm.getRawValue().code.trim()).subscribe({
       next: (found) => {
         this.loading.set(false);
         this.lookup.set(found);
@@ -111,7 +112,7 @@ export class RegisterForm {
     this.step.set(1);
   }
 
-  // Paso 2: crea la cuenta con la contraseña. El correo es el que fijó Monkey, no se edita.
+  // Paso 2: crea la cuenta con la contraseña. El correo es el que quedó fijado, no se edita.
   submit(): void {
     const found = this.lookup();
     if (!found) return;
@@ -125,14 +126,15 @@ export class RegisterForm {
     this.serverErrors.set({});
 
     this.authService
-      .redeem({
-        code: this.codeForm.getRawValue().code.trim(),
-        email: found.admin_email,
-        password: this.passwordForm.getRawValue().password,
-      })
+      .claimAccount(found, this.codeForm.getRawValue().code.trim(), this.passwordForm.getRawValue().password)
       .subscribe({
-        next: (payload) => {
+        next: (outcome) => {
           this.loading.set(false);
+          if (outcome.kind === 'mfa') {
+            this.router.navigateByUrl('/mfa', { replaceUrl: true });
+            return;
+          }
+          const payload = outcome.payload;
           // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
           this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/', { replaceUrl: true });
         },

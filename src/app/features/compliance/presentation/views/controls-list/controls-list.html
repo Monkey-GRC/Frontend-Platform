@@ -63,11 +63,6 @@
           @if (row.approval === 'pending') {
           <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">{{ 'COMPLIANCE.CONTROLS.AWAITING_APPROVAL' | translate }}</span>
           }
-          @if (row.has_pending_change) {
-          <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-            <span class="material-symbols-rounded text-[14px]" aria-hidden="true">schedule</span>{{ 'COMPLIANCE.CONTROLS.CHANGE_PENDING' | translate }}
-          </span>
-          }
         </div>
       </div>
     </ng-template>

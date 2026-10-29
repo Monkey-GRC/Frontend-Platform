@@ -8,11 +8,11 @@ import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/co
 import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
 import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
 import {
-  ControlChange,
-  ControlChangeType,
   ControlDetail,
   ControlDimension,
-  ProposeChangeBody,
+  ControlResponsible,
+  ResponsibleCandidate,
+  UpdateControlBody,
   controlCode,
   requirementCodes,
 } from '../../../domain/models/control.models';
@@ -34,15 +34,15 @@ interface DimensionDraft {
   reason: string;
 }
 
-// Quién puede proponer cambios (compliance-controls.md → «Quién puede qué»): el administrador de la empresa y el funcional (solo lo asignado, que es
-// lo único que le llega). El consultor y el auditor solo leen. El backend lo vuelve a comprobar.
-const PROPOSING_ROLES: readonly string[] = ['admin_empresa', 'funcional'];
+// Quién edita un control (compliance-controls.md → «Quién puede qué», D96): solo el administrador de la empresa, al instante. El funcional y el auditor leen.
+// El backend lo vuelve a comprobar.
+const EDITING_ROLES: readonly string[] = ['admin_empresa'];
 const INTERPRETATION_MAX = 4000;
-// Suben la evidencia el administrador de la empresa y el funcional (solo de lo asignado, que es lo único que le llega); el consultor y el auditor solo leen.
+// Suben la evidencia el administrador de la empresa y el funcional (solo la de su dimensión, que es lo único que le llega); el auditor solo lee.
 const UPLOADING_ROLES: readonly string[] = ['admin_empresa', 'funcional'];
 
-// El detalle de una acción de protección (MD-121), en un panel lateral. Editar es PROPONER: la acción sigue como estaba y sigue contando hasta
-// que el consultor apruebe el cambio (D65). Los errores 422 se muestran bajo cada campo.
+// El detalle de un control (MD-121), en un panel lateral. El administrador edita al instante y puede dar de baja (D96): el cambio se aplica y el avance se
+// recalcula. También reparte el control por dimensión (users-team.md). Los errores 422 se muestran bajo cada campo.
 @Component({
   selector: 'app-control-detail-panel',
   imports: [FormsModule, TranslatePipe, SidePanel, StatusBadge, ConfirmDialog, ControlEvidence, ControlTests, DetailCard],
@@ -56,7 +56,7 @@ export class ControlDetailPanel {
 
   readonly controlId = input.required<string>();
   readonly closed = output<void>();
-  // La acción cambió (hay una propuesta nueva): la lista se vuelve a pedir.
+  // El control cambió (se editó o se dio de baja): la lista se vuelve a pedir.
   readonly changed = output<void>();
 
   readonly maxInterpretation = INTERPRETATION_MAX;
@@ -73,7 +73,8 @@ export class ControlDetailPanel {
 
   readonly stage = signal<Stage>('loading');
   readonly detail = signal<ControlDetail | null>(null);
-  readonly pending = signal<ControlChange[]>([]);
+  readonly responsibles = signal<ControlResponsible[]>([]);
+  readonly candidates = signal<ResponsibleCandidate[]>([]);
 
   readonly mode = signal<Mode>('view');
   readonly saving = signal(false);
@@ -95,10 +96,13 @@ export class ControlDetailPanel {
     }));
   });
 
-  readonly canPropose = computed(() => {
+  readonly canEdit = computed(() => {
     const role = this.view.role();
-    return role !== null && PROPOSING_ROLES.includes(role);
+    return role !== null && EDITING_ROLES.includes(role);
   });
+
+  /** Quién ve el reparto por dimensión: el administrador (y lo cambia) y el auditor (solo lo lee). */
+  readonly canSeeResponsibles = computed(() => this.view.role() === 'admin_empresa' || this.view.role() === 'auditor');
 
   /** ¿La subida de evidencia va bajo las pruebas manuales? Solo si el detalle trae las pruebas y alguna es manual; si no, va aparte. */
   protected evidenceUnderTests(d: ControlDetail): boolean {
@@ -111,9 +115,6 @@ export class ControlDetailPanel {
     return role !== null && UPLOADING_ROLES.includes(role);
   });
 
-
-  private readonly pendingTypes = computed(() => new Set<ControlChangeType>(this.pending().map((c) => c.change_type)));
-  readonly hasPending = (type: ControlChangeType): boolean => this.pendingTypes().has(type);
 
   constructor() {
     effect(() => {
@@ -129,20 +130,45 @@ export class ControlDetailPanel {
       next: (detail) => {
         this.detail.set(detail);
         this.stage.set('ready');
-        this.loadPending();
+        this.loadResponsibles();
       },
       error: () => this.stage.set('error'),
     });
   }
 
-  private loadPending(): void {
-    // Qué propuestas esperan al consultor: se muestran y bloquean volver a proponer lo mismo (el backend responde 409 si se repite).
-    this.api.changes(this.controlId(), 'pending').subscribe({
-      next: (changes) => this.pending.set(changes),
-      error: () => this.pending.set([]),
-    });
+  private loadResponsibles(): void {
+    if (!this.canSeeResponsibles()) return;
+    this.api.responsibles(this.controlId()).subscribe({ next: (rows) => this.responsibles.set(rows), error: () => this.responsibles.set([]) });
+    // Las personas a las que se les puede dar el control: solo las ve quien reparte.
+    if (this.canEdit()) this.api.candidates().subscribe({ next: (c) => this.candidates.set(c), error: () => this.candidates.set([]) });
   }
 
+  /** Las personas funcionales con esa especialidad: las únicas a las que se les puede dar el control en esa dimensión. */
+  candidatesFor(dimension: ControlDimension): ResponsibleCandidate[] {
+    return this.candidates().filter((c) => c.dimensions.includes(dimension));
+  }
+
+  personName(p: { email: string; name: string | null; last_name: string | null }): string {
+    return [p.name, p.last_name].filter(Boolean).join(' ') || p.email;
+  }
+
+  setResponsible(dimension: ControlDimension, userId: string): void {
+    this.saving.set(true);
+    this.resetFeedback();
+    this.api.setResponsible(this.controlId(), dimension, userId || null).subscribe({
+      next: (row) => {
+        this.saving.set(false);
+        this.responsibles.update((rows) => rows.map((r) => (r.dimension === row.dimension ? row : r)));
+        this.notice.set(this.translate.instant('COMPLIANCE.DETAIL.RESPONSIBLE_SAVED'));
+        this.changed.emit();
+      },
+      error: (error) => {
+        this.saving.set(false);
+        this.error.set(apiErrorMessage(error, this.translate.instant('COMPLIANCE.DETAIL.SAVE_ERROR')));
+        this.loadResponsibles(); // vuelve a lo que de verdad quedó guardado
+      },
+    });
+  }
   startInterpretation(): void {
     this.resetFeedback();
     this.interpretationDraft.set(this.detail()?.interpretation.text ?? '');
@@ -179,20 +205,17 @@ export class ControlDetailPanel {
 
   submitInterpretation(): void {
     if (!this.interpretationValid()) return;
-    this.propose({ change_type: 'edit_interpretation', proposed_values: { interpretation: this.interpretationDraft().trim() } });
+    this.save({ interpretation: { text: this.interpretationDraft().trim() } });
   }
 
   submitDimensions(): void {
     if (!this.dimensionsValid()) return;
-    this.propose({
-      change_type: 'edit_dimensions',
-      proposed_values: {
-        dimensions: this.dimensionsDraft().map((d) => ({
-          dimension: d.dimension,
-          applies: d.applies,
-          ...(d.applies ? {} : { reason_not_applicable: d.reason.trim() }),
-        })),
-      },
+    this.save({
+      dimensions: this.dimensionsDraft().map((d) => ({
+        dimension: d.dimension,
+        applies: d.applies,
+        ...(d.applies ? {} : { reason_not_applicable: d.reason.trim() }),
+      })),
     });
   }
 
@@ -202,35 +225,47 @@ export class ControlDetailPanel {
   }
 
   confirmRetire(): void {
-    this.propose({ change_type: 'retire', proposed_values: {} });
+    this.saving.set(true);
+    this.resetFeedback();
+    this.api.retire(this.controlId()).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.confirmingRetire.set(false);
+        // El control ya no existe para las listas: se avisa y se cierra el panel.
+        this.changed.emit();
+        this.closed.emit();
+      },
+      error: (error) => this.failed(error),
+    });
   }
 
   fieldError(path: string): string | null {
     return this.fieldErrors()[path] ?? null;
   }
 
-  private propose(body: ProposeChangeBody): void {
+  private save(body: UpdateControlBody): void {
     this.saving.set(true);
     this.resetFeedback();
-    this.api.proposeChange(this.controlId(), body).subscribe({
-      next: () => {
+    this.api.update(this.controlId(), body, this.view.viewParam()).subscribe({
+      next: (detail) => {
         this.saving.set(false);
-        this.confirmingRetire.set(false);
+        this.detail.set(detail);
         this.mode.set('view');
-        this.notice.set(this.translate.instant('COMPLIANCE.DETAIL.PROPOSED'));
-        this.loadPending();
+        this.notice.set(this.translate.instant('COMPLIANCE.DETAIL.SAVED'));
+        this.loadResponsibles();
         this.changed.emit();
       },
-      error: (error) => {
-        this.saving.set(false);
-        this.confirmingRetire.set(false);
-        this.fieldErrors.set(Object.fromEntries(apiFieldErrors(error).map((f) => [f.field, f.message])));
-        // `message` ya viene traducido por el backend (también en 409: propuesta repetida o acción ya dada de baja).
-        this.error.set(apiErrorMessage(error, this.translate.instant('COMPLIANCE.DETAIL.SAVE_ERROR')));
-      },
+      error: (error) => this.failed(error),
     });
   }
 
+  private failed(error: unknown): void {
+    this.saving.set(false);
+    this.confirmingRetire.set(false);
+    this.fieldErrors.set(Object.fromEntries(apiFieldErrors(error).map((f) => [f.field, f.message])));
+    // `message` ya viene traducido por el backend (también en 409: el control ya estaba dado de baja).
+    this.error.set(apiErrorMessage(error, this.translate.instant('COMPLIANCE.DETAIL.SAVE_ERROR')));
+  }
   private resetFeedback(): void {
     this.notice.set(null);
     this.error.set(null);

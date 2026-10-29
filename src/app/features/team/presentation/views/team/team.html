@@ -1,0 +1,223 @@
+<section class="w-full pb-10">
+  <app-page-header [title]="'TEAM.TITLE' | translate" [subtitle]="'TEAM.INTRO' | translate" icon="groups" />
+
+  @if (notice(); as n) {
+  <div class="mt-3 flex items-start gap-2 rounded-xl bg-green-50 p-3.5 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800" role="status">
+    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">check_circle</span><span>{{ n }}</span>
+  </div>
+  }
+  @if (error(); as e) {
+  <div class="mt-3 flex items-start gap-2 rounded-xl bg-red-50 p-3.5 text-sm text-error-600 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800" role="alert">
+    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ e }}</span>
+  </div>
+  }
+
+  <!-- El código de activación: se ve una sola vez; se queda aquí hasta que se anota -->
+  @if (issued(); as c) {
+  <div class="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-900/20" role="status" data-test-code>
+    <p class="text-sm font-semibold text-amber-900 dark:text-amber-200">{{ 'TEAM.CODE.TITLE' | translate: { email: c.email } }}</p>
+    <p class="mt-1 text-sm text-amber-900 dark:text-amber-200">{{ 'TEAM.CODE.BODY' | translate }}</p>
+    <div class="mt-3 flex flex-wrap items-center gap-3">
+      <code class="rounded-lg bg-white px-3 py-2 text-base font-bold tracking-widest text-gray-900 ring-1 ring-amber-300 dark:bg-gray-900 dark:text-white dark:ring-amber-700" data-test-code-value>{{ c.code }}</code>
+      <button type="button" (click)="copyCode()" class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
+        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">{{ copied() ? 'check' : 'content_copy' }}</span>{{ (copied() ? 'TEAM.CODE.COPIED' : 'TEAM.CODE.COPY') | translate }}
+      </button>
+      <button type="button" (click)="dismissCode()" data-test-code-dismiss class="text-sm font-medium text-amber-900 underline dark:text-amber-200">{{ 'TEAM.CODE.NOTED' | translate }}</button>
+    </div>
+    <p class="mt-2 text-xs text-amber-800 dark:text-amber-300">{{ 'TEAM.CODE.EXPIRES' | translate: { date: (c.expiresAt | date: 'mediumDate') } }}</p>
+  </div>
+  }
+
+  @switch (stage()) {
+  @case ('loading') {
+  <app-loading-spinner />
+  }
+  @case ('error') {
+  <div class="py-10 text-center">
+    <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
+    <p class="mt-3 text-base font-semibold text-gray-900 dark:text-white">{{ 'TEAM.LOAD_ERROR' | translate }}</p>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+    <button type="button" (click)="load()" data-test-retry class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 transition">
+      <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
+    </button>
+  </div>
+  }
+  @default {
+
+  <div class="mt-4 flex gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
+    <button type="button" role="tab" [attr.aria-selected]="tab() === 'people'" (click)="tab.set('people')" data-test-tab-people
+      class="-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition" [class]="tab() === 'people' ? 'border-primary text-primary' : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300'">
+      {{ 'TEAM.TABS.PEOPLE' | translate }}
+    </button>
+    <button type="button" role="tab" [attr.aria-selected]="tab() === 'work'" (click)="tab.set('work')" data-test-tab-work
+      class="-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition" [class]="tab() === 'work' ? 'border-primary text-primary' : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300'">
+      {{ 'TEAM.TABS.WORK' | translate }}
+    </button>
+  </div>
+
+  @if (tab() === 'people') {
+
+  <!-- Invitar -->
+  <form class="mk-card mt-4 p-4" (submit)="$event.preventDefault(); invite()" [attr.aria-label]="'TEAM.INVITE.TITLE' | translate">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'TEAM.INVITE.TITLE' | translate }}</h2>
+    <div class="mt-3 flex flex-wrap items-end gap-3">
+      <label class="flex min-w-56 flex-1 flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+        {{ 'TEAM.INVITE.EMAIL' | translate }}
+        <input type="email" data-test-email maxlength="254" autocomplete="off" [value]="inviteEmail()" (input)="inviteEmail.set($any($event.target).value)" [disabled]="saving()"
+          class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+      </label>
+      <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+        {{ 'TEAM.INVITE.ROLE' | translate }}
+        <select data-test-role (change)="setRole($any($event.target).value)" [disabled]="saving()"
+          class="h-9 min-w-44 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+          <option value="funcional" [selected]="inviteRole() === 'funcional'">{{ 'TEAM.ROLE.FUNCIONAL' | translate }}</option>
+          <option value="auditor" [selected]="inviteRole() === 'auditor'">{{ 'TEAM.ROLE.AUDITOR' | translate }}</option>
+        </select>
+      </label>
+      <button type="submit" [disabled]="!canInvite()" data-test-invite
+        class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50">
+        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">person_add</span>{{ 'TEAM.INVITE.SUBMIT' | translate }}
+      </button>
+    </div>
+    @if (inviteRole() === 'funcional') {
+    <fieldset class="mt-3">
+      <legend class="text-xs font-medium text-gray-700 dark:text-gray-200">{{ 'TEAM.INVITE.DIMENSIONS' | translate }}</legend>
+      <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'TEAM.INVITE.DIMENSIONS_HELP' | translate }}</p>
+      <div class="mt-2 flex flex-wrap gap-2">
+        @for (d of dimensionOptions(); track d.value) {
+        <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-800 dark:border-gray-600 dark:text-gray-100"
+          [class.border-primary]="inviteDimensions().includes($any(d.value))" [class.bg-primary/5]="inviteDimensions().includes($any(d.value))">
+          <input type="checkbox" [attr.data-test-dim]="d.value" [checked]="inviteDimensions().includes($any(d.value))" (change)="toggleInvite($any(d.value))" [disabled]="saving()" class="accent-primary" />{{ d.label }}
+        </label>
+        }
+      </div>
+    </fieldset>
+    } @else {
+    <p class="mt-3 text-xs text-gray-600 dark:text-gray-300">{{ 'TEAM.INVITE.AUDITOR_HELP' | translate }}</p>
+    }
+  </form>
+
+  <!-- La lista -->
+  <ul class="mk-card mt-4 divide-y divide-gray-100 overflow-hidden dark:divide-gray-800" data-test-list>
+    @for (m of members(); track m.id) {
+    <li class="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm" [attr.data-test-member]="m.email">
+      <div class="min-w-0">
+        <p class="font-medium text-gray-900 dark:text-white">{{ personName(m) }}@if (isMe(m)) {<span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-200">{{ 'TEAM.YOU' | translate }}</span>}</p>
+        @if (personName(m) !== m.email) {<p class="text-xs text-gray-600 dark:text-gray-300">{{ m.email }}</p>}
+        <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
+          <span class="rounded-full bg-primary/10 px-2.5 py-0.5 font-medium text-primary">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</span>
+          <span class="rounded-full px-2.5 py-0.5 font-medium"
+            [class]="m.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200' : m.status === 'pending' ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100'">
+            {{ ('TEAM.STATUS.' + m.status.toUpperCase()) | translate }}
+          </span>
+          @for (d of m.dimensions; track d) {
+          <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-gray-800 dark:bg-gray-800 dark:text-gray-200">{{ dimensionLabel(d) }}</span>
+          }
+        </div>
+
+        @if (editing() === m.id) {
+        <fieldset class="mt-3">
+          <legend class="text-xs font-medium text-gray-700 dark:text-gray-200">{{ 'TEAM.INVITE.DIMENSIONS' | translate }}</legend>
+          <div class="mt-2 flex flex-wrap gap-2">
+            @for (d of dimensionOptions(); track d.value) {
+            <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-800 dark:border-gray-600 dark:text-gray-100">
+              <input type="checkbox" [attr.data-test-edit-dim]="d.value" [checked]="editDimensions().includes($any(d.value))" (change)="toggleEdit($any(d.value))" [disabled]="saving()" class="accent-primary" />{{ d.label }}
+            </label>
+            }
+          </div>
+          <div class="mt-2 flex items-center gap-3">
+            <button type="button" (click)="saveEdit()" [disabled]="!editDimensions().length || saving()" data-test-save-edit class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'COMMON.SAVE' | translate }}</button>
+            <button type="button" (click)="editing.set(null)" [disabled]="saving()" class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+          </div>
+        </fieldset>
+        }
+      </div>
+
+      @if (!isMe(m) && m.role !== 'admin_empresa') {
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+        @if (m.role === 'funcional' && editing() !== m.id) {
+        <button type="button" (click)="startEdit(m)" [disabled]="saving()" data-test-edit class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.EDIT_DIMENSIONS' | translate }}</button>
+        }
+        @if (m.status === 'pending') {
+        <button type="button" (click)="reissue(m)" [disabled]="saving()" data-test-reissue class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.NEW_CODE' | translate }}</button>
+        }
+        @if (m.status === 'active') {
+        @if (m.is_mfa_enabled) {
+        <button type="button" (click)="ask('reset_mfa', m)" [disabled]="saving()" data-test-reset-mfa class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.RESET_MFA' | translate }}</button>
+        }
+        <button type="button" (click)="ask('deactivate', m)" [disabled]="saving()" data-test-deactivate class="text-sm font-medium text-error-600 hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.DEACTIVATE' | translate }}</button>
+        }
+        @if (m.status === 'inactive') {
+        <button type="button" (click)="reactivate(m)" [disabled]="saving()" data-test-reactivate class="text-sm font-medium text-primary hover:underline disabled:opacity-40">{{ 'TEAM.ACTIONS.REACTIVATE' | translate }}</button>
+        }
+      </div>
+      }
+    </li>
+    }
+  </ul>
+
+  } @else {
+
+  <!-- El reparto del trabajo: quién es el responsable de cada dimensión en un servicio -->
+  @if (services().length === 0) {
+  <p class="mt-4 text-sm text-gray-600 dark:text-gray-300" data-test-no-services>{{ 'TEAM.WORK.NO_SERVICES' | translate }}</p>
+  } @else {
+  <div class="mt-4 flex flex-wrap items-end gap-3">
+    <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+      {{ 'TEAM.WORK.SERVICE' | translate }}
+      <select data-test-service (change)="chooseService($any($event.target).value)"
+        class="h-9 min-w-64 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+        @for (s of services(); track s.id) {<option [value]="s.id" [selected]="serviceId() === s.id">{{ s.name }}</option>}
+      </select>
+    </label>
+  </div>
+  <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ 'TEAM.WORK.INTRO' | translate }}</p>
+
+  @switch (ownersStage()) {
+  @case ('loading') {<app-loading-spinner />}
+  @case ('error') {
+  <p class="mt-4 text-sm text-error-600">{{ 'TEAM.LOAD_ERROR' | translate }}</p>
+  }
+  @default {
+  <ul class="mk-card mt-4 divide-y divide-gray-100 overflow-hidden dark:divide-gray-800" data-test-owners>
+    @for (o of owners(); track o.dimension) {
+    <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm" [attr.data-test-owner]="o.dimension">
+      <div class="min-w-0">
+        <p class="font-semibold text-gray-900 dark:text-white">{{ dimensionLabel(o.dimension) }}</p>
+        <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'TEAM.WORK.CONTROLS' | translate: { count: o.controls_total } }}
+          @if (o.controls_with_exception > 0) {· {{ 'TEAM.WORK.EXCEPTIONS' | translate: { count: o.controls_with_exception } }}}</p>
+        @if (o.controls_without_owner > 0) {
+        <p class="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-200" data-test-unowned>
+          <span class="material-symbols-rounded text-[14px]" aria-hidden="true">warning</span>{{ 'TEAM.WORK.WITHOUT_OWNER' | translate: { count: o.controls_without_owner } }}
+        </p>
+        }
+      </div>
+      <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+        {{ 'TEAM.WORK.OWNER' | translate }}
+        <select [attr.data-test-owner-select]="o.dimension" (change)="setOwner(o.dimension, $any($event.target).value)" [disabled]="saving()"
+          class="h-9 min-w-64 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+          <option value="" [selected]="!o.owner">{{ 'TEAM.WORK.NOBODY' | translate }}</option>
+          @for (c of candidates(o.dimension); track c.id) {<option [value]="c.id" [selected]="o.owner?.id === c.id">{{ personName(c) }}</option>}
+        </select>
+        @if (candidates(o.dimension).length === 0) {
+        <span class="text-xs font-normal text-gray-600 dark:text-gray-300">{{ 'TEAM.WORK.NO_CANDIDATES' | translate }}</span>
+        }
+      </label>
+    </li>
+    }
+  </ul>
+  }
+  }
+  }
+
+  }
+
+  }
+  }
+</section>
+
+@if (confirming(); as c) {
+<app-confirm-dialog [titleKey]="c.kind === 'deactivate' ? 'TEAM.CONFIRM.DEACTIVATE_TITLE' : 'TEAM.CONFIRM.RESET_MFA_TITLE'" [titleParams]="{ email: c.member.email }"
+  [messageKey]="c.kind === 'deactivate' ? 'TEAM.CONFIRM.DEACTIVATE_BODY' : 'TEAM.CONFIRM.RESET_MFA_BODY'" tone="danger"
+  [confirmLabelKey]="c.kind === 'deactivate' ? 'TEAM.ACTIONS.DEACTIVATE' : 'TEAM.ACTIONS.RESET_MFA'" [busy]="saving()" (confirmed)="confirm()" (cancelled)="confirming.set(null)" />
+}

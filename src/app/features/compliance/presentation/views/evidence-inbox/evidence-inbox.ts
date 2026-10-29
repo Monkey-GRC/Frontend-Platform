@@ -30,7 +30,7 @@ const CONCURRENCY = 6;
 
 // La pestaña «Evidencias» de un servicio (MD-129): todo lo que los controles piden que se aporte, con su responsable y el estado de la última entrega,
 // para ver de un vistazo qué falta. Subir y descargar se hace en el panel del control (se abre con un clic en la fila), con el mismo componente de evidencia
-// del control. La empresa solo aporta (D84): no hay botones de aprobar ni rechazar; el estado lo calcula el servidor a partir de la revisión del consultor.
+// del control. La bandeja solo muestra (D96): no hay botones de aprobar ni rechazar aquí; el estado lo calcula el servidor a partir de la revisión del administrador de la empresa.
 // Hoy lo ve el administrador de la empresa; el detalle por rol espera a los permisos por pantalla (P3).
 @Component({
   selector: 'app-evidence-inbox',

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { combineLatest, Subscription } from 'rxjs';
+import { SessionService } from '@core/domain/services/session.service';
 import { SidebarService } from '@core/domain/services/sidebar.service';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NavItem, NAV_ITEMS, SECTION_ICONS, SECTION_LABEL_KEYS, NavigationHelper, NavSubItem } from '@config/navigation.config';
@@ -20,8 +21,11 @@ import { NavItem, NAV_ITEMS, SECTION_ICONS, SECTION_LABEL_KEYS, NavigationHelper
 })
 export class AppSidebarComponent {
 
-  // Importar la configuración desde el archivo externo
-  navItems: NavItem[] = NAV_ITEMS;
+  // Importar la configuración desde el archivo externo; cada quien ve lo que su rol puede usar.
+  get navItems(): NavItem[] {
+    const role = this.session.user()?.role;
+    return NAV_ITEMS.filter((item) => !item.roles || (!!role && item.roles.includes(role)));
+  }
   sectionIcons = SECTION_ICONS;
 
   openSubmenu: string | null = null;
@@ -36,6 +40,7 @@ export class AppSidebarComponent {
 
   constructor(
     public sidebarService: SidebarService,
+    private session: SessionService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {

@@ -5,12 +5,14 @@ import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { PageInfo } from '@shared/domain/utils/pagination';
 import {
-  ControlChange,
   ControlDetail,
+  ControlDimension,
   ControlFilters,
   ControlListItem,
+  ControlResponsible,
   ControlsPageDto,
-  ProposeChangeBody,
+  ResponsibleCandidate,
+  UpdateControlBody,
 } from '../models/control.models';
 
 export interface ControlsPage {
@@ -18,7 +20,7 @@ export interface ControlsPage {
   page: PageInfo;
 }
 
-// Acciones de protección de un servicio. `view` es `technical` solo para auditor y consultor (`ComplianceViewService.viewParam`);
+// Acciones de protección de un servicio. `view` es `technical` solo para auditor y administrador de la empresa (`ComplianceViewService.viewParam`);
 // para el resto no se manda, y el backend responde 403 si alguien más la pide.
 @Injectable({ providedIn: 'root' })
 export class ControlService {
@@ -52,17 +54,34 @@ export class ControlService {
     return this.http.get<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}`, { params }).pipe(map((r) => r.data!));
   }
 
-  /** Propone un cambio (editar la interpretación, las dimensiones o dar de baja). No cambia la acción hasta que el consultor lo apruebe. */
-  proposeChange(id: string, body: ProposeChangeBody): Observable<ControlChange> {
-    return this.http.post<SuccessResponse<ControlChange>>(`${this.base}/controls/${id}/changes`, body).pipe(map((r) => r.data!));
+  /** Edita la interpretación o las dimensiones al instante (D96). Responde con el control ya cambiado. */
+  update(id: string, body: UpdateControlBody, view?: 'technical'): Observable<ControlDetail> {
+    const params = view ? new HttpParams().set('view', view) : undefined;
+    return this.http.patch<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}`, body, { params }).pipe(map((r) => r.data!));
   }
 
-  /** Las propuestas de una acción, de la más reciente a la más antigua. */
-  changes(id: string, status?: 'pending' | 'approved' | 'rejected'): Observable<ControlChange[]> {
-    let params = new HttpParams().set('page_size', 100);
-    if (status) params = params.set('status', status);
+  /** Da de baja el control (no lo borra): deja de contar y el histórico se conserva. */
+  retire(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/controls/${id}`);
+  }
+
+  /** Quién es responsable de cada dimensión del control (D96). */
+  responsibles(id: string): Observable<ControlResponsible[]> {
+    return this.http.get<SuccessResponse<{ items: ControlResponsible[] }>>(`${this.base}/controls/${id}/responsibles`).pipe(map((r) => r.data?.items ?? []));
+  }
+
+  /** Pone o quita (`null`) la excepción de este control en una dimensión; quitarla devuelve el control al responsable del servicio. */
+  setResponsible(id: string, dimension: ControlDimension, userId: string | null): Observable<ControlResponsible> {
     return this.http
-      .get<SuccessResponse<{ items: ControlChange[] }>>(`${this.base}/controls/${id}/changes`, { params })
-      .pipe(map((r) => r.data?.items ?? []));
+      .patch<SuccessResponse<ControlResponsible>>(`${this.base}/controls/${id}/responsibles/${dimension}`, { user_id: userId })
+      .pipe(map((r) => r.data!));
+  }
+
+  /** Las personas funcionales del equipo, con sus especialidades (solo las ve el administrador de la empresa). */
+  candidates(): Observable<ResponsibleCandidate[]> {
+    const params = new HttpParams().set('role', 'funcional').set('page_size', 100);
+    return this.http
+      .get<SuccessResponse<{ items: ResponsibleCandidate[] }>>(`${this.base}/users`, { params })
+      .pipe(map((r) => (r.data?.items ?? []).filter((u) => u.status !== 'inactive')));
   }
 }

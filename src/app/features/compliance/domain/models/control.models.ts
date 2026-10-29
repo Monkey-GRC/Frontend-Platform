@@ -25,7 +25,7 @@ export interface Assignee {
   last_name: string | null;
 }
 
-// Solo llega con `?view=technical` (auditor y consultor). Hoy el backend aún trae aquí `control_code` y `requirement_codes`; por D80 pasan
+// Solo llega con `?view=technical` (auditor y administrador de la empresa). Hoy el backend aún trae aquí `control_code` y `requirement_codes`; por D80 pasan
 // a la vista de negocio (`code` y `requirement_codes` del control), y esto queda como respaldo hasta que se mueva.
 export interface ControlTechnical {
   control_code?: string | null;
@@ -53,7 +53,6 @@ export interface ControlListItem {
   progress: Progress;
   coverage: Coverage;
   assigned_to: Assignee | null;
-  has_pending_change: boolean;
   technical?: ControlTechnical;
 }
 
@@ -113,20 +112,26 @@ export interface ControlFilters {
   readiness?: Readiness | null;
 }
 
-// Cambios que se proponen (D65): hasta que el consultor aprueba, la acción sigue como estaba.
-export type ControlChangeType = 'edit_interpretation' | 'edit_dimensions' | 'retire' | 'create';
-export type ControlChangeStatus = 'pending' | 'approved' | 'rejected';
+// Editar un control es directo y al instante (D96): lo hace el administrador de la empresa, sin propuesta ni aprobación.
+export type UpdateControlBody = {
+  interpretation?: { text: string };
+  dimensions?: { dimension: ControlDimension; applies: boolean; reason_not_applicable?: string }[];
+};
 
-export interface ControlChange {
-  id: string;
-  control_id: string;
-  change_type: ControlChangeType;
-  status: ControlChangeStatus;
-  requested_at: string;
-  decision_note: string | null;
+// Quién es responsable de cada dimensión de un control (users-team.md): la excepción de este control o, si no la hay, el responsable del servicio.
+export interface ControlResponsible {
+  dimension: ControlDimension;
+  tests_count: number;
+  owner: { id: string; email: string; name: string | null; last_name: string | null } | null;
+  source: 'control' | 'service' | null;
 }
 
-export type ProposeChangeBody =
-  | { change_type: 'edit_interpretation'; proposed_values: { interpretation: string } }
-  | { change_type: 'edit_dimensions'; proposed_values: { dimensions: { dimension: ControlDimension; applies: boolean; reason_not_applicable?: string }[] } }
-  | { change_type: 'retire'; proposed_values: Record<string, never> };
+/** Una persona del equipo a la que se le puede dar un control: un `funcional` con sus especialidades. */
+export interface ResponsibleCandidate {
+  id: string;
+  email: string;
+  name: string | null;
+  last_name: string | null;
+  status: string;
+  dimensions: ControlDimension[];
+}
