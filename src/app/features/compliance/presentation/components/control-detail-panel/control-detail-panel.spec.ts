@@ -224,7 +224,7 @@ describe('ControlDetailPanel', () => {
     expect(panel.confirmingRetire()).toBeFalse();
   });
 
-  describe('responsibles by dimension (users-team.md; off by default, D97)', () => {
+  describe('responsibles by dimension (users-team.md; off by default, D98)', () => {
     beforeEach(() => TestBed.overrideProvider(OWNER_ASSIGNMENT_ENABLED, { useValue: true }));
     const rows = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[data-test-responsible]'));
 

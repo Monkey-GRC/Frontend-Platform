@@ -19,7 +19,7 @@ const PENDING = member({ id: 'pen', email: 'pen@acme.co', name: null, last_name:
 const owner = (dimension: DimensionOwner['dimension'], over: Partial<DimensionOwner> = {}): DimensionOwner => ({ dimension, owner: null, controls_total: 10, controls_with_exception: 0, controls_without_owner: 10, ...over });
 const DIMENSIONS = ['policy', 'server', 'database', 'app', 'cloud'].map((value) => ({ value, label: value }));
 
-describe('TeamView (MD-134, D96, D97)', () => {
+describe('TeamView (MD-134, D96, D98)', () => {
   let api: jasmine.SpyObj<TeamService>;
   let fixture: ComponentFixture<TeamView>;
 
@@ -73,7 +73,7 @@ describe('TeamView (MD-134, D96, D97)', () => {
     expect(q('[data-test-member="pen@acme.co"] [data-test-no-name]')).not.toBeNull();
   });
 
-  it('keeps the work split off by default (D97): no tab, no owner calls', () => {
+  it('keeps the work split off by default (D98): no tab, no owner calls', () => {
     setup();
     expect(el().querySelector('[data-test-tab-work]')).toBeNull();
     expect(api.services).not.toHaveBeenCalled();
@@ -198,7 +198,7 @@ describe('TeamView (MD-134, D96, D97)', () => {
     expect(el().querySelector('[data-test-retry]')).not.toBeNull();
   });
 
-  describe('work split by service (off in D97; kept for when it is decided)', () => {
+  describe('work split by service (off in D98; kept for when it is decided)', () => {
     it('splits the work by service when the feature is on: only people with that specialty are offered, and unowned controls are flagged', () => {
       setup([ME, ANA], { owners: true });
       click('[data-test-tab-work]');

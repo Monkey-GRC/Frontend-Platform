@@ -32,7 +32,7 @@ export class TeamView implements OnInit {
   private readonly api = inject(TeamService);
   private readonly translate = inject(TranslateService);
   readonly myId = inject(SessionService).user;
-  // D97: repartir el trabajo a personas concretas queda apagado; hoy el funcional atiende todo lo de su especialidad.
+  // D98: repartir el trabajo a personas concretas queda apagado; hoy el funcional atiende todo lo de su especialidad.
   readonly ownerAssignment = inject(OWNER_ASSIGNMENT_ENABLED);
 
   // Las dimensiones salen del backend (enum `dimension`); el orden es el del contrato.

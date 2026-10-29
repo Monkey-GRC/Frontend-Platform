@@ -98,7 +98,7 @@ export class ControlDetailPanel {
     return role !== null && EDITING_ROLES.includes(role);
   });
 
-  /** Quién ve el reparto por dimensión: el administrador (y lo cambia) y el auditor (solo lo lee). Apagado por ahora (D97): el funcional atiende todo lo de su especialidad. */
+  /** Quién ve el reparto por dimensión: el administrador (y lo cambia) y el auditor (solo lo lee). Apagado por ahora (D98): el funcional atiende todo lo de su especialidad. */
   private readonly ownerAssignment = inject(OWNER_ASSIGNMENT_ENABLED);
   readonly canSeeResponsibles = computed(() => this.ownerAssignment && (this.view.role() === 'admin_empresa' || this.view.role() === 'auditor'));
 
