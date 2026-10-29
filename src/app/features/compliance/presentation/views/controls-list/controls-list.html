@@ -46,9 +46,9 @@
     <!-- D80: el código se muestra siempre; debajo, los requisitos del marco que el control cubre. -->
     <ng-template appCell="code" let-row>
       <div class="text-xs text-gray-700 dark:text-gray-200">
-        <p class="font-mono font-semibold">{{ codeOf(row) ?? '—' }}</p>
-        @if (requirementsOf(row).length) {
-        <p class="mt-0.5 font-mono text-gray-600 dark:text-gray-300">{{ requirementsOf(row).join(', ') }}</p>
+        <p class="font-mono font-semibold">{{ row.code }}</p>
+        @if (row.requirement_codes.length) {
+        <p class="mt-0.5 font-mono text-gray-600 dark:text-gray-300">{{ row.requirement_codes.join(', ') }}</p>
         }
       </div>
     </ng-template>

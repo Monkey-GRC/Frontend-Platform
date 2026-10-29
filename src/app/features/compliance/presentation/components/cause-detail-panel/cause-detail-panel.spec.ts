@@ -17,7 +17,7 @@ const DETAIL: Cause = {
 const OWN: Cause = { ...DETAIL, id: 'c9', origin: 'own' };
 
 const control = (id: string, code: string, name: string): ControlListItem => ({
-  id, code, own_code: null, name, origin: 'catalog', type: 'manual', trust_criteria: ['security'], approval: 'approved', readiness: 'not_measured',
+  id, code, requirement_codes: [], own_code: null, name, origin: 'catalog', type: 'manual', trust_criteria: ['security'], approval: 'approved', readiness: 'not_measured',
   progress: { done: 0, total: 1 }, coverage: { measured: 0, applicable: 1 }, assigned_to: null,
 });
 

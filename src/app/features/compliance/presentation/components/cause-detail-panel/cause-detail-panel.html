@@ -95,7 +95,7 @@
         @for (k of d.controls; track k.control_id) {
         <li class="flex items-start justify-between gap-3 py-3 text-sm first:pt-0 last:pb-0">
           <div class="min-w-0 text-gray-700 dark:text-gray-200">
-            <p>@if (codeOf(k); as code) {<span class="font-mono text-xs font-semibold">{{ code }}</span> · }{{ k.name }}</p>
+            <p><span class="font-mono text-xs font-semibold">{{ k.code }}</span> · {{ k.name }}</p>
             <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">
               {{ (k.is_mandatory ? 'COMPLIANCE.RISK_DETAIL.MANDATORY' : 'COMPLIANCE.RISK_DETAIL.OPTIONAL') | translate }}
               @if (k.effect) { · {{ labels.of('COMPLIANCE.CAUSE_EFFECT', k.effect) }} }

@@ -112,7 +112,7 @@
           <ul class="mt-2 flex flex-col gap-1 pl-3">
             @for (k of c.controls; track k.control_id) {
             <li class="flex flex-wrap items-center gap-x-2 text-xs text-gray-700 dark:text-gray-200">
-              @if (codeOf(k); as code) {<span class="font-mono font-semibold">{{ code }}</span>}
+              <span class="font-mono font-semibold">{{ k.code }}</span>
               <span>{{ k.name }}</span>
               <span class="text-gray-600 dark:text-gray-300">· {{ (k.is_mandatory ? 'COMPLIANCE.RISK_DETAIL.MANDATORY' : 'COMPLIANCE.RISK_DETAIL.OPTIONAL') | translate }}</span>
               @if (k.effect) {<span class="text-gray-600 dark:text-gray-300">· {{ labels.of('COMPLIANCE.CAUSE_EFFECT', k.effect) }}</span>}
