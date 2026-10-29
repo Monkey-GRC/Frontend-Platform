@@ -73,7 +73,7 @@ export class ControlsListView {
   ]);
 
   // D80: el código se muestra siempre. La columna aparece en cuanto el backend manda códigos (hoy solo los trae en la vista técnica, para auditor y
-  // consultor); mientras no haya ninguno en la página no se pinta una columna vacía.
+  // administrador de la empresa); mientras no haya ninguno en la página no se pinta una columna vacía.
   readonly hasCodes = computed(() => this.rows().some((r) => controlCode(r) !== null));
 
   readonly columns = computed<TableColumn<ControlListItem>[]>(() => [

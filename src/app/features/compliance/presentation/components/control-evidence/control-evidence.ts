@@ -21,7 +21,7 @@ const TEST_KEY = '__test__';
 // La evidencia de UN control, donde el control la pide (D80). Tiene tres formas:
 //  · sin más: cada evidencia requerida del control con su responsable y sus entregas, y subir el archivo ahí mismo;
 //  · `testId` (D88): la evidencia de UNA prueba documental en este control — sus entregas y un botón para subir. La persona lee lo que la prueba pide y sube su documento;
-//    el consultor lo revisa después. La primera subida crea el lugar de esa prueba, así que no hay nada que preparar antes;
+//    el administrador de la empresa lo valida después. La primera subida crea el lugar de esa prueba, así que no hay nada que preparar antes;
 //  · `suggested`: los documentos que el catálogo sugiere para el control sin decir a qué prueba sirven. Solo una guía: no cuentan para ninguna prueba.
 // Si el backend aún no tiene el endpoint (MD-126), muestra el resumen del detalle sin la subida, y se enciende solo cuando exista.
 @Component({

@@ -7,7 +7,7 @@ import { Cause, CauseInput, LinkedControl, RiskInput, RiskMatrixData, NewTreatme
 
 const PAGE_SIZE = 100;
 
-// Riesgos y causas de un servicio. `view` es `technical` solo para auditor y consultor (`ComplianceViewService.viewParam`).
+// Riesgos y causas de un servicio. `view` es `technical` solo para auditor y administrador de la empresa (`ComplianceViewService.viewParam`).
 // Un servicio trae unos 10 riesgos y 56 causas, así que las listas se cargan completas (`listAll…`) y se agrupan en pantalla con los valores que llegan.
 @Injectable({ providedIn: 'root' })
 export class RiskService {

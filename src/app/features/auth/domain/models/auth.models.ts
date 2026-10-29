@@ -34,7 +34,7 @@ export interface RedeemDto {
   password: string;
 }
 
-// D96: el consultor no tiene uso; queda en el enum del backend pero ninguna pantalla lo trata.
+// D96: cuatro roles.
 export type UserRole = 'admin_monkey' | 'admin_empresa' | 'funcional' | 'auditor';
 
 export interface AuthUser {

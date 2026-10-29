@@ -27,7 +27,7 @@ const framework = (patch: Partial<OverviewFramework> = {}): OverviewFramework =>
   framework_code: 'soc2', name: 'SOC 2', readiness: 'almost_ready', progress: { done: 4, total: 5 }, coverage: { measured: 5, applicable: 5 }, evaluation: DEFINED,
   categories: [category('security', { failing_controls: [failing('k1', 'IAC-12', 'Gestión de accesos')] })], ...patch,
 });
-const technical = (state: 'compliant' | 'non_compliant' | 'evaluating') => ({ state, unique_controls: 5, failing: ['IAC-12'], pending: [], assessments: { consultant: null, auditor: null } });
+const technical = (state: 'compliant' | 'non_compliant' | 'evaluating') => ({ state, unique_controls: 5, failing: ['IAC-12'], pending: [] });
 
 describe('OverviewView', () => {
   let api: jasmine.SpyObj<OverviewService>;
@@ -129,7 +129,7 @@ describe('OverviewView', () => {
     });
 
     it('the other roles are told to ask the administrator, with no button (the API would answer 403)', () => {
-      for (const role of ['auditor', 'consultor', 'funcional']) {
+      for (const role of ['auditor', 'funcional']) {
         setup(role, [undefinedFw()]);
         expect(q('[data-define-period]')).toBeNull();
         expect(text()).toContain('COMPLIANCE.PERIOD.ASK_ADMIN');

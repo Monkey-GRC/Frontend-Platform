@@ -25,7 +25,7 @@ export interface Assignee {
   last_name: string | null;
 }
 
-// Solo llega con `?view=technical` (auditor y consultor). Hoy el backend aún trae aquí `control_code` y `requirement_codes`; por D80 pasan
+// Solo llega con `?view=technical` (auditor y administrador de la empresa). Hoy el backend aún trae aquí `control_code` y `requirement_codes`; por D80 pasan
 // a la vista de negocio (`code` y `requirement_codes` del control), y esto queda como respaldo hasta que se mueva.
 export interface ControlTechnical {
   control_code?: string | null;

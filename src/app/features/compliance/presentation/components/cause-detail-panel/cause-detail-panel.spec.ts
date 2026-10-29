@@ -54,7 +54,7 @@ describe('CauseDetailPanel', () => {
   it('lets only the company admin link and remove controls', () => {
     setup('admin_empresa');
     expect(text()).toContain('COMPLIANCE.CAUSE_DETAIL.LINK_CONTROL');
-    for (const role of ['auditor', 'consultor', 'funcional']) {
+    for (const role of ['auditor', 'funcional']) {
       TestBed.resetTestingModule();
       setup(role);
       expect(text()).not.toContain('COMPLIANCE.CAUSE_DETAIL.LINK_CONTROL');

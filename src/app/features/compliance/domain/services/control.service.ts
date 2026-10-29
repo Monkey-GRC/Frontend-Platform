@@ -20,7 +20,7 @@ export interface ControlsPage {
   page: PageInfo;
 }
 
-// Acciones de protección de un servicio. `view` es `technical` solo para auditor y consultor (`ComplianceViewService.viewParam`);
+// Acciones de protección de un servicio. `view` es `technical` solo para auditor y administrador de la empresa (`ComplianceViewService.viewParam`);
 // para el resto no se manda, y el backend responde 403 si alguien más la pide.
 @Injectable({ providedIn: 'root' })
 export class ControlService {
