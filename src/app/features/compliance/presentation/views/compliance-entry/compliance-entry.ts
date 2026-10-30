@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { SessionService } from '@core/domain/services/session.service';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { ComplianceGeneral } from '../../components/compliance-general/compliance-general';
@@ -21,6 +22,10 @@ type Stage = 'loading' | 'error' | 'forbidden' | 'empty' | 'choose';
 export class ComplianceEntryView implements OnInit {
   private readonly api = inject(ComplianceServicesService);
   private readonly router = inject(Router);
+  private readonly session = inject(SessionService);
+
+  /** Solo el administrador crea servicios: al funcional y al auditor un servicio vacío no les pide crear nada (D96). */
+  readonly role = this.session.user()?.role ?? null;
 
   readonly stage = signal<Stage>('loading');
   readonly services = signal<ComplianceServiceRef[]>([]);

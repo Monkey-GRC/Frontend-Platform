@@ -39,11 +39,15 @@ export interface TeamPage {
 
 export interface InviteDto {
   email: string;
-  role: 'funcional' | 'auditor';
+  name: string;
+  last_name: string;
+  role: 'admin_empresa' | 'funcional' | 'auditor';
   dimensions?: Dimension[];
 }
 
 export interface UpdateMemberDto {
+  name?: string;
+  last_name?: string;
   status?: 'active' | 'inactive';
   dimensions?: Dimension[];
 }

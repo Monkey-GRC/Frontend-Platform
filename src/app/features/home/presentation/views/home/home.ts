@@ -20,5 +20,8 @@ export class Home {
   readonly nextStep = computed(() => this.session.onboarding()?.next_step ?? null);
   readonly pendingCompanyContext = computed(() => this.nextStep() === 'organizational_context');
   /** Con el contexto de la empresa declarado ya no se le dice que «su cuenta está activa»: se le da la bienvenida a su resumen. */
+  /** Un funcional o un auditor no administra la empresa: su inicio los lleva directo a Cumplimiento, donde está lo suyo (D98). */
+  readonly role = computed(() => this.session.user()?.role ?? null);
+  readonly isWorker = computed(() => this.role() === 'funcional' || this.role() === 'auditor');
   readonly onboarded = computed(() => this.session.onboarding() !== null && !this.pendingCompanyContext());
 }

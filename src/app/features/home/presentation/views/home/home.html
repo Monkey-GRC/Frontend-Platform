@@ -41,5 +41,20 @@
   </div>
   }
 
+  @if (isWorker()) {
+  <div class="mk-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between" data-test-my-work>
+    <div class="flex items-start gap-4">
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white"><span class="material-symbols-rounded" aria-hidden="true">{{ role() === 'funcional' ? 'assignment_ind' : 'fact_check' }}</span></span>
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ (role() === 'funcional' ? 'HOME.WORK.FUNCIONAL_TITLE' : 'HOME.WORK.AUDITOR_TITLE') | translate }}</h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ (role() === 'funcional' ? 'HOME.WORK.FUNCIONAL_BODY' : 'HOME.WORK.AUDITOR_BODY') | translate }}</p>
+      </div>
+    </div>
+    <a routerLink="/cumplimiento" data-test-my-work-link class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
+      {{ (role() === 'funcional' ? 'HOME.WORK.FUNCIONAL_CTA' : 'HOME.WORK.AUDITOR_CTA') | translate }}<span class="material-symbols-rounded text-[18px]" aria-hidden="true">arrow_forward</span>
+    </a>
+  </div>
+  }
+
   <app-company-dashboard />
 </section>

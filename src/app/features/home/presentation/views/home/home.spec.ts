@@ -10,13 +10,13 @@ import { Home } from './home';
 describe('Home (D89)', () => {
   let fixture: ComponentFixture<Home>;
 
-  function setup(nextStep: string | null, completed: string[] = []): Home {
+  function setup(nextStep: string | null, completed: string[] = [], role = 'admin_empresa'): Home {
     TestBed.configureTestingModule({
       imports: [Home],
       providers: [provideTranslateService(), provideRouter([]), { provide: HomeDashboardService, useValue: { load: () => NEVER } }],
     });
     TestBed.inject(SessionService).set(
-      { id: 'u1', email: 'a@x.com', name: 'Laura', last_name: null, role: 'admin_empresa' },
+      { id: 'u1', email: 'a@x.com', name: 'Laura', last_name: null, role },
       { id: 'c1', name: 'ACME' },
       { next_step: nextStep, completed_steps: completed },
     );
@@ -45,5 +45,17 @@ describe('Home (D89)', () => {
       expect(el().querySelector('a[href="/onboarding"]')).toBeNull(); // sin tarjetas de «siguiente paso»
       expect(el().querySelector('a[href="/services/new"]')).toBeNull();
     }
+  });
+
+  it('sends a functional user and an auditor straight to their compliance work, and the administrator does not see that card', () => {
+    for (const role of ['funcional', 'auditor']) {
+      TestBed.resetTestingModule();
+      setup(null, [], role);
+      expect(el().querySelector('[data-test-my-work]')).not.toBeNull();
+      expect(el().querySelector('[data-test-my-work-link]')!.getAttribute('href')).toBe('/cumplimiento');
+    }
+    TestBed.resetTestingModule();
+    setup(null, [], 'admin_empresa');
+    expect(el().querySelector('[data-test-my-work]')).toBeNull();
   });
 });

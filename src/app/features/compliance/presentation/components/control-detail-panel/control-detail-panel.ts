@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { OWNER_ASSIGNMENT_ENABLED } from '@config/features.config';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
@@ -97,8 +98,9 @@ export class ControlDetailPanel {
     return role !== null && EDITING_ROLES.includes(role);
   });
 
-  /** Quién ve el reparto por dimensión: el administrador (y lo cambia) y el auditor (solo lo lee). */
-  readonly canSeeResponsibles = computed(() => this.view.role() === 'admin_empresa' || this.view.role() === 'auditor');
+  /** Quién ve el reparto por dimensión: el administrador (y lo cambia) y el auditor (solo lo lee). Apagado por ahora (D98): el funcional atiende todo lo de su especialidad. */
+  private readonly ownerAssignment = inject(OWNER_ASSIGNMENT_ENABLED);
+  readonly canSeeResponsibles = computed(() => this.ownerAssignment && (this.view.role() === 'admin_empresa' || this.view.role() === 'auditor'));
 
   /** ¿La subida de evidencia va bajo las pruebas manuales? Solo si el detalle trae las pruebas y alguna es manual; si no, va aparte. */
   protected evidenceUnderTests(d: ControlDetail): boolean {

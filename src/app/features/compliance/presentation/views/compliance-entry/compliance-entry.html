@@ -22,13 +22,19 @@
   }
 
   @case ('empty') {
+  @if (role === 'admin_empresa') {
   <app-empty-state icon="inventory_2" titleKey="COMPLIANCE.ENTRY.EMPTY_TITLE" descriptionKey="COMPLIANCE.ENTRY.EMPTY_BODY">
     <a routerLink="/services/new" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 transition">
       {{ 'COMPLIANCE.ENTRY.DECLARE_SERVICE' | translate }}<span class="material-symbols-rounded text-[18px]">arrow_forward</span>
     </a>
   </app-empty-state>
+  } @else if (role === 'funcional') {
+  <!-- Un funcional ve solo lo que el administrador le asignó: sin asignación, no hay nada que hacer todavía -->
+  <app-empty-state icon="assignment_ind" titleKey="COMPLIANCE.ENTRY.EMPTY_FUNCIONAL_TITLE" descriptionKey="COMPLIANCE.ENTRY.EMPTY_FUNCIONAL_BODY" />
+  } @else {
+  <app-empty-state icon="inventory_2" titleKey="COMPLIANCE.ENTRY.EMPTY_READER_TITLE" descriptionKey="COMPLIANCE.ENTRY.EMPTY_READER_BODY" />
   }
-
+  }
   @default {
   <app-compliance-general [services]="services()" />
   }

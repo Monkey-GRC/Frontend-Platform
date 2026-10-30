@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER, of, throwError } from 'rxjs';
+import { OWNER_ASSIGNMENT_ENABLED } from '@config/features.config';
 import { SessionService } from '@core/domain/services/session.service';
 import { ControlDetail, ControlResponsible, ResponsibleCandidate } from '../../../domain/models/control.models';
 import { ControlService } from '../../../domain/services/control.service';
@@ -223,8 +224,16 @@ describe('ControlDetailPanel', () => {
     expect(panel.confirmingRetire()).toBeFalse();
   });
 
-  describe('responsibles by dimension (users-team.md)', () => {
+  describe('responsibles by dimension (users-team.md; off by default, D98)', () => {
+    beforeEach(() => TestBed.overrideProvider(OWNER_ASSIGNMENT_ENABLED, { useValue: true }));
     const rows = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[data-test-responsible]'));
+
+    it('shows nothing about owners while the feature is off', () => {
+      TestBed.resetTestingModule();
+      setup('admin_empresa');
+      expect(fixture.nativeElement.querySelector('[data-test-responsibles]')).toBeNull();
+      expect(api.responsibles).not.toHaveBeenCalled();
+    });
 
     it('shows the company admin who owns each dimension and from where, and flags the ones without an owner', () => {
       setup('admin_empresa');

@@ -1,8 +1,9 @@
 {
   "TEAM": {
     "TITLE": "Equipo",
-    "INTRO": "Invita a tu gente, dale a cada persona su especialidad y reparte el trabajo: quién se hace cargo de cada dimensión en cada servicio.",
+    "INTRO": "Invita a tu gente y dale a cada persona su especialidad. Quien entra como funcional ve y atiende de una vez todo lo de sus especialidades.",
     "YOU": "Tú",
+    "NO_NAME": "Sin nombre: corrígelo para identificarla.",
     "LOAD_ERROR": "No pudimos cargar el equipo.",
     "TABS": { "PEOPLE": "Personas", "WORK": "Reparto del trabajo" },
     "ROLE": { "ADMIN_EMPRESA": "Administrador", "FUNCIONAL": "Funcional", "AUDITOR": "Auditor" },
@@ -10,6 +11,12 @@
     "INVITE": {
       "TITLE": "Invitar a una persona",
       "EMAIL": "Correo",
+      "NAME": "Nombre",
+      "LAST_NAME": "Apellido",
+      "EMAIL_TAKEN": "Ya hay un usuario registrado con ese correo.",
+      "ALREADY_IN_TEAM": "Ya hay un usuario registrado con ese correo: {{who}} ({{role}}).",
+      "FIX_NAME": "Corregir su nombre",
+      "ADMIN_HELP": "Un administrador gestiona el equipo y valida lo que se sube, como tú. Solo otro administrador puede crearlo.",
       "ROLE": "Rol",
       "SUBMIT": "Invitar",
       "DIMENSIONS": "Especialidades",
@@ -25,6 +32,7 @@
       "EXPIRES": "Vence el {{date}}. Si se pierde, emite uno nuevo."
     },
     "ACTIONS": {
+      "EDIT_NAME": "Editar nombre",
       "EDIT_DIMENSIONS": "Cambiar especialidades",
       "NEW_CODE": "Nuevo código",
       "DEACTIVATE": "Desactivar",
@@ -52,6 +60,7 @@
       "INVITED": "Listo, creamos la cuenta. Entrega el código de activación.",
       "CODE_REISSUED": "Listo, emitimos un código nuevo. El anterior ya no sirve.",
       "UPDATED": "Listo, guardamos las especialidades.",
+      "NAME_SAVED": "Listo, guardamos el nombre.",
       "DEACTIVATED": "Listo, desactivamos la cuenta.",
       "REACTIVATED": "Listo, reactivamos la cuenta.",
       "MFA_RESET": "Listo, quitamos el segundo factor.",

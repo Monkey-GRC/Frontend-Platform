@@ -92,6 +92,10 @@
       "EMPTY_TITLE": "No hay servicios creados",
       "EMPTY_BODY": "Para medir tu cumplimiento en un servicio, primero crea un servicio.",
       "DECLARE_SERVICE": "Crear un servicio",
+      "EMPTY_FUNCIONAL_TITLE": "Aún no tienes trabajo asignado",
+      "EMPTY_FUNCIONAL_BODY": "Aquí verás todo lo de tus especialidades. Todavía no hay nada: puede que la empresa aún no tenga servicios con controles de tu especialidad. Si crees que es un error, avisa a tu administrador.",
+      "EMPTY_READER_TITLE": "Aún no hay servicios para revisar",
+      "EMPTY_READER_BODY": "Cuando el administrador de la empresa declare un servicio, podrás verlo aquí.",
       "GENERAL_TITLE": "Cumplimiento general",
       "GENERAL_BODY": "Cada servicio se mide por separado frente a cada marco. Aquí ves cómo va cada uno; entra a uno para ver su detalle. No hay un porcentaje combinado de varios servicios.",
       "SERVICE_COUNT": "{{count}} servicios con este marco",
@@ -325,8 +329,8 @@
       "AVOID": "Evitar"
     },
     "RESPONSIBLES": {
-      "TITLE": "Responsables",
-      "INTRO": "Los cargos de la organización —COO, TI, Cumplimiento, Proceso, CISO y propietarios de activo— con el nombre de la persona que responde. A ellos se asignan los tratamientos de riesgo y las evidencias.",
+      "TITLE": "Cargos responsables",
+      "INTRO": "Los cargos de la organización —COO, TI, Cumplimiento, Proceso, CISO y propietarios de activo— con el nombre de la persona que responde. A ellos se asignan los tratamientos de riesgo y las evidencias. No son las personas de tu equipo con cuenta: a ellas las invitas y les repartes el trabajo en «Equipo».",
       "ADD": "Agregar responsable",
       "TYPE": "Cargo",
       "PERSON": "Persona",
