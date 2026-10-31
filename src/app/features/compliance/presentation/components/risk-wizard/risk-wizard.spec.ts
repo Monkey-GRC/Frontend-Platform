@@ -56,16 +56,16 @@ describe('RiskWizard (D89)', () => {
     expect(q('[data-wizard-risk]')!.textContent).toContain('Qué es R002'); // la descripción del riesgo
   });
 
-  it('puts «Anterior» to the left of «Guardar», and the removal apart, in red, below the matrix', () => {
+  it('puts «Anterior» to the left of «Guardar», and the removal next to the risk, away from the save buttons', () => {
     setup([done('r1', 'R001'), risk('r2', 'R002')]);
     const nav = q('[data-wizard-nav]')!;
     const back = nav.querySelector('[data-wizard-back]')!;
     const save = nav.querySelector('[data-wizard-save]')!;
     expect(back.compareDocumentPosition(save) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy(); // Anterior va antes (a la izquierda) que Guardar
-    const skip = q('[data-wizard-danger] [data-wizard-skip]')!;
-    expect(skip.className).toContain('text-error-600');
+    const skip = q('[data-wizard-skip]')!;
+    expect(q('[data-wizard-risk]')!.contains(skip)).toBeTrue(); // vive en la tarjeta del riesgo, a mano
     expect(q('[data-wizard-preview]')!.contains(skip)).toBeFalse(); // no está pegado a los botones de guardar
-    expect(q('[data-wizard-preview]')!.compareDocumentPosition(skip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy(); // y queda debajo
+    expect(q('[data-wizard-risk]')!.compareDocumentPosition(q('[data-wizard-preview]')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy(); // y queda antes que la matriz
   });
 
   it('names what the risk belongs to: the criterion it affects and the losses it could cause', () => {

@@ -68,8 +68,6 @@
       "ATTENTION_EMPTY": "Ningún control incumple por ahora.",
       "ATTENTION_EMPTY_UNMEASURED": "Aún no hay resultados, así que no hay controles que señalar.",
       "TESTS": "{{done}}/{{total}} pruebas cumplen",
-      "RULE_TITLE": "Ten presente:",
-      "RULE_BODY": "la ausencia de evidencia no se considera cumplimiento. Un control pendiente, en revisión o vencido nunca cuenta como cumplido.",
       "NO_FRAMEWORKS_TITLE": "Este servicio aún no tiene un marco contratado",
       "NO_FRAMEWORKS_BODY": "Cuando contrates un marco verás aquí su estado de cumplimiento."
     },
@@ -81,6 +79,8 @@
       "NOT_EVALUATED": "Sin evaluar: {{count}}. Evalúalos desde Riesgos para que aparezcan aquí.",
       "EMPTY": "Aún no hay riesgos evaluados. Evalúa un riesgo (probabilidad e impacto) y aparecerá aquí.",
       "HINT": "Pulsa una casilla para ver sus riesgos.",
+      "SUMMARY": "Resumen",
+      "DISTRIBUTION": "Riesgos por nivel",
       "RESIDUAL_NOTE": "La matriz residual se mostrará cuando existan los datos de la fórmula de mitigación.",
       "CELL_ARIA": "Probabilidad {{likelihood}}, impacto {{impact}}: {{count}} riesgos",
       "LEGEND": "Niveles de riesgo, de menor a mayor"
@@ -509,6 +509,8 @@
       "DONE_TITLE": "Riesgos evaluados",
       "DONE_BODY": "Los {{total}} riesgos de tu servicio tienen probabilidad e impacto.",
       "REVIEW": "Revisar el último",
+      "REVIEW_BACK": "Volver",
+      "CONFIRM_EVALUATION": "Confirmar evaluación",
       "EDIT_LATER": "Puedes corregir cualquier calificación después, en Cumplimiento › Riesgos.",
       "FINISH": "Declarar los activos",
       "DONE_REMOVED": "Retiraste {{removed}} por no aplicar a tu servicio.",
