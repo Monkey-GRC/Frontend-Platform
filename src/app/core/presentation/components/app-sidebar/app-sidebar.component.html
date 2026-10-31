@@ -147,7 +147,7 @@
               } @else {
               <!-- Item simple (sin submenú) -->
               @if (item.path) {
-              <a [routerLink]="item.path" class="menu-item group" [ngClass]="{ 'menu-item-active': isActive(item.path), 'menu-item-inactive': !isActive(item.path) }" [attr.aria-current]="isActive(item.path) ? 'page' : null">
+              <a [routerLink]="item.path" class="menu-item group" [ngClass]="{ 'menu-item-active': isActive(item.path), 'menu-item-inactive': !isActive(item.path), 'xl:justify-center': !((isExpanded$ | async) || (isHovered$ | async)) }" [attr.aria-current]="isActive(item.path) ? 'page' : null" [attr.aria-label]="item.labelKey | translate">
                 <!-- Google Symbols Icon -->
                 <span class="menu-item-icon-size">
                   <span class="material-symbols-outlined text-xl" [ngClass]="{
@@ -157,11 +157,10 @@
                     {{ item.icon }}
                   </span>
                 </span>
-                <span class="menu-item-text">
-                  @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                  {{ item.labelKey | translate }}
-                  }
-                </span>
+                <!-- Sin el texto (menú contraído) no se pinta el contenedor: dejaba un hueco de 12 px a la derecha del icono y lo descentraba -->
+                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+                <span class="menu-item-text">{{ item.labelKey | translate }}</span>
+                }
               </a>
               }
               }

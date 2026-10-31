@@ -1,11 +1,12 @@
 import { ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, TitleStrategy } from '@angular/router';
 import { HttpBackend, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 import { MultiTranslateHttpLoader } from 'ngx-translate-multi-http-loader';
 import { credentialsInterceptor } from '@core/domain/interceptors/credentials.interceptor';
 import { LanguageService } from '@core/domain/services/language.service';
 
+import { PageTitleStrategy } from '@core/domain/services/page-title.strategy';
 import { routes } from './app.routes';
 
 // Un archivo por área en `public/i18n/{es,en}/`. Se carga con HttpBackend a propósito: así no pasa
@@ -23,6 +24,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
+    { provide: TitleStrategy, useExisting: PageTitleStrategy },
     provideHttpClient(withInterceptors([credentialsInterceptor])),
     provideTranslateService({
       loader: { provide: TranslateLoader, useFactory: httpLoaderFactory, deps: [HttpBackend] },

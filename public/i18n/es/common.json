@@ -43,7 +43,7 @@
       "REVIEW_BODY_EDIT": "Toca «Editar» en lo que quieras cambiar.",
       "SAVING": "Guardando…",
       "SAVE_CHANGES": "Guardar cambios",
-      "PROGRESS_SAVED": "Guardamos tu avance en este navegador: si te interrumpen, retomas donde ibas."
+      "PROGRESS_SAVED": "Se guarda automáticamente en este navegador."
     },
     "VALIDATION": {
       "REQUIRED": "Este campo es obligatorio.",
@@ -54,5 +54,29 @@
       "MESSAGE": "No encontramos la página que buscas.",
       "BACK_HOME": "Volver al inicio"
     }
+  },
+  "PAGE_TITLE": {
+    "HOME": "Inicio",
+    "ONBOARDING": "Contexto de la empresa",
+    "SERVICES": "Mis servicios",
+    "SERVICE_NEW": "Nuevo servicio",
+    "SERVICE_EDIT": "Editar servicio",
+    "SERVICE": "Servicio",
+    "CONNECTION_NEW": "Nueva conexión",
+    "CONNECT_PLATFORM": "Conectar plataforma",
+    "CONNECTION": "Conexión",
+    "COMPLIANCE": "Cumplimiento",
+    "COMPLIANCE_OVERVIEW": "Cumplimiento · Resumen",
+    "COMPLIANCE_RISKS": "Cumplimiento · Riesgos",
+    "COMPLIANCE_CAUSES": "Cumplimiento · Causas",
+    "COMPLIANCE_CONTROLS": "Cumplimiento · Controles",
+    "COMPLIANCE_EVIDENCE": "Cumplimiento · Evidencias",
+    "COMPLIANCE_EXCLUSIONS": "Cumplimiento · Exclusiones",
+    "TEAM": "Equipo",
+    "RESPONSIBLES": "Responsables",
+    "SIGNIN": "Iniciar sesión",
+    "MFA": "Verificación en dos pasos",
+    "REGISTER": "Activar cuenta",
+    "NOT_FOUND": "Página no encontrada"
   }
 }

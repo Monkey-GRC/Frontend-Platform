@@ -365,6 +365,32 @@
   background-color: #344054;
 }
 
+/* Barra de desplazamiento de la marca (la misma que Monkey Admin) */
+@layer base {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #bbbbbb;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #979797;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background-color: transparent;
+  }
+}
+
 @layer utilities {
 
   /* For Remove Date Icon */
@@ -599,4 +625,15 @@ textarea::placeholder {
 }
 .mk-checkbox:indeterminate {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M4 8h8'/%3E%3C/svg%3E");
+}
+
+/* Barra fina de «navegando…» (la muestra el layout mientras una ruta tarda en abrir) */
+@keyframes navbar {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(300%);
+  }
 }
