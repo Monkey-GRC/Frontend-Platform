@@ -1,0 +1,3 @@
+Banderas circulares de circle-flags (HatScripts/circle-flags), licencia MIT.
+https://github.com/HatScripts/circle-flags
+Solo se incluyen las de los países del catálogo `service_country`.

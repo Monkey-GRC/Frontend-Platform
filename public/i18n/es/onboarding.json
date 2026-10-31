@@ -21,8 +21,6 @@
     },
     "LOAD_ERROR_TITLE": "No pudimos cargar el formulario",
     "LOAD_ERROR_BODY": "Revisa tu conexión e inténtalo de nuevo. Lo que hayas escrito no se perdió.",
-    "DONE_TITLE": "Contexto organizacional guardado",
-    "DONE_BODY": "Se guardó la información de {{name}}. Puedes editarla desde «Mi empresa».",
     "S1_TITLE": "Contexto organizacional",
     "S1_BODY": "Esta información define el alcance y las recomendaciones del programa de cumplimiento.",
     "LEGAL_NAME": "Razón social",

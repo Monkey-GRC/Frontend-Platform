@@ -62,6 +62,14 @@ export class RiskHeatmap {
   /** La leyenda: cada nivel, de menor a mayor, con su color y el nombre que sirve el backend. */
   readonly legend = computed(() => this.levels().map((o) => ({ value: o.value, label: o.label, soft: riskLevelHeat(o.value).soft })));
 
+  /** Los riesgos evaluados de cada nivel, de menor a mayor: sus códigos (en el orden de la lista) y cuántos son. Es un conteo, no un promedio. */
+  readonly distribution = computed(() =>
+    this.levels().map((o) => {
+      const risks = this.evaluated().filter((r) => r.inherent_risk_level === o.value);
+      return { value: o.value, label: o.label, count: risks.length, risks, soft: riskLevelHeat(o.value).soft };
+    }),
+  );
+
   /** El nivel más alto que hay entre los riesgos evaluados (no un promedio); `null` si ninguno está evaluado. */
   readonly worstLevel = computed<string | null>(() => {
     const order = this.levels().map((o) => o.value);

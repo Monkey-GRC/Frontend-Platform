@@ -43,7 +43,7 @@
       "REVIEW_BODY_EDIT": "Tap “Edit” on anything you want to change.",
       "SAVING": "Saving…",
       "SAVE_CHANGES": "Save changes",
-      "PROGRESS_SAVED": "We save your progress in this browser: if you get interrupted, you pick up where you left off."
+      "PROGRESS_SAVED": "Saved automatically in this browser."
     },
     "VALIDATION": {
       "REQUIRED": "This field is required.",
@@ -54,5 +54,29 @@
       "MESSAGE": "We can't find the page you are looking for.",
       "BACK_HOME": "Back to home"
     }
+  },
+  "PAGE_TITLE": {
+    "HOME": "Home",
+    "ONBOARDING": "Company context",
+    "SERVICES": "My services",
+    "SERVICE_NEW": "New service",
+    "SERVICE_EDIT": "Edit service",
+    "SERVICE": "Service",
+    "CONNECTION_NEW": "New connection",
+    "CONNECT_PLATFORM": "Connect platform",
+    "CONNECTION": "Connection",
+    "COMPLIANCE": "Compliance",
+    "COMPLIANCE_OVERVIEW": "Compliance · Overview",
+    "COMPLIANCE_RISKS": "Compliance · Risks",
+    "COMPLIANCE_CAUSES": "Compliance · Causes",
+    "COMPLIANCE_CONTROLS": "Compliance · Controls",
+    "COMPLIANCE_EVIDENCE": "Compliance · Evidence",
+    "COMPLIANCE_EXCLUSIONS": "Compliance · Exclusions",
+    "TEAM": "Team",
+    "RESPONSIBLES": "Responsibles",
+    "SIGNIN": "Sign in",
+    "MFA": "Two-step verification",
+    "REGISTER": "Activate account",
+    "NOT_FOUND": "Page not found"
   }
 }

@@ -20,6 +20,7 @@ import {
   isHttpUrl,
   systemDescriptionFileError,
 } from '../../../domain/models/service.models';
+import { CRITERION_STYLES, DATA_ICONS, FLAG_FILES, SYMBOLS } from '../../../domain/utils/service-display';
 import { ServiceDraftService } from '../../../domain/services/service-draft.service';
 import { ServiceService } from '../../../domain/services/service.service';
 import { RiskWizard } from '@features/compliance/presentation/components/risk-wizard/risk-wizard';
@@ -533,6 +534,27 @@ export class ServiceFormView implements OnInit {
     return labels.length > 0 ? labels.join(', ') : '—';
   }
 
+  // Valores elegidos como etiquetas (con bandera o icono si el catálogo lo tiene) para la pantalla de revisión; sin nada elegido, lista vacía.
+  pillsOf(options: { value: string; label: string }[] | undefined, values: string[]): ChipOption[] {
+    return values.map((v) => {
+      const label = options?.find((o) => o.value === v)?.label ?? v;
+      return { value: v, label, ...(FLAG_FILES.has(v) ? { flag: v } : {}), ...(SYMBOLS[v] ? { symbol: SYMBOLS[v] } : {}) };
+    });
+  }
+
+  dataIcon(value: string): string {
+    return DATA_ICONS[value] ?? 'dataset';
+  }
+
+  criterionStyle(value: string): { icon: string; chip: string } {
+    return CRITERION_STYLES[value] ?? { icon: 'check_circle', chip: 'bg-gray-50 text-gray-700 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700' };
+  }
+
+  frameworkPills(): ChipOption[] {
+    const all = this.catalogs()?.frameworks ?? [];
+    return this.draft().framework_codes.map((c) => ({ value: c, label: all.find((f) => f.code === c)?.label ?? c }));
+  }
+
   frameworkLabels(): string {
     const all = this.catalogs()?.frameworks ?? [];
     const labels = this.draft().framework_codes.map((c) => all.find((f) => f.code === c)?.label ?? c);
@@ -546,7 +568,7 @@ export class ServiceFormView implements OnInit {
   private chips(options: CatalogOption[] | undefined, part: 'country' | 'region'): ChipOption[] {
     return (options ?? [])
       .filter((o) => (part === 'country' ? o.group === 'country' : o.group !== 'country'))
-      .map((o) => ({ value: o.value, label: o.label }));
+      .map((o) => ({ value: o.value, label: o.label, ...(FLAG_FILES.has(o.value) ? { flag: o.value } : {}), ...(SYMBOLS[o.value] ? { symbol: SYMBOLS[o.value] } : {}) }));
   }
 
   private isStepValid(step: number, d: ServiceDraft): boolean {

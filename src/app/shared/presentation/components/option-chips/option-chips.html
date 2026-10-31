@@ -3,10 +3,17 @@
   <button type="button" (click)="picked.emit(option.value)" [attr.aria-pressed]="isSelected(option.value)"
     class="group inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
     [class]="isSelected(option.value) ? 'border-primary bg-primary/10 text-primary shadow-sm dark:bg-primary/20 dark:text-white' : 'border-gray-200 bg-white text-gray-700 hover:border-primary/50 hover:bg-primary/5 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300'">
-    @if (isSelected(option.value)) {
+    @if (option.flag) {
+    <img [src]="'/images/flags/' + option.flag + '.svg'" alt="" width="20" height="20" loading="lazy" decoding="async" class="size-5 shrink-0 rounded-full ring-1 ring-black/10 dark:ring-white/20" />
+    } @else if (option.symbol) {
+    <span class="material-symbols-rounded text-[20px] leading-none text-gray-500 dark:text-gray-400" aria-hidden="true">{{ option.symbol }}</span>
+    } @else if (isSelected(option.value)) {
     <span class="material-symbols-rounded text-[18px] leading-none">{{ multiple() ? 'check_circle' : 'check' }}</span>
     }
     {{ option.label }}
+    @if ((option.flag || option.symbol) && isSelected(option.value)) {
+    <span class="material-symbols-rounded text-[18px] leading-none" aria-hidden="true">{{ multiple() ? 'check_circle' : 'check' }}</span>
+    }
   </button>
   }
 </div>

@@ -22,6 +22,26 @@ export interface SessionOnboarding {
   completed_steps: string[];
 }
 
+// Marca (no secreta) de que este navegador abrió una sesión. Las cookies de sesión son httpOnly y el código no las puede ver: sin esta marca, cada
+// visita a la pantalla de acceso consultaba /auth/me y llenaba la consola de 401. La marca NO autentica nada: el servidor sigue validando la sesión
+// de verdad. Si falta o no se puede leer (modo privado), la app se comporta como antes y pregunta al servidor.
+const SESSION_HINT_KEY = 'mk_session';
+const readHint = (): boolean => {
+  try {
+    return localStorage.getItem(SESSION_HINT_KEY) === '1';
+  } catch {
+    return true;
+  }
+};
+const writeHint = (on: boolean): void => {
+  try {
+    if (on) localStorage.setItem(SESSION_HINT_KEY, '1');
+    else localStorage.removeItem(SESSION_HINT_KEY);
+  } catch {
+    // sin almacenamiento: se pregunta siempre al servidor
+  }
+};
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
   private readonly userSignal = signal<SessionUser | null>(null);
@@ -33,13 +53,20 @@ export class SessionService {
   readonly onboarding = this.onboardingSignal.asReadonly();
   readonly isAuthenticated = computed(() => this.userSignal() !== null);
 
+  /** ¿Este navegador abrió una sesión alguna vez (y no la cerró)? Solo evita preguntar al servidor sin necesidad. */
+  hasSessionHint(): boolean {
+    return readHint();
+  }
+
   set(user: SessionUser, company: SessionCompany, onboarding: SessionOnboarding | null = null): void {
+    writeHint(true);
     this.userSignal.set(user);
     this.companySignal.set(company);
     this.onboardingSignal.set(onboarding);
   }
 
   clear(): void {
+    writeHint(false);
     this.userSignal.set(null);
     this.companySignal.set(null);
     this.onboardingSignal.set(null);

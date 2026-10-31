@@ -32,71 +32,94 @@
     </a>
   </app-page-header>
 
-  <!-- Detalles, en tres paneles -->
+  <!-- Detalles, en tres paneles: cada uno con su color; los valores como etiquetas (con banderas e iconos), igual que en la revisión del alta -->
   <div class="mt-4 grid gap-4 xl:grid-cols-3">
 
-    <section class="mk-card p-4" [attr.aria-label]="'SERVICES.DETAIL.WHAT_ARIA' | translate">
-      <h2 class="pb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.WHAT_IS' | translate }}</h2>
-      <dl class="space-y-5 text-sm">
+    <section class="mk-card overflow-hidden" [attr.aria-label]="'SERVICES.DETAIL.WHAT_ARIA' | translate">
+      <header class="flex items-center gap-2.5 border-b px-4 py-3 border-blue-100 bg-blue-50/70 dark:border-blue-500/20 dark:bg-blue-500/10">
+        <span class="flex size-7 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"><span class="material-symbols-rounded text-[18px]" aria-hidden="true">inventory_2</span></span>
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.WHAT_IS' | translate }}</h2>
+      </header>
+      <dl class="space-y-4 p-4">
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.WHAT_IT_DOES' | translate }}</dt>
-          <dd class="mt-1.5 text-gray-900 dark:text-white">{{ s.description || '—' }}</dd>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.DETAIL.WHAT_IT_DOES' | translate }}</dt>
+          <dd class="mt-1 whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-white">{{ s.description || '—' }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.WHAT_IT_INCLUDES' | translate }}</dt>
-          <dd class="mt-1.5 text-gray-900 dark:text-white">{{ s.scope_statement || '—' }}</dd>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.DETAIL.WHAT_IT_INCLUDES' | translate }}</dt>
+          <dd class="mt-1 whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-white">{{ s.scope_statement || '—' }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.EXPECTED_AVAILABILITY' | translate }}</dt>
-          <dd class="mt-1.5 text-gray-900 dark:text-white">{{ label('expected_availability', s.expected_availability) }}</dd>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.DETAIL.EXPECTED_AVAILABILITY' | translate }}</dt>
+          <dd class="mt-1 text-sm font-medium text-gray-900 dark:text-white">{{ label('expected_availability', s.expected_availability) }}</dd>
         </div>
       </dl>
     </section>
 
-    <section class="mk-card p-4" [attr.aria-label]="'SERVICES.DETAIL.COMPLIANCE' | translate">
-      <h2 class="pb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.COMPLIANCE' | translate }}</h2>
-      <dl class="space-y-5 text-sm">
+    <section class="mk-card overflow-hidden" [attr.aria-label]="'SERVICES.DETAIL.COMPLIANCE' | translate">
+      <header class="flex items-center gap-2.5 border-b px-4 py-3 border-indigo-100 bg-indigo-50/70 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+        <span class="flex size-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200"><span class="material-symbols-rounded text-[18px]" aria-hidden="true">verified_user</span></span>
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.COMPLIANCE' | translate }}</h2>
+      </header>
+      <dl class="space-y-4 p-4">
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.LIST.COL_FRAMEWORKS' | translate }}</dt>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.LIST.COL_FRAMEWORKS' | translate }}</dt>
           <dd class="mt-1.5 flex flex-wrap gap-1.5">
             @for (f of s.frameworks; track f.code) {
-            <span class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary dark:text-blue-300">{{ frameworkLabel(f.code) }}{{ f.status !== 'active' ? ' (' + ('SERVICES.LIST.PAUSED' | translate) + ')' : '' }}</span>
-            } @empty { <span class="text-gray-900 dark:text-white">—</span> }
+            <span class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs">
+              <span class="material-symbols-rounded text-[18px] leading-none" aria-hidden="true">verified</span>{{ frameworkLabel(f.code) }}{{ f.status !== 'active' ? ' (' + ('SERVICES.LIST.PAUSED' | translate) + ')' : '' }}
+            </span>
+            } @empty { <span class="text-sm font-medium text-gray-400">—</span> }
           </dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.PREVIOUS_CERTIFICATION' | translate }}</dt>
-          <dd class="mt-1.5 text-gray-900 dark:text-white">{{ label('previous_certification', s.previous_certification) }}</dd>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.DETAIL.PREVIOUS_CERTIFICATION' | translate }}</dt>
+          <dd class="mt-1 text-sm font-medium text-gray-900 dark:text-white">{{ label('previous_certification', s.previous_certification) }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.LIST.COL_CATALOG' | translate }}</dt>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.LIST.COL_CATALOG' | translate }}</dt>
           <dd class="mt-1.5">
             @if (s.catalog.status === 'ready') {
-            <span class="inline-flex items-center gap-1.5 text-green-700 dark:text-green-300">
-              <span class="material-symbols-rounded text-[18px]">task_alt</span>{{ 'SERVICES.LIST.CATALOG_READY' | translate: { count: s.catalog.cloned_controls } }}
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/15 dark:text-green-300 dark:ring-green-400/30">
+              <span class="material-symbols-rounded text-[18px]" aria-hidden="true">task_alt</span>{{ 'SERVICES.LIST.CATALOG_READY' | translate: { count: s.catalog.cloned_controls } }}
             </span>
             } @else {
-            <span class="inline-flex items-center gap-1.5 text-gray-900 dark:text-white"><span class="material-symbols-rounded animate-spin text-[18px]">progress_activity</span>{{ 'SERVICES.LIST.PREPARING' | translate }}</span>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/30"><span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>{{ 'SERVICES.LIST.PREPARING' | translate }}</span>
             }
           </dd>
         </div>
       </dl>
     </section>
 
-    <section class="mk-card p-4" [attr.aria-label]="'SERVICES.DETAIL.CLIENTS_DATA' | translate">
-      <h2 class="pb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.CLIENTS_DATA' | translate }}</h2>
-      <dl class="space-y-5 text-sm">
+    <section class="mk-card overflow-hidden" [attr.aria-label]="'SERVICES.DETAIL.CLIENTS_DATA' | translate">
+      <header class="flex items-center gap-2.5 border-b px-4 py-3 border-violet-100 bg-violet-50/70 dark:border-violet-500/20 dark:bg-violet-500/10">
+        <span class="flex size-7 items-center justify-center rounded-lg bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200"><span class="material-symbols-rounded text-[18px]" aria-hidden="true">groups</span></span>
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'SERVICES.DETAIL.CLIENTS_DATA' | translate }}</h2>
+      </header>
+      <dl class="space-y-4 p-4">
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.WHO_SERVED' | translate }}</dt>
-          <dd class="mt-1.5 text-gray-900 dark:text-white">{{ labels('served_industry', s.industries_served) }}</dd>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.DETAIL.WHO_SERVED' | translate }}</dt>
+          <dd class="mt-1.5 flex flex-wrap gap-1.5">
+            @for (item of pills('served_industry', s.industries_served); track item.value) {
+              <span class="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">{{ item.label }}</span>
+            } @empty { <span class="text-sm font-medium text-gray-400">—</span> }
+          </dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.COUNTRIES' | translate }}</dt>
-          <dd class="mt-1.5 text-gray-900 dark:text-white">{{ labels('service_country', s.countries) }}</dd>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.DETAIL.COUNTRIES' | translate }}</dt>
+          <dd class="mt-1.5 flex flex-wrap gap-1.5">
+            @for (item of pills('service_country', s.countries); track item.value) {
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white py-1 pl-1.5 pr-2.5 text-xs font-medium text-gray-800 shadow-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">@if (item.flag) {<img [src]="'/images/flags/' + item.flag + '.svg'" alt="" width="16" height="16" class="size-4 rounded-full" />} @else if (item.symbol) {<span class="material-symbols-rounded text-[16px] leading-none text-gray-500" aria-hidden="true">{{ item.symbol }}</span>} {{ item.label }}</span>
+            } @empty { <span class="text-sm font-medium text-gray-400">—</span> }
+          </dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ 'SERVICES.DETAIL.DATA_HANDLED' | translate }}</dt>
-          <dd class="mt-1.5 text-gray-900 dark:text-white">{{ labels('data_type', s.data_types) }}</dd>
+          <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'SERVICES.DETAIL.DATA_HANDLED' | translate }}</dt>
+          <dd class="mt-1.5 flex flex-wrap gap-1.5">
+            @for (item of pills('data_type', s.data_types); track item.value) {
+              <span class="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/30"><span class="material-symbols-rounded text-[15px] leading-none" aria-hidden="true">{{ dataIcon(item.value) }}</span>{{ item.label }}</span>
+            } @empty { <span class="text-sm font-medium text-gray-400">—</span> }
+          </dd>
         </div>
       </dl>
     </section>
@@ -105,7 +128,7 @@
   <!-- D89 · Retomar la evaluación de riesgos: el mismo asistente del alta del servicio, aquí mismo (no en Cumplimiento). -->
   @if (evaluating()) {
   <div class="mk-card mt-3 p-5" data-risk-wizard>
-    <app-risk-wizard [serviceId]="s.id" finishKey="SERVICES.DETAIL.RISKS_DONE_CTA" (finished)="finishEvaluating()" />
+    <app-risk-wizard [serviceId]="s.id" (finished)="finishEvaluating()" />
   </div>
   } @else {
   <!-- Conexiones -->

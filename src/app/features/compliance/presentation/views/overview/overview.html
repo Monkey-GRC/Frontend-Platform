@@ -18,7 +18,7 @@
 
 @default {
 @if (framework(); as fw) {
-<div class="flex flex-col gap-3">
+<div class="flex flex-col gap-7">
 
   <!-- Sin título propio: el servicio, los marcos y el período de la evaluación están en el encabezado de Cumplimiento. Solo si ese encabezado no muestra los marcos
        (hoy solo el administrador conoce la lista de servicios), se eligen aquí. -->
@@ -102,7 +102,7 @@
 
   <!-- Criterios de confianza: el color de la franja es el del estado, no el de la categoría -->
   <section [attr.aria-label]="'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate">
-    <h3 class="mb-2 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-primary" aria-hidden="true"></span>{{ 'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate }}</h3>
+    <h3 class="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-primary" aria-hidden="true"></span>{{ 'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate }}</h3>
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       @for (cat of fw.categories; track cat.trust_criterion) {
       <article class="mk-card flex items-center gap-3 overflow-hidden border-l-4 px-4 py-2.5" [class]="accent(cat.readiness)" [attr.data-category]="cat.trust_criterion">
@@ -123,19 +123,17 @@
   <!-- La matriz inherente: dónde cae cada riesgo evaluado del servicio -->
   @if (risks(); as list) {
   <section [attr.aria-label]="'COMPLIANCE.HEATMAP.TITLE' | translate" data-heatmap-section>
-    <div class="mb-3">
+    <div class="mb-4">
       <h3 class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-primary" aria-hidden="true"></span>{{ 'COMPLIANCE.HEATMAP.TITLE' | translate }}</h3>
-      <p class="mt-0.5 pl-3 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.HEATMAP.INTRO' | translate }}</p>
+      <p class="mt-1.5 pl-3 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.HEATMAP.INTRO' | translate }}</p>
     </div>
-    <div class="mk-card p-5">
-      <app-risk-heatmap [risks]="list" [serviceId]="serviceId()" />
-    </div>
+    <app-risk-heatmap [risks]="list" [serviceId]="serviceId()" />
   </section>
   }
 
   <!-- Controles que requieren atención -->
   <section [attr.aria-label]="'COMPLIANCE.OVERVIEW.ATTENTION_TITLE' | translate">
-    <div class="mb-3 flex items-center justify-between gap-3">
+    <div class="mb-4 flex items-center justify-between gap-3">
       <h3 class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-red-600" aria-hidden="true"></span>{{ 'COMPLIANCE.OVERVIEW.ATTENTION_TITLE' | translate }}</h3>
       <a [routerLink]="controlsLink()" class="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">{{ 'COMPLIANCE.OVERVIEW.ATTENTION_ALL' | translate }}<span class="material-symbols-rounded text-[18px]" aria-hidden="true">arrow_forward</span></a>
     </div>
@@ -167,11 +165,6 @@
     </ul>
     }
   </section>
-
-  <div class="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-100" role="note">
-    <span class="material-symbols-rounded text-[22px] text-amber-600" aria-hidden="true">info</span>
-    <span><strong>{{ 'COMPLIANCE.OVERVIEW.RULE_TITLE' | translate }}</strong> {{ 'COMPLIANCE.OVERVIEW.RULE_BODY' | translate }}</span>
-  </div>
 </div>
 
 @if (periodOpen()) {

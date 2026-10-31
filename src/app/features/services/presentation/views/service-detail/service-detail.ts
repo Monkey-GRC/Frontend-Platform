@@ -14,6 +14,8 @@ import { CatalogName, CatalogOption } from '@shared/domain/models/catalog.models
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { Service } from '../../../domain/models/service.models';
+import { DATA_ICONS, FLAG_FILES, SYMBOLS } from '../../../domain/utils/service-display';
+import { ChipOption } from '@shared/presentation/components/option-chips/option-chips';
 import { ServiceService } from '../../../domain/services/service.service';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
@@ -107,6 +109,15 @@ export class ServiceDetailView implements OnInit {
   label(catalog: CatalogName, value: string | null | undefined): string {
     if (!value) return '—';
     return this.options()[catalog]?.find((o) => o.value === value)?.label ?? value;
+  }
+
+  // Los valores elegidos como etiquetas, con bandera o icono si los tienen (las mismas que en la revisión del alta).
+  pills(catalog: CatalogName, values: string[] | undefined): ChipOption[] {
+    return (values ?? []).map((v) => ({ value: v, label: this.label(catalog, v), ...(FLAG_FILES.has(v) ? { flag: v } : {}), ...(SYMBOLS[v] ? { symbol: SYMBOLS[v] } : {}) }));
+  }
+
+  dataIcon(value: string): string {
+    return DATA_ICONS[value] ?? 'dataset';
   }
 
   labels(catalog: CatalogName, values: string[] | undefined): string {

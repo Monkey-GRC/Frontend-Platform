@@ -7,6 +7,7 @@ import { apiErrorCode, apiErrorMessage } from '@core/domain/utils/api-error';
 import { AuthPayload, MfaSetupStart } from '@features/auth/domain/models/auth.models';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 import { CodeInput } from '@shared/presentation/components/code-input/code-input';
+import { Stepper, StepperItem } from '@shared/presentation/components/stepper/stepper';
 import { QrCode } from '@shared/presentation/components/qr-code/qr-code';
 
 // Segundo factor (D94, contracts/modules/auth.md). Una sola pantalla con dos recorridos:
@@ -16,7 +17,7 @@ type Stage = 'verify' | 'recovery' | 'install' | 'scan' | 'confirm' | 'codes';
 
 @Component({
   selector: 'app-mfa-form',
-  imports: [ReactiveFormsModule, TranslatePipe, CodeInput, QrCode],
+  imports: [ReactiveFormsModule, TranslatePipe, CodeInput, QrCode, Stepper],
   templateUrl: './mfa-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -42,7 +43,15 @@ export class MfaForm {
   // La sesión ya está abierta en el servidor, pero no se guarda aquí hasta que la persona confirme que guardó sus códigos.
   private confirmedPayload: AuthPayload | null = null;
 
-  readonly steps = [1, 2, 3];
+  // El QR y la clave manual no se dibujan hasta que la persona los pide (clic en el recuadro).
+  readonly qrRevealed = signal(false);
+
+  readonly steps: StepperItem[] = [
+    { icon: 'phone_android', label: 'AUTH.MFA.STEP_INSTALL' },
+    { icon: 'qr_code_scanner', label: 'AUTH.MFA.STEP_SCAN' },
+    { icon: 'pin', label: 'AUTH.MFA.STEP_CONFIRM' },
+    { icon: 'key', label: 'AUTH.MFA.STEP_CODES' },
+  ];
 
   constructor() {
     const pending = this.auth.pendingMfa();
@@ -53,7 +62,7 @@ export class MfaForm {
     this.stage.set(pending.next_step === 'mfa_verify' ? 'verify' : 'install');
   }
 
-  /** Posición del paso a paso de la configuración (1 a 3), o 0 si no está configurando. */
+  /** Posición del paso a paso de la configuración (1 a 4), o 0 si no está configurando. */
   get setupStep(): number {
     switch (this.stage()) {
       case 'install':
@@ -62,6 +71,8 @@ export class MfaForm {
         return 2;
       case 'confirm':
         return 3;
+      case 'codes':
+        return 4;
       default:
         return 0;
     }
@@ -106,11 +117,13 @@ export class MfaForm {
     if (this.loading()) return;
     this.run(this.auth.startMfaSetup(), (setup) => {
       this.setup.set(setup);
+      this.qrRevealed.set(false);
       this.stage.set('scan');
     });
   }
 
   toConfirm(): void {
+    this.qrRevealed.set(false);
     this.errorMessage.set(null);
     this.stage.set('confirm');
   }
@@ -118,6 +131,7 @@ export class MfaForm {
   backToScan(): void {
     this.errorMessage.set(null);
     this.code.set('');
+    this.qrRevealed.set(false);
     this.stage.set('scan');
   }
 

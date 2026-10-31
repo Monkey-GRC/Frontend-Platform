@@ -68,8 +68,6 @@
       "ATTENTION_EMPTY": "No control is failing for now.",
       "ATTENTION_EMPTY_UNMEASURED": "There are no results yet, so there are no controls to point out.",
       "TESTS": "{{done}}/{{total}} tests pass",
-      "RULE_TITLE": "Keep in mind:",
-      "RULE_BODY": "the absence of evidence is not compliance. A pending, in-review or expired control never counts as compliant.",
       "NO_FRAMEWORKS_TITLE": "This service has no framework yet",
       "NO_FRAMEWORKS_BODY": "Once you contract a framework you will see its compliance status here."
     },
@@ -81,6 +79,8 @@
       "NOT_EVALUATED": "Not evaluated: {{count}}. Evaluate them from Risks so they show up here.",
       "EMPTY": "No risk has been evaluated yet. Evaluate a risk (likelihood and impact) and it will appear here.",
       "HINT": "Select a cell to see its risks.",
+      "SUMMARY": "Summary",
+      "DISTRIBUTION": "Risks by level",
       "RESIDUAL_NOTE": "The residual matrix will be shown once the mitigation formula data exists.",
       "CELL_ARIA": "Likelihood {{likelihood}}, impact {{impact}}: {{count}} risks",
       "LEGEND": "Risk levels, from lowest to highest"
@@ -513,6 +513,8 @@
       "DONE_TITLE": "Risks evaluated",
       "DONE_BODY": "All {{total}} risks of your service have likelihood and impact.",
       "REVIEW": "Review the last one",
+      "REVIEW_BACK": "Back",
+      "CONFIRM_EVALUATION": "Confirm evaluation",
       "EDIT_LATER": "You can correct any rating later, in Compliance › Risks.",
       "FINISH": "Declare the assets",
       "DONE_REMOVED": "You removed {{removed}} because they don't apply to your service.",

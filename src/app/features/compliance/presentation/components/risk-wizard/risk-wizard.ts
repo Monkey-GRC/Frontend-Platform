@@ -1,3 +1,4 @@
+import { A11yModule } from '@angular/cdk/a11y';
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -53,9 +54,10 @@ const byCode = (a: RiskListItem, b: RiskListItem) => a.code.localeCompare(b.code
 // También se puede agregar un riesgo propio y elegir sus causas. La pestaña Riesgos de Cumplimiento queda para ver y corregir esas calificaciones después.
 @Component({
   selector: 'app-risk-wizard',
-  imports: [NgTemplateOutlet, TranslatePipe, LoadingSpinner, RiskLevelBadge, RiskMatrix, RiskForm, RiskCausesPicker],
+  imports: [A11yModule, NgTemplateOutlet, TranslatePipe, LoadingSpinner, RiskLevelBadge, RiskMatrix, RiskForm, RiskCausesPicker],
   templateUrl: './risk-wizard.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:keydown.escape)': 'onEscape()' },
 })
 export class RiskWizard {
   private readonly api = inject(RiskService);
@@ -65,7 +67,6 @@ export class RiskWizard {
 
   readonly serviceId = input.required<string>();
   /** Lo que dice el botón final: «Declarar los activos» en el alta del servicio, «Seguir» cuando se retoma desde el detalle. */
-  readonly finishKey = input('COMPLIANCE.RISK_WIZARD.FINISH');
   /** Terminó el último riesgo y la persona pulsó el botón de cierre. */
   readonly finished = output<void>();
 
@@ -224,6 +225,11 @@ export class RiskWizard {
     this.reason.set('');
     this.removeError.set(null);
     this.removing.set(true);
+  }
+
+  // Esc cierra el modal del motivo (no mientras se envía).
+  onEscape(): void {
+    if (this.removing() && !this.removingBusy()) this.cancelRemove();
   }
 
   cancelRemove(): void {

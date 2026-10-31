@@ -3,6 +3,10 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 export interface ChipOption {
   value: string;
   label: string;
+  // Imagen redonda a la izquierda del texto: nombre de un archivo de `public/images/flags/` (sin la extensión).
+  flag?: string;
+  // Icono (Material Symbols) cuando no hay imagen, por ejemplo «global».
+  symbol?: string;
 }
 
 // Opciones como píldoras que se tocan para elegir: más rápidas y amables que una lista
