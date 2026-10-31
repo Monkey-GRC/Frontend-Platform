@@ -8,6 +8,7 @@ import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { AuthService } from '@features/auth/domain/services/auth.service';
 import { CatalogOption, RegulationOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
+import { FLAG_FILES, SYMBOLS } from '@shared/domain/utils/country-flags';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import {
   OrganizationalContextDraft,
@@ -41,7 +42,7 @@ const REVIEW_STEP = STEPS.length;
 const DESCRIPTION_MAX = 2000;
 const NONE = 'none';
 
-type Stage = 'loading' | 'error' | 'form' | 'saving' | 'done';
+type Stage = 'loading' | 'error' | 'form' | 'saving';
 type MultiKey = 'incorporation_countries' | 'client_countries' | 'regulation_codes';
 type SingleKey = 'size' | 'years_in_operation' | 'industry' | 'business_model' | 'compliance_maturity';
 
@@ -235,6 +236,7 @@ export class OrganizationalContextView implements OnInit {
       return;
     }
     const d = this.draft();
+    const firstTime = !this.alreadySaved();
     this.stage.set('saving');
     this.saveError.set(null);
     this.onboarding
@@ -254,10 +256,14 @@ export class OrganizationalContextView implements OnInit {
           if (this.userId) this.drafts.clear(this.userId);
           this.alreadySaved.set(true);
           this.savedSnapshot.set(JSON.stringify(this.draft()));
-          // Primero se refresca la sesión (el siguiente paso lo calcula el backend) y luego se muestra
-          // «¡Listo!»: así Inicio nunca enseña por un instante el paso anterior.
+          // Se guarda y ya, sin pantalla de aviso. Primero se refresca la sesión (el siguiente paso lo calcula el backend): así Inicio nunca enseña por un instante el paso anterior.
+          // La primera vez se sigue a Inicio; al editar, la persona se queda en la ficha de su empresa, ya con los cambios.
           this.auth.validate().subscribe(() => {
-            this.stage.set('done');
+            if (firstTime) {
+              this.router.navigateByUrl('/');
+              return;
+            }
+            this.stage.set('form');
             this.scrollTop();
           });
         },
@@ -271,10 +277,6 @@ export class OrganizationalContextView implements OnInit {
           );
         },
       });
-  }
-
-  finish(): void {
-    this.router.navigateByUrl('/');
   }
 
   // ---------- presentación ----------
@@ -293,6 +295,16 @@ export class OrganizationalContextView implements OnInit {
     return values.map((v) => options?.find((o) => o.value === v)?.label ?? v);
   }
 
+  // Países como etiquetas con su bandera (y «Otro» con el icono de globo), igual que al elegirlos.
+  pills(options: { value: string; label: string }[] | undefined, values: string[]): ChipOption[] {
+    return values.map((v) => ({
+      value: v,
+      label: options?.find((o) => o.value === v)?.label ?? v,
+      ...(FLAG_FILES.has(v) ? { flag: v } : {}),
+      ...(SYMBOLS[v] || v === 'other' ? { symbol: SYMBOLS[v] ?? 'public' } : {}),
+    }));
+  }
+
   regulationList(): string[] {
     const all = this.catalogs()?.regulations ?? [];
     return this.draft().regulation_codes.map((c) => all.find((r) => r.code === c)?.label ?? c);
@@ -307,7 +319,7 @@ export class OrganizationalContextView implements OnInit {
   private chips(options: CatalogOption[] | undefined, part: 'country' | 'extra'): ChipOption[] {
     return (options ?? [])
       .filter((o) => (part === 'country' ? o.group === 'country' : o.group !== 'country'))
-      .map((o) => ({ value: o.value, label: o.label }));
+      .map((o) => ({ value: o.value, label: o.label, ...(FLAG_FILES.has(o.value) ? { flag: o.value } : {}), ...(SYMBOLS[o.value] || o.value === 'other' ? { symbol: SYMBOLS[o.value] ?? 'public' } : {}) }));
   }
 
   private isStepValid(step: number, d: OrganizationalContextDraft): boolean {
