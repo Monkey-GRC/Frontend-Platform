@@ -129,6 +129,8 @@ export class AuthService {
    * sesión vive hasta 30 min sin actividad y 8 h en total: pasado eso, hay que volver a entrar.
    */
   validate(): Observable<boolean> {
+    // Sin sesión abierta en este navegador no se pregunta al servidor (evita un 401 en cada visita al inicio de sesión).
+    if (!this.session.isAuthenticated() && !this.session.hasSessionHint()) return of(false);
     return this.me().pipe(
       catchError((error: HttpErrorResponse) =>
         error.status === 401
