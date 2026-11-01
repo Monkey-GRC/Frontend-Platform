@@ -1,0 +1,17 @@
+<div>
+  @if (!useRecovery()) {
+    <label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">{{ 'COMMON.SECOND_FACTOR.CODE_LABEL' | translate }}</label>
+    <app-code-input [(value)]="code" [label]="'COMMON.SECOND_FACTOR.CODE_LABEL' | translate" [disabled]="disabled()" [invalid]="invalid()" />
+  } @else {
+    <label for="recovery-code" class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">{{ 'COMMON.SECOND_FACTOR.RECOVERY_LABEL' | translate }}</label>
+    <input id="recovery-code" type="text" autocomplete="off" maxlength="24" [value]="recoveryCode()" [disabled]="disabled()" (input)="onRecoveryInput($event)"
+      [placeholder]="'COMMON.SECOND_FACTOR.RECOVERY_PLACEHOLDER' | translate"
+      class="bg-gray-100 dark:bg-[#162036] dark:text-white focus:bg-white dark:focus:bg-[#0E1525] w-full px-3 h-12 text-base tracking-widest rounded-lg border border-gray-300 dark:border-gray-700 focus:border-primary/60 transition disabled:opacity-60"
+      [class.border-error-500]="invalid()" />
+  }
+  @if (allowRecovery()) {
+    <button type="button" (click)="toggle()" [disabled]="disabled()" class="mt-2 text-sm font-medium text-primary hover:underline disabled:opacity-60">
+      {{ (useRecovery() ? 'COMMON.SECOND_FACTOR.USE_APP' : 'COMMON.SECOND_FACTOR.USE_RECOVERY') | translate }}
+    </button>
+  }
+</div>

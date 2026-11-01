@@ -1,0 +1,32 @@
+<app-modal [open]="open()" labelledBy="factor-title" describedBy="factor-description" testId="factor" [dismissible]="!loading()" (dismissed)="cancel()">
+  <!-- El contenido solo existe mientras el modal está abierto: así sus campos no se crean (ni roban el foco) con la página cargada. -->
+  @if (open()) {
+    <div class="flex items-start gap-3">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-white">
+        <span class="material-symbols-rounded text-[24px]" aria-hidden="true">shield_lock</span>
+      </span>
+      <div class="min-w-0">
+        <h2 id="factor-title" class="text-lg font-semibold text-gray-900 dark:text-white">{{ title() }}</h2>
+        <p id="factor-description" class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ description() ?? ('COMMON.SECOND_FACTOR_DIALOG.DESCRIPTION' | translate) }}</p>
+      </div>
+    </div>
+
+    <div class="mt-5">
+      <app-second-factor-field [(code)]="code" [(recoveryCode)]="recoveryCode" [(useRecovery)]="useRecovery" [allowRecovery]="allowRecovery()" [disabled]="loading()" [invalid]="!!errorMessage()" />
+    </div>
+
+    @if (errorMessage(); as message) {
+      <p class="mt-3 text-sm text-error-500" role="alert" data-testid="factor-error">{{ message }}</p>
+    }
+
+    <div class="mt-6 flex justify-end gap-3">
+      <button type="button" (click)="cancel()" [disabled]="loading()" data-testid="factor-cancel"
+        class="inline-flex h-11 items-center rounded-xl px-5 text-base font-medium text-gray-600 transition hover:bg-gray-100 disabled:opacity-60 dark:text-gray-300 dark:hover:bg-white/5">{{ 'COMMON.CANCEL' | translate }}</button>
+      <button type="button" (click)="confirm()" [disabled]="loading() || !canConfirm" data-testid="factor-confirm"
+        class="inline-flex h-11 items-center rounded-xl px-6 text-base font-semibold text-white shadow-theme-sm transition disabled:cursor-not-allowed disabled:opacity-60"
+        [class]="danger() ? 'bg-error-600 hover:bg-error-700' : 'bg-primary hover:bg-brand-600'">
+        {{ loading() ? ('COMMON.SECOND_FACTOR_DIALOG.CONFIRMING' | translate) : confirmLabel() }}
+      </button>
+    </div>
+  }
+</app-modal>
