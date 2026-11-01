@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
+import { NavigationHistoryService } from '@core/domain/services/navigation-history.service';
 import { SidebarService } from '@core/domain/services/sidebar.service';
 import { AppHeaderComponent } from '@core/presentation/components/app-header/app-header.component';
 import { AppSidebarComponent } from '@core/presentation/components/app-sidebar/app-sidebar.component';
@@ -24,16 +24,9 @@ export class AppLayoutComponent {
   readonly isExpanded$;
   readonly isHovered$;
   readonly isMobileOpen$;
-  // Una navegación puede tardar (un guard que pregunta al servidor, un módulo que se descarga): mientras tanto se muestra una barra fina arriba, para que se vea que el clic funcionó.
-  readonly navigating = signal(false);
-
   constructor(public sidebarService: SidebarService) {
-    inject(Router)
-      .events.pipe(takeUntilDestroyed())
-      .subscribe((event) => {
-        if (event instanceof NavigationStart) this.navigating.set(true);
-        else if (event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError) this.navigating.set(false);
-      });
+    // Empieza a recordar en qué pantalla está la persona, para que «Volver a la aplicación» de Ajustes sepa a dónde volver.
+    inject(NavigationHistoryService);
     this.isExpanded$ = this.sidebarService.isExpanded$;
     this.isHovered$ = this.sidebarService.isHovered$;
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
