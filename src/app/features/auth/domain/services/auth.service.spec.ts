@@ -151,3 +151,34 @@ describe('AuthService · sin sesión no se consulta al servidor', () => {
     expect(localStorage.getItem('mk_session')).toBeNull();
   });
 });
+
+describe('AuthService · olvidé mi contraseña (SEG-14, D101)', () => {
+  let service: AuthService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslateService()] });
+    service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+  });
+  afterEach(() => http.verify());
+
+  it('asks for the recovery link with just the email', () => {
+    let done = false;
+    service.forgotPassword('ana@acme.co').subscribe(() => (done = true));
+    const req = http.expectOne(`${environment.apiUrl}/auth/password/forgot`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'ana@acme.co' });
+    req.flush({ data: null }, { status: 202, statusText: 'Accepted' });
+    expect(done).toBe(true);
+  });
+
+  it('resets the password with the link token and the second factor, without opening a session', () => {
+    const session = TestBed.inject(SessionService);
+    service.resetPassword({ token: 'tok', new_password: 'Nueva-Clave-2026!', code: '123456' }).subscribe();
+    const req = http.expectOne(`${environment.apiUrl}/auth/password/reset`);
+    expect(req.request.body).toEqual({ token: 'tok', new_password: 'Nueva-Clave-2026!', code: '123456' });
+    req.flush(null, { status: 204, statusText: 'No Content' });
+    expect(session.isAuthenticated()).toBe(false);
+  });
+});

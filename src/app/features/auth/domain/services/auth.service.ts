@@ -124,6 +124,16 @@ export class AuthService {
       .pipe(map((res) => res.data!.recovery_codes));
   }
 
+  /** «Olvidé mi contraseña»: pide el enlace al correo. Responde igual exista o no la cuenta, así que no hay nada que distinguir (D101). */
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/password/forgot`, { email }).pipe(map(() => void 0));
+  }
+
+  /** Crea la contraseña nueva con el token del enlace y el segundo factor. Cierra todas las sesiones: después hay que iniciar sesión (D101). */
+  resetPassword(input: { token: string; new_password: string; code?: string; recovery_code?: string }): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/password/reset`, input).pipe(map(() => void 0));
+  }
+
   /**
    * ¿Hay sesión? Consulta /auth/me; si el access token (15 min) venció, intenta renovarlo. La
    * sesión vive hasta 30 min sin actividad y 8 h en total: pasado eso, hay que volver a entrar.
