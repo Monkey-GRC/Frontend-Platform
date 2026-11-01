@@ -1,26 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CodeLookup } from '@features/auth/domain/models/auth.models';
-import { PasswordToggle } from '@shared/presentation/components/password-toggle/password-toggle';
+import { passwordsMatch, STRONG_PASSWORD } from '@shared/domain/utils/password-rules';
+import { NewPasswordFields } from '@shared/presentation/components/new-password-fields/new-password-fields';
 import { AuthService } from '@features/auth/domain/services/auth.service';
-
-// Política de contraseña del backend (modelo-datos.md §5.3): 12+ con mayúscula, minúscula,
-// número y símbolo. Se valida aquí para avisar antes de enviar; el backend la vuelve a exigir.
-const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}$/;
-
-const passwordsMatch = (group: AbstractControl): ValidationErrors | null =>
-  group.get('password')?.value === group.get('password_confirmation')?.value
-    ? null
-    : { passwordMismatch: true };
 
 type FieldName = 'code' | 'password' | 'password_confirmation';
 
@@ -31,7 +17,7 @@ type FieldName = 'code' | 'password' | 'password_confirmation';
 // La cuenta se identifica por su correo: no se pide nombre ni apellido.
 @Component({
   selector: 'app-register-form',
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, PasswordToggle],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, NewPasswordFields],
   templateUrl: './register-form.html',
   styleUrl: './register-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,8 +32,6 @@ export class RegisterForm {
   // Lo que se fijó para esta cuenta; solo existe en el paso 2.
   readonly lookup = signal<CodeLookup | null>(null);
   readonly loading = signal(false);
-  readonly showPassword = signal(false);
-  readonly showConfirmation = signal(false);
   readonly errorMessage = signal<string | null>(null);
   // Errores por campo que devuelve el backend (422), para mostrarlos bajo cada input.
   readonly serverErrors = signal<Partial<Record<FieldName, string>>>({});
@@ -61,23 +45,12 @@ export class RegisterForm {
       password: ['', [Validators.required, Validators.pattern(STRONG_PASSWORD)]],
       password_confirmation: ['', Validators.required],
     },
-    { validators: passwordsMatch },
+    { validators: passwordsMatch() },
   );
 
   hasCodeError(key: string): boolean {
     const control = this.codeForm.get('code');
     return !!control && control.touched && control.hasError(key);
-  }
-
-  hasPasswordError(name: 'password' | 'password_confirmation', key: string): boolean {
-    const control = this.passwordForm.get(name);
-    return !!control && control.touched && control.hasError(key);
-  }
-
-  get passwordMismatch(): boolean {
-    return (
-      !!this.passwordForm.get('password_confirmation')?.touched && this.passwordForm.hasError('passwordMismatch')
-    );
   }
 
   // Paso 1: comprueba el código. No lo gasta: solo trae la empresa y el correo.

@@ -107,42 +107,8 @@
                         <p class="mt-1.5 text-[11px] text-gray-500">{{ 'AUTH.REGISTER.EMAIL_ALWAYS' | translate }}</p>
                     </div>
 
-                    <!-- Password -->
-                    <div class="relative">
-                        <label class="block text-xs font-medium text-gray-400 mb-2">{{ 'AUTH.FIELDS.PASSWORD' | translate }}</label>
-                        <span
-                            class="pointer-events-none absolute left-3 top-9 md:top-10 inline-flex items-center text-gray-500">
-                            <span class="material-symbols-rounded text-[20px] md:text-[22px] leading-none">lock</span>
-                        </span>
-                        <input formControlName="password" [type]="showPassword() ? 'text' : 'password'" autocomplete="new-password" placeholder="••••••••••••"
-                            class="bg-gray-100 dark:bg-[#162036] dark:text-white focus:bg-white dark:focus:bg-[#0E1525] w-full pl-10 pr-12 h-9 md:pl-12 md:h-12 text-sm md:text-base rounded-lg border border-gray-300 dark:border-gray-700 focus:border-primary/60 transition" />
-                        <app-password-toggle [(visible)]="showPassword" />
-                        <p class="mt-1.5 text-[11px] text-gray-500">{{ 'AUTH.REGISTER.PASSWORD_RULES' | translate }}</p>
-                        @if (hasPasswordError('password','required')) {
-                        <p class="mt-1.5 text-xs text-error-500">{{ 'AUTH.VALIDATION.PASSWORD_REQUIRED' | translate }}</p>
-                        }
-                        @if (hasPasswordError('password','pattern')) {
-                        <p class="mt-1.5 text-xs text-error-500">{{ 'AUTH.VALIDATION.PASSWORD_WEAK' | translate }}</p>
-                        }
-                        @if (serverErrors().password) {
-                        <p class="mt-1.5 text-xs text-error-500">{{ serverErrors().password }}</p>
-                        }
-                    </div>
-
-                    <!-- Password confirmation -->
-                    <div class="relative">
-                        <label class="block text-xs font-medium text-gray-400 mb-2">{{ 'AUTH.FIELDS.PASSWORD_CONFIRM' | translate }}</label>
-                        <span
-                            class="pointer-events-none absolute left-3 top-9 md:top-10 inline-flex items-center text-gray-500">
-                            <span class="material-symbols-rounded text-[20px] md:text-[22px] leading-none">lock</span>
-                        </span>
-                        <input formControlName="password_confirmation" [type]="showConfirmation() ? 'text' : 'password'" autocomplete="new-password"
-                            placeholder="••••••••••••" class="bg-gray-100 dark:bg-[#162036] dark:text-white focus:bg-white dark:focus:bg-[#0E1525] w-full pl-10 pr-12 h-9 md:pl-12 md:h-12 text-sm md:text-base rounded-lg border border-gray-300 dark:border-gray-700 focus:border-primary/60 transition" />
-                        <app-password-toggle [(visible)]="showConfirmation" />
-                        @if (passwordMismatch) {
-                        <p class="mt-1.5 text-xs text-error-500">{{ 'AUTH.VALIDATION.PASSWORD_MISMATCH' | translate }}</p>
-                        }
-                    </div>
+                    <!-- La contraseña que elige quien activa su cuenta: con su guía; aquí no hay contraseña actual, así que no se compara con ninguna -->
+                    <app-new-password-fields [form]="passwordForm" [compact]="true" leadingIcon="lock" [passwordError]="serverErrors().password ?? null" />
                 </div>
 
                 @if (errorMessage()) {
