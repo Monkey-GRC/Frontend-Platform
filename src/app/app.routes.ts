@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { Login } from '@features/auth/presentation/views/login/login';
 import { Register } from '@features/auth/presentation/views/register/register';
 import { Mfa } from '@features/auth/presentation/views/mfa/mfa';
+import { ForgotPassword } from '@features/auth/presentation/views/forgot-password/forgot-password';
+import { ResetPassword } from '@features/auth/presentation/views/reset-password/reset-password';
 import { NotFoundLayout } from '@core/presentation/pages/not-found-layout/not-found-layout';
 import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layout.component';
 import { authGuard } from '@core/domain/guards/auth.guard';
@@ -140,6 +142,32 @@ export const routes: Routes = [
       },
     ]
   },
+  // Ajustes (desde el menú de perfil): una pantalla completa FUERA del layout de la app (sin su menú ni su encabezado), con «Volver a la aplicación». Menú por función a la
+  // izquierda y la sección a la derecha; hoy, Seguridad (contraseña y códigos de recuperación; D101, SEG-14). Es una ruta real, en la misma pestaña.
+  {
+    path: 'ajustes',
+    canActivate: [authGuard],
+    loadComponent: () => import('@features/settings/presentation/views/settings-shell/settings-shell').then(m => m.SettingsShellView),
+    children: [
+      { path: '', redirectTo: 'seguridad', pathMatch: 'full' },
+      // Cada sección es un resumen con sus categorías; las opciones con «>» abren su detalle (con «← Atrás»). Las rutas más específicas van antes.
+      {
+        path: 'seguridad/contrasena',
+        title: 'PAGE_TITLE.SETTINGS_PASSWORD',
+        loadComponent: () => import('@features/settings/presentation/views/password/password').then(m => m.PasswordSettingsView),
+      },
+      {
+        path: 'seguridad/codigos-de-recuperacion',
+        title: 'PAGE_TITLE.SETTINGS_RECOVERY',
+        loadComponent: () => import('@features/settings/presentation/views/recovery-codes/recovery-codes').then(m => m.RecoveryCodesSettingsView),
+      },
+      {
+        path: 'seguridad',
+        title: 'PAGE_TITLE.SETTINGS_SECURITY',
+        loadComponent: () => import('@features/settings/presentation/views/security/security').then(m => m.SecurityView),
+      },
+    ],
+  },
   // auth pages: solo para quien no tiene sesión (con sesión, `guestGuard` lo manda adentro)
   {
     path: 'signin',
@@ -158,6 +186,17 @@ export const routes: Routes = [
     title: 'PAGE_TITLE.REGISTER',
     component: Register,
     canActivate: [guestGuard],
+  },
+  // Recuperar la contraseña (D101): se pide desde el inicio de sesión (sin sesión) o desde Ajustes; el enlace del correo abre `reset-password`, que sirve con o sin sesión.
+  {
+    path: 'forgot-password',
+    title: 'PAGE_TITLE.FORGOT_PASSWORD',
+    component: ForgotPassword,
+  },
+  {
+    path: 'reset-password',
+    title: 'PAGE_TITLE.RESET_PASSWORD',
+    component: ResetPassword,
   },
   // error pages
   {

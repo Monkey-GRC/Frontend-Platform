@@ -1,9 +1,10 @@
 import { ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, TitleStrategy } from '@angular/router';
+import { PreloadAllModules, provideRouter, TitleStrategy, withPreloading } from '@angular/router';
 import { HttpBackend, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 import { MultiTranslateHttpLoader } from 'ngx-translate-multi-http-loader';
 import { credentialsInterceptor } from '@core/domain/interceptors/credentials.interceptor';
+import { ThemeService } from '@core/domain/services/theme.service';
 import { LanguageService } from '@core/domain/services/language.service';
 
 import { PageTitleStrategy } from '@core/domain/services/page-title.strategy';
@@ -11,7 +12,7 @@ import { routes } from './app.routes';
 
 // Un archivo por área en `public/i18n/{es,en}/`. Se carga con HttpBackend a propósito: así no pasa
 // por `credentialsInterceptor` y no necesita sesión (el login ya se muestra traducido).
-export const I18N_FILES = ['common', 'shell', 'home', 'auth', 'onboarding', 'services', 'technical-control', 'compliance', 'team'] as const;
+export const I18N_FILES = ['common', 'shell', 'home', 'auth', 'onboarding', 'services', 'technical-control', 'compliance', 'team', 'settings'] as const;
 
 export function httpLoaderFactory(httpBackend: HttpBackend): MultiTranslateHttpLoader {
   return new MultiTranslateHttpLoader(
@@ -23,12 +24,17 @@ export function httpLoaderFactory(httpBackend: HttpBackend): MultiTranslateHttpL
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    // Las pantallas se descargan en segundo plano apenas arranca la app, para que abrirlas no espere a la red (Ajustes, Volver).
+    provideRouter(routes, withPreloading(PreloadAllModules)),
     { provide: TitleStrategy, useExisting: PageTitleStrategy },
     provideHttpClient(withInterceptors([credentialsInterceptor])),
     provideTranslateService({
       loader: { provide: TranslateLoader, useFactory: httpLoaderFactory, deps: [HttpBackend] },
     }),
     provideAppInitializer(() => inject(LanguageService).init()),
+    // El tema (claro/oscuro) se aplica al arrancar, en CUALQUIER pantalla: antes solo lo hacía el selector de tema, que no existe en las pantallas fuera del layout (Ajustes).
+    provideAppInitializer(() => {
+      inject(ThemeService);
+    }),
   ]
 };

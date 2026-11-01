@@ -11,10 +11,25 @@
     },
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Search or type a command...",
-      "LOGOUT": "Sign out"
+      "LOGOUT": "Sign out",
+      "SETTINGS": "Settings"
     },
     "LANGUAGE": {
       "SWITCH": "Change language"
+    },
+    "PROFILE": {
+      "OPEN": "Open your profile menu",
+      "LANGUAGE": "Language",
+      "DARK_MODE": "Dark mode"
+    },
+    "HELP": {
+      "OPEN": "Open the help menu",
+      "TITLE": "Help",
+      "SHORTCUTS": "Keyboard shortcuts",
+      "SHORTCUT_SEARCH": "Search or type a command",
+      "SHORTCUT_CLOSE": "Close menus and windows",
+      "CONTACT": "Contact support",
+      "CONTACT_HINT": "Tell us what you need"
     }
   }
 }

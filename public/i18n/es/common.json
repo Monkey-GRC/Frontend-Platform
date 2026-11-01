@@ -53,6 +53,38 @@
       "TITLE": "ERROR",
       "MESSAGE": "No encontramos la página que buscas.",
       "BACK_HOME": "Volver al inicio"
+    },
+    "PASSWORD": {
+      "NEW": "Contraseña nueva",
+      "CONFIRM": "Confirma la contraseña nueva",
+      "RULES": "Mínimo 12 caracteres, con mayúscula, minúscula, número y símbolo.",
+      "REQUIRED": "La contraseña es obligatoria.",
+      "WEAK": "La contraseña no cumple los requisitos.",
+      "MISMATCH": "Las contraseñas no coinciden.",
+      "GUIDE": {
+        "TITLE": "Tu contraseña debe tener:",
+        "MIN_LENGTH": "Al menos 12 caracteres",
+        "LOWERCASE": "Una letra minúscula",
+        "UPPERCASE": "Una letra mayúscula",
+        "NUMBER": "Un número",
+        "SYMBOL": "Un símbolo (por ejemplo ! ? # $ %)",
+        "DIFFERENT": "Ser distinta de tu contraseña actual",
+        "MATCH": "Las dos contraseñas coinciden",
+        "MET": "cumple",
+        "PENDING": "pendiente",
+        "MISMATCH": "no coinciden"
+      }
+    },
+    "SECOND_FACTOR": {
+      "CODE_LABEL": "Código de tu app de autenticación",
+      "USE_RECOVERY": "No tengo mi celular: usar un código de recuperación",
+      "USE_APP": "Usar el código de mi app",
+      "RECOVERY_LABEL": "Código de recuperación",
+      "RECOVERY_PLACEHOLDER": "XXXXX-XXXXX"
+    },
+    "SECOND_FACTOR_DIALOG": {
+      "DESCRIPTION": "Por seguridad, escribe el código de tu app de autenticación.",
+      "CONFIRMING": "Confirmando…"
     }
   },
   "PAGE_TITLE": {
@@ -77,6 +109,11 @@
     "SIGNIN": "Iniciar sesión",
     "MFA": "Verificación en dos pasos",
     "REGISTER": "Activar cuenta",
-    "NOT_FOUND": "Página no encontrada"
+    "NOT_FOUND": "Página no encontrada",
+    "SETTINGS_SECURITY": "Ajustes · Seguridad",
+    "FORGOT_PASSWORD": "Recuperar contraseña",
+    "RESET_PASSWORD": "Crear contraseña nueva",
+    "SETTINGS_PASSWORD": "Ajustes · Contraseña",
+    "SETTINGS_RECOVERY": "Ajustes · Códigos de recuperación"
   }
 }

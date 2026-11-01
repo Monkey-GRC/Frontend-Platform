@@ -1,0 +1,61 @@
+@if (user(); as person) {
+  <div class="relative">
+    <button type="button" (click)="toggle()" data-testid="profile-trigger" aria-haspopup="menu" [attr.aria-expanded]="open()"
+      [attr.aria-label]="'SHELL.PROFILE.OPEN' | translate" [title]="displayName()"
+      class="flex items-center gap-2.5 rounded-full p-1 pr-2 text-gray-500 transition hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 dark:text-gray-400 dark:hover:bg-white/5">
+      <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white" aria-hidden="true">{{ initials() }}</span>
+      <span class="material-symbols-rounded text-[20px] leading-none transition-transform" [class.rotate-180]="open()" aria-hidden="true">expand_more</span>
+    </button>
+
+    @if (open()) {
+      <div role="menu" data-testid="profile-panel"
+        class="absolute right-0 top-full z-[100000] mt-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex items-center gap-3 px-3 py-3">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary dark:bg-white/10 dark:text-white" aria-hidden="true">{{ initials() }}</span>
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-gray-900 dark:text-white" data-testid="profile-name">{{ displayName() }}</p>
+            <p class="truncate text-xs text-gray-500 dark:text-gray-400" data-testid="profile-email">{{ person.email }}</p>
+          </div>
+        </div>
+
+        <div class="my-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+
+        <a role="menuitem" routerLink="/ajustes" (click)="close()" data-testid="profile-settings"
+          class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5">
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">settings</span>{{ 'SHELL.HEADER.SETTINGS' | translate }}
+        </a>
+
+        <div class="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5">
+          <span class="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-200">
+            <span class="material-symbols-rounded text-[20px]" aria-hidden="true">translate</span>{{ 'SHELL.PROFILE.LANGUAGE' | translate }}
+          </span>
+          <div class="inline-flex rounded-lg bg-gray-100 p-0.5 dark:bg-white/10" role="group" [attr.aria-label]="'SHELL.PROFILE.LANGUAGE' | translate">
+            @for (option of languages; track option.value) {
+              <button type="button" (click)="setLanguage(option.value)" [attr.aria-pressed]="language.current() === option.value" [attr.data-testid]="'profile-lang-' + option.value"
+                class="rounded-md px-2.5 py-1 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                [class]="language.current() === option.value ? 'bg-white text-primary shadow-theme-xs dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white'">{{ option.label }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5">
+          <span id="profile-dark-label" class="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-200">
+            <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ isDark() ? 'dark_mode' : 'light_mode' }}</span>{{ 'SHELL.PROFILE.DARK_MODE' | translate }}
+          </span>
+          <button type="button" role="switch" [attr.aria-checked]="isDark()" aria-labelledby="profile-dark-label" (click)="toggleDark()" data-testid="profile-dark"
+            class="relative h-6 w-11 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            [class]="isDark() ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'">
+            <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform" [class.translate-x-5]="isDark()"></span>
+          </button>
+        </div>
+
+        <div class="my-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+
+        <button type="button" role="menuitem" (click)="logout()" data-testid="profile-logout"
+          class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-error-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">logout</span>{{ 'SHELL.HEADER.LOGOUT' | translate }}
+        </button>
+      </div>
+    }
+  </div>
+}

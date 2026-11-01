@@ -53,6 +53,38 @@
       "TITLE": "ERROR",
       "MESSAGE": "We can't find the page you are looking for.",
       "BACK_HOME": "Back to home"
+    },
+    "PASSWORD": {
+      "NEW": "New password",
+      "CONFIRM": "Confirm the new password",
+      "RULES": "At least 12 characters, with an uppercase letter, a lowercase letter, a number and a symbol.",
+      "REQUIRED": "The password is required.",
+      "WEAK": "The password does not meet the requirements.",
+      "MISMATCH": "The passwords do not match.",
+      "GUIDE": {
+        "TITLE": "Your password must have:",
+        "MIN_LENGTH": "At least 12 characters",
+        "LOWERCASE": "A lowercase letter",
+        "UPPERCASE": "An uppercase letter",
+        "NUMBER": "A number",
+        "SYMBOL": "A symbol (for example ! ? # $ %)",
+        "DIFFERENT": "Be different from your current password",
+        "MATCH": "Both passwords match",
+        "MET": "met",
+        "PENDING": "pending",
+        "MISMATCH": "do not match"
+      }
+    },
+    "SECOND_FACTOR": {
+      "CODE_LABEL": "Code from your authenticator app",
+      "USE_RECOVERY": "I don’t have my phone: use a recovery code",
+      "USE_APP": "Use the code from my app",
+      "RECOVERY_LABEL": "Recovery code",
+      "RECOVERY_PLACEHOLDER": "XXXXX-XXXXX"
+    },
+    "SECOND_FACTOR_DIALOG": {
+      "DESCRIPTION": "For security, enter the code from your authenticator app.",
+      "CONFIRMING": "Confirming…"
     }
   },
   "PAGE_TITLE": {
@@ -77,6 +109,11 @@
     "SIGNIN": "Sign in",
     "MFA": "Two-step verification",
     "REGISTER": "Activate account",
-    "NOT_FOUND": "Page not found"
+    "NOT_FOUND": "Page not found",
+    "SETTINGS_SECURITY": "Settings · Security",
+    "FORGOT_PASSWORD": "Recover password",
+    "RESET_PASSWORD": "Create new password",
+    "SETTINGS_PASSWORD": "Settings · Password",
+    "SETTINGS_RECOVERY": "Settings · Recovery codes"
   }
 }
