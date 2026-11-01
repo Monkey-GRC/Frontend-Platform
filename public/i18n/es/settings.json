@@ -1,0 +1,76 @@
+{
+  "SETTINGS": {
+    "TITLE": "Ajustes",
+    "INTRO": "La configuración de tu cuenta, por función.",
+    "NAV_LABEL": "Secciones de ajustes",
+    "SECTIONS": {
+      "SECURITY": "Seguridad"
+    },
+    "SECURITY": {
+      "TITLE": "Seguridad",
+      "INTRO": "Tu contraseña no vence por calendario: cámbiala cuando quieras, y de inmediato si sospechas que alguien la conoce.",
+      "PASSWORD": {
+        "TITLE": "Contraseña",
+        "INTRO": "Para cambiarla necesitas tu contraseña actual y un código de tu app de autenticación.",
+        "CURRENT": "Contraseña actual",
+        "FORGOT_HINT": "¿No la recuerdas? Recupérala por correo",
+        "SUBMIT": "Cambiar contraseña",
+        "SAVING": "Guardando…",
+        "DONE": "Listo, cambiaste tu contraseña. Cerramos tus otras sesiones y te avisamos por correo.",
+        "ERROR_FALLBACK": "No pudimos cambiar la contraseña. Inténtalo de nuevo.",
+        "VERIFY_TITLE": "Confirma que eres tú",
+        "NEW_TITLE": "Elige tu nueva contraseña",
+        "CONFIRM_TITLE": "Confirma con tu código",
+        "CONFIRM_BODY": "Escribe el código de tu app de autenticación para cambiar tu contraseña.",
+        "CONFIRM_ACTION": "Confirmar y cambiar",
+        "NOTES": {
+          "SESSIONS": "Al cambiarla, cerramos tus otras sesiones abiertas; esta sigue activa.",
+          "REUSE": "No puedes repetir la actual ni una de las últimas 5.",
+          "LIMIT": "Puedes cambiarla hasta 3 veces al día.",
+          "TITLE": "Ten en cuenta"
+        },
+        "RECOVER": {
+          "SENDING": "Enviando el correo…",
+          "TITLE": "Te enviamos un correo",
+          "BODY": "Enviamos un enlace para crear tu contraseña nueva a:",
+          "HINT": "Vence en 30 minutos. Si no lo ves, revisa tu carpeta de spam.",
+          "CLOSE": "Entendido",
+          "ERROR": "No pudimos enviar el correo. Inténtalo de nuevo."
+        }
+      },
+      "RECOVERY": {
+        "TITLE": "Códigos de recuperación",
+        "INTRO": "Sirven para entrar si pierdes el celular con tu app de autenticación. Cada uno se usa una sola vez. Generar códigos nuevos deja sin efecto los anteriores.",
+        "GENERATE": "Generar códigos nuevos",
+        "ASK_CODE": "Escribe el código actual de tu app de autenticación para confirmar.",
+        "CONFIRM": "Generar códigos",
+        "GENERATING": "Generando…",
+        "SHOWN_ONCE": "Guárdalos ahora en un lugar seguro: no se vuelven a mostrar.",
+        "COPY": "Copiar códigos",
+        "COPIED": "Copiados",
+        "SAVED": "Ya los guardé",
+        "CLOSE": "Cerrar",
+        "ERROR_FALLBACK": "No pudimos generar los códigos. Inténtalo de nuevo.",
+        "IDLE_HELP": "Al generar códigos nuevos, los anteriores dejan de servir. Se muestran una sola vez: guárdalos en un lugar seguro.",
+        "CONFIRM_TITLE": "Confirma con tu código",
+        "CONFIRM_BODY": "Escribe el código de tu app de autenticación para generar códigos de recuperación nuevos."
+      },
+      "GROUPS": {
+        "SIGN_IN": "Cómo inicias sesión",
+        "MFA": "Verificación en dos pasos (MFA)"
+      },
+      "ROWS": {
+        "PASSWORD_DESC": "Cambia la contraseña con la que inicias sesión.",
+        "MFA_APP": "Aplicación de autenticación",
+        "MFA_APP_DESC": "Usa códigos de un solo uso de tu app de autenticación para confirmar que eres tú.",
+        "MFA_REQUIRED": "Obligatoria",
+        "RECOVERY_DESC": "Genera códigos nuevos para entrar si pierdes tu celular."
+      }
+    },
+    "BACK": "Volver a la aplicación",
+    "GROUPS": {
+      "ACCOUNT": "Cuenta"
+    },
+    "PREVIOUS": "Atrás"
+  }
+}

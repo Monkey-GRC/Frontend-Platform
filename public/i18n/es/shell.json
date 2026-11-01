@@ -11,10 +11,25 @@
     },
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Buscar o escribir un comando...",
-      "LOGOUT": "Cerrar sesión"
+      "LOGOUT": "Cerrar sesión",
+      "SETTINGS": "Ajustes"
     },
     "LANGUAGE": {
       "SWITCH": "Cambiar idioma"
+    },
+    "PROFILE": {
+      "OPEN": "Abrir el menú de tu perfil",
+      "LANGUAGE": "Idioma",
+      "DARK_MODE": "Modo oscuro"
+    },
+    "HELP": {
+      "OPEN": "Abrir el menú de ayuda",
+      "TITLE": "Ayuda",
+      "SHORTCUTS": "Atajos de teclado",
+      "SHORTCUT_SEARCH": "Buscar o escribir un comando",
+      "SHORTCUT_CLOSE": "Cerrar menús y ventanas",
+      "CONTACT": "Contactar a soporte",
+      "CONTACT_HINT": "Cuéntanos qué necesitas"
     }
   }
 }
