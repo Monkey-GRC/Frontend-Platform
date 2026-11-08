@@ -26,12 +26,18 @@ export interface SectionIcon {
 
 // Configuración de items de navegación
 export const NAV_ITEMS: NavItem[] = [
-    { icon: 'home', name: 'Inicio', labelKey: 'SHELL.NAV.HOME', path: '/', section: 'Menu' },
+    // Qué ve cada rol (D102, MD-196). El responsable y el delegado entran por «Mi trabajo»; el inicio de la empresa es del administrador y del auditor.
+    { icon: 'home', name: 'Inicio', labelKey: 'SHELL.NAV.HOME', path: '/', section: 'Menu', roles: ['admin_empresa', 'auditor'] },
+    { icon: 'assignment_ind', name: 'Mi trabajo', labelKey: 'SHELL.NAV.MY_WORK', path: '/mi-trabajo', section: 'Menu', roles: ['responsable', 'delegado'] },
     { icon: 'apartment', name: 'Mi empresa', labelKey: 'SHELL.NAV.MY_COMPANY', path: '/onboarding', section: 'Menu', roles: ['admin_empresa'] },
     { icon: 'inventory_2', name: 'Mis servicios', labelKey: 'SHELL.NAV.MY_SERVICES', path: '/services', section: 'Menu', roles: ['admin_empresa'] },
     { icon: 'verified_user', name: 'Cumplimiento', labelKey: 'SHELL.NAV.COMPLIANCE', path: '/cumplimiento', section: 'Menu' },
-    { icon: 'badge', name: 'Responsables', labelKey: 'SHELL.NAV.RESPONSIBLES', path: '/responsables', section: 'Menu' },
+    // La asignación de controles es una sola pantalla: el administrador asigna el dueño; el responsable, el ejecutor entre sus delegados (MD-199, MD-200).
+    { icon: 'assignment_turned_in', name: 'Asignar ejecutor', labelKey: 'SHELL.NAV.ASSIGN_EXECUTOR', path: '/asignacion', section: 'Menu', roles: ['responsable'] },
+    { icon: 'groups', name: 'Mi equipo', labelKey: 'SHELL.NAV.MY_TEAM', path: '/equipo', section: 'Menu', roles: ['responsable'] },
+    { icon: 'badge', name: 'Responsables', labelKey: 'SHELL.NAV.RESPONSIBLES', path: '/responsables', section: 'Menu', roles: ['admin_empresa', 'auditor'] },
     { icon: 'groups', name: 'Equipo', labelKey: 'SHELL.NAV.TEAM', path: '/equipo', section: 'Menu', roles: ['admin_empresa'] },
+    { icon: 'assignment_turned_in', name: 'Asignación', labelKey: 'SHELL.NAV.ASSIGNMENT', path: '/asignacion', section: 'Menu', roles: ['admin_empresa'] },
     // Se suma el dashboard cuando exista.
 ];
 

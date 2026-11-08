@@ -16,7 +16,7 @@ describe('roleGuard', () => {
   });
 
   it('sends everybody else to the start, including a visitor without a session', () => {
-    signIn('funcional');
+    signIn('responsable');
     const denied = run('admin_empresa') as UrlTree;
     expect(TestBed.inject(Router).serializeUrl(denied)).toBe('/');
     TestBed.inject(SessionService).clear();

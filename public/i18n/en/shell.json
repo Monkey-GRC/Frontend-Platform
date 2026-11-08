@@ -7,8 +7,13 @@
       "MY_SERVICES": "My services",
       "COMPLIANCE": "Compliance",
       "RESPONSIBLES": "Responsible roles",
-      "TEAM": "Team"
+      "TEAM": "Team",
+      "MY_WORK": "My work",
+      "ASSIGNMENT": "Assignment",
+      "ASSIGN_EXECUTOR": "Assign executor",
+      "MY_TEAM": "My team"
     },
+    "COMING_SOON": "This section is under construction.",
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Search or type a command...",
       "LOGOUT": "Sign out",

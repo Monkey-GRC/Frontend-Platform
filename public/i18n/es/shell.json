@@ -7,8 +7,13 @@
       "MY_SERVICES": "Mis servicios",
       "COMPLIANCE": "Cumplimiento",
       "RESPONSIBLES": "Cargos responsables",
-      "TEAM": "Equipo"
+      "TEAM": "Equipo",
+      "MY_WORK": "Mi trabajo",
+      "ASSIGNMENT": "Asignación",
+      "ASSIGN_EXECUTOR": "Asignar ejecutor",
+      "MY_TEAM": "Mi equipo"
     },
+    "COMING_SOON": "Sección en construcción.",
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Buscar o escribir un comando...",
       "LOGOUT": "Cerrar sesión",

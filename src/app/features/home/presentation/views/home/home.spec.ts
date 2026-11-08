@@ -47,8 +47,8 @@ describe('Home (D89)', () => {
     }
   });
 
-  it('sends a functional user and an auditor straight to their compliance work, and the administrator does not see that card', () => {
-    for (const role of ['funcional', 'auditor']) {
+  it('sends the auditor straight to their compliance work, and the administrator does not see that card', () => {
+    for (const role of ['auditor']) {
       TestBed.resetTestingModule();
       setup(null, [], role);
       expect(el().querySelector('[data-test-my-work]')).not.toBeNull();

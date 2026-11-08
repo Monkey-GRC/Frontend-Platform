@@ -32,7 +32,7 @@ describe('CompanyDashboard', () => {
   const total = (name: string) => q(`[data-total="${name}"]`)!.textContent!.trim();
 
   it('shows nothing, and asks for nothing, to a user who cannot read the services', () => {
-    setup('funcional', { services: [service('s1')] });
+    setup('responsable', { services: [service('s1')] });
     expect(api.load).not.toHaveBeenCalled();
     expect(q('[data-dashboard]')).toBeNull();
   });
