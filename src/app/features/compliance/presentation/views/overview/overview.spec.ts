@@ -137,13 +137,11 @@ describe('OverviewView', () => {
       }
     });
 
-    it('with the period defined, the admin sees which cutoff is used (today, or the frozen one) and can change the period', () => {
-      setup('admin_empresa', [framework({ evaluation: { ...DEFINED, cutoff_frozen: false } })]);
-      expect(q('[data-not-defined]')).toBeNull();
-      expect(q('[data-cutoff]')!.textContent).toContain('COMPLIANCE.PERIOD.CUTOFF_TODAY');
-      TestBed.resetTestingModule();
+    it('with the period defined, the admin sees the period (and no cutoff date, D105) and can change it', () => {
       setup('admin_empresa', [framework({ evaluation: { ...DEFINED, cutoff_frozen: true } })]);
-      expect(q('[data-cutoff]')!.textContent).toContain('COMPLIANCE.PERIOD.CUTOFF_FROZEN');
+      expect(q('[data-not-defined]')).toBeNull();
+      expect(q('[data-cutoff]')).toBeNull();
+      expect(q('[data-period-bar]')!.textContent).toContain('COMPLIANCE.PERIOD.LINE');
       (q('[data-edit-period]') as HTMLButtonElement).click();
       fixture.detectChanges();
       expect(q('app-evaluation-period-form')).not.toBeNull();

@@ -20,9 +20,23 @@
       "SCHEDULED": "Scheduled",
       "FAILED": "We couldn't connect"
     },
+    "PROGRESS": {
+      "TITLE_QUEUED": "Your assessment is queued",
+      "TITLE_RUNNING": "Assessing your account",
+      "ESTIMATED": "estimated progress",
+      "STAGE_PREPARE": "Preparing the assessment…",
+      "STAGE_CONNECT": "Connecting to your account…",
+      "STAGE_READ": "Reading your servers and their configuration…",
+      "STAGE_CHECK": "Checking the configuration against the controls…",
+      "STAGE_RESULTS": "Calculating results…",
+      "ELAPSED": "Time elapsed: {{time}}",
+      "TYPICAL": "It usually takes about 6 minutes. You can leave this screen: the assessment keeps running.",
+      "SLOW": "It is taking longer than usual, but it is still running. You don't need to do anything."
+    },
     "EXECUTION": {
       "QUEUED": "Queued: it will start in a few seconds.",
       "RUNNING": "Assessing your AWS account… it may take a few minutes.",
+      "LAST_REVIEW": "Last automatic review: {{when}}",
       "COMPLETED": "Assessment completed.",
       "CANCELLED": "The assessment was cancelled. You can start it again.",
       "FAILED": "We couldn't complete the assessment. Please try again."
@@ -90,6 +104,7 @@
       "KEY_ID_PLACEHOLDER": "Key identifier (AKIA…)",
       "SECRET": "Secret key",
       "CHANGES_CONNECTION": "You changed what is assessed, so after saving you will have to check the connection again. What we already measured is kept.",
+      "EVALUATE_SAVE_FIRST": "Save your changes first so we evaluate with the new details.",
       "SAVE_ERROR": "We couldn't save the changes. Please try again."
     },
     "PANEL": {

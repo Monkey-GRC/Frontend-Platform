@@ -26,8 +26,14 @@ export class AssetEditForm implements OnInit {
 
   readonly asset = input.required<Asset>();
   readonly criticalities = input<CatalogOption[]>([]);
+  /** ¿Se puede lanzar una evaluación desde aquí? Solo una cuenta de nube ya conectada. */
+  readonly canEvaluate = input(false);
+  /** Hay una evaluación en cola o en curso: el botón espera. */
+  readonly evaluating = input(false);
   readonly saved = output<Asset>();
   readonly cancelled = output<void>();
+  /** Pide evaluar ahora; quien lo usa (la tarjeta del activo) hace la llamada. */
+  readonly evaluate = output<void>();
 
   readonly name = signal('');
   readonly criticality = signal('');

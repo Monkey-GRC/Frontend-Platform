@@ -76,6 +76,15 @@
       <span class="material-symbols-rounded text-[20px]" [class.animate-spin]="saving()">{{ saving() ? 'progress_activity' : 'save' }}</span>
       {{ 'COMMON.WIZARD.SAVE_CHANGES' | translate }}
     </button>
+    @if (canEvaluate()) {
+    <!-- «Evaluar ahora» junto a Guardar: lo que se configura aquí es justo lo que se evalúa. Con cambios sin guardar espera, para no evaluar con datos viejos. -->
+    <button type="button" (click)="evaluate.emit()" [disabled]="dirty() || saving() || evaluating()" data-evaluate-now
+      [attr.title]="(dirty() ? 'TECHNICAL_CONTROL.EDIT.EVALUATE_SAVE_FIRST' : 'TECHNICAL_CONTROL.CARD.EVALUATE_NOW') | translate"
+      class="inline-flex items-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50">
+      <span class="material-symbols-rounded text-[20px]" [class.animate-spin]="evaluating()">{{ evaluating() ? 'progress_activity' : 'play_circle' }}</span>
+      {{ 'TECHNICAL_CONTROL.CARD.EVALUATE_NOW' | translate }}
+    </button>
+    }
     <button type="button" (click)="cancelled.emit()" [disabled]="saving()"
       class="rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
       {{ 'COMMON.CANCEL' | translate }}

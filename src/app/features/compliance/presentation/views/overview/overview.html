@@ -51,11 +51,10 @@
     }
   </div>
   } @else if (canEditPeriod()) {
-  <!-- Con el período definido: qué fecha de corte se usa (hoy o congelada) y cómo cambiar el período. -->
+  <!-- Con el período definido: cuál es y cómo cambiarlo. No hay fecha de corte que mostrar: se mide siempre con lo último que revisó la evaluación automática (D105). -->
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600 dark:text-gray-300" data-period-bar>
     <span class="material-symbols-rounded text-[18px] text-gray-500" aria-hidden="true">event</span>
     <span>{{ 'COMPLIANCE.PERIOD.LINE' | translate: { start: day(fw.evaluation.period_start), end: day(fw.evaluation.period_end) } }}</span>
-    <span data-cutoff>{{ (fw.evaluation.cutoff_frozen ? 'COMPLIANCE.PERIOD.CUTOFF_FROZEN' : 'COMPLIANCE.PERIOD.CUTOFF_TODAY') | translate: { date: day(fw.evaluation.cutoff_date) } }}</span>
     <button type="button" (click)="openPeriod()" data-edit-period class="font-semibold text-primary hover:underline">{{ 'COMPLIANCE.PERIOD.EDIT' | translate }}</button>
   </div>
   }

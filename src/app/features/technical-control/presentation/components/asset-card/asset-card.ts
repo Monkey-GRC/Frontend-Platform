@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, injec
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, switchMap, takeWhile, timer } from 'rxjs';
+import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { Asset, Execution, ProbeMode } from '../../../domain/models/technical-control.models';
@@ -9,6 +10,7 @@ import { TechnicalControlService } from '../../../domain/services/technical-cont
 import { AssetEditForm } from '../asset-edit-form/asset-edit-form';
 import { CloudConnectionPanel } from '../cloud-connection-panel/cloud-connection-panel';
 import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
+import { ExecutionProgress } from '../execution-progress/execution-progress';
 import { ProviderLogo } from '../provider-logo/provider-logo';
 
 const STATUS: Record<string, { label: string; chip: string; icon: string }> = {
@@ -25,7 +27,7 @@ type Busy = 'validate' | 'schedule';
 // conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
-  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets, ProviderLogo, TranslatePipe],
+  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets, ExecutionProgress, ProviderLogo, TranslatePipe],
   templateUrl: './asset-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -33,6 +35,7 @@ export class AssetCard implements OnInit {
   private readonly api = inject(TechnicalControlService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
 
   readonly asset = input.required<Asset>();
   // El servicio desde el que se mira la conexión: los activos que el cliente marca son de ESE servicio.
@@ -88,6 +91,13 @@ export class AssetCard implements OnInit {
       case 'cancelled': return { icon: 'block', tone: 'warn', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.CANCELLED') };
       default: return { icon: 'error', tone: 'error', text: e.failure_message ?? this.translate.instant('TECHNICAL_CONTROL.EXECUTION.FAILED') };
     }
+  });
+  // D105 · Lo único que se dice del «corte»: cuándo fue la última revisión automática terminada (fecha y hora). No hay una fecha que fijar ni congelar.
+  readonly lastReview = computed(() => {
+    const e = this.execution();
+    return e?.status === 'completed' && e.finished_at
+      ? new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'long', timeStyle: 'short' }).format(new Date(e.finished_at))
+      : null;
   });
   readonly executionOpen = computed(() => ['queued', 'running'].includes(this.execution()?.status ?? ''));
 

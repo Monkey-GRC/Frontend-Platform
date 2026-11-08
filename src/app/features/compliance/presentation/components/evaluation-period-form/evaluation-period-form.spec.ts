@@ -13,6 +13,7 @@ const framework = (evaluation: OverviewFramework['evaluation'] = UNDEFINED): Ove
 });
 const RESULT = { framework_code: 'soc2', catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: TODAY, cutoff_frozen: false };
 
+// D105 · Las fechas del período se eligen en un calendario y no hay fecha de corte que elegir ni congelar: se mide siempre con lo último que revisó la evaluación automática.
 describe('EvaluationPeriodForm', () => {
   let api: jasmine.SpyObj<OverviewService>;
   let fixture: ComponentFixture<EvaluationPeriodForm>;
@@ -30,96 +31,75 @@ describe('EvaluationPeriodForm', () => {
 
   const el = () => fixture.nativeElement as HTMLElement;
   const q = <T extends HTMLElement>(selector: string) => el().querySelector(selector) as T | null;
-  const type = (field: string, value: string) => {
-    const input = q<HTMLInputElement>(`[data-field="${field}"]`)!;
-    input.value = value;
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-  };
-  const toggleFreeze = (on: boolean) => {
-    const box = q<HTMLInputElement>('[data-field="freeze"]')!;
-    box.checked = on;
-    box.dispatchEvent(new Event('change'));
+  /** Elegir un día en el calendario deja el valor en el campo; aquí se pone directo, porque cómo se elige ya lo prueba el selector de fechas. */
+  const pick = (field: 'start' | 'end', value: string) => {
+    const form = fixture.componentInstance;
+    (field === 'start' ? form.start : form.end).set(value);
     fixture.detectChanges();
   };
   const saveButton = () => q<HTMLButtonElement>('[data-save]')!;
 
-  it('opens empty when the framework has no period, with the cutoff not frozen', () => {
+  it('opens empty when the framework has no period', () => {
     const form = setup();
     expect(form.start()).toBe('');
     expect(form.end()).toBe('');
-    expect(form.freeze()).toBeFalse();
-    expect(q('[data-field="cutoff"]')).toBeNull();
     expect(saveButton().disabled).toBeTrue();
   });
 
-  it('opens with what the framework already has, and a frozen cutoff comes back frozen', () => {
-    const form = setup(framework({ catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: '2026-10-14', cutoff_frozen: true }));
-    expect([form.start(), form.end(), form.freeze(), form.cutoff()]).toEqual(['2026-01-01', '2026-12-31', true, '2026-10-14']);
-    expect(q<HTMLInputElement>('[data-field="cutoff"]')!.value).toBe('2026-10-14');
+  it('chooses the dates in a calendar, and offers nothing about a cutoff date', () => {
+    setup();
+    expect(el().querySelectorAll('app-date-picker').length).toBe(2);
+    expect(el().querySelectorAll('input[type="date"]').length).toBe(0);
+    expect(q('[data-field="freeze"]')).toBeNull();
+    expect(q('[data-field="cutoff"]')).toBeNull();
+    expect(el().textContent).not.toContain('CUTOFF');
+    expect(el().textContent).not.toContain('FREEZE');
   });
 
-  it('saves the period with no cutoff by default, so the cutoff is «today»', () => {
+  it('opens with what the framework already has', () => {
+    const form = setup(framework({ catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: '2026-10-14', cutoff_frozen: false }));
+    expect([form.start(), form.end()]).toEqual(['2026-01-01', '2026-12-31']);
+  });
+
+  it('saves the period with no cutoff, so the cutoff is always «today»', () => {
     setup();
-    type('start', '2026-01-01');
-    type('end', '2026-12-31');
+    pick('start', '2026-01-01');
+    pick('end', '2026-12-31');
     expect(saveButton().disabled).toBeFalse();
     saveButton().click();
     expect(api.setEvaluationPeriod).toHaveBeenCalledOnceWith('s1', 'soc2', { period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: null });
   });
 
-  it('freezes the cutoff only when asked, and unfreezing sends null again', () => {
-    setup();
-    type('start', '2026-01-01');
-    type('end', '2030-12-31');
-    toggleFreeze(true);
-    type('cutoff', TODAY);
-    saveButton().click();
-    expect(api.setEvaluationPeriod.calls.mostRecent().args[2].cutoff_date).toBe(TODAY);
-    toggleFreeze(false);
+  it('never sends a cutoff, even if the framework still had one frozen from before: saving the period unfreezes it', () => {
+    setup(framework({ catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: '2026-10-14', cutoff_frozen: true }));
     saveButton().click();
     expect(api.setEvaluationPeriod.calls.mostRecent().args[2].cutoff_date).toBeNull();
   });
 
   it('accepts a single-day period (SOC 2 Type I)', () => {
     setup();
-    type('start', '2026-10-15');
-    type('end', '2026-10-15');
+    pick('start', '2026-10-15');
+    pick('end', '2026-10-15');
     expect(q('[data-error="period_end"]')).toBeNull();
     expect(saveButton().disabled).toBeFalse();
   });
 
   it('warns, before asking the server, when the end is before the start, and does not send', () => {
     setup();
-    type('start', '2026-12-31');
-    type('end', '2026-01-01');
+    pick('start', '2026-12-31');
+    pick('end', '2026-01-01');
     expect(q('[data-error="period_end"]')!.textContent).toContain('COMPLIANCE.PERIOD.ERR_RANGE');
     expect(saveButton().disabled).toBeTrue();
     saveButton().click();
     expect(api.setEvaluationPeriod).not.toHaveBeenCalled();
   });
 
-  it('warns about a frozen cutoff outside the period, in the future, or missing', () => {
-    setup();
-    type('start', '2020-01-01');
-    type('end', '2020-12-31');
-    toggleFreeze(true);
-    type('cutoff', TODAY);
-    expect(q('[data-error="cutoff_date"]')!.textContent).toContain('ERR_CUTOFF_OUT');
-    type('end', '2999-12-31');
-    type('cutoff', '2999-01-01');
-    expect(q('[data-error="cutoff_date"]')!.textContent).toContain('ERR_CUTOFF_FUTURE');
-    type('cutoff', '');
-    expect(q('[data-error="cutoff_date"]')!.textContent).toContain('ERR_CUTOFF_REQUIRED');
-    expect(saveButton().disabled).toBeTrue();
-  });
-
   it('tells the owner it was saved', () => {
     const form = setup();
     const saved = jasmine.createSpy('saved');
     form.saved.subscribe(saved);
-    type('start', '2026-01-01');
-    type('end', '2026-12-31');
+    pick('start', '2026-01-01');
+    pick('end', '2026-12-31');
     saveButton().click();
     expect(saved).toHaveBeenCalledTimes(1);
   });
@@ -129,13 +109,13 @@ describe('EvaluationPeriodForm', () => {
     const saved = jasmine.createSpy('saved');
     form.saved.subscribe(saved);
     api.setEvaluationPeriod.and.returnValue(throwError(() => new HttpErrorResponse({
-      status: 422, error: { message: 'Revisa los datos enviados.', error: { code: 'VALIDATION_FAILED', fields: [{ field: 'period_start', code: 'date.invalid', message: 'Escribe la fecha con el formato AAAA-MM-DD.' }] } },
+      status: 422, error: { message: 'Revisa los datos enviados.', error: { code: 'VALIDATION_FAILED', fields: [{ field: 'period_start', code: 'date.invalid', message: 'Esa fecha no es válida.' }] } },
     })));
-    type('start', '2026-01-01');
-    type('end', '2026-12-31');
+    pick('start', '2026-01-01');
+    pick('end', '2026-12-31');
     saveButton().click();
     fixture.detectChanges();
-    expect(q('[data-error="period_start"]')!.textContent).toContain('Escribe la fecha con el formato AAAA-MM-DD.');
+    expect(q('[data-error="period_start"]')!.textContent).toContain('Esa fecha no es válida.');
     expect(saved).not.toHaveBeenCalled();
     expect(saveButton().disabled).toBeFalse();
   });
@@ -143,8 +123,8 @@ describe('EvaluationPeriodForm', () => {
   it('shows the message of any other failure in a banner (for example a 404 for a framework that is not contracted)', () => {
     setup();
     api.setEvaluationPeriod.and.returnValue(throwError(() => new HttpErrorResponse({ status: 404, error: { message: 'No encontramos lo que buscas.' } })));
-    type('start', '2026-01-01');
-    type('end', '2026-12-31');
+    pick('start', '2026-01-01');
+    pick('end', '2026-12-31');
     saveButton().click();
     fixture.detectChanges();
     expect(q('[data-banner]')!.textContent).toContain('No encontramos lo que buscas.');
