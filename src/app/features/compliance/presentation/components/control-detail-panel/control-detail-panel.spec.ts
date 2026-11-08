@@ -41,8 +41,9 @@ describe('ControlDetailPanel', () => {
   function setup(role: string, detail: ControlDetail = DETAIL): ControlDetailPanel {
     api = jasmine.createSpyObj<ControlService>('ControlService', ['get', 'update', 'retire']);
     api.get.and.returnValue(of(detail));
-    evidence = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download']);
+    evidence = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'listForTest', 'upload', 'download']);
     evidence.list.and.returnValue(NEVER);
+    evidence.listForTest.and.returnValue(NEVER);
     TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), { provide: ControlService, useValue: api }, { provide: EvidenceService, useValue: evidence }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(ControlDetailPanel);
