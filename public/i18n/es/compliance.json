@@ -419,7 +419,15 @@
       "NONE_FOR_TEST": "Aún no has subido evidencia para esta prueba.",
       "SUGGESTED_TITLE": "Documentos que sugiere el catálogo para este control",
       "SUGGESTED_NOTE": "Son una guía: la evidencia se sube bajo cada prueba.",
-      "FOR_TEST": "Respalda la prueba {{code}}"
+      "FOR_TEST": "Respalda la prueba {{code}}",
+      "PREVIEW": "Ver",
+      "PREVIEW_TITLE": "Vista de la evidencia",
+      "PREVIEW_LOADING": "Preparando la vista…",
+      "PREVIEW_ERROR": "No se pudo mostrar el archivo. Inténtalo de nuevo o descárgalo.",
+      "PREVIEW_REFRESH": "Pedir otro enlace",
+      "PREVIEW_EXPIRES": "Por seguridad, el enlace de esta vista dura 5 minutos. Si deja de verse, pide otro.",
+      "SHARED_WITH": "Esta prueba también aplica a: {{codes}}. Lo que subas aquí vale para todos esos controles.",
+      "FROM_CONTROL": "Control {{code}}"
     },
     "PERIOD": {
       "TITLE": "Período de la evaluación",

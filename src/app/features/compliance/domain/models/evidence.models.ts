@@ -41,6 +41,8 @@ export interface EvidenceRequirement {
   origin: 'catalog' | 'own';
   responsible: { id: string; type: string; person_name: string | null } | null;
   submissions: EvidenceSubmission[];
+  // Solo en la evidencia de una prueba: de qué control es el requerimiento (una prueba puede estar en varios controles del servicio, D85).
+  control?: { id: string; code: string };
 }
 
 /**
@@ -89,10 +91,29 @@ export function buildInboxRows(
   );
 }
 
+/** `inline` = para ver en pantalla (solo PDF, PNG y JPG); `attachment` = para bajar el archivo. */
+export type EvidenceDisposition = 'inline' | 'attachment';
+
 export interface EvidenceDownload {
   url: string;
   file_name: string;
+  file_type?: string;
+  disposition?: EvidenceDisposition;
   expires_in: number;
+}
+
+/** Lo que se puede ver en pantalla sin bajarlo (contrato: `inline` solo admite estos tipos; DOCX y XLSX se descargan). */
+export const EVIDENCE_PREVIEW_TYPES: readonly string[] = ['application/pdf', 'image/png', 'image/jpeg'];
+
+export function canPreviewEvidence(fileType: string): boolean {
+  return EVIDENCE_PREVIEW_TYPES.includes(fileType);
+}
+
+/** La evidencia de UNA prueba manual (GET /controls/{id}/tests/{test_id}/evidence): los requerimientos que la respaldan y los otros controles a los que también aplica (D85). */
+export interface EvidenceTestList {
+  test_id: string;
+  shared_with: { id: string; code: string }[];
+  items: EvidenceRequirement[];
 }
 
 // Tipos y tamaño que acepta la subida. El contrato lo PROPONE (PDF, DOCX, XLSX, PNG y JPG, hasta 25 MB, el tope de SEG-43) y deja abierta la

@@ -1,19 +1,32 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { map } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
-import { apiErrorMessage } from '@core/domain/utils/api-error';
+import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { formatBytes } from '@shared/domain/utils/file-validation';
 import { FileUpload } from '@shared/presentation/components/file-upload/file-upload';
+import { Modal } from '@shared/presentation/components/modal/modal';
 import { ControlEvidence as EvidenceSummary } from '../../../domain/models/control.models';
-import { EVIDENCE_FILE_ACCEPT, EVIDENCE_MAX_BYTES, EvidencePerson, EvidenceRequirement, EvidenceSubmission, evidenceForTest, suggestedEvidence } from '../../../domain/models/evidence.models';
+import { EVIDENCE_FILE_ACCEPT, EVIDENCE_MAX_BYTES, EvidencePerson, EvidenceRequirement, EvidenceSubmission, canPreviewEvidence, suggestedEvidence } from '../../../domain/models/evidence.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { EnumLabelService } from '../../../domain/services/enum-label.service';
 import { EvidenceService } from '../../../domain/services/evidence.service';
 
 // 'full' = las evidencias del contrato; 'summary' = el resumen que trae el detalle del control, porque el endpoint de evidencias aún no existe en el backend.
 type Stage = 'loading' | 'full' | 'summary' | 'error';
+
+/** Solo http(s): nada de `javascript:` ni `data:` entra al visor, venga de donde venga el enlace. */
+function isHttpUrl(value: string): boolean {
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === 'https:' || protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
 
 /** La clave de la subida de una prueba: a diferencia de una evidencia requerida, la prueba tiene un solo lugar donde subir (el servidor lo crea en la primera entrega). */
 const TEST_KEY = '__test__';
@@ -23,10 +36,12 @@ const TEST_KEY = '__test__';
 //  · `testId` (D88): la evidencia de UNA prueba documental en este control — sus entregas y un botón para subir. La persona lee lo que la prueba pide y sube su documento;
 //    el administrador de la empresa lo valida después. La primera subida crea el lugar de esa prueba, así que no hay nada que preparar antes;
 //  · `suggested`: los documentos que el catálogo sugiere para el control sin decir a qué prueba sirven. Solo una guía: no cuentan para ninguna prueba.
+//  · `testId` en una prueba manual que NO es documental (D85): los requerimientos de todos los controles del servicio que llevan la prueba, cada uno con su control, y el aviso de a cuáles más aplica.
+// En cualquier forma, un PDF o una imagen entregados se pueden VER en un visor (MD-178); DOCX y XLSX solo se descargan.
 // Si el backend aún no tiene el endpoint (MD-126), muestra el resumen del detalle sin la subida, y se enciende solo cuando exista.
 @Component({
   selector: 'app-control-evidence',
-  imports: [TranslatePipe, FileUpload, NgTemplateOutlet],
+  imports: [TranslatePipe, FileUpload, NgTemplateOutlet, Modal],
   templateUrl: './control-evidence.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -35,6 +50,7 @@ export class ControlEvidence {
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
   private readonly view = inject(ComplianceViewService);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly labels = inject(EnumLabelService);
   protected readonly TEST_KEY = TEST_KEY;
 
@@ -59,10 +75,16 @@ export class ControlEvidence {
 
   readonly stage = signal<Stage>('loading');
   readonly items = signal<EvidenceRequirement[]>([]);
+  /** D85 · Los otros controles del servicio a los que también aplica esta prueba (solo cuando se pinta bajo una prueba). */
+  readonly sharedWith = signal<{ id: string; code: string }[]>([]);
+  readonly sharedCodes = computed(() => this.sharedWith().map((c) => c.code).join(', '));
+  /** Una prueba documental (D88) tiene un solo lugar donde subir; las demás pruebas manuales, un requerimiento por control. */
+  readonly documentary = computed(() => !!this.testId() && this.dimension() === 'policy');
   readonly visible = computed(() => {
     const dimension = this.dimension();
     const testId = this.testId();
-    if (dimension && testId) return evidenceForTest(this.items(), dimension, testId);
+    // Bajo una prueba el servidor ya manda solo lo de ella; en la documental se conserva además el filtro por prueba (D88), por si llega algo de otra.
+    if (dimension && testId) return this.items().filter((r) => r.dimension === dimension && (!this.documentary() || r.test?.id === testId));
     return dimension ? this.items().filter((r) => r.dimension === dimension) : this.items();
   });
   /** Todo lo entregado para la prueba, la entrega más reciente primero. */
@@ -77,23 +99,102 @@ export class ControlEvidence {
   readonly error = signal<string | null>(null);
   readonly expanded = signal<ReadonlySet<string>>(new Set());
 
+  // El visor: qué entrega se mira, su enlace temporal (en texto para las imágenes, como recurso de confianza para el iframe del PDF) y en qué punto está.
+  readonly previewOf = signal<EvidenceSubmission | null>(null);
+  readonly previewUrl = signal<string | null>(null);
+  readonly previewSafeUrl = signal<SafeResourceUrl | null>(null);
+  readonly previewLoading = signal(false);
+  readonly previewFailed = signal(false);
+  private previewSeq = 0;
+
+  // Para ignorar la respuesta de una carga vieja que llega después de una más nueva (cambio de control, de prueba o de vista).
+  private requestSeq = 0;
+
   constructor() {
     effect(() => {
       this.controlId();
+      this.testId();
       this.view.viewParam();
       untracked(() => this.load());
     });
   }
 
   load(): void {
+    const seq = ++this.requestSeq;
+    const testId = this.testId();
     this.stage.set('loading');
-    this.api.list(this.controlId(), this.view.viewParam()).subscribe({
-      next: (items) => {
-        this.items.set(items);
+    // Bajo una prueba se pide la evidencia de ESA prueba: trae también los otros controles a los que aplica (D85). Sin prueba, la del control.
+    const request = testId
+      ? this.api.listForTest(this.controlId(), testId, this.view.viewParam())
+      : this.api.list(this.controlId(), this.view.viewParam()).pipe(map((items) => ({ items, shared_with: [] as { id: string; code: string }[] })));
+    request.subscribe({
+      next: (result) => {
+        if (seq !== this.requestSeq) return;
+        this.items.set(result.items);
+        this.sharedWith.set(result.shared_with);
         this.stage.set('full');
       },
       // 404 = el endpoint aún no existe (el control sí existe: lo estamos mostrando). Cualquier otro fallo es un error real.
-      error: (e: unknown) => this.stage.set(e instanceof HttpErrorResponse && e.status === 404 ? 'summary' : 'error'),
+      error: (e: unknown) => {
+        if (seq === this.requestSeq) this.stage.set(e instanceof HttpErrorResponse && e.status === 404 ? 'summary' : 'error');
+      },
+    });
+  }
+
+  // ── Ver la evidencia en pantalla (MD-178) ──
+
+  /** Solo PDF, PNG y JPG se ven en pantalla; DOCX y XLSX se bajan. */
+  canPreview(submission: EvidenceSubmission): boolean {
+    return canPreviewEvidence(submission.file_type);
+  }
+
+  openPreview(submission: EvidenceSubmission): void {
+    this.reset();
+    this.previewOf.set(submission);
+    this.fetchPreview(submission);
+  }
+
+  /** El enlace dura 5 minutos: si caducó mientras se miraba, se pide otro sin cerrar el visor. */
+  refreshPreview(): void {
+    const submission = this.previewOf();
+    if (submission) this.fetchPreview(submission);
+  }
+
+  closePreview(): void {
+    this.previewSeq++;
+    this.previewOf.set(null);
+    this.previewUrl.set(null);
+    this.previewSafeUrl.set(null);
+    this.previewFailed.set(false);
+    this.previewLoading.set(false);
+  }
+
+  private fetchPreview(submission: EvidenceSubmission): void {
+    const seq = ++this.previewSeq;
+    this.previewUrl.set(null);
+    this.previewSafeUrl.set(null);
+    this.previewFailed.set(false);
+    this.previewLoading.set(true);
+    this.api.download(submission.id, 'inline').subscribe({
+      next: (link) => {
+        if (seq !== this.previewSeq) return;
+        this.previewLoading.set(false);
+        if (!isHttpUrl(link.url)) return this.previewFailed.set(true);
+        this.previewUrl.set(link.url);
+        // El enlace lo firmó nuestro servidor para este archivo y ya se comprobó que es http(s): no puede ser `javascript:` ni `data:`. El visor de PDF lo necesita como recurso del iframe.
+        this.previewSafeUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(link.url));
+      },
+      error: (e: unknown) => {
+        if (seq !== this.previewSeq) return;
+        this.previewLoading.set(false);
+        // Un tipo que no se puede ver (422 disposition.not_supported) se baja en vez de verse.
+        if (e instanceof HttpErrorResponse && e.status === 422 && apiFieldErrors(e).some((f) => f.code === 'disposition.not_supported')) {
+          this.closePreview();
+          this.download(submission);
+          return;
+        }
+        this.previewFailed.set(true);
+      },
     });
   }
 
@@ -142,7 +243,7 @@ export class ControlEvidence {
 
   download(submission: EvidenceSubmission): void {
     this.reset();
-    this.api.download(submission.id).subscribe({
+    this.api.download(submission.id, 'attachment').subscribe({
       next: (link) => window.open(link.url, '_blank', 'noopener'),
       error: (e) => this.error.set(apiErrorMessage(e, this.translate.instant('COMPLIANCE.EVIDENCE.DOWNLOAD_ERROR'))),
     });

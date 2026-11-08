@@ -43,7 +43,30 @@ describe('EvidenceService', () => {
   it('asks for a temporary download link of a delivered evidence', () => {
     let url = '';
     service.download('s1').subscribe((r) => (url = r.url));
-    http.expectOne((r) => r.url.endsWith('/evidence-submissions/s1/download')).flush({ statusCode: 200, message: '', data: { url: 'https://storage/x', file_name: 'a.pdf', expires_in: 300 } });
+    const req = http.expectOne((r) => r.url.endsWith('/evidence-submissions/s1/download'));
+    expect(req.request.params.get('disposition')).toBe('attachment'); // por defecto se baja
+    req.flush({ statusCode: 200, message: '', data: { url: 'https://storage/x', file_name: 'a.pdf', expires_in: 300 } });
     expect(url).toBe('https://storage/x');
+  });
+
+  it('asks for the link to SHOW the file (inline) when it is for the viewer', () => {
+    service.download('s1', 'inline').subscribe();
+    const req = http.expectOne((r) => r.url.endsWith('/evidence-submissions/s1/download'));
+    expect(req.request.params.get('disposition')).toBe('inline');
+    req.flush({ statusCode: 200, message: '', data: { url: 'https://storage/x', file_name: 'a.pdf', file_type: 'application/pdf', disposition: 'inline', expires_in: 300 } });
+  });
+
+  it('reads the evidence of one test with the controls it also applies to, and tolerates missing lists', () => {
+    let result: unknown;
+    service.listForTest('c1', 't9').subscribe((r) => (result = r));
+    const req = http.expectOne((r) => r.url.endsWith('/controls/c1/tests/t9/evidence'));
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.has('view')).toBeFalse();
+    req.flush({ statusCode: 200, message: '', data: { test_id: 't9', shared_with: [{ id: 'k2', code: 'IAC-12' }], items: [{ id: 'e1' }] } });
+    expect(result).toEqual({ test_id: 't9', shared_with: [{ id: 'k2', code: 'IAC-12' }], items: [{ id: 'e1' }] });
+
+    service.listForTest('c1', 't9', 'technical').subscribe((r) => (result = r));
+    http.expectOne((r) => r.url.endsWith('/controls/c1/tests/t9/evidence') && r.params.get('view') === 'technical').flush({ statusCode: 200, message: '', data: {} });
+    expect(result).toEqual({ test_id: 't9', shared_with: [], items: [] });
   });
 });

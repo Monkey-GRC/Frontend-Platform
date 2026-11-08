@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { NEVER, of, throwError } from 'rxjs';
+import { NEVER, Subject, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { ControlEvidence as Summary } from '../../../domain/models/control.models';
 import { EvidenceRequirement, EvidenceSubmission } from '../../../domain/models/evidence.models';
@@ -24,7 +24,7 @@ describe('ControlEvidence', () => {
   let fixture: ComponentFixture<ControlEvidence>;
 
   function setup(role: string, canUpload: boolean, items: EvidenceRequirement[] | 'missing' | 'down' = [requirement('e1', [submission(2), submission(1)]), requirement('e2')]): ControlEvidence {
-    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download', 'uploadForTest']);
+    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'listForTest', 'upload', 'download', 'uploadForTest']);
     api.list.and.returnValue(items === 'missing' ? throwError(() => new HttpErrorResponse({ status: 404 })) : items === 'down' ? throwError(() => new HttpErrorResponse({ status: 500 })) : of(items));
     TestBed.configureTestingModule({ imports: [ControlEvidence], providers: [provideTranslateService(), { provide: EvidenceService, useValue: api }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
@@ -131,8 +131,87 @@ describe('ControlEvidence', () => {
     api.download.and.returnValue(of({ url: 'https://storage/x', file_name: 'a.pdf', expires_in: 300 }));
     const open = spyOn(window, 'open');
     view.download(submission(2));
-    expect(api.download).toHaveBeenCalledWith('s2');
+    expect(api.download).toHaveBeenCalledWith('s2', 'attachment');
     expect(open).toHaveBeenCalledWith('https://storage/x', '_blank', 'noopener');
+  });
+
+  describe('viewing the evidence on screen (MD-178)', () => {
+    const link = (url: string) => of({ url, file_name: 'a.pdf', file_type: 'application/pdf', disposition: 'inline' as const, expires_in: 300 });
+    const asType = (s: EvidenceSubmission, file_type: string): EvidenceSubmission => ({ ...s, file_type });
+    const q = (selector: string) => fixture.nativeElement.querySelector(selector) as HTMLElement | null;
+
+    it('offers "view" only for PDF, PNG and JPG; a Word or Excel file can only be downloaded', () => {
+      setup('admin_empresa', true, [requirement('e1', [asType(submission(1), 'application/pdf')]), requirement('e2', [asType(submission(1), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')])]);
+      const rows = Array.from(fixture.nativeElement.querySelectorAll('li')) as HTMLElement[];
+      expect(rows[0].querySelector('[data-preview-open]')).not.toBeNull();
+      expect(rows[1].querySelector('[data-preview-open]')).toBeNull();
+      expect(rows[1].querySelector('[data-download]')).not.toBeNull();
+    });
+
+    it('asks for an inline link and shows a PDF in a frame, without opening a tab nor storing the url anywhere else', () => {
+      const view = setup('admin_empresa', true);
+      api.download.and.returnValue(link('https://storage/x.pdf?sig=1'));
+      const open = spyOn(window, 'open');
+      view.openPreview(submission(2));
+      fixture.detectChanges();
+      expect(api.download).toHaveBeenCalledWith('s2', 'inline');
+      expect(open).not.toHaveBeenCalled();
+      expect(q('[data-preview-pdf]')?.getAttribute('src')).toBe('https://storage/x.pdf?sig=1');
+    });
+
+    it('shows an image with an <img>, not a frame', () => {
+      const view = setup('admin_empresa', true);
+      api.download.and.returnValue(link('https://storage/x.png?sig=1'));
+      view.openPreview(asType(submission(1), 'image/png'));
+      fixture.detectChanges();
+      expect(q('[data-preview-image]')?.getAttribute('src')).toBe('https://storage/x.png?sig=1');
+      expect(q('[data-preview-pdf]')).toBeNull();
+    });
+
+    it('refuses a link that is not http(s): nothing is put in the frame', () => {
+      const view = setup('admin_empresa', true);
+      api.download.and.returnValue(link('javascript:alert(1)'));
+      view.openPreview(submission(2));
+      fixture.detectChanges();
+      expect(view.previewFailed()).toBeTrue();
+      expect(q('[data-preview-pdf]')).toBeNull();
+      expect(q('[data-preview-error]')).not.toBeNull();
+    });
+
+    it('asks for another link when the first one expires, without closing the viewer', () => {
+      const view = setup('admin_empresa', true);
+      api.download.and.returnValues(link('https://storage/1'), link('https://storage/2'));
+      view.openPreview(submission(2));
+      view.refreshPreview();
+      fixture.detectChanges();
+      expect(api.download).toHaveBeenCalledTimes(2);
+      expect(view.previewOf()?.id).toBe('s2');
+      expect(q('[data-preview-pdf]')?.getAttribute('src')).toBe('https://storage/2');
+    });
+
+    it('shows an error with a retry when the link cannot be made, and clears everything on close', () => {
+      const view = setup('admin_empresa', true);
+      api.download.and.returnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
+      view.openPreview(submission(2));
+      fixture.detectChanges();
+      expect(q('[data-preview-error]')).not.toBeNull();
+      view.closePreview();
+      fixture.detectChanges();
+      expect(view.previewOf()).toBeNull();
+      expect(view.previewUrl()).toBeNull();
+      expect(q('[data-preview-error]')).toBeNull();
+    });
+
+    it('falls back to the download when the server says that type cannot be shown (422 disposition.not_supported)', () => {
+      const view = setup('admin_empresa', true);
+      const refusal = new HttpErrorResponse({ status: 422, error: { error: { code: 'VALIDATION_FAILED', fields: [{ field: 'disposition', code: 'disposition.not_supported', message: 'x' }] } } });
+      api.download.and.returnValues(throwError(() => refusal), of({ url: 'https://storage/dl', file_name: 'a.pdf', expires_in: 300 }));
+      const open = spyOn(window, 'open');
+      view.openPreview(submission(2));
+      expect(api.download.calls.allArgs()).toEqual([['s2', 'inline'], ['s2', 'attachment']]);
+      expect(open).toHaveBeenCalledWith('https://storage/dl', '_blank', 'noopener');
+      expect(view.previewOf()).toBeNull();
+    });
   });
 
   describe('under a documentary test of the control (D88)', () => {
@@ -140,14 +219,62 @@ describe('ControlEvidence', () => {
     const T2 = { id: 'tid-2', code: 'T-DOC-002', display_name: 'Ejecución durante el período' };
     const own = (id: string, test: typeof T1 | null): EvidenceRequirement => ({ ...requirement(id), origin: 'own', test });
 
-    function under(items: EvidenceRequirement[], canUpload = true): ControlEvidence {
+    function under(items: EvidenceRequirement[], canUpload = true, shared: { id: string; code: string }[] = []): ControlEvidence {
       const view = setup('admin_empresa', canUpload, items);
+      api.listForTest.and.returnValue(of({ test_id: T1.id, shared_with: shared, items }));
       fixture.componentRef.setInput('dimension', 'policy');
       fixture.componentRef.setInput('embedded', true);
       fixture.componentRef.setInput('testId', T1.id);
       fixture.detectChanges();
       return view;
     }
+
+    it('asks the server for the evidence of THIS test, not the whole control', () => {
+      under([]);
+      expect(api.listForTest).toHaveBeenCalledWith('c1', 'tid-1', 'technical'); // la vista técnica es del admin de la empresa y del auditor
+    });
+
+    it('tells which other controls the test also applies to, with their codes visible (D85)', () => {
+      under([{ ...own('mine', T1), submissions: [submission(1)] }], true, [{ id: 'k2', code: 'IAC-12' }, { id: 'k3', code: 'IAC-4' }]);
+      const note = fixture.nativeElement.querySelector('[data-shared-with]') as HTMLElement;
+      expect(note).not.toBeNull();
+      expect(note.textContent).toContain('COMPLIANCE.EVIDENCE.SHARED_WITH');
+    });
+
+    it('says nothing about sharing when the test is only in this control', () => {
+      under([own('mine', T1)]);
+      expect(fixture.nativeElement.querySelector('[data-shared-with]')).toBeNull();
+    });
+
+    it('for another manual test, lists the requirement of each control that carries it and marks those of other controls', () => {
+      const view = setup('admin_empresa', true, []);
+      const mine = { ...requirement('a'), dimension: 'server', control: { id: 'c1', code: 'IAC-1' } };
+      const theirs = { ...requirement('b'), dimension: 'server', control: { id: 'k2', code: 'IAC-12' } };
+      api.listForTest.and.returnValue(of({ test_id: 'tid-9', shared_with: [{ id: 'k2', code: 'IAC-12' }], items: [mine, theirs] }));
+      fixture.componentRef.setInput('dimension', 'server');
+      fixture.componentRef.setInput('embedded', true);
+      fixture.componentRef.setInput('testId', 'tid-9');
+      fixture.detectChanges();
+      expect(text()).toContain('Documento a');
+      expect(text()).toContain('Documento b');
+      expect(fixture.nativeElement.querySelectorAll('[data-from-control]').length).toBe(1);
+      expect(fixture.nativeElement.querySelector('[data-shared-with]')).not.toBeNull();
+      expect(view.documentary()).toBeFalse();
+    });
+
+    it('ignores a slow answer for a previous test when the test changes', () => {
+      const view = setup('admin_empresa', true, []);
+      const slow = new Subject<{ test_id: string; shared_with: []; items: EvidenceRequirement[] }>();
+      api.listForTest.and.returnValues(slow, of({ test_id: 'tid-2', shared_with: [], items: [] }));
+      fixture.componentRef.setInput('dimension', 'policy');
+      fixture.componentRef.setInput('testId', 'tid-1');
+      fixture.detectChanges();
+      fixture.componentRef.setInput('testId', 'tid-2');
+      fixture.detectChanges();
+      slow.next({ test_id: 'tid-1', shared_with: [], items: [{ ...own('old', { ...T1, id: 'tid-1' }), submissions: [submission(9)] }] });
+      fixture.detectChanges();
+      expect(view.items().length).toBe(0);
+    });
 
     it('shows only what was delivered for THIS test: not another test of the control, not the document the catalog suggests', () => {
       under([{ ...own('mine', T1), submissions: [submission(1)] }, { ...own('other', T2), submissions: [submission(7)] }, requirement('suggested')]);
@@ -187,7 +314,7 @@ describe('ControlEvidence', () => {
       expect(api.upload).not.toHaveBeenCalled();
       expect(view.uploadingFor()).toBeNull();
       expect(view.notice()).not.toBeNull();
-      expect(api.list).toHaveBeenCalledTimes(2);
+      expect(api.listForTest).toHaveBeenCalledTimes(2); // la carga de la prueba y la recarga tras subir
       expect(changed).toBe(1);
     });
 
@@ -215,7 +342,7 @@ describe('ControlEvidence', () => {
     });
   });
   it('waits for the backend before showing anything while it loads', () => {
-    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download', 'uploadForTest']);
+    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'listForTest', 'upload', 'download', 'uploadForTest']);
     api.list.and.returnValue(NEVER);
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({ imports: [ControlEvidence], providers: [provideTranslateService(), { provide: EvidenceService, useValue: api }] });

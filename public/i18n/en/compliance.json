@@ -419,7 +419,15 @@
       "NONE_FOR_TEST": "You have not uploaded evidence for this test yet.",
       "SUGGESTED_TITLE": "Documents the catalog suggests for this control",
       "SUGGESTED_NOTE": "They are a guide: evidence is uploaded under each test.",
-      "FOR_TEST": "Backs test {{code}}"
+      "FOR_TEST": "Backs test {{code}}",
+      "PREVIEW": "View",
+      "PREVIEW_TITLE": "Evidence preview",
+      "PREVIEW_LOADING": "Preparing the preview…",
+      "PREVIEW_ERROR": "The file could not be shown. Please try again or download it.",
+      "PREVIEW_REFRESH": "Request a new link",
+      "PREVIEW_EXPIRES": "For security, the link for this preview lasts 5 minutes. If it stops showing, request a new one.",
+      "SHARED_WITH": "This test also applies to: {{codes}}. What you upload here counts for all those controls.",
+      "FROM_CONTROL": "Control {{code}}"
     },
     "PERIOD": {
       "TITLE": "Evaluation period",
