@@ -15,6 +15,13 @@
     "OPTIONAL": "opcional",
     "REMOVE": "Quitar",
     "CLOSE": "Cerrar",
+    "DATE_PICKER": {
+      "PLACEHOLDER": "Elige una fecha",
+      "PREV_MONTH": "Mes anterior",
+      "NEXT_MONTH": "Mes siguiente",
+      "TODAY": "Hoy",
+      "CLEAR": "Borrar"
+    },
     "AUTH_PROBLEM": "Ocurrió un problema de autenticación. Si el error persiste, contacta a soporte.",
     "SHOW_PASSWORD": "Mostrar contraseña",
     "HIDE_PASSWORD": "Ocultar contraseña",

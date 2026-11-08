@@ -70,14 +70,23 @@
   }
 
   @if (editing()) {
-  <app-asset-edit-form [asset]="asset()" [criticalities]="criticalities()" (saved)="onEdited($event)" (cancelled)="editing.set(false)" />
+  <app-asset-edit-form [asset]="asset()" [criticalities]="criticalities()" [canEvaluate]="isCloud() && connected()" [evaluating]="evaluating() || executionOpen()"
+    (saved)="onEdited($event)" (cancelled)="editing.set(false)" (evaluate)="evaluate()" />
   }
 
-  @if (executionText(); as x) {
+  @if (executionOpen() && execution(); as running) {
+  <app-execution-progress [execution]="running" />
+  } @else if (executionText(); as x) {
   <p class="mt-4 inline-flex items-center gap-1.5 text-sm"
     [class]="x.tone === 'ok' ? 'text-green-700 dark:text-green-400' : x.tone === 'error' ? 'text-error-600' : 'text-gray-700 dark:text-gray-200'" aria-live="polite">
     <span class="material-symbols-rounded text-[18px]" [class.animate-spin]="x.icon === 'progress_activity'">{{ x.icon }}</span>
     {{ x.text }}
+  </p>
+  }
+
+  @if (lastReview(); as when) {
+  <p class="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300" data-last-review>
+    <span class="material-symbols-rounded text-[16px]" aria-hidden="true">history</span>{{ 'TECHNICAL_CONTROL.EXECUTION.LAST_REVIEW' | translate: { when: when } }}
   </p>
   }
 

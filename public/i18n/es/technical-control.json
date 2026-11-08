@@ -20,9 +20,23 @@
       "SCHEDULED": "Programada",
       "FAILED": "No pudimos conectar"
     },
+    "PROGRESS": {
+      "TITLE_QUEUED": "Tu evaluación está en cola",
+      "TITLE_RUNNING": "Evaluando tu cuenta",
+      "ESTIMATED": "avance estimado",
+      "STAGE_PREPARE": "Preparando la evaluación…",
+      "STAGE_CONNECT": "Conectando con tu cuenta…",
+      "STAGE_READ": "Leyendo tus servidores y su configuración…",
+      "STAGE_CHECK": "Revisando la configuración contra los controles…",
+      "STAGE_RESULTS": "Calculando resultados…",
+      "ELAPSED": "Tiempo transcurrido: {{time}}",
+      "TYPICAL": "Suele tardar unos 6 minutos. Puedes salir de esta pantalla: la evaluación sigue.",
+      "SLOW": "Está tardando más de lo habitual, pero sigue en curso. No necesitas hacer nada."
+    },
     "EXECUTION": {
       "QUEUED": "En cola: empezará en unos segundos.",
       "RUNNING": "Evaluando tu cuenta de AWS… puede tardar unos minutos.",
+      "LAST_REVIEW": "Última revisión automática: {{when}}",
       "COMPLETED": "Evaluación completada.",
       "CANCELLED": "La evaluación se canceló. Puedes lanzarla de nuevo.",
       "FAILED": "No pudimos completar la evaluación. Inténtalo de nuevo."
@@ -90,6 +104,7 @@
       "KEY_ID_PLACEHOLDER": "Identificador de la llave (AKIA…)",
       "SECRET": "Llave secreta",
       "CHANGES_CONNECTION": "Cambiaste lo que se evalúa, así que al guardar tendrás que comprobar la conexión otra vez. Lo que ya medimos se conserva.",
+      "EVALUATE_SAVE_FIRST": "Guarda los cambios primero: así evaluamos con los datos nuevos.",
       "SAVE_ERROR": "No pudimos guardar los cambios. Inténtalo de nuevo."
     },
     "PANEL": {

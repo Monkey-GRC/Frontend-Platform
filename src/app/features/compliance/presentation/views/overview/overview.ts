@@ -185,7 +185,7 @@ export class OverviewView {
       const fw = this.framework();
       const e = fw?.evaluation;
       const text = fw && this.evaluationDefined() && e
-        ? this.translate.instant('COMPLIANCE.OVERVIEW.EVALUATION', { start: this.day(e.period_start), end: this.day(e.period_end), cutoff: this.day(e.cutoff_date), version: e.catalog_version })
+        ? this.translate.instant('COMPLIANCE.OVERVIEW.EVALUATION', { start: this.day(e.period_start), end: this.day(e.period_end), version: e.catalog_version })
         : null;
       untracked(() => {
         this.context.evaluationText.set(text);
