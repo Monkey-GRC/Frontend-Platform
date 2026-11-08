@@ -1,9 +1,6 @@
 {
   "HOME": {
     "WORK": {
-      "FUNCIONAL_TITLE": "Tu trabajo",
-      "FUNCIONAL_BODY": "Aquí ves de una vez lo que te toca según tus especialidades: las evidencias que debes subir y lo que debes corregir. Tu administrador valida lo que subas.",
-      "FUNCIONAL_CTA": "Ver mi trabajo",
       "AUDITOR_TITLE": "Revisión de la empresa",
       "AUDITOR_BODY": "Revisa el cumplimiento de la empresa en solo lectura: controles, pruebas, evidencias y riesgos.",
       "AUDITOR_CTA": "Ver el cumplimiento"

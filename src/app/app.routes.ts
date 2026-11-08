@@ -9,6 +9,7 @@ import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layo
 import { authGuard } from '@core/domain/guards/auth.guard';
 import { guestGuard } from '@core/domain/guards/guest.guard';
 import { roleGuard } from '@core/domain/guards/role.guard';
+import { workLandingGuard } from '@core/domain/guards/work-landing.guard';
 import { risksEvaluatedGuard } from '@features/services/domain/guards/risks-evaluated.guard';
 
 export const routes: Routes = [
@@ -19,11 +20,28 @@ export const routes: Routes = [
     children: [
       // Bienvenida provisional. El onboarding es solo el contexto de la empresa (D89); los servicios se declaran desde «Mis servicios» o desde Cumplimiento.
       // El dashboard la reemplaza cuando se reconstruya.
+      // El responsable y el delegado no entran aquí: el guard los manda a «Mi trabajo» (D102, MD-196).
       {
         path: '',
         title: 'PAGE_TITLE.HOME',
+        canActivate: [workLandingGuard],
         loadComponent: () => import('@features/home/presentation/views/home/home').then(m => m.Home),
         pathMatch: 'full',
+      },
+      // Pantallas provisionales de D102: se reemplazan al cambiar su `loadComponent` cuando el Backend las permita («Mi trabajo»: MD-201 con MD-195; asignación: MD-199 y MD-200 con MD-192).
+      {
+        path: 'mi-trabajo',
+        title: 'PAGE_TITLE.MY_WORK',
+        canActivate: [roleGuard('responsable', 'delegado')],
+        data: { titleKey: 'SHELL.NAV.MY_WORK', icon: 'assignment_ind' },
+        loadComponent: () => import('@core/presentation/pages/coming-soon/coming-soon').then(m => m.ComingSoonView),
+      },
+      {
+        path: 'asignacion',
+        title: 'PAGE_TITLE.ASSIGNMENT',
+        canActivate: [roleGuard('admin_empresa', 'responsable')],
+        data: { titleKey: 'SHELL.NAV.ASSIGNMENT', icon: 'assignment_turned_in' },
+        loadComponent: () => import('@core/presentation/pages/coming-soon/coming-soon').then(m => m.ComingSoonView),
       },
       // Componente 1 del onboarding: el cliente cuenta de qué trata su empresa.
       {
@@ -76,11 +94,11 @@ export const routes: Routes = [
         title: 'PAGE_TITLE.COMPLIANCE',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
       },
-      // El equipo de la empresa y el reparto del trabajo por dimensión (D96): lo gestiona el administrador.
+      // El equipo de la empresa (D96, D102): lo gestiona el administrador; el responsable ve a su equipo de delegados y crea delegados para él.
       {
         path: 'equipo',
         title: 'PAGE_TITLE.TEAM',
-        canActivate: [roleGuard('admin_empresa')],
+        canActivate: [roleGuard('admin_empresa', 'responsable')],
         loadComponent: () => import('@features/team/presentation/views/team/team').then(m => m.TeamView),
       },
       // Los cargos responsables son de la organización, no de un servicio (MD-135).

@@ -1,74 +1,84 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observable, forkJoin, of } from 'rxjs';
-import { OWNER_ASSIGNMENT_ENABLED } from '@config/features.config';
-import { apiErrorCode, apiErrorMessage } from '@core/domain/utils/api-error';
+import { Observable } from 'rxjs';
+import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { SessionService } from '@core/domain/services/session.service';
-import { CatalogService } from '@shared/domain/services/catalog.service';
+import { PageInfo } from '@shared/domain/utils/pagination';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
-import { Dimension, DimensionOwner, ServiceRef, TeamMember, TeamMemberWithCode } from '../../../domain/models/team.models';
+import { Group } from '../../../domain/models/group.models';
+import { Invitation, InvitedMember, TeamFilters, TeamMember, TeamRole, TeamStatus } from '../../../domain/models/team.models';
+import { GroupService } from '../../../domain/services/group.service';
 import { TeamService } from '../../../domain/services/team.service';
+import { InviteActor, TeamInviteForm } from '../../components/team-invite-form/team-invite-form';
+import { TeamGroups } from '../../components/team-groups/team-groups';
 
 type Stage = 'loading' | 'error' | 'ready';
-type Tab = 'people' | 'work';
+type Tab = 'people' | 'groups';
 type Pending = { kind: 'deactivate' | 'reset_mfa'; member: TeamMember };
+type Affiliation = '' | 'internal' | 'external';
 
-// El código que se acaba de emitir: solo se ve ahora (el backend no lo guarda), así que se queda en pantalla hasta que la persona lo anota.
-type IssuedCode = { email: string; code: string; expiresAt: string };
+// La última invitación mandada: se queda a la vista hasta que se cierra. Si el correo falló (`failed`) la cuenta existe y se ofrece reenviarla. El código nunca llega aquí:
+// el Backend lo manda por correo a la persona (MD-190) y la respuesta solo dice si salió.
+type SentInvitation = { id: string; email: string; status: 'sent' | 'failed'; expiresAt: string };
 
-// El equipo de la empresa (MD-134, D96). El administrador invita a su gente, les da una especialidad (una o más dimensiones), les entrega el código para activar su cuenta
-// y reparte el trabajo: quién es el responsable de cada dimensión en cada servicio. Un `funcional` ve y hace solo lo suyo; el `auditor` lo ve todo en solo lectura.
+const PAGE_SIZE = 25;
+
+// Los valores de `user_role` y `user_status` (contracts/enums); sus etiquetas salen de i18n. No hay catálogo en la API para estos dos enums. El filtro de estado del Backend
+// hoy acepta `active`, `inactive` y `pending` (no `suspended`).
+const ROLE_FILTERS: readonly TeamRole[] = ['admin_empresa', 'responsable', 'delegado', 'auditor'];
+const STATUS_FILTERS: readonly TeamStatus[] = ['active', 'pending', 'inactive'];
+
+// El equipo de la empresa (MD-197, D96, D102, D104). El administrador crea y gestiona a todos (responsables, delegados, auditores y otros administradores); el responsable ve a su equipo y
+// crea delegados para él. La invitación sale por correo (MD-190) y esta pantalla solo informa el resultado. Se retiraron el reparto por servicio y dimensión y las especialidades (MD-206).
+// Los grupos (crear, renombrar, ver sus personas y mover delegados, MD-198) viven en su pestaña, en `TeamGroups`.
+// Falta (espera al Backend): la baja con aviso de controles asignados y corregir si un delegado es interno o externo (ambos en MD-191, aún fuera de develop).
 @Component({
   selector: 'app-team',
-  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DatePipe],
+  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DatePipe, DataTable, TableCell, TeamInviteForm, TeamGroups],
   templateUrl: './team.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeamView implements OnInit {
   private readonly api = inject(TeamService);
+  private readonly groupApi = inject(GroupService);
   private readonly translate = inject(TranslateService);
-  readonly myId = inject(SessionService).user;
-  // D98: repartir el trabajo a personas concretas queda apagado; hoy el funcional atiende todo lo de su especialidad.
-  readonly ownerAssignment = inject(OWNER_ASSIGNMENT_ENABLED);
+  private readonly session = inject(SessionService);
+  readonly myId = computed(() => this.session.user()?.id);
 
-  // Las dimensiones salen del backend (enum `dimension`); el orden es el del contrato.
-  readonly dimensionOptions = toSignal(inject(CatalogService).options('dimension'), { initialValue: [] });
+  /** Solo el administrador cambia a las personas del equipo (la API responde 403 al resto); el responsable ve a su equipo y crea delegados. */
+  readonly canManage = computed(() => this.session.user()?.role === 'admin_empresa');
+  readonly actor = computed<InviteActor>(() => (this.canManage() ? 'admin_empresa' : 'responsable'));
+
+  readonly roleFilters = ROLE_FILTERS;
+  readonly statusFilters = STATUS_FILTERS;
 
   readonly stage = signal<Stage>('loading');
   readonly tab = signal<Tab>('people');
+  readonly loadingPage = signal(false);
   readonly members = signal<TeamMember[]>([]);
-  readonly services = signal<ServiceRef[]>([]);
+  readonly groups = signal<Group[]>([]);
+  /** Los grupos llegan aparte de las personas: hasta que llegan (o fallan), no se puede decir que «no hay equipo». */
+  readonly groupsLoaded = signal(false);
+  readonly page = signal<PageInfo | null>(null);
+  private readonly pageNumber = signal(1);
+  private readonly pageSize = signal(PAGE_SIZE);
+  // Cada petición de la lista lleva su número: si una respuesta lenta llega después de otra más nueva (filtros que cambian rápido), se descarta.
+  private requestSeq = 0;
+
+  readonly roleFilter = signal<TeamRole | ''>('');
+  readonly statusFilter = signal<TeamStatus | ''>('');
+  readonly groupFilter = signal('');
+  readonly affiliationFilter = signal<Affiliation>('');
+  readonly hasFilters = computed(() => !!(this.roleFilter() || this.statusFilter() || this.groupFilter() || this.affiliationFilter()));
+
   readonly saving = signal(false);
   readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
-  readonly issued = signal<IssuedCode | null>(null);
-  readonly copied = signal(false);
-
-  // Alta
-  readonly inviteEmail = signal('');
-  readonly inviteName = signal('');
-  readonly inviteLastName = signal('');
-  readonly inviteRole = signal<'funcional' | 'auditor' | 'admin_empresa'>('funcional');
-  readonly inviteDimensions = signal<Dimension[]>([]);
-  // El correo identifica a la persona: si ya está en el equipo se avisa antes de intentar crear nada. Si es de otra empresa, lo dice el servidor al enviar (409).
-  readonly existing = computed(() => {
-    const email = this.inviteEmail().trim().toLowerCase();
-    return email ? (this.members().find((m) => m.email.toLowerCase() === email) ?? null) : null;
-  });
-  readonly emailError = signal<string | null>(null);
-  readonly canInvite = computed(
-    () =>
-      /^\S+@\S+\.\S+$/.test(this.inviteEmail().trim()) &&
-      !!this.inviteName().trim() &&
-      !!this.inviteLastName().trim() &&
-      (this.inviteRole() !== 'funcional' || this.inviteDimensions().length > 0) &&
-      !this.existing() &&
-      !this.saving(),
-  );
+  readonly invitation = signal<SentInvitation | null>(null);
 
   // Corregir el nombre de alguien del equipo
   readonly nameEditing = signal<string | null>(null);
@@ -76,96 +86,132 @@ export class TeamView implements OnInit {
   readonly lastNameDraft = signal('');
   readonly canSaveName = computed(() => !!this.nameDraft().trim() && !!this.lastNameDraft().trim() && !this.saving());
 
-  // Cambio de especialidades de un funcional
-  readonly editing = signal<string | null>(null);
-  readonly editDimensions = signal<Dimension[]>([]);
-
   // Confirmaciones (desactivar, quitar el segundo factor)
   readonly confirming = signal<Pending | null>(null);
 
-  // Reparto del trabajo por servicio
-  readonly serviceId = signal<string | null>(null);
-  readonly owners = signal<DimensionOwner[]>([]);
-  readonly ownersStage = signal<Stage>('ready');
+  readonly columns = computed<TableColumn<TeamMember>[]>(() => [
+    { key: 'person', headerKey: 'TEAM.COLUMNS.PERSON' },
+    { key: 'role', headerKey: 'TEAM.COLUMNS.ROLE' },
+    { key: 'status', headerKey: 'TEAM.COLUMNS.STATUS' },
+    { key: 'group', headerKey: 'TEAM.COLUMNS.GROUP' },
+    { key: 'lastLogin', headerKey: 'TEAM.COLUMNS.LAST_LOGIN' },
+    ...(this.canManage() ? [{ key: 'actions', headerKey: 'TEAM.COLUMNS.ACTIONS', align: 'right' as const, srOnlyHeader: true }] : []),
+  ]);
+  readonly rowKey = (m: TeamMember) => m.id;
 
   ngOnInit(): void {
-    this.load();
+    this.reloadGroups();
+    this.load(true);
   }
 
-  load(): void {
-    this.stage.set('loading');
-    forkJoin({ page: this.api.list(), services: this.ownerAssignment ? this.api.services() : of<ServiceRef[]>([]) }).subscribe({
-      next: ({ page, services }) => {
-        this.members.set(page.items);
-        this.services.set(services);
-        this.stage.set('ready');
-        if (!this.serviceId() && services.length) this.chooseService(services[0].id);
+  private reloadGroups(): void {
+    this.groupApi.list().subscribe({
+      next: (groups) => {
+        this.groups.set(groups);
+        this.groupsLoaded.set(true);
       },
-      error: () => this.stage.set('error'),
+      error: () => {
+        this.groups.set([]);
+        this.groupsLoaded.set(true);
+      },
     });
   }
 
-  dimensionLabel(value: string): string {
-    return this.dimensionOptions().find((o) => o.value === value)?.label ?? value;
+  /** Se creó o renombró un grupo, o se movió a un delegado: los grupos (y quién está en cada uno) cambiaron. */
+  onGroupsChanged(): void {
+    this.reloadGroups();
+    this.refresh();
+  }
+
+  /** Pide la página actual con los filtros de ahora. La primera vez (o al reintentar) ocupa la pantalla; después solo la tabla. */
+  load(initial = false): void {
+    const seq = ++this.requestSeq;
+    if (initial) this.stage.set('loading');
+    else this.loadingPage.set(true);
+    this.api.list(this.filters(), this.pageNumber(), this.pageSize()).subscribe({
+      next: (data) => {
+        if (seq !== this.requestSeq) return;
+        this.members.set(data.items);
+        this.page.set({ page: data.page, pageSize: data.page_size, total: data.total, totalPages: data.total_pages });
+        this.stage.set('ready');
+        this.loadingPage.set(false);
+      },
+      error: () => {
+        if (seq !== this.requestSeq) return;
+        this.loadingPage.set(false);
+        if (initial) this.stage.set('error');
+        else this.error.set(this.translate.instant('TEAM.LOAD_ERROR'));
+      },
+    });
+  }
+
+  private filters(): TeamFilters {
+    const affiliation = this.affiliationFilter();
+    return {
+      role: this.roleFilter() || null,
+      status: this.statusFilter() || null,
+      groupId: this.groupFilter() || null,
+      isInternal: affiliation === '' ? null : affiliation === 'internal',
+    };
   }
 
   isMe(m: TeamMember): boolean {
-    return m.id === this.myId()?.id;
+    return m.id === this.myId();
+  }
+
+  // ─── filtros y páginas ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  setFilter(kind: 'role' | 'status' | 'group' | 'affiliation', value: string): void {
+    if (kind === 'role') this.roleFilter.set(value as TeamRole | '');
+    else if (kind === 'status') this.statusFilter.set(value as TeamStatus | '');
+    else if (kind === 'group') this.groupFilter.set(value);
+    else this.affiliationFilter.set(value as Affiliation);
+    this.pageNumber.set(1);
+    this.load();
+  }
+
+  clearFilters(): void {
+    this.roleFilter.set('');
+    this.statusFilter.set('');
+    this.groupFilter.set('');
+    this.affiliationFilter.set('');
+    this.pageNumber.set(1);
+    this.load();
+  }
+
+  goTo(page: number): void {
+    this.pageNumber.set(page);
+    this.load();
+  }
+
+  resize(size: number): void {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.load();
   }
 
   // ─── invitar ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  toggleInvite(dimension: Dimension): void {
-    this.inviteDimensions.update((list) => (list.includes(dimension) ? list.filter((d) => d !== dimension) : [...list, dimension]));
+  /** El alta ya se hizo: se informa si el correo salió y se vuelve a pedir la lista. */
+  onInvited(created: InvitedMember): void {
+    this.resetMessages();
+    this.showInvitation(created.id, created.email, created.invitation);
+    this.notice.set(this.translate.instant('TEAM.NOTICE.INVITED'));
+    this.refresh();
   }
 
-  setRole(role: 'funcional' | 'auditor' | 'admin_empresa'): void {
-    this.inviteRole.set(role);
-    if (role !== 'funcional') this.inviteDimensions.set([]);
+  /** Reenvía la invitación (código nuevo por correo; el anterior deja de servir). Sirve para una cuenta `pending`, también cuando el primer envío falló. */
+  resend(id: string, email: string): void {
+    this.run(this.api.resendInvitation(id), 'TEAM.NOTICE.CODE_REISSUED', (invitation) => this.showInvitation(id, email, invitation));
   }
 
-  setEmail(value: string): void {
-    this.inviteEmail.set(value);
-    this.emailError.set(null);
+  dismissInvitation(): void {
+    this.invitation.set(null);
   }
 
-  invite(): void {
-    if (!this.canInvite()) return;
-    const role = this.inviteRole();
-    const body = {
-      email: this.inviteEmail().trim(),
-      name: this.inviteName().trim(),
-      last_name: this.inviteLastName().trim(),
-      role,
-      ...(role === 'funcional' ? { dimensions: this.inviteDimensions() } : {}),
-    };
-    this.run(
-      this.api.invite(body),
-      'TEAM.NOTICE.INVITED',
-      (created) => {
-        this.showCode(created);
-        this.inviteEmail.set('');
-        this.inviteName.set('');
-        this.inviteLastName.set('');
-        this.inviteDimensions.set([]);
-      },
-      undefined,
-      // Un correo que ya existe en la plataforma se dice bajo el campo del correo, no en un aviso general.
-      (e) => {
-        if (apiErrorCode(e) !== 'EMAIL_TAKEN') return false;
-        this.emailError.set(apiErrorMessage(e, this.translate.instant('TEAM.INVITE.EMAIL_TAKEN')));
-        return true;
-      },
-    );
+  private showInvitation(id: string, email: string, invitation: Invitation): void {
+    this.invitation.set({ id, email, status: invitation.delivery_status === 'failed' ? 'failed' : 'sent', expiresAt: invitation.expires_at });
   }
 
-  /** El correo ya es de alguien del equipo: en vez de crearlo otra vez, se le corrige el nombre. */
-  fixExisting(): void {
-    const m = this.existing();
-    if (!m) return;
-    this.inviteEmail.set('');
-    this.startNameEdit(m);
-  }
-
+  // ─── nombre ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   startNameEdit(m: TeamMember): void {
     this.resetMessages();
     this.nameEditing.set(m.id);
@@ -177,47 +223,6 @@ export class TeamView implements OnInit {
     const id = this.nameEditing();
     if (!id || !this.canSaveName()) return;
     this.run(this.api.update(id, { name: this.nameDraft().trim(), last_name: this.lastNameDraft().trim() }), 'TEAM.NOTICE.NAME_SAVED', () => this.nameEditing.set(null));
-  }
-  reissue(m: TeamMember): void {
-    this.run(this.api.reissueCode(m.id), 'TEAM.NOTICE.CODE_REISSUED', (created) => this.showCode(created));
-  }
-
-  async copyCode(): Promise<void> {
-    const code = this.issued()?.code;
-    if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code);
-      this.copied.set(true);
-    } catch {
-      // Sin permiso del navegador: la persona lo copia a mano (el código está a la vista).
-    }
-  }
-
-  dismissCode(): void {
-    this.issued.set(null);
-    this.copied.set(false);
-  }
-
-  private showCode(created: TeamMemberWithCode): void {
-    this.copied.set(false);
-    this.issued.set({ email: created.email, code: created.activation_code.code, expiresAt: created.activation_code.expires_at });
-  }
-
-  // ─── especialidades ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  startEdit(m: TeamMember): void {
-    this.resetMessages();
-    this.editing.set(m.id);
-    this.editDimensions.set([...m.dimensions]);
-  }
-
-  toggleEdit(dimension: Dimension): void {
-    this.editDimensions.update((list) => (list.includes(dimension) ? list.filter((d) => d !== dimension) : [...list, dimension]));
-  }
-
-  saveEdit(): void {
-    const id = this.editing();
-    if (!id || !this.editDimensions().length) return;
-    this.run(this.api.update(id, { dimensions: this.editDimensions() }), 'TEAM.NOTICE.UPDATED', () => this.editing.set(null));
   }
 
   // ─── estado ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -237,49 +242,12 @@ export class TeamView implements OnInit {
     this.run(call, pending.kind === 'deactivate' ? 'TEAM.NOTICE.DEACTIVATED' : 'TEAM.NOTICE.MFA_RESET', () => this.confirming.set(null), () => this.confirming.set(null));
   }
 
-  // ─── reparto del trabajo ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  chooseService(id: string): void {
-    this.serviceId.set(id);
-    this.ownersStage.set('loading');
-    this.api.dimensionOwners(id).subscribe({
-      next: (owners) => {
-        this.owners.set(owners);
-        this.ownersStage.set('ready');
-      },
-      error: () => this.ownersStage.set('error'),
-    });
-  }
-
-  /** Los `funcional` que pueden ser responsables de una dimensión: activos o pendientes y con esa especialidad. */
-  candidates(dimension: Dimension): TeamMember[] {
-    return this.members().filter((m) => m.role === 'funcional' && m.status !== 'inactive' && m.dimensions.includes(dimension));
-  }
-
-  setOwner(dimension: Dimension, userId: string): void {
-    const serviceId = this.serviceId();
-    if (!serviceId) return;
-    this.resetMessages();
-    this.saving.set(true);
-    this.api.setDimensionOwner(serviceId, dimension, userId || null).subscribe({
-      next: (row) => {
-        this.saving.set(false);
-        this.owners.update((rows) => rows.map((r) => (r.dimension === row.dimension ? row : r)));
-        this.notice.set(this.translate.instant('TEAM.NOTICE.OWNER_SAVED'));
-      },
-      error: (e) => {
-        this.saving.set(false);
-        this.error.set(apiErrorMessage(e, this.translate.instant('TEAM.ERROR.SAVE')));
-        this.chooseService(serviceId); // vuelve a lo que de verdad quedó guardado
-      },
-    });
-  }
-
   personName(p: { email: string; name: string | null; last_name: string | null }): string {
     return [p.name, p.last_name].filter(Boolean).join(' ') || p.email;
   }
 
   // ─── común ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  private run<T>(call: Observable<T>, noticeKey: string, done: (result: T) => void, failed?: () => void, handled?: (error: unknown) => boolean): void {
+  private run<T>(call: Observable<T>, noticeKey: string, done: (result: T) => void, failed?: () => void): void {
     this.saving.set(true);
     this.resetMessages();
     call.subscribe({
@@ -289,20 +257,28 @@ export class TeamView implements OnInit {
         this.notice.set(this.translate.instant(noticeKey));
         this.refresh();
       },
-      // `message` ya viene traducido por el backend (409: ya existe, no activada, especialidad en uso; 422: campos).
+      // `message` ya viene traducido por el backend (409: no activada, es el último administrador; 422: campos).
       error: (e) => {
         this.saving.set(false);
         failed?.();
-        if (handled?.(e)) return;
         this.error.set(apiErrorMessage(e, this.translate.instant('TEAM.ERROR.SAVE')));
       },
     });
   }
 
+  /** Vuelve a pedir la página actual sin tapar la tabla con el cargador completo. */
   private refresh(): void {
-    this.api.list().subscribe({ next: (page) => this.members.set(page.items) });
-    const serviceId = this.serviceId();
-    if (this.ownerAssignment && serviceId) this.api.dimensionOwners(serviceId).subscribe({ next: (owners) => this.owners.set(owners) });
+    const seq = ++this.requestSeq;
+    this.api.list(this.filters(), this.pageNumber(), this.pageSize()).subscribe({
+      next: (data) => {
+        if (seq !== this.requestSeq) return;
+        this.members.set(data.items);
+        this.page.set({ page: data.page, pageSize: data.page_size, total: data.total, totalPages: data.total_pages });
+        // Si esta respuesta reemplazó a la de una carga que aún estaba en vuelo, la pantalla no se queda esperándola.
+        this.stage.set('ready');
+        this.loadingPage.set(false);
+      },
+    });
   }
 
   private resetMessages(): void {

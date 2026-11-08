@@ -79,7 +79,7 @@ export class RiskService {
     return this.http.post<SuccessResponse<RiskEvaluationEntry>>(`${this.base}/risks/${riskId}/evaluation`, { likelihood, impact }).pipe(map((r) => r.data!));
   }
 
-  /** Las evaluaciones del riesgo, de la más reciente a la más antigua (no las lee el funcional). */
+  /** Las evaluaciones del riesgo, de la más reciente a la más antigua (no las leen el responsable ni el delegado). */
   evaluationHistory(riskId: string): Observable<RiskEvaluationEntry[]> {
     return this.page<RiskEvaluationEntry>(`${this.base}/risks/${riskId}/evaluation-history`, 1).pipe(map((p) => p.items));
   }

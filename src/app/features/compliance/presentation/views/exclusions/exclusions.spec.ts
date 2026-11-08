@@ -102,7 +102,7 @@ describe('ExclusionsView', () => {
   });
 
   it('says so when the role has no access, when the service has none and when it cannot be loaded', () => {
-    setup('funcional', 'forbidden');
+    setup('responsable', 'forbidden');
     expect(text()).toContain('COMPLIANCE.EXCLUSIONS.FORBIDDEN_TITLE');
     TestBed.resetTestingModule();
     setup('admin_empresa', []);

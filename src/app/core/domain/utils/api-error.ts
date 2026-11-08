@@ -25,3 +25,9 @@ export function apiFieldErrors(error: unknown): ApiFieldError[] {
 export function apiErrorCode(error: unknown): string | null {
   return error instanceof HttpErrorResponse ? (error.error?.error?.code ?? null) : null;
 }
+
+// Los datos extra que algunos errores traen junto al código (por ejemplo `max_users` y `users_count` en `USER_LIMIT_REACHED`, o `controls_count` en `USER_HAS_ASSIGNMENTS`).
+export function apiErrorData(error: unknown): Record<string, unknown> {
+  const data = error instanceof HttpErrorResponse ? error.error?.error : null;
+  return data && typeof data === 'object' ? (data as Record<string, unknown>) : {};
+}

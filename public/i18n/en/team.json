@@ -1,13 +1,85 @@
 {
   "TEAM": {
     "TITLE": "Team",
-    "INTRO": "Invite your people and give each person a specialty. Whoever signs in as functional sees and handles everything in their specialties right away.",
+    "INTRO": "Build your team and manage who has access. Each person gets an invitation by email to activate their account.",
+    "INTRO_OWN": "Here you see your team of delegates and can add more people. Each one gets an invitation by email to activate their account.",
     "YOU": "You",
     "NO_NAME": "No name: fix it to identify them.",
     "LOAD_ERROR": "We could not load the team.",
-    "TABS": { "PEOPLE": "People", "WORK": "Work split" },
-    "ROLE": { "ADMIN_EMPRESA": "Administrator", "FUNCIONAL": "Functional", "AUDITOR": "Auditor" },
-    "STATUS": { "ACTIVE": "Active", "PENDING": "To activate", "INACTIVE": "Deactivated" },
+    "TABS": { "PEOPLE": "People", "GROUPS": "Groups", "GROUPS_OWN": "My team" },
+    "TABLE_CAPTION": "Team members",
+    "EMPTY_TITLE": "There is nobody on the team yet",
+    "EMPTY_BODY": "When you add someone, they will show up here.",
+    "EMPTY_FILTERED_TITLE": "Nobody matches these filters",
+    "EMPTY_FILTERED_BODY": "Try another role, status or group, or clear the filters.",
+    "COLUMNS": {
+      "PERSON": "Person",
+      "ROLE": "Role",
+      "STATUS": "Status",
+      "GROUP": "Group",
+      "LAST_LOGIN": "Last sign-in",
+      "ACTIONS": "Actions"
+    },
+    "FILTERS": {
+      "TITLE": "Team filters",
+      "ROLE": "Role",
+      "STATUS": "Status",
+      "GROUP": "Group",
+      "AFFILIATION": "Internal or external",
+      "ALL": "All",
+      "CLEAR": "Clear filters"
+    },
+    "LIST": {
+      "RESPONSIBLE": "Owner: {{name}}",
+      "NEVER": "Has not signed in yet"
+    },
+    "GROUPS": {
+      "INTRO_ADMIN": "Organize your people in groups. Owners live in a group of owners that you lead; each owner leads, when they want, a team of delegates.",
+      "INTRO_OWN": "Your team of delegates. Until you create it, you work alone; a delegate needs a team.",
+      "KIND_RESPONSABLES": "Owners group",
+      "KIND_TEAM": "Team of delegates",
+      "LEADER": "Leader: {{name}}",
+      "MEMBERS": "People: {{count}}",
+      "SHOW_MEMBERS": "See people",
+      "HIDE_MEMBERS": "Hide people",
+      "RENAME": "Rename",
+      "NAME_LABEL": "Group name",
+      "SUBMIT": "Create group",
+      "CREATE_RESPONSABLES_TITLE": "Create a group of owners",
+      "CREATE_RESPONSABLES_HELP": "For example “Owners - AI service”. The “Responsables” group already exists by default and its name is reserved.",
+      "CREATE_TEAM_TITLE": "Create an owner's team",
+      "CREATE_TEAM_HELP": "The team of delegates of an owner. Each owner leads a single team.",
+      "RESPONSIBLE_LABEL": "Owner",
+      "RESPONSIBLE_PICK": "Choose an owner",
+      "NO_ELIGIBLE": "All your owners already have a team, or there are no owners yet.",
+      "CREATE_OWN_TITLE": "Create your team of delegates",
+      "CREATE_OWN_HELP": "Give it any name you like. You can lead only one team.",
+      "DEFAULT_TEAM_NAME": "{{name}}'s team",
+      "EMPTY_TITLE": "There are no groups yet",
+      "EMPTY_BODY_ADMIN": "Groups of owners and teams of delegates will show up here once you create them.",
+      "EMPTY_BODY_OWN": "Once you create your team, it will show up here.",
+      "MEMBERS_EMPTY": "This group has nobody yet.",
+      "MEMBERS_ERROR": "We could not load the people of this group.",
+      "MEMBERS_MORE": "Showing the first {{shown}} of {{total}}.",
+      "MOVE": "Move to another team",
+      "MOVE_TO": "Destination team",
+      "MOVE_PICK": "Choose a team",
+      "MOVE_SUBMIT": "Move",
+      "NO_DESTINATION": "There is no other team to move them to.",
+      "MOVE_CONFIRM_TITLE": "Move {{name}} to another team?",
+      "MOVE_CONFIRM_BODY": "They carry out {{count}} controls. If you move them, those controls will have no executor and will stay with their current owner.",
+      "MOVE_CONFIRM": "Move anyway",
+      "NOTICE": {
+        "CREATED": "Done, we created the group “{{name}}”.",
+        "RENAMED": "Done, the group is now called “{{name}}”.",
+        "MOVED": "Done, we moved {{name}} to another team."
+      },
+      "ERROR": {
+        "MOVE_TARGET": "We could not move the person: the destination team does not exist or its owner is no longer active."
+      }
+    },
+    "ROLE": { "ADMIN_EMPRESA": "Administrator", "RESPONSABLE": "Owner", "DELEGADO": "Delegate", "AUDITOR": "Auditor" },
+    "STATUS": { "ACTIVE": "Active", "PENDING": "Invitation pending", "INACTIVE": "Deactivated", "SUSPENDED": "Suspended" },
     "INVITE": {
       "TITLE": "Invite a person",
       "EMAIL": "Email",
@@ -16,25 +88,35 @@
       "EMAIL_TAKEN": "There is already a user registered with that email.",
       "ALREADY_IN_TEAM": "There is already a user registered with that email: {{who}} ({{role}}).",
       "FIX_NAME": "Fix their name",
-      "ADMIN_HELP": "An administrator manages the team and validates what is uploaded, like you. Only another administrator can create one.",
       "ROLE": "Role",
       "SUBMIT": "Invite",
-      "DIMENSIONS": "Specialties",
-      "DIMENSIONS_HELP": "A functional person carries out and uploads the evidence of the dimensions they specialize in. Choose at least one.",
-      "AUDITOR_HELP": "An auditor reviews everything in your company read-only and leaves observations; they have no specialties."
+      "AFFILIATION": "Relationship with the company",
+      "INTERNAL": "Internal",
+      "EXTERNAL": "External",
+      "TEAM_LABEL": "Team",
+      "TEAM_PICK": "Choose a team",
+      "TEAM_OPTION": "{{team}} · {{leader}}",
+      "RESPONSABLES_GROUP": "Owners group",
+      "RESPONSABLES_GROUP_DEFAULT": "Default",
+      "NO_TEAMS_ADMIN": "No owner has a team yet. A delegate needs a team: an owner's team has to be created first.",
+      "NO_TEAM_OWN": "You do not have a team of delegates yet. A delegate needs a team: yours has to be created first.",
+      "GO_TO_GROUPS": "Go to Groups",
+      "HELP_ADMIN_EMPRESA": "An administrator manages the team, assigns the owner of each control and validates what is uploaded, like you.",
+      "HELP_RESPONSABLE": "An owner is in charge of controls, reviews what their team uploads and splits the execution among their delegates.",
+      "HELP_DELEGADO": "A delegate carries out the controls their owner assigns and uploads the evidence. Choose whether they are from your company or external.",
+      "HELP_AUDITOR": "An auditor reviews everything in your company read-only and leaves observations."
     },
-    "CODE": {
-      "TITLE": "Activation code for {{email}}",
-      "BODY": "Hand it to the person now: this is the only time you will see it. With it they activate their account and create their password.",
-      "COPY": "Copy code",
-      "COPIED": "Copied",
-      "NOTED": "I wrote it down",
-      "EXPIRES": "Expires on {{date}}. If it gets lost, issue a new one."
+    "INVITATION": {
+      "SENT_TITLE": "We sent the invitation to {{email}}",
+      "SENT_BODY": "They will get an email with their activation code. The code works only once and expires on {{date}}. If they cannot find it, ask them to check the spam folder.",
+      "FAILED_TITLE": "We could not send the invitation to {{email}}",
+      "FAILED_BODY": "The account was created, but the email did not go out. Resend the invitation so they get a new code; the previous one will stop working.",
+      "RESEND": "Resend invitation",
+      "DISMISS": "Got it"
     },
     "ACTIONS": {
       "EDIT_NAME": "Edit name",
-      "EDIT_DIMENSIONS": "Change specialties",
-      "NEW_CODE": "New code",
+      "RESEND_INVITATION": "Resend invitation",
       "DEACTIVATE": "Deactivate",
       "REACTIVATE": "Reactivate",
       "RESET_MFA": "Reset second factor"
@@ -45,27 +127,19 @@
       "RESET_MFA_TITLE": "Reset the second factor of {{email}}?",
       "RESET_MFA_BODY": "Their sessions are closed and, on their next sign-in, they will set up the second factor again. Use it only if they lost their phone and their recovery codes."
     },
-    "WORK": {
-      "SERVICE": "Service",
-      "INTRO": "The owner of a dimension takes charge of every control of the service that has tests in that dimension. If you change the owner, it changes for every control that has no exception.",
-      "NO_SERVICES": "You have no services yet. Declare one in “My services” to split its work.",
-      "CONTROLS": "{{count}} controls with tests in this dimension",
-      "EXCEPTIONS": "{{count}} with another owner",
-      "WITHOUT_OWNER": "{{count}} controls without an owner",
-      "OWNER": "Owner",
-      "NOBODY": "No owner",
-      "NO_CANDIDATES": "Nobody on the team has this specialty yet."
-    },
     "NOTICE": {
-      "INVITED": "Done, we created the account. Hand over the activation code.",
+      "INVITED": "Done, we created the account.",
       "CODE_REISSUED": "Done, we issued a new code. The previous one no longer works.",
-      "UPDATED": "Done, we saved the specialties.",
       "NAME_SAVED": "Done, we saved the name.",
       "DEACTIVATED": "Done, we deactivated the account.",
       "REACTIVATED": "Done, we reactivated the account.",
-      "MFA_RESET": "Done, we removed the second factor.",
-      "OWNER_SAVED": "Done, we saved the owner."
+      "MFA_RESET": "Done, we removed the second factor."
     },
-    "ERROR": { "SAVE": "We could not save the change. Please try again." }
+    "ERROR": {
+      "SAVE": "We could not save the change. Please try again.",
+      "USER_LIMIT": "You reached the maximum number of contracted users. Contact Monkey.",
+      "USER_LIMIT_COUNTS": "You reached the maximum number of contracted users ({{count}} of {{max}}). Contact Monkey.",
+      "NO_TEAM": "This owner does not have a team of delegates yet. Their team has to be created first."
+    }
   }
 }

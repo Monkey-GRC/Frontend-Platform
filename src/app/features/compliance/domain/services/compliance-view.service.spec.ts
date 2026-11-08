@@ -23,8 +23,8 @@ describe('ComplianceViewService', () => {
     }
   });
 
-  it('keeps the business view for the functional user, with no view parameter', () => {
-    for (const role of ['funcional']) {
+  it('keeps the business view for the owner and the delegate, with no view parameter', () => {
+    for (const role of ['responsable', 'delegado']) {
       TestBed.resetTestingModule();
       const view = as(role);
       expect(view.isTechnicalView()).toBeFalse();

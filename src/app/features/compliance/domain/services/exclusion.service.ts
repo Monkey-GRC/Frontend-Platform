@@ -8,7 +8,7 @@ import { Page } from '../models/risk.models';
 
 const PAGE_SIZE = 100;
 
-// Exclusiones de un servicio. Las ven el administrador y el auditor (el funcional recibe 403). Las crea y las decide el administrador en un solo acto (D96); crearlas
+// Exclusiones de un servicio. Las ven el administrador y el auditor (el responsable y el delegado reciben 403). Las crea y las decide el administrador en un solo acto (D96); crearlas
 // (`POST`) desde un control está por construir.
 @Injectable({ providedIn: 'root' })
 export class ExclusionService {

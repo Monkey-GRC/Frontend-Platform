@@ -1,20 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { OWNER_ASSIGNMENT_ENABLED } from '@config/features.config';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
 import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
-import {
-  ControlDetail,
-  ControlDimension,
-  ControlResponsible,
-  ResponsibleCandidate,
-  UpdateControlBody,
-} from '../../../domain/models/control.models';
+import { ControlDetail, ControlDimension, UpdateControlBody } from '../../../domain/models/control.models';
 import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
 import { ControlService } from '../../../domain/services/control.service';
 import { ControlEvidence } from '../control-evidence/control-evidence';
@@ -33,15 +26,15 @@ interface DimensionDraft {
   reason: string;
 }
 
-// Quién edita un control (compliance-controls.md → «Quién puede qué», D96): solo el administrador de la empresa, al instante. El funcional y el auditor leen.
+// Quién edita un control (compliance-controls.md → «Quién puede qué», D96): solo el administrador de la empresa, al instante. El responsable, el delegado y el auditor leen.
 // El backend lo vuelve a comprobar.
 const EDITING_ROLES: readonly string[] = ['admin_empresa'];
 const INTERPRETATION_MAX = 4000;
-// Suben la evidencia el administrador de la empresa y el funcional (solo la de su dimensión, que es lo único que le llega); el auditor solo lee.
-const UPLOADING_ROLES: readonly string[] = ['admin_empresa', 'funcional'];
+// Suben la evidencia el administrador de la empresa, el responsable (dueño) y el delegado (ejecutor), cada uno de lo suyo (D102); el auditor solo lee.
+const UPLOADING_ROLES: readonly string[] = ['admin_empresa', 'responsable', 'delegado'];
 
 // El detalle de un control (MD-121), en un panel lateral. El administrador edita al instante y puede dar de baja (D96): el cambio se aplica y el avance se
-// recalcula. También reparte el control por dimensión (users-team.md). Los errores 422 se muestran bajo cada campo.
+// recalcula. Los errores 422 se muestran bajo cada campo. El dueño y el ejecutor del control (D102) llegan con MD-202, cuando el Backend los exponga.
 @Component({
   selector: 'app-control-detail-panel',
   imports: [FormsModule, TranslatePipe, SidePanel, StatusBadge, ConfirmDialog, ControlEvidence, ControlTests, DetailCard],
@@ -70,8 +63,6 @@ export class ControlDetailPanel {
 
   readonly stage = signal<Stage>('loading');
   readonly detail = signal<ControlDetail | null>(null);
-  readonly responsibles = signal<ControlResponsible[]>([]);
-  readonly candidates = signal<ResponsibleCandidate[]>([]);
 
   readonly mode = signal<Mode>('view');
   readonly saving = signal(false);
@@ -97,10 +88,6 @@ export class ControlDetailPanel {
     const role = this.view.role();
     return role !== null && EDITING_ROLES.includes(role);
   });
-
-  /** Quién ve el reparto por dimensión: el administrador (y lo cambia) y el auditor (solo lo lee). Apagado por ahora (D98): el funcional atiende todo lo de su especialidad. */
-  private readonly ownerAssignment = inject(OWNER_ASSIGNMENT_ENABLED);
-  readonly canSeeResponsibles = computed(() => this.ownerAssignment && (this.view.role() === 'admin_empresa' || this.view.role() === 'auditor'));
 
   /** ¿La subida de evidencia va bajo las pruebas manuales? Solo si el detalle trae las pruebas y alguna es manual; si no, va aparte. */
   protected evidenceUnderTests(d: ControlDetail): boolean {
@@ -128,45 +115,11 @@ export class ControlDetailPanel {
       next: (detail) => {
         this.detail.set(detail);
         this.stage.set('ready');
-        this.loadResponsibles();
       },
       error: () => this.stage.set('error'),
     });
   }
 
-  private loadResponsibles(): void {
-    if (!this.canSeeResponsibles()) return;
-    this.api.responsibles(this.controlId()).subscribe({ next: (rows) => this.responsibles.set(rows), error: () => this.responsibles.set([]) });
-    // Las personas a las que se les puede dar el control: solo las ve quien reparte.
-    if (this.canEdit()) this.api.candidates().subscribe({ next: (c) => this.candidates.set(c), error: () => this.candidates.set([]) });
-  }
-
-  /** Las personas funcionales con esa especialidad: las únicas a las que se les puede dar el control en esa dimensión. */
-  candidatesFor(dimension: ControlDimension): ResponsibleCandidate[] {
-    return this.candidates().filter((c) => c.dimensions.includes(dimension));
-  }
-
-  personName(p: { email: string; name: string | null; last_name: string | null }): string {
-    return [p.name, p.last_name].filter(Boolean).join(' ') || p.email;
-  }
-
-  setResponsible(dimension: ControlDimension, userId: string): void {
-    this.saving.set(true);
-    this.resetFeedback();
-    this.api.setResponsible(this.controlId(), dimension, userId || null).subscribe({
-      next: (row) => {
-        this.saving.set(false);
-        this.responsibles.update((rows) => rows.map((r) => (r.dimension === row.dimension ? row : r)));
-        this.notice.set(this.translate.instant('COMPLIANCE.DETAIL.RESPONSIBLE_SAVED'));
-        this.changed.emit();
-      },
-      error: (error) => {
-        this.saving.set(false);
-        this.error.set(apiErrorMessage(error, this.translate.instant('COMPLIANCE.DETAIL.SAVE_ERROR')));
-        this.loadResponsibles(); // vuelve a lo que de verdad quedó guardado
-      },
-    });
-  }
   startInterpretation(): void {
     this.resetFeedback();
     this.interpretationDraft.set(this.detail()?.interpretation.text ?? '');
@@ -250,7 +203,6 @@ export class ControlDetailPanel {
         this.detail.set(detail);
         this.mode.set('view');
         this.notice.set(this.translate.instant('COMPLIANCE.DETAIL.SAVED'));
-        this.loadResponsibles();
         this.changed.emit();
       },
       error: (error) => this.failed(error),

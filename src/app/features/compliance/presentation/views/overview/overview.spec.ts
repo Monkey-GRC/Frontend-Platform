@@ -59,11 +59,11 @@ describe('OverviewView', () => {
   const text = () => el().textContent ?? '';
   const q = (selector: string) => el().querySelector(selector);
 
-  it('asks for the technical view when the user is the company admin, and the business view for a functional user', () => {
+  it('asks for the technical view when the user is the company admin, and the business view for a owner', () => {
     setup('admin_empresa', [framework()]);
     expect(api.get).toHaveBeenCalledWith('s1', 'technical');
     TestBed.resetTestingModule();
-    setup('funcional', [framework()]);
+    setup('responsable', [framework()]);
     expect(api.get).toHaveBeenCalledWith('s1', undefined);
   });
 
@@ -88,7 +88,7 @@ describe('OverviewView', () => {
   });
 
   it('a user without the technical view sees the four-level status instead of the engine verdict', () => {
-    setup('funcional', [framework()]);
+    setup('responsable', [framework()]);
     expect(q('[data-verdict-title]')!.textContent).toContain('COMPLIANCE.STATUS.ALMOST_READY');
     expect(text()).not.toContain('COMPLIANCE.OVERVIEW.VERDICT');
   });
@@ -129,7 +129,7 @@ describe('OverviewView', () => {
     });
 
     it('the other roles are told to ask the administrator, with no button (the API would answer 403)', () => {
-      for (const role of ['auditor', 'funcional']) {
+      for (const role of ['auditor', 'responsable', 'delegado']) {
         setup(role, [undefinedFw()]);
         expect(q('[data-define-period]')).toBeNull();
         expect(text()).toContain('COMPLIANCE.PERIOD.ASK_ADMIN');

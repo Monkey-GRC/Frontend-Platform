@@ -53,7 +53,7 @@ describe('RiskDetailPanel', () => {
   it('lets only the company admin manage, and only reads for the rest of the roles', () => {
     setup('admin_empresa');
     expect(text()).toContain('COMPLIANCE.RISK_DETAIL.LINK_CAUSE');
-    for (const role of ['auditor', 'funcional']) {
+    for (const role of ['auditor', 'responsable', 'delegado']) {
       TestBed.resetTestingModule();
       setup(role);
       expect(text()).not.toContain('COMPLIANCE.RISK_DETAIL.LINK_CAUSE');

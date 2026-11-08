@@ -59,14 +59,14 @@ describe('ControlsListView', () => {
     expect(text()).toContain('Seguridad');
   });
 
-  it('asks for the technical view for the company admin and the auditor, and not for the functional user', () => {
+  it('asks for the technical view for the company admin and the auditor, and not for the owner and the delegate', () => {
     setup('auditor');
     expect(api.list.calls.mostRecent().args[2]).toBe('technical');
     TestBed.resetTestingModule();
     setup('admin_empresa');
     expect(api.list.calls.mostRecent().args[2]).toBe('technical');
     TestBed.resetTestingModule();
-    setup('funcional');
+    setup('responsable');
     expect(api.list.calls.mostRecent().args[2]).toBeUndefined();
   });
 

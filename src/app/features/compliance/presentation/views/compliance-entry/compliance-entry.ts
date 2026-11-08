@@ -24,7 +24,7 @@ export class ComplianceEntryView implements OnInit {
   private readonly router = inject(Router);
   private readonly session = inject(SessionService);
 
-  /** Solo el administrador crea servicios: al funcional y al auditor un servicio vacío no les pide crear nada (D96). */
+  /** Solo el administrador crea servicios: al responsable, al delegado y al auditor un servicio vacío no les pide crear nada (D96). */
   readonly role = this.session.user()?.role ?? null;
 
   readonly stage = signal<Stage>('loading');
