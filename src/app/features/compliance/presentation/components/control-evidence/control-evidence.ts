@@ -41,7 +41,7 @@ export class ControlEvidence {
   readonly controlId = input.required<string>();
   /** El resumen del detalle del control: lo que se muestra mientras no exista el endpoint de evidencias. */
   readonly summary = input<EvidenceSummary[]>([]);
-  /** ¿Puede este rol subir? Los que suben son el administrador de la empresa y el funcional (solo de lo asignado). */
+  /** ¿Puede este rol subir? Suben el administrador de la empresa, el responsable y el delegado (solo de lo asignado, D102). */
   readonly canUpload = input(false);
   /** Si viene, solo las evidencias requeridas de esa dimensión (las de una prueba manual); el resumen del detalle no trae dimensión y se muestra completo. */
   readonly dimension = input<string | null>(null);

@@ -57,11 +57,11 @@ describe('RisksView', () => {
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-  it('loads all the risks of the service at once, in the technical view for the company admin and in the business view for the functional user', () => {
+  it('loads all the risks of the service at once, in the technical view for the company admin and in the business view for the owner and the delegate', () => {
     setup('admin_empresa');
     expect(api.listAllRisks).toHaveBeenCalledWith('s1', 'technical');
     TestBed.resetTestingModule();
-    setup('funcional');
+    setup('responsable');
     expect(api.listAllRisks).toHaveBeenCalledWith('s1', undefined);
 
     expect(text()).toContain('Acceso no autorizado');

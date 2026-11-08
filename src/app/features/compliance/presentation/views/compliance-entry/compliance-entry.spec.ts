@@ -6,7 +6,7 @@ import { SessionService } from '@core/domain/services/session.service';
 import { ComplianceServicesService } from '../../../domain/services/compliance-services.service';
 import { ComplianceEntryView } from './compliance-entry';
 
-// Una empresa sin servicios para este rol: solo el administrador puede crear uno (D96); el funcional espera su asignación y el auditor espera que se declare.
+// Una empresa sin servicios para este rol: solo el administrador puede crear uno (D96); el responsable y el delegado esperan su asignación y el auditor espera que se declare.
 describe('ComplianceEntryView · sin servicios', () => {
   function render(role: string): HTMLElement {
     TestBed.configureTestingModule({
@@ -25,11 +25,14 @@ describe('ComplianceEntryView · sin servicios', () => {
     expect(el.querySelector('a[href="/services/new"]')).not.toBeNull();
   });
 
-  it('tells the functional user that the work is assigned by the administrator, and offers nothing to create', () => {
-    const el = render('funcional');
-    expect(el.textContent).toContain('COMPLIANCE.ENTRY.EMPTY_FUNCIONAL_TITLE');
-    expect(el.textContent).not.toContain('COMPLIANCE.ENTRY.EMPTY_TITLE');
-    expect(el.querySelector('a[href="/services/new"]')).toBeNull();
+  it('tells the owner and the delegate that the work is assigned to them, and offers nothing to create', () => {
+    for (const role of ['responsable', 'delegado']) {
+      TestBed.resetTestingModule();
+      const el = render(role);
+      expect(el.textContent).toContain('COMPLIANCE.ENTRY.EMPTY_ASSIGNED_TITLE');
+      expect(el.textContent).not.toContain('COMPLIANCE.ENTRY.EMPTY_TITLE');
+      expect(el.querySelector('a[href="/services/new"]')).toBeNull();
+    }
   });
 
   it('tells the auditor there is nothing to review yet, and offers nothing to create', () => {

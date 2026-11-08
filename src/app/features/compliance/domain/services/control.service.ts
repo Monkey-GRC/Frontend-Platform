@@ -4,16 +4,7 @@ import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { PageInfo } from '@shared/domain/utils/pagination';
-import {
-  ControlDetail,
-  ControlDimension,
-  ControlFilters,
-  ControlListItem,
-  ControlResponsible,
-  ControlsPageDto,
-  ResponsibleCandidate,
-  UpdateControlBody,
-} from '../models/control.models';
+import { ControlDetail, ControlFilters, ControlListItem, ControlsPageDto, UpdateControlBody } from '../models/control.models';
 
 export interface ControlsPage {
   items: ControlListItem[];
@@ -63,25 +54,5 @@ export class ControlService {
   /** Da de baja el control (no lo borra): deja de contar y el histórico se conserva. */
   retire(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/controls/${id}`);
-  }
-
-  /** Quién es responsable de cada dimensión del control (D96). */
-  responsibles(id: string): Observable<ControlResponsible[]> {
-    return this.http.get<SuccessResponse<{ items: ControlResponsible[] }>>(`${this.base}/controls/${id}/responsibles`).pipe(map((r) => r.data?.items ?? []));
-  }
-
-  /** Pone o quita (`null`) la excepción de este control en una dimensión; quitarla devuelve el control al responsable del servicio. */
-  setResponsible(id: string, dimension: ControlDimension, userId: string | null): Observable<ControlResponsible> {
-    return this.http
-      .patch<SuccessResponse<ControlResponsible>>(`${this.base}/controls/${id}/responsibles/${dimension}`, { user_id: userId })
-      .pipe(map((r) => r.data!));
-  }
-
-  /** Las personas funcionales del equipo, con sus especialidades (solo las ve el administrador de la empresa). */
-  candidates(): Observable<ResponsibleCandidate[]> {
-    const params = new HttpParams().set('role', 'funcional').set('page_size', 100);
-    return this.http
-      .get<SuccessResponse<{ items: ResponsibleCandidate[] }>>(`${this.base}/users`, { params })
-      .pipe(map((r) => (r.data?.items ?? []).filter((u) => u.status !== 'inactive')));
   }
 }

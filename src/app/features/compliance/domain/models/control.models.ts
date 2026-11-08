@@ -103,21 +103,3 @@ export type UpdateControlBody = {
   interpretation?: { text: string };
   dimensions?: { dimension: ControlDimension; applies: boolean; reason_not_applicable?: string }[];
 };
-
-// Quién es responsable de cada dimensión de un control (users-team.md): la excepción de este control o, si no la hay, el responsable del servicio.
-export interface ControlResponsible {
-  dimension: ControlDimension;
-  tests_count: number;
-  owner: { id: string; email: string; name: string | null; last_name: string | null } | null;
-  source: 'control' | 'service' | null;
-}
-
-/** Una persona del equipo a la que se le puede dar un control: un `funcional` con sus especialidades. */
-export interface ResponsibleCandidate {
-  id: string;
-  email: string;
-  name: string | null;
-  last_name: string | null;
-  status: string;
-  dimensions: ControlDimension[];
-}

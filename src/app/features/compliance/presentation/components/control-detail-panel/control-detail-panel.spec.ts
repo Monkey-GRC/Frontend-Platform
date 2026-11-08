@@ -2,9 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER, of, throwError } from 'rxjs';
-import { OWNER_ASSIGNMENT_ENABLED } from '@config/features.config';
 import { SessionService } from '@core/domain/services/session.service';
-import { ControlDetail, ControlResponsible, ResponsibleCandidate } from '../../../domain/models/control.models';
+import { ControlDetail } from '../../../domain/models/control.models';
 import { ControlService } from '../../../domain/services/control.service';
 import { EvidenceService } from '../../../domain/services/evidence.service';
 import { ControlDetailPanel } from './control-detail-panel';
@@ -34,25 +33,14 @@ const DETAIL: ControlDetail = {
   failing: [],
 };
 
-const RESPONSIBLES: ControlResponsible[] = [
-  { dimension: 'policy', tests_count: 2, owner: { id: 'ana', email: 'ana@acme.co', name: 'Ana', last_name: 'Ruiz' }, source: 'service' },
-  { dimension: 'cloud', tests_count: 1, owner: null, source: null },
-];
-const CANDIDATES: ResponsibleCandidate[] = [
-  { id: 'ana', email: 'ana@acme.co', name: 'Ana', last_name: 'Ruiz', status: 'active', dimensions: ['policy'] },
-  { id: 'beto', email: 'beto@acme.co', name: null, last_name: null, status: 'active', dimensions: ['policy', 'cloud'] },
-];
-
 describe('ControlDetailPanel', () => {
   let api: jasmine.SpyObj<ControlService>;
   let evidence: jasmine.SpyObj<EvidenceService>;
   let fixture: ComponentFixture<ControlDetailPanel>;
 
-  function setup(role: string, detail: ControlDetail = DETAIL, responsibles: ControlResponsible[] = RESPONSIBLES): ControlDetailPanel {
-    api = jasmine.createSpyObj<ControlService>('ControlService', ['get', 'update', 'retire', 'responsibles', 'setResponsible', 'candidates']);
+  function setup(role: string, detail: ControlDetail = DETAIL): ControlDetailPanel {
+    api = jasmine.createSpyObj<ControlService>('ControlService', ['get', 'update', 'retire']);
     api.get.and.returnValue(of(detail));
-    api.responsibles.and.returnValue(of(responsibles));
-    api.candidates.and.returnValue(of(CANDIDATES));
     evidence = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'upload', 'download']);
     evidence.list.and.returnValue(NEVER);
     TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), { provide: ControlService, useValue: api }, { provide: EvidenceService, useValue: evidence }] });
@@ -65,14 +53,14 @@ describe('ControlDetailPanel', () => {
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-  it('asks for the technical view for the company admin and the auditor, and the business view for the functional user', () => {
+  it('asks for the technical view for the company admin and the auditor, and the business view for the owner and the delegate', () => {
     setup('admin_empresa');
     expect(api.get).toHaveBeenCalledWith('c1', 'technical');
     TestBed.resetTestingModule();
     setup('auditor');
     expect(api.get).toHaveBeenCalledWith('c1', 'technical');
     TestBed.resetTestingModule();
-    setup('funcional');
+    setup('responsable');
     expect(api.get).toHaveBeenCalledWith('c1', undefined);
   });
 
@@ -94,13 +82,13 @@ describe('ControlDetailPanel', () => {
     expect(text()).toContain('COMPLIANCE.DETAIL.REASON_IS');
   });
 
-  it('puts the evidence of the control inside the drawer, for this control, and lets only the company admin and the functional user upload it', () => {
+  it('puts the evidence of the control inside the drawer, for this control, and lets only the company admin and the owner and the delegate upload it', () => {
     const panel = setup('admin_empresa');
     expect(fixture.nativeElement.querySelector('app-control-evidence')).not.toBeNull();
     expect(evidence.list).toHaveBeenCalledWith('c1', 'technical');
     expect(panel.canUploadEvidence()).toBeTrue();
     TestBed.resetTestingModule();
-    expect(setup('funcional').canUploadEvidence()).toBeTrue();
+    expect(setup('responsable').canUploadEvidence()).toBeTrue();
     TestBed.resetTestingModule();
     expect(setup('auditor').canUploadEvidence()).toBeFalse();
   });
@@ -124,16 +112,16 @@ describe('ControlDetailPanel', () => {
     expect(fixture.nativeElement.querySelector('app-control-evidence')).not.toBeNull();
   });
 
-  it('only says how many tests the control has when the view brings no list, as for the functional user', () => {
-    setup('funcional');
+  it('only says how many tests the control has when the view brings no list, as for the owner and the delegate', () => {
+    setup('responsable');
     expect(text()).toContain('COMPLIANCE.TESTS.COUNT_ONLY');
     expect(fixture.nativeElement.querySelector('[data-test-state]')).toBeNull();
   });
 
-  it('lets only the company admin edit and retire; the auditor and the functional user read', () => {
+  it('lets only the company admin edit and retire; the auditor and the owner and the delegate read', () => {
     expect(setup('admin_empresa').canEdit()).toBeTrue();
     expect(text()).toContain('COMPLIANCE.DETAIL.RETIRE');
-    for (const role of ['auditor', 'funcional']) {
+    for (const role of ['auditor', 'responsable', 'delegado']) {
       TestBed.resetTestingModule();
       expect(setup(role).canEdit()).toBeFalse();
       expect(text()).not.toContain('COMPLIANCE.DETAIL.RETIRE');
@@ -222,57 +210,5 @@ describe('ControlDetailPanel', () => {
     fixture.detectChanges();
     expect(panel.error()).toBe('Este control ya fue dado de baja.');
     expect(panel.confirmingRetire()).toBeFalse();
-  });
-
-  describe('responsibles by dimension (users-team.md; off by default, D98)', () => {
-    beforeEach(() => TestBed.overrideProvider(OWNER_ASSIGNMENT_ENABLED, { useValue: true }));
-    const rows = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[data-test-responsible]'));
-
-    it('shows nothing about owners while the feature is off', () => {
-      TestBed.resetTestingModule();
-      setup('admin_empresa');
-      expect(fixture.nativeElement.querySelector('[data-test-responsibles]')).toBeNull();
-      expect(api.responsibles).not.toHaveBeenCalled();
-    });
-
-    it('shows the company admin who owns each dimension and from where, and flags the ones without an owner', () => {
-      setup('admin_empresa');
-      expect(rows().map((r) => r.getAttribute('data-test-responsible'))).toEqual(['policy', 'cloud']);
-      expect(rows()[0].textContent).toContain('Ana Ruiz');
-      expect(rows()[0].textContent).toContain('COMPLIANCE.DETAIL.SOURCE_SERVICE');
-      expect(rows()[1].querySelector('[data-test-unowned]')).not.toBeNull();
-    });
-
-    it('offers only the people who have that specialty, and lets the admin change or clear the exception', () => {
-      const panel = setup('admin_empresa');
-      const options = (d: string) => Array.from(fixture.nativeElement.querySelectorAll(`[data-test-responsible-select="${d}"] option`) as NodeListOf<HTMLOptionElement>).map((o) => o.value);
-      expect(options('policy')).toEqual(['', 'ana', 'beto']);
-      expect(options('cloud')).toEqual(['', 'beto']);
-
-      api.setResponsible.and.returnValue(of({ dimension: 'cloud', tests_count: 1, owner: { id: 'beto', email: 'beto@acme.co', name: null, last_name: null }, source: 'control' }));
-      let changed = 0;
-      panel.changed.subscribe(() => changed++);
-      panel.setResponsible('cloud', 'beto');
-      fixture.detectChanges();
-      expect(api.setResponsible).toHaveBeenCalledWith('c1', 'cloud', 'beto');
-      expect(rows()[1].textContent).toContain('beto@acme.co');
-      expect(rows()[1].textContent).toContain('COMPLIANCE.DETAIL.SOURCE_CONTROL');
-      expect(changed).toBe(1);
-
-      api.setResponsible.and.returnValue(of({ dimension: 'cloud', tests_count: 1, owner: null, source: null }));
-      panel.setResponsible('cloud', '');
-      expect(api.setResponsible).toHaveBeenCalledWith('c1', 'cloud', null);
-    });
-
-    it('lets the auditor read who owns what but not change it, and shows nothing to the functional user', () => {
-      setup('auditor');
-      expect(rows().length).toBe(2);
-      expect(fixture.nativeElement.querySelector('[data-test-responsible-select]')).toBeNull();
-      expect(api.candidates).not.toHaveBeenCalled();
-      TestBed.resetTestingModule();
-      setup('funcional');
-      expect(rows().length).toBe(0);
-      expect(api.responsibles).not.toHaveBeenCalled();
-    });
   });
 });

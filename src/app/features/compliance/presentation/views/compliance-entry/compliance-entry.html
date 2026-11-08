@@ -28,9 +28,9 @@
       {{ 'COMPLIANCE.ENTRY.DECLARE_SERVICE' | translate }}<span class="material-symbols-rounded text-[18px]">arrow_forward</span>
     </a>
   </app-empty-state>
-  } @else if (role === 'funcional') {
-  <!-- Un funcional ve solo lo que el administrador le asignó: sin asignación, no hay nada que hacer todavía -->
-  <app-empty-state icon="assignment_ind" titleKey="COMPLIANCE.ENTRY.EMPTY_FUNCIONAL_TITLE" descriptionKey="COMPLIANCE.ENTRY.EMPTY_FUNCIONAL_BODY" />
+  } @else if (role === 'responsable' || role === 'delegado') {
+  <!-- El responsable y el delegado ven solo los controles que se les asignaron (D102): sin asignación, no hay nada que hacer todavía -->
+  <app-empty-state icon="assignment_ind" titleKey="COMPLIANCE.ENTRY.EMPTY_ASSIGNED_TITLE" descriptionKey="COMPLIANCE.ENTRY.EMPTY_ASSIGNED_BODY" />
   } @else {
   <app-empty-state icon="inventory_2" titleKey="COMPLIANCE.ENTRY.EMPTY_READER_TITLE" descriptionKey="COMPLIANCE.ENTRY.EMPTY_READER_BODY" />
   }

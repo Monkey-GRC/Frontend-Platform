@@ -3,7 +3,7 @@
 //   · evidencia ENTREGADA (`evidence_submissions`): lo que se sube para cumplir ese requerimiento, con su versión y su huella.
 // «Prueba» no se usa aquí: en el cerebro una prueba es el test que ejecuta el motor.
 
-// Lo deriva el servidor de la revisión del `admin_empresa`; nadie lo escribe. El `funcional` solo sube: no aprueba ni rechaza (D96).
+// Lo deriva el servidor de la revisión del `admin_empresa`; nadie lo escribe. Quien sube (el delegado, o el responsable) no revisa lo suyo (D102).
 export type EvidenceState = 'compliant' | 'non_compliant' | 'pending' | 'in_review' | 'expired' | 'not_applicable';
 
 export interface EvidencePerson {
