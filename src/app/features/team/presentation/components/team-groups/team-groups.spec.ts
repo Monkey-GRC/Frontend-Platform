@@ -1,0 +1,213 @@
+import { HttpErrorResponse } from '@angular/common/http';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslateService } from '@ngx-translate/core';
+import { of, throwError } from 'rxjs';
+import { SessionService } from '@core/domain/services/session.service';
+import { Group } from '../../../domain/models/group.models';
+import { TeamActor, TeamMember, TeamPage } from '../../../domain/models/team.models';
+import { GroupService } from '../../../domain/services/group.service';
+import { TeamService } from '../../../domain/services/team.service';
+import { TeamGroups } from './team-groups';
+
+const leader = (id: string, name: string, role = 'responsable') => ({ id, name, last_name: 'Gómez', role });
+const RESPONSABLES: Group = { id: 'resp', name: 'Responsables', kind: 'responsables', leader: leader('a1', 'Ada', 'admin_empresa'), members_count: 3 };
+const TEAM_MARIA: Group = { id: 'team-maria', name: 'Equipo de María', kind: 'team', leader: leader('r1', 'María'), members_count: 2 };
+
+const member = (over: Partial<TeamMember>): TeamMember => ({
+  id: 'u0', email: 'x@acme.co', name: 'Persona', last_name: 'Prueba', role: 'responsable', status: 'active', is_mfa_enabled: false, last_login_at: null, created_at: '2026-11-01T00:00:00Z', ...over,
+});
+const MARIA = member({ id: 'r1', email: 'maria@acme.co', name: 'María', last_name: 'Gómez' });
+const PEDRO = member({ id: 'r2', email: 'pedro@acme.co', name: 'Pedro', last_name: 'Ruiz' });
+const LAURA_PENDING = member({ id: 'r3', email: 'laura@acme.co', name: 'Laura', last_name: 'Paz', status: 'pending' });
+const OLD_INACTIVE = member({ id: 'r4', email: 'old@acme.co', name: 'Óscar', last_name: 'Vieja', status: 'inactive' });
+const pageOf = (items: TeamMember[]): TeamPage => ({ items, page: 1, page_size: 100, total: items.length, total_pages: 1 });
+const httpError = (status: number, code: string, message: string) => new HttpErrorResponse({ status, error: { message, error: { code } } });
+
+describe('TeamGroups (MD-198, D102, D104)', () => {
+  let groupApi: jasmine.SpyObj<GroupService>;
+  let teamApi: jasmine.SpyObj<TeamService>;
+  let fixture: ComponentFixture<TeamGroups>;
+  let changed: number;
+
+  function setup(actor: TeamActor, groups: Group[], responsables: TeamMember[] = [MARIA, PEDRO, LAURA_PENDING, OLD_INACTIVE]): void {
+    groupApi = jasmine.createSpyObj<GroupService>('GroupService', ['list', 'create', 'rename']);
+    teamApi = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'update']);
+    teamApi.list.and.callFake((filters) => of(pageOf(filters?.role === 'responsable' ? responsables : [])));
+    TestBed.configureTestingModule({
+      imports: [TeamGroups],
+      providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: GroupService, useValue: groupApi }, { provide: TeamService, useValue: teamApi }],
+    });
+    TestBed.inject(SessionService).set({ id: actor === 'admin_empresa' ? 'a1' : 'r1', email: 'x@acme.co', name: actor === 'admin_empresa' ? 'Ada' : 'María', last_name: null, role: actor }, { id: 'c', name: 'ACME' });
+    fixture = TestBed.createComponent(TeamGroups);
+    fixture.componentRef.setInput('actor', actor);
+    fixture.componentRef.setInput('groups', groups);
+    changed = 0;
+    fixture.componentInstance.changed.subscribe(() => changed++);
+    fixture.detectChanges();
+  }
+
+  const el = () => fixture.nativeElement as HTMLElement;
+  const q = <T extends HTMLElement>(selector: string) => el().querySelector<T>(selector)!;
+  const card = (id: string) => q(`[data-test-group="${id}"]`);
+  const type = (selector: string, value: string) => {
+    const input = q<HTMLInputElement | HTMLSelectElement>(selector);
+    input.value = value;
+    input.dispatchEvent(new Event(input instanceof HTMLSelectElement ? 'change' : 'input'));
+    fixture.detectChanges();
+  };
+  const click = (target: string | HTMLElement) => {
+    (typeof target === 'string' ? q<HTMLElement>(target) : target).click();
+    fixture.detectChanges();
+  };
+
+  describe('the list of groups', () => {
+    it('shows each group with its name, kind, leader and how many people it has', () => {
+      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
+      expect(card('resp').querySelector('[data-test-group-name]')!.textContent).toContain('Responsables');
+      expect(card('resp').querySelector('[data-test-group-kind]')!.textContent).toContain('TEAM.GROUPS.KIND_RESPONSABLES');
+      expect(card('team-maria').querySelector('[data-test-group-kind]')!.textContent).toContain('TEAM.GROUPS.KIND_TEAM');
+      expect(card('team-maria').querySelector('[data-test-group-leader]')!.textContent).toContain('TEAM.GROUPS.LEADER');
+      expect(card('team-maria').querySelector('[data-test-group-count]')!.textContent).toContain('TEAM.GROUPS.MEMBERS');
+    });
+
+    it('says there are no groups yet, with a different invitation for the administrator and the owner', () => {
+      setup('admin_empresa', []);
+      expect(q('[data-test-groups-empty]').textContent).toContain('TEAM.GROUPS.EMPTY_BODY_ADMIN');
+      TestBed.resetTestingModule();
+      setup('responsable', []);
+      expect(q('[data-test-groups-empty]').textContent).toContain('TEAM.GROUPS.EMPTY_BODY_OWN');
+    });
+
+    it('opens and closes the people of a group, asking the server only for that group', () => {
+      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
+      expect(el().querySelector('app-group-members')).toBeNull();
+      click(card('team-maria').querySelector<HTMLElement>('[data-test-toggle]')!);
+      expect(card('team-maria').querySelector('app-group-members')).not.toBeNull();
+      expect(teamApi.list).toHaveBeenCalledWith({ groupId: 'team-maria' }, 1, 100);
+      click(card('team-maria').querySelector<HTMLElement>('[data-test-toggle]')!);
+      expect(el().querySelector('app-group-members')).toBeNull();
+    });
+  });
+
+  describe('administrator', () => {
+    it('creates a group of owners with only a name (no leader: it leads it himself) and tells the screen to reload', () => {
+      setup('admin_empresa', [RESPONSABLES]);
+      groupApi.create.and.returnValue(of({ ...RESPONSABLES, id: 'ia', name: 'Responsables - Servicio IA' }));
+      expect(q<HTMLButtonElement>('[data-test-create-responsables]').disabled).toBeTrue();
+      type('[data-test-responsables-name]', '  Responsables - Servicio IA ');
+      click('[data-test-create-responsables]');
+      expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Responsables - Servicio IA' });
+      expect(q('[data-test-groups-notice]').textContent).toContain('TEAM.GROUPS.NOTICE.CREATED');
+      expect(q<HTMLInputElement>('[data-test-responsables-name]').value).toBe('');
+      expect(changed).toBe(1);
+    });
+
+    it('offers to create a team only for the owners who are active or pending and do not lead one yet (D104)', () => {
+      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
+      const options = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-team-leader] option')).map((o) => o.value);
+      expect(options).toEqual(['', 'r2', 'r3']); // sin María (ya lidera) ni Óscar (inactivo)
+      expect(teamApi.list).toHaveBeenCalledWith({ role: 'responsable' }, 1, 100);
+    });
+
+    it('creates the team of an owner with the leader and the name, and needs both', () => {
+      setup('admin_empresa', [RESPONSABLES]);
+      groupApi.create.and.returnValue(of(TEAM_MARIA));
+      type('[data-test-team-name]', 'Equipo de Pedro');
+      expect(q<HTMLButtonElement>('[data-test-create-team]').disabled).toBeTrue(); // falta el responsable
+      type('[data-test-team-leader]', 'r2');
+      click('[data-test-create-team]');
+      expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Equipo de Pedro', leader_id: 'r2' });
+      expect(changed).toBe(1);
+    });
+
+    it('says so when every owner already has a team, and offers no form for it', () => {
+      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA], [MARIA]);
+      expect(q('[data-test-no-eligible]').textContent).toContain('TEAM.GROUPS.NO_ELIGIBLE');
+      expect(el().querySelector('[data-test-team-leader]')).toBeNull();
+    });
+
+    it('shows the server message when a group cannot be created (a name already taken or an owner that already has a team)', () => {
+      setup('admin_empresa', [RESPONSABLES]);
+      groupApi.create.and.returnValue(throwError(() => httpError(409, 'GROUP_NAME_TAKEN', 'Ya existe un grupo con ese nombre en tu empresa.')));
+      type('[data-test-responsables-name]', 'Duplicado');
+      click('[data-test-create-responsables]');
+      expect(q('[data-test-groups-error]').textContent).toContain('Ya existe un grupo con ese nombre en tu empresa.');
+      expect(changed).toBe(0);
+      expect(q<HTMLInputElement>('[data-test-responsables-name]').value).toBe('Duplicado'); // no pierde lo escrito
+    });
+
+    it('renames a group, only when the name changed and is not blank, and reloads', () => {
+      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
+      groupApi.rename.and.returnValue(of({ ...TEAM_MARIA, name: 'Equipo A' }));
+      click(card('team-maria').querySelector<HTMLElement>('[data-test-rename]')!);
+      expect(q<HTMLInputElement>('[data-test-rename-input]').value).toBe('Equipo de María');
+      expect(q<HTMLButtonElement>('[data-test-rename-save]').disabled).toBeTrue(); // igual al actual
+      type('[data-test-rename-input]', '   ');
+      expect(q<HTMLButtonElement>('[data-test-rename-save]').disabled).toBeTrue();
+      type('[data-test-rename-input]', ' Equipo A ');
+      click('[data-test-rename-save]');
+      expect(groupApi.rename).toHaveBeenCalledOnceWith('team-maria', 'Equipo A');
+      expect(q('[data-test-groups-notice]').textContent).toContain('TEAM.GROUPS.NOTICE.RENAMED');
+      expect(el().querySelector('[data-test-rename-input]')).toBeNull();
+      expect(changed).toBe(1);
+    });
+
+    it('shows the server message when the default group is renamed (it is reserved) and keeps the form open', () => {
+      setup('admin_empresa', [RESPONSABLES]);
+      groupApi.rename.and.returnValue(throwError(() => httpError(409, 'GROUP_RESERVED', 'El grupo «Responsables» no se puede renombrar.')));
+      click(card('resp').querySelector<HTMLElement>('[data-test-rename]')!);
+      type('[data-test-rename-input]', 'Otro nombre');
+      click('[data-test-rename-save]');
+      expect(q('[data-test-groups-error]').textContent).toContain('El grupo «Responsables» no se puede renombrar.');
+      expect(q('[data-test-rename-input]')).not.toBeNull();
+      expect(changed).toBe(0);
+    });
+
+    it('can cancel a rename without calling the server', () => {
+      setup('admin_empresa', [TEAM_MARIA]);
+      click(card('team-maria').querySelector<HTMLElement>('[data-test-rename]')!);
+      fixture.componentInstance.cancelRename();
+      fixture.detectChanges();
+      expect(el().querySelector('[data-test-rename-input]')).toBeNull();
+      expect(groupApi.rename).not.toHaveBeenCalled();
+    });
+
+    it('lets the administrator move delegates between the teams it shows', () => {
+      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
+      click(card('team-maria').querySelector<HTMLElement>('[data-test-toggle]')!);
+      expect(card('team-maria').querySelector('app-group-members')).not.toBeNull();
+      fixture.componentInstance.onMoved();
+      expect(changed).toBe(1);
+    });
+  });
+
+  describe('owner', () => {
+    it('without a team yet, offers to create their own with a starting name, and sends no leader (it is them)', () => {
+      setup('responsable', []);
+      expect(el().querySelector('[data-test-create-responsables]')).toBeNull(); // eso es del administrador
+      expect(q<HTMLInputElement>('[data-test-own-name]').value).toContain('TEAM.GROUPS.DEFAULT_TEAM_NAME');
+      groupApi.create.and.returnValue(of(TEAM_MARIA));
+      type('[data-test-own-name]', 'Mi equipo');
+      click('[data-test-create-own-submit]');
+      expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Mi equipo' });
+      expect(changed).toBe(1);
+      expect(teamApi.list).not.toHaveBeenCalled(); // no necesita la lista de responsables
+    });
+
+    it('with a team, does not offer to create a second one (D104: they lead a single team), nor to rename or to move', () => {
+      setup('responsable', [TEAM_MARIA]);
+      expect(el().querySelector('[data-test-create-own]')).toBeNull();
+      expect(el().querySelector('[data-test-rename]')).toBeNull();
+      click(card('team-maria').querySelector<HTMLElement>('[data-test-toggle]')!);
+      expect(el().querySelector('[data-test-move]')).toBeNull();
+    });
+
+    it('shows the server message when the team already exists (a second request in another window)', () => {
+      setup('responsable', []);
+      groupApi.create.and.returnValue(throwError(() => httpError(409, 'TEAM_ALREADY_EXISTS', 'Este responsable ya tiene un equipo de delegados: solo puede liderar uno.')));
+      type('[data-test-own-name]', 'Mi equipo');
+      click('[data-test-create-own-submit]');
+      expect(q('[data-test-groups-error]').textContent).toContain('solo puede liderar uno');
+    });
+  });
+});

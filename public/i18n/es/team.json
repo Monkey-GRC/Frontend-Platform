@@ -1,13 +1,85 @@
 {
   "TEAM": {
     "TITLE": "Equipo",
-    "INTRO": "Invita a tu gente y dale a cada persona su especialidad. Quien entra como funcional ve y atiende de una vez todo lo de sus especialidades.",
+    "INTRO": "Crea a tu equipo y gestiona quién tiene acceso. A cada persona le llega una invitación por correo para activar su cuenta.",
+    "INTRO_OWN": "Aquí ves a tu equipo de delegados y puedes sumar a más personas. A cada una le llega una invitación por correo para activar su cuenta.",
     "YOU": "Tú",
     "NO_NAME": "Sin nombre: corrígelo para identificarla.",
     "LOAD_ERROR": "No pudimos cargar el equipo.",
-    "TABS": { "PEOPLE": "Personas", "WORK": "Reparto del trabajo" },
-    "ROLE": { "ADMIN_EMPRESA": "Administrador", "FUNCIONAL": "Funcional", "AUDITOR": "Auditor" },
-    "STATUS": { "ACTIVE": "Activa", "PENDING": "Por activar", "INACTIVE": "Desactivada" },
+    "TABS": { "PEOPLE": "Personas", "GROUPS": "Grupos", "GROUPS_OWN": "Mi equipo" },
+    "TABLE_CAPTION": "Personas del equipo",
+    "EMPTY_TITLE": "Aún no hay personas en el equipo",
+    "EMPTY_BODY": "Cuando agregues a alguien, aparecerá aquí.",
+    "EMPTY_FILTERED_TITLE": "Nadie coincide con estos filtros",
+    "EMPTY_FILTERED_BODY": "Prueba con otro rol, estado o grupo, o quita los filtros.",
+    "COLUMNS": {
+      "PERSON": "Persona",
+      "ROLE": "Rol",
+      "STATUS": "Estado",
+      "GROUP": "Grupo",
+      "LAST_LOGIN": "Último ingreso",
+      "ACTIONS": "Acciones"
+    },
+    "FILTERS": {
+      "TITLE": "Filtros del equipo",
+      "ROLE": "Rol",
+      "STATUS": "Estado",
+      "GROUP": "Grupo",
+      "AFFILIATION": "Interno o externo",
+      "ALL": "Todos",
+      "CLEAR": "Quitar filtros"
+    },
+    "LIST": {
+      "RESPONSIBLE": "Responsable: {{name}}",
+      "NEVER": "Aún no ha ingresado"
+    },
+    "GROUPS": {
+      "INTRO_ADMIN": "Organiza a tu gente en grupos. Los responsables viven en un grupo de responsables que lideras tú; cada responsable lidera, cuando quiere, un equipo de delegados.",
+      "INTRO_OWN": "Tu equipo de delegados. Mientras no lo crees, trabajas solo; un delegado necesita un equipo.",
+      "KIND_RESPONSABLES": "Grupo de responsables",
+      "KIND_TEAM": "Equipo de delegados",
+      "LEADER": "Líder: {{name}}",
+      "MEMBERS": "Personas: {{count}}",
+      "SHOW_MEMBERS": "Ver personas",
+      "HIDE_MEMBERS": "Ocultar personas",
+      "RENAME": "Renombrar",
+      "NAME_LABEL": "Nombre del grupo",
+      "SUBMIT": "Crear grupo",
+      "CREATE_RESPONSABLES_TITLE": "Crear un grupo de responsables",
+      "CREATE_RESPONSABLES_HELP": "Por ejemplo «Responsables - Servicio IA». El grupo «Responsables» ya existe por omisión y su nombre está reservado.",
+      "CREATE_TEAM_TITLE": "Crear el equipo de un responsable",
+      "CREATE_TEAM_HELP": "El equipo de delegados de un responsable. Cada responsable lidera un solo equipo.",
+      "RESPONSIBLE_LABEL": "Responsable",
+      "RESPONSIBLE_PICK": "Elige un responsable",
+      "NO_ELIGIBLE": "Todos tus responsables ya tienen equipo, o todavía no hay responsables.",
+      "CREATE_OWN_TITLE": "Crea tu equipo de delegados",
+      "CREATE_OWN_HELP": "Ponle el nombre que quieras. Solo puedes liderar un equipo.",
+      "DEFAULT_TEAM_NAME": "Equipo de {{name}}",
+      "EMPTY_TITLE": "Aún no hay grupos",
+      "EMPTY_BODY_ADMIN": "Los grupos de responsables y los equipos de delegados aparecerán aquí cuando los crees.",
+      "EMPTY_BODY_OWN": "Cuando crees tu equipo, aparecerá aquí.",
+      "MEMBERS_EMPTY": "Este grupo aún no tiene personas.",
+      "MEMBERS_ERROR": "No pudimos cargar las personas de este grupo.",
+      "MEMBERS_MORE": "Mostramos las primeras {{shown}} de {{total}}.",
+      "MOVE": "Mover a otro equipo",
+      "MOVE_TO": "Equipo de destino",
+      "MOVE_PICK": "Elige un equipo",
+      "MOVE_SUBMIT": "Mover",
+      "NO_DESTINATION": "No hay otro equipo al que moverlo.",
+      "MOVE_CONFIRM_TITLE": "¿Mover a {{name}} a otro equipo?",
+      "MOVE_CONFIRM_BODY": "Ejecuta {{count}} controles. Si lo mueves, esos controles quedarán sin ejecutor y seguirán con su responsable actual.",
+      "MOVE_CONFIRM": "Mover igualmente",
+      "NOTICE": {
+        "CREATED": "Listo, creamos el grupo «{{name}}».",
+        "RENAMED": "Listo, el grupo ahora se llama «{{name}}».",
+        "MOVED": "Listo, movimos a {{name}} de equipo."
+      },
+      "ERROR": {
+        "MOVE_TARGET": "No pudimos mover a la persona: el equipo de destino no existe o su responsable ya no está activo."
+      }
+    },
+    "ROLE": { "ADMIN_EMPRESA": "Administrador", "RESPONSABLE": "Responsable", "DELEGADO": "Delegado", "AUDITOR": "Auditor" },
+    "STATUS": { "ACTIVE": "Activa", "PENDING": "Invitación pendiente", "INACTIVE": "Desactivada", "SUSPENDED": "Suspendida" },
     "INVITE": {
       "TITLE": "Invitar a una persona",
       "EMAIL": "Correo",
@@ -16,25 +88,35 @@
       "EMAIL_TAKEN": "Ya hay un usuario registrado con ese correo.",
       "ALREADY_IN_TEAM": "Ya hay un usuario registrado con ese correo: {{who}} ({{role}}).",
       "FIX_NAME": "Corregir su nombre",
-      "ADMIN_HELP": "Un administrador gestiona el equipo y valida lo que se sube, como tú. Solo otro administrador puede crearlo.",
       "ROLE": "Rol",
       "SUBMIT": "Invitar",
-      "DIMENSIONS": "Especialidades",
-      "DIMENSIONS_HELP": "Una persona funcional ejecuta y sube la evidencia de las dimensiones en las que se especializa. Elige al menos una.",
-      "AUDITOR_HELP": "Un auditor revisa todo lo de tu empresa en solo lectura y deja observaciones; no tiene especialidades."
+      "AFFILIATION": "Vínculo con la compañía",
+      "INTERNAL": "Interno",
+      "EXTERNAL": "Externo",
+      "TEAM_LABEL": "Equipo",
+      "TEAM_PICK": "Elige un equipo",
+      "TEAM_OPTION": "{{team}} · {{leader}}",
+      "RESPONSABLES_GROUP": "Grupo de responsables",
+      "RESPONSABLES_GROUP_DEFAULT": "Por omisión",
+      "NO_TEAMS_ADMIN": "Ningún responsable tiene equipo todavía. Un delegado necesita un equipo: primero hay que crear el equipo de un responsable.",
+      "NO_TEAM_OWN": "Aún no tienes un equipo de delegados. Un delegado necesita un equipo: primero hay que crear el tuyo.",
+      "GO_TO_GROUPS": "Ir a Grupos",
+      "HELP_ADMIN_EMPRESA": "Un administrador gestiona el equipo, asigna el dueño de cada control y valida lo que se sube, como tú.",
+      "HELP_RESPONSABLE": "Un responsable es dueño de controles, revisa lo que sube su equipo y reparte la ejecución entre sus delegados.",
+      "HELP_DELEGADO": "Un delegado ejecuta los controles que su responsable le asigna y sube la evidencia. Elige si es de tu compañía o externo.",
+      "HELP_AUDITOR": "Un auditor revisa todo lo de tu empresa en solo lectura y deja observaciones."
     },
-    "CODE": {
-      "TITLE": "Código de activación de {{email}}",
-      "BODY": "Entrégaselo a la persona ahora: es la única vez que lo verás. Con él activa su cuenta y crea su contraseña.",
-      "COPY": "Copiar código",
-      "COPIED": "Copiado",
-      "NOTED": "Ya lo anoté",
-      "EXPIRES": "Vence el {{date}}. Si se pierde, emite uno nuevo."
+    "INVITATION": {
+      "SENT_TITLE": "Enviamos la invitación a {{email}}",
+      "SENT_BODY": "Le llegará un correo con su código de activación. El código sirve una sola vez y vence el {{date}}. Si no lo encuentra, que revise el correo no deseado.",
+      "FAILED_TITLE": "No pudimos enviar la invitación a {{email}}",
+      "FAILED_BODY": "La cuenta quedó creada, pero el correo no salió. Reenvía la invitación para que le llegue un código nuevo; el anterior dejará de servir.",
+      "RESEND": "Reenviar invitación",
+      "DISMISS": "Entendido"
     },
     "ACTIONS": {
       "EDIT_NAME": "Editar nombre",
-      "EDIT_DIMENSIONS": "Cambiar especialidades",
-      "NEW_CODE": "Nuevo código",
+      "RESEND_INVITATION": "Reenviar invitación",
       "DEACTIVATE": "Desactivar",
       "REACTIVATE": "Reactivar",
       "RESET_MFA": "Restablecer segundo factor"
@@ -45,27 +127,19 @@
       "RESET_MFA_TITLE": "¿Restablecer el segundo factor de {{email}}?",
       "RESET_MFA_BODY": "Se cierran sus sesiones y, en su próximo ingreso, configurará el segundo factor de nuevo. Úsalo solo si perdió su celular y sus códigos de recuperación."
     },
-    "WORK": {
-      "SERVICE": "Servicio",
-      "INTRO": "El responsable de una dimensión se hace cargo de todos los controles del servicio que tienen pruebas de esa dimensión. Si cambias al responsable, cambia para todos los controles que no tengan una excepción.",
-      "NO_SERVICES": "Aún no tienes servicios. Declara uno en «Mis servicios» para repartir su trabajo.",
-      "CONTROLS": "{{count}} controles con pruebas de esta dimensión",
-      "EXCEPTIONS": "{{count}} con otro responsable",
-      "WITHOUT_OWNER": "{{count}} controles sin responsable",
-      "OWNER": "Responsable",
-      "NOBODY": "Sin responsable",
-      "NO_CANDIDATES": "Ninguna persona del equipo tiene esta especialidad todavía."
-    },
     "NOTICE": {
-      "INVITED": "Listo, creamos la cuenta. Entrega el código de activación.",
+      "INVITED": "Listo, creamos la cuenta.",
       "CODE_REISSUED": "Listo, emitimos un código nuevo. El anterior ya no sirve.",
-      "UPDATED": "Listo, guardamos las especialidades.",
       "NAME_SAVED": "Listo, guardamos el nombre.",
       "DEACTIVATED": "Listo, desactivamos la cuenta.",
       "REACTIVATED": "Listo, reactivamos la cuenta.",
-      "MFA_RESET": "Listo, quitamos el segundo factor.",
-      "OWNER_SAVED": "Listo, guardamos el responsable."
+      "MFA_RESET": "Listo, quitamos el segundo factor."
     },
-    "ERROR": { "SAVE": "No pudimos guardar el cambio. Intenta de nuevo." }
+    "ERROR": {
+      "SAVE": "No pudimos guardar el cambio. Intenta de nuevo.",
+      "USER_LIMIT": "Llegaste al máximo de usuarios contratados. Contacta a Monkey.",
+      "USER_LIMIT_COUNTS": "Llegaste al máximo de usuarios contratados ({{count}} de {{max}}). Contacta a Monkey.",
+      "NO_TEAM": "Este responsable aún no tiene un equipo de delegados. Primero hay que crear su equipo."
+    }
   }
 }
