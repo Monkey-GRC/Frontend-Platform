@@ -3,6 +3,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { Asset } from '../../../domain/models/technical-control.models';
 import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { ConnectionProgress } from '../connection-progress/connection-progress';
 
 type Phase = 'idle' | 'saving' | 'checking';
 
@@ -10,7 +11,7 @@ type Phase = 'idle' | 'saving' | 'checking';
 // Aquí no hay credenciales: el cliente comparte un rol que él controla y puede borrar cuando quiera. Los pasos vienen del backend (ya en su idioma).
 @Component({
   selector: 'app-cloud-connection-panel',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, ConnectionProgress],
   templateUrl: './cloud-connection-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

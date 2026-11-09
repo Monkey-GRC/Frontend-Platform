@@ -33,12 +33,6 @@
         <span class="material-symbols-rounded text-[20px]">{{ showSetup() ? 'visibility_off' : 'visibility' }}</span>
       </button>
       }
-      @if (isCloud() && connected()) {
-      <button type="button" (click)="evaluate()" [disabled]="evaluating() || executionOpen()" [attr.aria-label]="'TECHNICAL_CONTROL.CARD.EVALUATE_NOW' | translate" [title]="'TECHNICAL_CONTROL.CARD.EVALUATE_NOW' | translate"
-        class="rounded-lg p-2 text-primary transition hover:bg-primary/5 disabled:opacity-60">
-        <span class="material-symbols-rounded text-[20px]" [class.animate-spin]="evaluating()">{{ evaluating() ? 'progress_activity' : 'play_circle' }}</span>
-      </button>
-      }
       <button type="button" (click)="editing.set(!editing()); confirmingRemove.set(false)" [disabled]="removing()"
         [attr.aria-label]="(editing() ? 'TECHNICAL_CONTROL.CARD.CLOSE_EDIT' : 'COMMON.EDIT') | translate" [title]="(editing() ? 'TECHNICAL_CONTROL.CARD.CLOSE_EDIT' : 'COMMON.EDIT') | translate"
         class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
@@ -158,10 +152,14 @@
     }
   </div>
 
+  @if (busy() === 'validate') {
+  <app-connection-progress />
+  }
+
   <!-- Lo que la conexión reconoció: es la prueba de que Monkey ve los activos del cliente -->
   @if (isCloud() && connected()) {
   <div class="mt-4 border-t border-gray-200 pt-5 dark:border-gray-700">
-    <app-discovered-assets [asset]="asset()" [serviceId]="serviceId()" [probeMode]="probeMode()" [refreshing]="busy() === 'validate'" (refreshRequested)="validate()" />
+    <app-discovered-assets [asset]="asset()" [serviceId]="serviceId()" [probeMode]="probeMode()" [refreshing]="busy() === 'validate'" [canEvaluate]="isCloud() && connected()" [evaluating]="evaluating() || executionOpen()" (refreshRequested)="validate()" (evaluate)="evaluate()" />
   </div>
 
   }
