@@ -12,10 +12,19 @@ export class ComplianceContextService {
   readonly evaluationText = signal<string | null>(null);
   /** El encabezado ya muestra los marcos (solo el administrador conoce la lista de servicios): si no, el Resumen trae sus propios botones. */
   readonly headerShowsFrameworks = signal(false);
+  /** ¿Quien mira puede cambiar el período? (solo el administrador de la empresa, y solo con el período ya definido): el encabezado ofrece «Cambiar período». */
+  readonly canEditPeriod = signal(false);
+  /** El encabezado pide abrir el panel del período; el Resumen (que lo tiene) lo abre. Es un contador para que cada clic cuente. */
+  readonly editPeriodRequests = signal(0);
 
   clear(): void {
     this.selectable.set(false);
     this.selected.set(null);
     this.evaluationText.set(null);
+    this.canEditPeriod.set(false);
+  }
+
+  requestEditPeriod(): void {
+    this.editPeriodRequests.update((n) => n + 1);
   }
 }

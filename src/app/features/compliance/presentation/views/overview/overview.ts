@@ -189,8 +189,19 @@ export class OverviewView {
         : null;
       untracked(() => {
         this.context.evaluationText.set(text);
+        this.context.canEditPeriod.set(text !== null && this.canEditPeriod());
         this.context.selectable.set(this.frameworks().length > 1);
         if (fw && this.context.selected() !== fw.framework_code) this.context.selected.set(fw.framework_code);
+      });
+    });
+    // El encabezado pide cambiar el período (su botón): aquí está el panel, así que se abre aquí. Solo cuentan los pedidos nuevos, no el que hubiera al entrar.
+    let seenRequests = this.context.editPeriodRequests();
+    effect(() => {
+      const requests = this.context.editPeriodRequests();
+      if (requests === seenRequests) return;
+      seenRequests = requests;
+      untracked(() => {
+        if (this.canEditPeriod()) this.openPeriod();
       });
     });
     // El período y el marco son de esta pestaña: al salir, el encabezado vuelve a estar sin ellos.

@@ -137,20 +137,27 @@ describe('OverviewView', () => {
       }
     });
 
-    it('with the period defined, the admin sees the period (and no cutoff date, D105) and can change it', () => {
+    it('with the period defined it says it only once (the header has it), with no cutoff date (D105), and the header can ask to change it', () => {
       setup('admin_empresa', [framework({ evaluation: { ...DEFINED, cutoff_frozen: true } })]);
+      const context = TestBed.inject(ComplianceContextService);
       expect(q('[data-not-defined]')).toBeNull();
       expect(q('[data-cutoff]')).toBeNull();
-      expect(q('[data-period-bar]')!.textContent).toContain('COMPLIANCE.PERIOD.LINE');
-      (q('[data-edit-period]') as HTMLButtonElement).click();
+      expect(q('[data-period-bar]')).toBeNull(); // la línea «Período auditado» ya no se repite aquí
+      expect(context.evaluationText()).toContain('COMPLIANCE.OVERVIEW.EVALUATION');
+      expect(context.canEditPeriod()).toBeTrue();
+      expect(q('app-evaluation-period-form')).toBeNull();
+      context.requestEditPeriod(); // el botón «Cambiar período» de la barra azul
       fixture.detectChanges();
       expect(q('app-evaluation-period-form')).not.toBeNull();
     });
 
-    it('the period is not an action of the other roles: they get no bar and no button', () => {
+    it('the other roles cannot change the period: the header offers no button and a request from it opens nothing', () => {
       setup('auditor', [framework()]);
-      expect(q('[data-period-bar]')).toBeNull();
-      expect(q('[data-edit-period]')).toBeNull();
+      const context = TestBed.inject(ComplianceContextService);
+      expect(context.canEditPeriod()).toBeFalse();
+      context.requestEditPeriod();
+      fixture.detectChanges();
+      expect(q('app-evaluation-period-form')).toBeNull();
     });
 
     it('the evaluation counts as defined with a start and an end, even without a stored cutoff', () => {
