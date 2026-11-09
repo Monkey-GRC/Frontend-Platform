@@ -63,6 +63,16 @@ describe('DataTable', () => {
     expect(rows[1].querySelector('[data-status="not_measured"]')).not.toBeNull();
   });
 
+  it('stacks into cards below the large breakpoint, each cell labelled with its column, so nobody has to scroll sideways', () => {
+    const table = el().querySelector('table')!;
+    expect(table.className).toContain('block');
+    expect(table.className).toContain('lg:table');
+    expect(table.className).not.toContain('min-w-');
+    expect(el().querySelector('thead')!.className).toContain('hidden');
+    const cells = Array.from(el().querySelectorAll('tbody tr:first-child td'));
+    expect(cells.map((c) => c.getAttribute('data-label'))).toEqual(['TEST.NAME', 'TEST.STATUS']);
+  });
+
   it('has a hidden caption and column headers for screen readers', () => {
     expect(el().querySelector('caption')!.textContent).toContain('TEST.CAPTION');
     expect(el().querySelectorAll('th[scope="col"]').length).toBe(2);

@@ -50,13 +50,6 @@
     </button>
     }
   </div>
-  } @else if (canEditPeriod()) {
-  <!-- Con el período definido: cuál es y cómo cambiarlo. No hay fecha de corte que mostrar: se mide siempre con lo último que revisó la evaluación automática (D105). -->
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600 dark:text-gray-300" data-period-bar>
-    <span class="material-symbols-rounded text-[18px] text-gray-500" aria-hidden="true">event</span>
-    <span>{{ 'COMPLIANCE.PERIOD.LINE' | translate: { start: day(fw.evaluation.period_start), end: day(fw.evaluation.period_end) } }}</span>
-    <button type="button" (click)="openPeriod()" data-edit-period class="font-semibold text-primary hover:underline">{{ 'COMPLIANCE.PERIOD.EDIT' | translate }}</button>
-  </div>
   }
 
   <!-- El veredicto, el avance y los conteos, en una sola franja. El avance no es el estado: el veredicto va aparte, en su color. -->
@@ -90,11 +83,11 @@
     </section>
 
     @if (counts(); as c) {
-    <ul class="mk-card grid grid-cols-2 content-center gap-x-4 gap-y-1.5 px-4 py-3 text-xs lg:flex-1" data-kpis>
-        <li class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-rounded text-[20px] text-brand-500" aria-hidden="true">fact_check</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_EVALUATED' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="evaluated">{{ c.measured }}<span class="text-sm font-medium text-gray-500 dark:text-gray-400">/{{ c.total }}</span></span></li>
-        <li class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-rounded text-[20px] text-green-600 dark:text-green-400" aria-hidden="true">check_circle</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_EFFECTIVE' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="effective">{{ c.done }}</span></li>
-        <li class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-rounded text-[20px] text-red-700 dark:text-red-400" aria-hidden="true">cancel</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_INEFFECTIVE' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="ineffective">{{ c.notEffective }}</span></li>
-        <li class="flex items-center gap-2 whitespace-nowrap"><span class="material-symbols-rounded text-[20px] text-amber-500" aria-hidden="true">schedule</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_PENDING' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="pending">{{ c.pending }}</span></li>
+    <ul class="mk-card grid grid-cols-1 content-center xsm:grid-cols-2 gap-x-4 gap-y-1.5 px-4 py-3 text-xs lg:flex-1" data-kpis>
+        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span class="material-symbols-rounded text-[20px] text-brand-500" aria-hidden="true">fact_check</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_EVALUATED' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="evaluated">{{ c.measured }}<span class="text-sm font-medium text-gray-500 dark:text-gray-400">/{{ c.total }}</span></span></li>
+        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span class="material-symbols-rounded text-[20px] text-green-600 dark:text-green-400" aria-hidden="true">check_circle</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_EFFECTIVE' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="effective">{{ c.done }}</span></li>
+        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span class="material-symbols-rounded text-[20px] text-red-700 dark:text-red-400" aria-hidden="true">cancel</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_INEFFECTIVE' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="ineffective">{{ c.notEffective }}</span></li>
+        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span class="material-symbols-rounded text-[20px] text-amber-500" aria-hidden="true">schedule</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_PENDING' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="pending">{{ c.pending }}</span></li>
       </ul>
     }
   </div>

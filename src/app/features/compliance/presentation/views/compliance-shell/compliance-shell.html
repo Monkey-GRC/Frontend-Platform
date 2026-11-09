@@ -39,6 +39,9 @@
           <!-- El período sobre el que se mide el marco elegido: lo cuenta el Resumen. -->
           <p class="mt-1 flex items-center gap-1.5 text-xs text-white/80" data-evaluation>
             <span class="material-symbols-rounded text-[16px]" aria-hidden="true">event_available</span>{{ period }}
+            @if (context.canEditPeriod()) {
+            <button type="button" (click)="context.requestEditPeriod()" data-edit-period class="ml-1 font-semibold text-white underline decoration-white/50 underline-offset-2 hover:decoration-white">{{ 'COMPLIANCE.PERIOD.EDIT' | translate }}</button>
+            }
           </p>
           }
           } @else {
@@ -65,11 +68,11 @@
   </div>
 
   <!-- Pestañas: una píldora llena marca dónde estás -->
-  <nav class="mk-card mt-3 flex gap-1 overflow-x-auto p-1.5" [attr.aria-label]="'COMPLIANCE.SHELL.TITLE' | translate">
+  <nav class="mk-card mt-3 flex flex-wrap gap-1 p-1.5" [attr.aria-label]="'COMPLIANCE.SHELL.TITLE' | translate">
     @for (tab of tabs; track tab.path) {
     <a [routerLink]="tab.path" routerLinkActive="bg-primary text-white shadow-theme-sm hover:text-white" #active="routerLinkActive"
       [attr.aria-current]="active.isActive ? 'page' : null"
-      class="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-brand-50 hover:text-primary dark:text-gray-300 dark:hover:bg-white/5">
+      class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold sm:px-4 text-gray-600 transition hover:bg-brand-50 hover:text-primary dark:text-gray-300 dark:hover:bg-white/5">
       <span class="material-symbols-rounded text-[19px]" aria-hidden="true">{{ tab.icon }}</span>{{ tab.labelKey | translate }}
     </a>
     }

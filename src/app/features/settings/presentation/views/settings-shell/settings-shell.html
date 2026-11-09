@@ -8,12 +8,12 @@
       </button>
     </div>
 
-    <nav [attr.aria-label]="'SETTINGS.NAV_LABEL' | translate" class="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:gap-0 lg:overflow-y-auto lg:px-4 lg:pb-6">
+    <nav [attr.aria-label]="'SETTINGS.NAV_LABEL' | translate" class="flex flex-wrap gap-1 px-3 pb-3 lg:flex-1 lg:flex-col lg:flex-nowrap lg:gap-0 lg:overflow-y-auto lg:px-4 lg:pb-6">
       @for (group of groups; track group.name) {
         <p class="hidden px-3 pb-1 pt-4 text-sm font-semibold text-gray-400 lg:block">{{ group.labelKey | translate }}</p>
         @for (section of group.sections; track section.name) {
           <a [routerLink]="section.path" routerLinkActive="bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white" [attr.data-testid]="'settings-nav-' + section.name"
-            class="flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-base font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5 lg:mb-0.5">
+            class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-base font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5 lg:mb-0.5">
             <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ section.icon }}</span>
             <span>{{ section.labelKey | translate }}</span>
           </a>

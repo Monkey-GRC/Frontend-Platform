@@ -72,6 +72,19 @@ describe('ComplianceShellView', () => {
     expect(fixture.nativeElement.querySelector('[data-evaluation]').textContent).toContain('Período 1 ene 2026');
   });
 
+  it('offers «change period» in the header only to who can, and asks the summary to open it', () => {
+    setup('admin_empresa');
+    const context = TestBed.inject(ComplianceContextService);
+    context.evaluationText.set('Período 1 ene 2026 – 31 dic 2026');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-edit-period]')).toBeNull();
+    context.canEditPeriod.set(true);
+    fixture.detectChanges();
+    const before = context.editPeriodRequests();
+    (fixture.nativeElement.querySelector('[data-edit-period]') as HTMLButtonElement).click();
+    expect(context.editPeriodRequests()).toBe(before + 1);
+  });
+
   it('tells the summary that the header already shows the frameworks only when the service has some', () => {
     setup('admin_empresa');
     expect(TestBed.inject(ComplianceContextService).headerShowsFrameworks()).toBeTrue();

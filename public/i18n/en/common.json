@@ -19,6 +19,11 @@
       "PLACEHOLDER": "Pick a date",
       "PREV_MONTH": "Previous month",
       "NEXT_MONTH": "Next month",
+      "PREV_YEAR": "Previous year",
+      "NEXT_YEAR": "Next year",
+      "PREV_YEARS": "Earlier years",
+      "NEXT_YEARS": "Later years",
+      "CHOOSE_YEAR": "Choose year and month",
       "TODAY": "Today",
       "CLEAR": "Clear"
     },

@@ -18,13 +18,37 @@
     class="fixed z-[100003] w-[19rem] rounded-2xl border border-gray-200 bg-white p-3 shadow-2xl dark:border-gray-700 dark:bg-gray-900 max-sm:inset-x-4 max-sm:bottom-4 max-sm:w-auto"
     [style.top.px]="position()?.top ?? null" [style.left.px]="position()?.left ?? null">
     <div class="flex items-center justify-between gap-1 pb-2">
-      <button type="button" (click)="shiftMonth(-1)" [attr.aria-label]="'COMMON.DATE_PICKER.PREV_MONTH' | translate" data-date-prev
+      <button type="button" (click)="shift(-1)" [attr.aria-label]="(mode() === 'days' ? 'COMMON.DATE_PICKER.PREV_MONTH' : mode() === 'months' ? 'COMMON.DATE_PICKER.PREV_YEAR' : 'COMMON.DATE_PICKER.PREV_YEARS') | translate" data-date-prev
         class="rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"><span class="material-symbols-rounded text-[20px]" aria-hidden="true">chevron_left</span></button>
-      <p class="text-sm font-semibold text-gray-900 dark:text-white" aria-live="polite" data-date-month>{{ monthLabel() }}</p>
-      <button type="button" (click)="shiftMonth(1)" [attr.aria-label]="'COMMON.DATE_PICKER.NEXT_MONTH' | translate" data-date-next
+      <!-- El título es un botón: del día lleva a los años y, de ahí, a los meses y a los días. -->
+      <button type="button" (click)="titleClick()" data-date-month [attr.aria-label]="'COMMON.DATE_PICKER.CHOOSE_YEAR' | translate" aria-live="polite"
+        class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800">
+        {{ headerLabel() }}<span class="material-symbols-rounded text-[18px]" aria-hidden="true">{{ mode() === 'years' ? 'expand_less' : 'expand_more' }}</span>
+      </button>
+      <button type="button" (click)="shift(1)" [attr.aria-label]="(mode() === 'days' ? 'COMMON.DATE_PICKER.NEXT_MONTH' : mode() === 'months' ? 'COMMON.DATE_PICKER.NEXT_YEAR' : 'COMMON.DATE_PICKER.NEXT_YEARS') | translate" data-date-next
         class="rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"><span class="material-symbols-rounded text-[20px]" aria-hidden="true">chevron_right</span></button>
     </div>
 
+    @switch (mode()) {
+    @case ('years') {
+    <div class="grid grid-cols-3 gap-1.5 py-1" data-date-years>
+      @for (y of years(); track y.year) {
+      <button type="button" (click)="pickYear(y.year, y.disabled)" [disabled]="y.disabled" [attr.data-year]="y.year" [attr.aria-current]="y.current ? 'true' : null"
+        class="h-11 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 disabled:cursor-not-allowed disabled:opacity-30"
+        [class]="y.current ? 'bg-primary font-semibold text-white' : y.today ? 'font-semibold text-primary ring-1 ring-primary/50 hover:bg-primary/10' : 'text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800'">{{ y.year }}</button>
+      }
+    </div>
+    }
+    @case ('months') {
+    <div class="grid grid-cols-3 gap-1.5 py-1" data-date-months>
+      @for (mo of months(); track mo.m) {
+      <button type="button" (click)="pickMonth(mo.m, mo.disabled)" [disabled]="mo.disabled" [attr.data-month]="mo.m" [attr.aria-current]="mo.current ? 'true' : null"
+        class="h-11 rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 disabled:cursor-not-allowed disabled:opacity-30"
+        [class]="mo.current ? 'bg-primary font-semibold text-white' : 'text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800'">{{ mo.label }}</button>
+      }
+    </div>
+    }
+    @default {
     <div #grid role="grid" class="grid grid-cols-7 gap-y-1 text-center">
       @for (w of weekdays(); track $index) {
       <span class="py-1 text-[11px] font-medium uppercase text-gray-500 dark:text-gray-400" role="columnheader">{{ w }}</span>
@@ -40,7 +64,8 @@
       }
       }
     </div>
-
+    }
+    }
     <div class="mt-2 flex items-center justify-between border-t border-gray-100 pt-2 dark:border-gray-800">
       <button type="button" (click)="clear()" data-date-clear class="rounded-lg px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">{{ 'COMMON.DATE_PICKER.CLEAR' | translate }}</button>
       <button type="button" (click)="selectToday()" [disabled]="!canGoToday()" data-date-today class="rounded-lg px-2 py-1.5 text-sm font-semibold text-primary hover:bg-primary/10 disabled:opacity-40">{{ 'COMMON.DATE_PICKER.TODAY' | translate }}</button>

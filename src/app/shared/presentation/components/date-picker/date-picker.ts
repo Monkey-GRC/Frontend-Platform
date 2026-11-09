@@ -51,6 +51,9 @@ export class DatePicker {
   readonly invalid = input(false);
 
   readonly open = signal(false);
+  /** Qué se está eligiendo: el día (por defecto), el mes o el año. El título del calendario lleva de uno a otro: así se llega a cualquier año sin dar cien clics. */
+  readonly mode = signal<'days' | 'months' | 'years'>('days');
+  private readonly yearPage = signal(0);
   /** El día con el foco del teclado dentro del calendario. */
   readonly focused = signal('');
   private readonly view = signal({ y: 0, m: 0 });
@@ -94,6 +97,33 @@ export class DatePicker {
       }),
     );
   });
+  /** Doce años por página; el de la fecha elegida queda en la página. */
+  readonly years = computed(() => {
+    const min = this.min();
+    const max = this.max();
+    return Array.from({ length: 12 }, (_, i) => {
+      const year = this.yearPage() + i;
+      return { year, current: year === this.view().y, today: String(year) === this.today().slice(0, 4), disabled: (!!min && year < Number(min.slice(0, 4))) || (!!max && year > Number(max.slice(0, 4))) };
+    });
+  });
+  readonly months = computed(() => {
+    const { y } = this.view();
+    const fmt = new Intl.DateTimeFormat(this.locale(), { month: 'short', timeZone: 'UTC' });
+    const min = this.min();
+    const max = this.max();
+    return Array.from({ length: 12 }, (_, m) => {
+      const label = fmt.format(new Date(Date.UTC(y, m, 1))).replace('.', '');
+      const first = toIso(y, m, 1);
+      const last = toIso(y, m, new Date(Date.UTC(y, m + 1, 0)).getUTCDate());
+      return { m, label: label.charAt(0).toUpperCase() + label.slice(1), current: m === this.view().m, disabled: (!!min && last < min) || (!!max && first > max) };
+    });
+  });
+  /** Lo que dice el título según lo que se elige. */
+  readonly headerLabel = computed(() => {
+    if (this.mode() === 'days') return this.monthLabel();
+    if (this.mode() === 'months') return String(this.view().y);
+    return `${this.yearPage()} – ${this.yearPage() + 11}`;
+  });
   readonly canGoToday = computed(() => {
     const today = this.today();
     return (!this.min() || today >= this.min()!) && (!this.max() || today <= this.max()!);
@@ -106,6 +136,7 @@ export class DatePicker {
       untracked(() => {
         const start = parse(this.value()) ?? parse(this.today())!;
         this.view.set({ y: start.y, m: start.m });
+        this.mode.set('days');
         this.focused.set(toIso(start.y, start.m, start.d));
       });
     });
@@ -150,6 +181,42 @@ export class DatePicker {
     this.close();
   }
 
+  /** El título: del día se pasa a los años; del mes, también; de los años se vuelve a los días. */
+  titleClick(): void {
+    if (this.mode() === 'years') {
+      this.mode.set('days');
+      setTimeout(() => this.focusDay());
+      return;
+    }
+    this.yearPage.set(this.view().y - 5);
+    this.mode.set('years');
+  }
+
+  /** Las flechas del encabezado mueven lo que se está viendo: un mes, un año o una página de doce años. */
+  shift(delta: number): void {
+    if (this.mode() === 'days') return this.shiftMonth(delta);
+    if (this.mode() === 'months') return this.view.update((v) => ({ ...v, y: v.y + delta }));
+    this.yearPage.update((p) => p + 12 * delta);
+  }
+
+  pickYear(year: number, disabled: boolean): void {
+    if (disabled) return;
+    this.view.update((v) => ({ ...v, y: year }));
+    this.mode.set('months');
+  }
+
+  pickMonth(month: number, disabled: boolean): void {
+    if (disabled) return;
+    const { y } = this.view();
+    this.view.set({ y, m: month });
+    // El foco queda en el mismo día del mes nuevo (o en el último si no existe).
+    const day = parse(this.focused())?.d ?? 1;
+    const last = new Date(Date.UTC(y, month + 1, 0)).getUTCDate();
+    this.focused.set(toIso(y, month, Math.min(day, last)));
+    this.mode.set('days');
+    setTimeout(() => this.focusDay());
+  }
+
   shiftMonth(delta: number): void {
     const { y, m } = this.view();
     const date = new Date(Date.UTC(y, m + delta, 1));
@@ -163,7 +230,7 @@ export class DatePicker {
   /** Flechas: ±1 día / ±1 semana. Re Pág y Av Pág: mes anterior y siguiente. Inicio y Fin: lunes y domingo de la semana. */
   onKey(event: KeyboardEvent): void {
     const f = this.focused();
-    if (!f) return;
+    if (!f || this.mode() !== 'days') return;
     const steps: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
     if (event.key in steps) {
       event.preventDefault();
