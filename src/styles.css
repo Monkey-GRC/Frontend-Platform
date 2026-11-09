@@ -637,3 +637,31 @@ textarea::placeholder {
     transform: translateX(300%);
   }
 }
+
+/* Tablas que se apilan en tarjetas por debajo de lg: cada celda con `data-label` lleva su rótulo encima (la tabla de datos compartida, por ejemplo). */
+@media (max-width: 1023.98px) {
+  td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-gray-500, #6b7280);
+  }
+}
+
+/* Lo mismo para las tablas que se apilan hasta 2xl (activos descubiertos): se les pone la clase `stack-2xl`. */
+@media (max-width: 1535.98px) {
+  .stack-2xl td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-gray-500, #6b7280);
+  }
+}

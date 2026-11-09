@@ -76,7 +76,7 @@ export class DataTable<T> {
   }
 
   protected align(column: TableColumn<T>): string {
-    return column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left';
+    return column.align === 'right' ? 'lg:text-right' : column.align === 'center' ? 'lg:text-center' : 'text-left';
   }
 
   protected previous(): void {
