@@ -14,10 +14,10 @@ import { Invitation, InvitedMember, TeamFilters, TeamMember, TeamRole, TeamStatu
 import { GroupService } from '../../../domain/services/group.service';
 import { TeamService } from '../../../domain/services/team.service';
 import { InviteActor, TeamInviteForm } from '../../components/team-invite-form/team-invite-form';
-import { TeamGroups } from '../../components/team-groups/team-groups';
+import { TeamOrgChart } from '../../components/team-org-chart/team-org-chart';
 
 type Stage = 'loading' | 'error' | 'ready';
-type Tab = 'people' | 'groups';
+type Tab = 'people' | 'org';
 type Pending = { kind: 'deactivate' | 'reset_mfa'; member: TeamMember };
 type Affiliation = '' | 'internal' | 'external';
 
@@ -34,11 +34,11 @@ const STATUS_FILTERS: readonly TeamStatus[] = ['active', 'pending', 'inactive'];
 
 // El equipo de la empresa (MD-197, D96, D102, D104). El administrador crea y gestiona a todos (responsables, delegados, auditores y otros administradores); el responsable ve a su equipo y
 // crea delegados para él. La invitación sale por correo (MD-190) y esta pantalla solo informa el resultado. Se retiraron el reparto por servicio y dimensión y las especialidades (MD-206).
-// Los grupos (crear, renombrar, ver sus personas y mover delegados, MD-198) viven en su pestaña, en `TeamGroups`.
+// El organigrama (quién depende de quién; crear y renombrar el equipo de un responsable y mover delegados, MD-198) vive en su pestaña, en `TeamOrgChart`: el cliente ya no maneja «grupos» a mano.
 // Falta (espera al Backend): la baja con aviso de controles asignados y corregir si un delegado es interno o externo (ambos en MD-191, aún fuera de develop).
 @Component({
   selector: 'app-team',
-  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DatePipe, DataTable, TableCell, TeamInviteForm, TeamGroups],
+  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DatePipe, DataTable, TableCell, TeamInviteForm, TeamOrgChart],
   templateUrl: './team.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -117,7 +117,7 @@ export class TeamView implements OnInit {
     });
   }
 
-  /** Se creó o renombró un grupo, o se movió a un delegado: los grupos (y quién está en cada uno) cambiaron. */
+  /** Se creó o renombró un equipo, o se movió a un delegado: los grupos (y quién está en cada uno) cambiaron. */
   onGroupsChanged(): void {
     this.reloadGroups();
     this.refresh();
@@ -196,6 +196,17 @@ export class TeamView implements OnInit {
     this.showInvitation(created.id, created.email, created.invitation);
     this.notice.set(this.translate.instant('TEAM.NOTICE.INVITED'));
     this.refresh();
+  }
+
+  /** El responsable recién creado ya tiene su equipo: los grupos cambiaron y el organigrama debe verlo. */
+  onTeamCreated(): void {
+    this.reloadGroups();
+  }
+
+  /** La persona se creó pero su equipo no: se dice y se manda al organigrama, donde se crea. `reason` es lo que dijo el servidor (ya traducido), si dijo algo. */
+  onTeamFailed(reason: string | null): void {
+    this.error.set([this.translate.instant('TEAM.ERROR.TEAM_NOT_CREATED'), reason].filter(Boolean).join(' '));
+    this.reloadGroups();
   }
 
   /** Reenvía la invitación (código nuevo por correo; el anterior deja de servir). Sirve para una cuenta `pending`, también cuando el primer envío falló. */

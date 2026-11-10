@@ -4,6 +4,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { Group } from '../../../domain/models/group.models';
 import { InvitedMember, TeamMember } from '../../../domain/models/team.models';
+import { GroupService } from '../../../domain/services/group.service';
 import { TeamService } from '../../../domain/services/team.service';
 import { InviteActor, TeamInviteForm } from './team-invite-form';
 
@@ -11,7 +12,6 @@ const group = (over: Partial<Group>): Group => ({ id: 'g1', name: 'Grupo', kind:
 const TEAM_MARIA = group({ id: 'team-maria', name: 'Equipo de María' });
 const TEAM_PEDRO = group({ id: 'team-pedro', name: 'Equipo de Pedro', leader: { id: 'r2', name: 'Pedro', last_name: 'Ruiz', role: 'responsable' } });
 const RESPONSABLES = group({ id: 'resp', name: 'Responsables', kind: 'responsables', leader: { id: 'a1', name: 'Ada', last_name: 'Admin', role: 'admin_empresa' } });
-const RESPONSABLES_IA = group({ id: 'resp-ia', name: 'Responsables - Servicio IA', kind: 'responsables', leader: { id: 'a1', name: 'Ada', last_name: 'Admin', role: 'admin_empresa' } });
 
 const member = (over: Partial<TeamMember>): TeamMember => ({
   id: 'u0', email: 'x@acme.co', name: 'Persona', last_name: 'Prueba', role: 'delegado', status: 'active', is_mfa_enabled: true, last_login_at: null, created_at: '2026-11-01T00:00:00Z', ...over,
@@ -20,12 +20,15 @@ const created = (over: Partial<InvitedMember> = {}): InvitedMember => ({ ...memb
 
 describe('TeamInviteForm (MD-197, D102, D104)', () => {
   let api: jasmine.SpyObj<TeamService>;
+  let groupApi: jasmine.SpyObj<GroupService>;
   let fixture: ComponentFixture<TeamInviteForm>;
 
   function setup(actor: InviteActor, groups: Group[] = [], members: TeamMember[] = []): TeamInviteForm {
     api = jasmine.createSpyObj<TeamService>('TeamService', ['invite']);
     api.invite.and.returnValue(of(created()));
-    TestBed.configureTestingModule({ imports: [TeamInviteForm], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: TeamService, useValue: api }] });
+    groupApi = jasmine.createSpyObj<GroupService>('GroupService', ['create']);
+    groupApi.create.and.returnValue(of(TEAM_MARIA));
+    TestBed.configureTestingModule({ imports: [TeamInviteForm], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: TeamService, useValue: api }, { provide: GroupService, useValue: groupApi }] });
     fixture = TestBed.createComponent(TeamInviteForm);
     fixture.componentRef.setInput('actor', actor);
     fixture.componentRef.setInput('groups', groups);
@@ -81,23 +84,74 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(api.invite).toHaveBeenCalledWith({ email: 'otra@acme.co', name: 'Juan', last_name: 'Pérez', role: 'admin_empresa' });
     });
 
-    it('creates an owner in the default group when there is only one group of owners (nothing to choose)', () => {
-      setup('admin_empresa', [RESPONSABLES]);
+    it('creating a responsible also creates their team, so nobody creates groups apart: it never asks for a group', () => {
+      const component = setup('admin_empresa', [RESPONSABLES]);
+      const teamCreated = jasmine.createSpy('teamCreated');
+      component.teamCreated.subscribe(teamCreated);
       fillPerson();
       expect(el().querySelector('[data-test-responsables-group]')).toBeNull();
       click('[data-test-invite]');
       expect(api.invite).toHaveBeenCalledWith({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'responsable' });
+      // el equipo lo crea el administrador por él: sale con el responsable recién creado como líder
+      expect(groupApi.create).toHaveBeenCalledOnceWith({ name: jasmine.stringContaining('DEFAULT_TEAM_NAME'), leader_id: 'new' });
+      expect(teamCreated).toHaveBeenCalledTimes(1);
     });
 
-    it('lets the administrator choose the group of owners once there is more than one, and sends it only when chosen', () => {
-      setup('admin_empresa', [RESPONSABLES, RESPONSABLES_IA]);
+    it('uses the team name that was typed, and leaves it empty by default', () => {
+      setup('admin_empresa', [RESPONSABLES]);
+      expect(q<HTMLInputElement>('[data-test-team-name]').value).toBe('');
       fillPerson();
-      expect(q('[data-test-responsables-group]')).not.toBeNull();
-      type('[data-test-responsables-group]', 'resp-ia');
+      type('[data-test-team-name]', '  Seguridad Cloud ');
       click('[data-test-invite]');
-      expect(api.invite).toHaveBeenCalledWith({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'responsable', group_id: 'resp-ia' });
+      expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Seguridad Cloud', leader_id: 'new' });
+      expect(q<HTMLInputElement>('[data-test-team-name]').value).toBe(''); // el formulario queda limpio
     });
 
+    it('asks for a team name only for a responsible, and creates no team for any other role', () => {
+      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
+      for (const role of ['delegado', 'auditor', 'admin_empresa']) {
+        type('[data-test-role]', role);
+        expect(el().querySelector('[data-test-team-name]')).toBeNull();
+      }
+      type('[data-test-role]', 'auditor');
+      fillPerson();
+      click('[data-test-invite]');
+      expect(groupApi.create).not.toHaveBeenCalled();
+    });
+
+    it('an owner creating a delegate never creates a team', () => {
+      setup('responsable', [TEAM_MARIA]);
+      expect(el().querySelector('[data-test-team-name]')).toBeNull();
+      fillPerson();
+      click('[data-test-internal]');
+      click('[data-test-invite]');
+      expect(groupApi.create).not.toHaveBeenCalled();
+    });
+
+    it('when the default team name is already used by another team, tries again with the email at the end', () => {
+      setup('admin_empresa', [RESPONSABLES]);
+      const taken = new HttpErrorResponse({ status: 409, error: { message: 'Ese nombre ya existe.', error: { code: 'GROUP_NAME_TAKEN' } } });
+      groupApi.create.and.returnValues(throwError(() => taken), of(TEAM_MARIA));
+      fillPerson();
+      click('[data-test-invite]');
+      expect(groupApi.create).toHaveBeenCalledTimes(2);
+      expect(groupApi.create.calls.argsFor(1)[0].name).toContain('(new@acme.co)'.replace('new', 'juan'));
+    });
+
+    it('when the person was created but the team was not, still tells the parent who was created and why the team failed', () => {
+      const component = setup('admin_empresa', [RESPONSABLES]);
+      const invited = jasmine.createSpy('invited');
+      const failed = jasmine.createSpy('failed');
+      component.invited.subscribe(invited);
+      component.teamFailed.subscribe(failed);
+      groupApi.create.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Ese nombre ya existe.', error: { code: 'GROUP_NAME_TAKEN' } } })));
+      fillPerson();
+      type('[data-test-team-name]', 'Seguridad'); // un nombre escrito a mano no se cambia solo
+      click('[data-test-invite]');
+      expect(invited).toHaveBeenCalledTimes(1);
+      expect(groupApi.create).toHaveBeenCalledTimes(1);
+      expect(failed).toHaveBeenCalledOnceWith('Ese nombre ya existe.');
+    });
     it('for a delegate asks whether it is internal or external, and the team (D104: it must already exist), before enabling the button', () => {
       setup('admin_empresa', [RESPONSABLES, TEAM_MARIA, TEAM_PEDRO]);
       type('[data-test-role]', 'delegado');
