@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { Invitation, InviteDto, InvitedMember, TeamFilters, TeamMember, TeamPage, UpdateMemberDto } from '../models/team.models';
@@ -20,6 +20,15 @@ export class TeamService {
     if (filters.groupId) params = params.set('group_id', filters.groupId);
     if (filters.isInternal !== null && filters.isInternal !== undefined) params = params.set('is_internal', filters.isInternal);
     return this.http.get<SuccessResponse<TeamPage>>(this.usersUrl, { params }).pipe(map((r) => r.data!));
+  }
+
+  /** Todo el equipo visible, para dibujar el organigrama (que no se pagina): pide páginas de 100 hasta tenerlo todo. Una empresa tiene pocas personas; el tope evita un ciclo largo. */
+  listAll(): Observable<TeamMember[]> {
+    const MAX_PAGES = 10;
+    return this.list({}, 1, 100).pipe(
+      expand((first) => (first.page < Math.min(first.total_pages, MAX_PAGES) ? this.list({}, first.page + 1, 100) : EMPTY)),
+      reduce((all, page) => [...all, ...page.items], [] as TeamMember[]),
+    );
   }
 
   /** Crea la cuenta y manda la invitación por correo; la respuesta dice si el correo salió (`invitation`), nunca trae el código. */

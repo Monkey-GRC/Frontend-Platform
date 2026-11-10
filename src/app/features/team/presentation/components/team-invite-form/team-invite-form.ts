@@ -3,6 +3,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorCode, apiErrorData, apiErrorMessage } from '@core/domain/utils/api-error';
 import { Group } from '../../../domain/models/group.models';
 import { InviteDto, InvitedMember, TeamActor, TeamMember, TeamRole } from '../../../domain/models/team.models';
+import { GroupService } from '../../../domain/services/group.service';
 import { TeamService } from '../../../domain/services/team.service';
 
 export type InviteActor = TeamActor;
@@ -15,7 +16,8 @@ const CREATABLE: Record<InviteActor, readonly TeamRole[]> = {
 };
 
 // Dar de alta a una persona del equipo (MD-197, contracts/gestion-usuarios.md → «POST /v1/users»). La cuenta nace «pendiente» y la invitación con su código sale por correo:
-// aquí solo se avisa si el correo salió. Un delegado necesita un equipo (D104): el administrador elige el de un responsable; el responsable usa el suyo.
+// aquí solo se avisa si el correo salió. Un delegado necesita un equipo (D104): el administrador elige con qué responsable trabaja (por dentro, el equipo de ese responsable); el responsable usa el suyo.
+// Al crear a un responsable se crea también su equipo (D104: lo crea el administrador por él), con el nombre que se escriba o «Equipo de <nombre>»: así nadie tiene que crear grupos aparte.
 @Component({
   selector: 'app-team-invite-form',
   imports: [TranslatePipe],
@@ -24,6 +26,7 @@ const CREATABLE: Record<InviteActor, readonly TeamRole[]> = {
 })
 export class TeamInviteForm {
   private readonly api = inject(TeamService);
+  private readonly groupApi = inject(GroupService);
   private readonly translate = inject(TranslateService);
 
   readonly actor = input.required<InviteActor>();
@@ -40,6 +43,10 @@ export class TeamInviteForm {
   readonly fixName = output<TeamMember>();
   /** Un delegado necesita un equipo que aún no existe: se pidió ir a crearlo en la pestaña de grupos. */
   readonly manageGroups = output<void>();
+  /** La persona se creó pero su equipo no (el nombre ya existe, un corte…): quien muestra la pantalla lo dice y deja crearlo desde el organigrama. Trae el motivo si el servidor lo dio. */
+  readonly teamFailed = output<string | null>();
+  /** El equipo del responsable ya existe: la pantalla vuelve a pedir los grupos. */
+  readonly teamCreated = output<void>();
 
   readonly email = signal('');
   readonly name = signal('');
@@ -48,6 +55,8 @@ export class TeamInviteForm {
   /** `null` = sin elegir: para un delegado es obligatorio. */
   readonly isInternal = signal<boolean | null>(null);
   readonly groupId = signal('');
+  /** Solo al crear un responsable: cómo se llamará su equipo. Vacío = «Equipo de <su nombre>». */
+  readonly teamName = signal('');
   readonly saving = signal(false);
   readonly emailError = signal<string | null>(null);
   readonly error = signal<string | null>(null);
@@ -59,10 +68,8 @@ export class TeamInviteForm {
   });
 
   readonly teams = computed(() => this.groups().filter((g) => g.kind === 'team'));
-  private readonly responsablesGroups = computed(() => this.groups().filter((g) => g.kind === 'responsables'));
-  /** El grupo de responsables solo se pregunta cuando hay más de uno: con uno solo, el de siempre («Responsables»), no hay nada que elegir. */
-  readonly showResponsablesGroup = computed(() => this.actor() === 'admin_empresa' && this.role() === 'responsable' && this.responsablesGroups().length > 1);
-  readonly responsablesGroupOptions = this.responsablesGroups;
+  /** Para pedir el nombre del equipo: el administrador, al crear a un responsable. */
+  readonly showTeamName = computed(() => this.actor() === 'admin_empresa' && this.role() === 'responsable');
   readonly showTeamPick = computed(() => this.actor() === 'admin_empresa' && this.role() === 'delegado' && this.teams().length > 0);
   /** Un delegado no existe sin equipo (D104): sin equipo al que añadirlo, no se puede crear. */
   readonly noTeam = computed(() => this.groupsLoaded() && this.role() === 'delegado' && this.teams().length === 0);
@@ -87,6 +94,7 @@ export class TeamInviteForm {
     this.chosenRole.set(role as TeamRole);
     this.isInternal.set(null);
     this.groupId.set('');
+    this.teamName.set('');
     this.error.set(null);
   }
 
@@ -110,24 +118,43 @@ export class TeamInviteForm {
     if (role === 'delegado') {
       body.is_internal = this.isInternal() as boolean;
       if (this.actor() === 'admin_empresa') body.group_id = this.groupId();
-    } else if (this.showResponsablesGroup() && this.groupId()) {
-      body.group_id = this.groupId();
     }
     this.saving.set(true);
     this.error.set(null);
     this.api.invite(body).subscribe({
       next: (created) => {
+        const teamRequest = role === 'responsable' && this.actor() === 'admin_empresa' ? { person: this.personName(created), email: created.email, typed: this.teamName().trim() } : null;
         this.saving.set(false);
         this.email.set('');
         this.name.set('');
         this.lastName.set('');
         this.isInternal.set(null);
         this.groupId.set('');
+        this.teamName.set('');
         this.invited.emit(created);
+        if (teamRequest) this.createTeamFor(created.id, teamRequest);
       },
       error: (e) => {
         this.saving.set(false);
         this.fail(e);
+      },
+    });
+  }
+
+  /** El equipo del responsable recién creado. Si el nombre por omisión ya lo usa otro equipo, se vuelve a intentar con el correo al final; si fue un nombre escrito a mano, se avisa. */
+  private createTeamFor(leaderId: string, req: { person: string; email: string; typed: string }): void {
+    const base = req.typed || this.translate.instant('TEAM.ORG.DEFAULT_TEAM_NAME', { name: req.person });
+    this.groupApi.create({ name: base.slice(0, 100), leader_id: leaderId }).subscribe({
+      next: () => this.teamCreated.emit(),
+      error: (e) => {
+        if (!req.typed && apiErrorCode(e) === 'GROUP_NAME_TAKEN') {
+          this.groupApi.create({ name: `${base} (${req.email})`.slice(0, 100), leader_id: leaderId }).subscribe({
+            next: () => this.teamCreated.emit(),
+            error: (e2) => this.teamFailed.emit(apiErrorMessage(e2, '') || null),
+          });
+          return;
+        }
+        this.teamFailed.emit(apiErrorMessage(e, '') || null);
       },
     });
   }

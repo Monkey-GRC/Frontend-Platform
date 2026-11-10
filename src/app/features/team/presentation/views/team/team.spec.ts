@@ -34,8 +34,9 @@ describe('TeamView (MD-197, D96, D102)', () => {
   let fixture: ComponentFixture<TeamView>;
 
   function setup(members: TeamMember[] = [ME, OTHER_ADMIN, ANA, DELEGATE, PENDING], role = 'admin_empresa', groups: Group[] = GROUPS, groups$?: Observable<Group[]>): void {
-    api = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'invite', 'update', 'resendInvitation', 'resetMfa']);
+    api = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'listAll', 'invite', 'update', 'resendInvitation', 'resetMfa']);
     api.list.and.returnValue(of(pageOf(members)));
+    api.listAll.and.returnValue(of(members));
     groupApi = jasmine.createSpyObj<GroupService>('GroupService', ['list']);
     groupApi.list.and.returnValue(groups$ ?? of(groups));
     TestBed.configureTestingModule({
@@ -76,11 +77,11 @@ describe('TeamView (MD-197, D96, D102)', () => {
       expect(row('ana@acme.co').textContent).toContain('TEAM.LIST.NEVER'); // nunca ha ingresado
     });
 
-    it('has two tabs, people and groups, and no work split by service and dimension (D102): it only loads the people and the groups', () => {
+    it('has two tabs, people and org chart, and no work split by service and dimension (D102): it only loads the people and the groups', () => {
       setup();
       expect(el().querySelectorAll('[role="tab"]').length).toBe(2);
       expect(q('[data-test-tab-people]').getAttribute('aria-selected')).toBe('true');
-      expect(el().querySelector('app-team-groups')).toBeNull();
+      expect(el().querySelector('app-team-org-chart')).toBeNull();
       expect(api.list).toHaveBeenCalledTimes(1);
       expect(groupApi.list).toHaveBeenCalledTimes(1);
     });
@@ -230,33 +231,34 @@ describe('TeamView (MD-197, D96, D102)', () => {
     });
   });
 
-  describe('groups tab (MD-198)', () => {
-    it('shows the groups instead of the people and goes back, keeping the people loaded', () => {
+  describe('org chart tab (MD-198, D102, D104)', () => {
+    it('shows the org chart instead of the people and goes back, keeping the people loaded', () => {
       setup();
-      click('[data-test-tab-groups]');
-      expect(q('[data-test-tab-groups]').getAttribute('aria-selected')).toBe('true');
-      expect(q('app-team-groups')).not.toBeNull();
+      click('[data-test-tab-org]');
+      expect(q('[data-test-tab-org]').getAttribute('aria-selected')).toBe('true');
+      expect(q('app-team-org-chart')).not.toBeNull();
       expect(el().querySelector('app-team-invite-form')).toBeNull();
       expect(el().querySelector('app-data-table')).toBeNull();
-      expect(q('app-team-groups').textContent).toContain('Equipo de Ana');
+      expect(q('app-team-org-chart').textContent).toContain('Equipo de Ana');
+      expect(api.listAll).toHaveBeenCalledTimes(1);
       click('[data-test-tab-people]');
-      expect(el().querySelector('app-team-groups')).toBeNull();
+      expect(el().querySelector('app-team-org-chart')).toBeNull();
       expect(q('app-team-invite-form')).not.toBeNull();
-      expect(api.list.calls.allArgs().filter(([filters]) => filters?.role === 'responsable').length).toBe(1); // solo lo pidió la pestaña de grupos
+      expect(api.list).toHaveBeenCalledTimes(1); // las personas no se volvieron a pedir al cambiar de pestaña
     });
 
     it('names the tab for the owner as their own team', () => {
       setup([DELEGATE], 'responsable', [GROUPS[1]]);
-      expect(q('[data-test-tab-groups]').textContent).toContain('TEAM.TABS.GROUPS_OWN');
+      expect(q('[data-test-tab-org]').textContent).toContain('TEAM.TABS.GROUPS_OWN');
       TestBed.resetTestingModule();
       setup();
-      expect(q('[data-test-tab-groups]').textContent).toContain('TEAM.TABS.GROUPS');
-      expect(q('[data-test-tab-groups]').textContent).not.toContain('GROUPS_OWN');
+      expect(q('[data-test-tab-org]').textContent).toContain('TEAM.TABS.GROUPS');
+      expect(q('[data-test-tab-org]').textContent).not.toContain('GROUPS_OWN');
     });
 
-    it('asks again for the groups and the people when something changes in the groups tab', () => {
+    it('asks again for the groups and the people when something changes in the org chart', () => {
       setup();
-      click('[data-test-tab-groups]');
+      click('[data-test-tab-org]');
       const groupCalls = groupApi.list.calls.count();
       const peopleCalls = api.list.calls.count();
       fixture.componentInstance.onGroupsChanged();
@@ -264,47 +266,41 @@ describe('TeamView (MD-197, D96, D102)', () => {
       expect(api.list.calls.count()).toBe(peopleCalls + 1);
     });
 
-    it('sends the administrator to the groups tab from the warning that a delegate needs a team', () => {
+    it('sends the administrator to the org chart from the warning that a delegate needs a team', () => {
       setup([ME], 'admin_empresa', [GROUPS[0]]);
       type('[data-test-role]', 'delegado');
       click('[data-test-go-groups]');
-      expect(q('app-team-groups')).not.toBeNull();
+      expect(q('app-team-org-chart')).not.toBeNull();
     });
 
-    it('does not say «no team» nor offer to create one while the groups are still arriving (they load apart from the people)', () => {
+    it('does not say «no team» while the groups are still arriving (they load apart from the people)', () => {
       const arriving = new Subject<Group[]>();
       setup([ME], 'admin_empresa', [], arriving);
       type('[data-test-role]', 'delegado');
       expect(el().querySelector('[data-test-no-team]')).toBeNull();
-      click('[data-test-tab-groups]');
-      expect(q('[data-test-groups-loading]')).not.toBeNull();
-      expect(el().querySelector('[data-test-groups-empty]')).toBeNull();
       arriving.next([]);
       arriving.complete();
       fixture.detectChanges();
-      expect(el().querySelector('[data-test-groups-loading]')).toBeNull();
-      expect(q('[data-test-groups-empty]')).not.toBeNull();
+      expect(q('[data-test-no-team]')).not.toBeNull();
     });
 
-    it('does not offer the owner to create a team that may already exist until the groups arrived', () => {
-      const arriving = new Subject<Group[]>();
-      setup([DELEGATE], 'responsable', [], arriving);
-      click('[data-test-tab-groups]');
-      expect(el().querySelector('[data-test-create-own]')).toBeNull();
-      arriving.next([GROUPS[1]]); // ya tenía equipo
-      arriving.complete();
+    it('when a responsible was created but their team was not, says it and asks the groups again', () => {
+      setup();
+      const before = groupApi.list.calls.count();
+      fixture.componentInstance.onTeamFailed('Ese nombre ya existe.');
       fixture.detectChanges();
-      expect(el().querySelector('[data-test-create-own]')).toBeNull();
-      expect(q('[data-test-group="team-ana"]')).not.toBeNull();
+      expect(q('[role="alert"]').textContent).toContain('TEAM.ERROR.TEAM_NOT_CREATED');
+      expect(q('[role="alert"]').textContent).toContain('Ese nombre ya existe.');
+      expect(groupApi.list.calls.count()).toBe(before + 1);
     });
 
-    it('lets the owner create their team from their tab', () => {
-      setup([], 'responsable', []);
-      click('[data-test-tab-groups]');
-      expect(q('[data-test-create-own]')).not.toBeNull();
+    it('when the team of the new responsible exists, asks the groups again so the org chart sees it', () => {
+      setup();
+      const before = groupApi.list.calls.count();
+      fixture.componentInstance.onTeamCreated();
+      expect(groupApi.list.calls.count()).toBe(before + 1);
     });
   });
-
   describe('the invitation goes out by email (MD-190)', () => {
     it('after creating someone, says the invitation was sent, without showing any code, and asks the list again', () => {
       setup();

@@ -56,17 +56,17 @@
       class="-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition" [class]="tab() === 'people' ? 'border-primary text-primary' : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300'">
       {{ 'TEAM.TABS.PEOPLE' | translate }}
     </button>
-    <button type="button" role="tab" [attr.aria-selected]="tab() === 'groups'" (click)="tab.set('groups')" data-test-tab-groups
-      class="-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition" [class]="tab() === 'groups' ? 'border-primary text-primary' : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300'">
+    <button type="button" role="tab" [attr.aria-selected]="tab() === 'org'" (click)="tab.set('org')" data-test-tab-org
+      class="-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition" [class]="tab() === 'org' ? 'border-primary text-primary' : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-300'">
       {{ (canManage() ? 'TEAM.TABS.GROUPS' : 'TEAM.TABS.GROUPS_OWN') | translate }}
     </button>
   </div>
 
-  @if (tab() === 'groups') {
-  <app-team-groups [actor]="actor()" [groups]="groups()" [loaded]="groupsLoaded()" (changed)="onGroupsChanged()" />
+  @if (tab() === 'org') {
+  <app-team-org-chart [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" (changed)="onGroupsChanged()" />
   } @else {
 
-  <app-team-invite-form [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" [members]="members()" (invited)="onInvited($event)" (fixName)="startNameEdit($event)" (manageGroups)="tab.set('groups')" />
+  <app-team-invite-form [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" [members]="members()" (invited)="onInvited($event)" (fixName)="startNameEdit($event)" (manageGroups)="tab.set('org')" (teamCreated)="onTeamCreated()" (teamFailed)="onTeamFailed($event)" />
 
   <!-- Filtros: los pide el servidor, así que valen para todas las páginas -->
   <div class="mt-4 flex flex-wrap items-end gap-3" role="group" [attr.aria-label]="'TEAM.FILTERS.TITLE' | translate">

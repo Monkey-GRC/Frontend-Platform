@@ -68,19 +68,14 @@
     </label>
     }
 
-    @if (showResponsablesGroup()) {
+    @if (showTeamName()) {
     <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-      {{ 'TEAM.INVITE.RESPONSABLES_GROUP' | translate }}
-      <select data-test-responsables-group (change)="groupId.set($any($event.target).value)" [disabled]="saving()"
-        class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-        <option value="" [selected]="!groupId()">{{ 'TEAM.INVITE.RESPONSABLES_GROUP_DEFAULT' | translate }}</option>
-        @for (g of responsablesGroupOptions(); track g.id) {
-        <option [value]="g.id" [selected]="groupId() === g.id">{{ g.name }}</option>
-        }
-      </select>
+      {{ 'TEAM.INVITE.TEAM_NAME' | translate }}
+      <input type="text" data-test-team-name maxlength="100" autocomplete="off" [value]="teamName()" (input)="teamName.set($any($event.target).value)" [disabled]="saving()"
+        class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+      <span class="text-xs font-normal text-gray-600 dark:text-gray-300">{{ 'TEAM.INVITE.TEAM_NAME_HELP' | translate }}</span>
     </label>
     }
-
     <div class="flex items-end md:col-start-2">
       <button type="submit" [disabled]="!canSubmit()" data-test-invite
         class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50">
