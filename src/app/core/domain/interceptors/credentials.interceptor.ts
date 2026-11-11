@@ -19,7 +19,12 @@ export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Auth por cookie httpOnly: el navegador la adjunta, el código nunca toca los tokens.
   // `Accept-Language` lleva el idioma elegido para que el backend responda en ese idioma.
-  const authReq = req.clone({ withCredentials: true, setHeaders: { 'Accept-Language': storedLanguage() } });
+  // `X-Monkey-Client` elige qué juego de cookies usa el servidor para que Admin y Platform convivan en un mismo
+  // navegador; no autentica nada.
+  const authReq = req.clone({
+    withCredentials: true,
+    setHeaders: { 'Accept-Language': storedLanguage(), 'X-Monkey-Client': 'platform' },
+  });
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
