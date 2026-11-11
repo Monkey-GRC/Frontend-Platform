@@ -1,64 +1,50 @@
 <section class="w-full pb-10">
-<div class="mk-card p-5 md:p-6 lg:flex lg:min-h-[calc(100dvh-10rem)] lg:flex-col">
+<div class="lg:flex lg:min-h-[calc(100dvh-10rem)] lg:flex-col">
 
   @switch (stage()) {
 
   <!-- ===================== Cargando ===================== -->
   @case ('loading') {
   <div class="space-y-4 animate-pulse" aria-busy="true" [attr.aria-label]="'COMMON.LOADING' | translate">
-    <div class="h-4 w-40 rounded bg-gray-200 dark:bg-gray-800"></div>
-    <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800"></div>
+    <div class="h-4 w-40 rounded bg-tint-strong"></div>
+    <div class="h-2 w-full rounded-full bg-tint-strong"></div>
     <div class="py-8">
-      <div class="h-7 w-2/3 rounded bg-gray-200 dark:bg-gray-800"></div>
-      <div class="mt-3 h-4 w-1/2 rounded bg-gray-100 dark:bg-gray-800/60"></div>
-      <div class="mt-5 h-28 rounded-xl bg-gray-100 dark:bg-gray-800/60"></div>
+      <div class="h-7 w-2/3 rounded bg-tint-strong"></div>
+      <div class="mt-3 h-4 w-1/2 rounded bg-canvas"></div>
+      <div class="mt-5 h-28 rounded-control bg-canvas"></div>
     </div>
   </div>
   }
 
   <!-- ===================== Error al cargar ===================== -->
   @case ('error') {
-  <div class="py-12 text-center">
-    <span class="material-symbols-rounded text-4xl text-gray-400">cloud_off</span>
-    <h1 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.LOAD_ERROR_TITLE' | translate }}</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ 'ONBOARDING.LOAD_ERROR_BODY' | translate }}
-    </p>
-    <button type="button" (click)="load()"
-      class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 transition">
-      <span class="material-symbols-rounded text-[18px]">refresh</span>
-      {{ 'COMMON.RETRY' | translate }}
-    </button>
-  </div>
+  <app-empty-state icon="" titleKey="ONBOARDING.LOAD_ERROR_TITLE" descriptionKey="ONBOARDING.LOAD_ERROR_BODY">
+    <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
   }
 
   <!-- ===================== Asistente ===================== -->
   @default {
+  @if (catalogs(); as cat) {
 
   @if (step() < reviewStep) {
   <!-- Encabezado: dónde va y cuánto falta -->
   <header class="mb-4">
     <div class="flex items-center justify-between text-sm">
-      <span class="font-medium text-gray-900 dark:text-white">{{ 'ONBOARDING.STEP_OF' | translate: { current: step() + 1, total: steps.length } }}</span>
-      <span class="text-gray-400">{{ steps[step()].labelKey | translate }}</span>
+      <span class="font-medium text-ink">{{ 'ONBOARDING.STEP_OF' | translate: { current: step() + 1, total: steps.length } }}</span>
+      <span class="text-ink-faint">{{ steps[step()].labelKey | translate }}</span>
     </div>
-    <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800" role="progressbar"
+    <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-tint-strong" role="progressbar"
       [attr.aria-valuenow]="step() + 1" aria-valuemin="1" [attr.aria-valuemax]="steps.length">
-      <div class="h-full rounded-full bg-primary transition-all duration-500"
+      <div class="h-full rounded-full bg-action transition-all duration-500"
         [style.width.%]="((step() + 1) / steps.length) * 100"></div>
     </div>
     <ol class="mt-4 hidden justify-between sm:flex">
       @for (s of steps; track s.key; let i = $index) {
-      <li class="flex items-center gap-2 text-xs"
-        [class]="i === step() ? 'font-semibold text-primary' : i < step() ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'">
-        <span class="flex h-6 w-6 items-center justify-center rounded-full border text-[11px]"
-          [class]="i < step() ? 'border-primary bg-primary text-white' : i === step() ? 'border-primary text-primary' : 'border-gray-300 dark:border-gray-700'">
-          @if (i < step()) {
-          <span class="material-symbols-rounded text-[14px]">check</span>
-          } @else {
-          {{ i + 1 }}
-          }
-        </span>
+      <li class="flex items-center gap-2 text-xs" [attr.aria-current]="i === step() ? 'step' : null"
+        [class]="i === step() ? 'font-semibold text-action' : i < step() ? 'text-ink' : 'text-ink-faint'">
+        <span class="flex h-6 w-6 items-center justify-center rounded-control border text-[11px]"
+          [class]="i < step() ? 'border-action bg-action text-white' : i === step() ? 'border-action bg-tint text-tint-ink' : 'border-line'">{{ i + 1 }}</span>
         {{ s.labelKey | translate }}
       </li>
       }
@@ -74,36 +60,32 @@
 
       <!-- ---------- 1. Tu empresa ---------- -->
       @case (0) {
-      <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <span class="material-symbols-rounded">apartment</span>
-      </span>
-      <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S1_TITLE' | translate }}</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'ONBOARDING.S1_BODY' | translate }}</p>
+      <h1 class="mt-4 text-2xl font-semibold text-ink">{{ 'ONBOARDING.S1_TITLE' | translate }}</h1>
+      <p class="mt-1 text-sm text-ink-faint">{{ 'ONBOARDING.S1_BODY' | translate }}</p>
 
       <div class="mt-5 flex flex-col gap-7 lg:grow-100">
         <div>
-          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'ONBOARDING.LEGAL_NAME' | translate }}</label>
+          <label for="legal-name" class="mb-2 block text-sm font-medium text-ink-muted">{{ 'ONBOARDING.LEGAL_NAME' | translate }}</label>
           <div class="relative">
-            <span class="material-symbols-rounded pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-gray-400">lock</span>
-            <input type="text" [value]="companyName()" readonly tabindex="-1"
-              class="h-12 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 pl-11 pr-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400" />
+            <input id="legal-name" type="text" [value]="companyName()" readonly tabindex="-1"
+              class="h-12 w-full cursor-not-allowed rounded-control border border-line bg-canvas px-3 text-sm text-ink-muted" />
           </div>
-          <p class="mt-1.5 text-xs text-gray-400">{{ 'ONBOARDING.LEGAL_NAME_HELP' | translate }}</p>
+          <p class="mt-1.5 text-xs text-ink-faint">{{ 'ONBOARDING.LEGAL_NAME_HELP' | translate }}</p>
         </div>
 
         <div class="flex flex-col lg:flex-1">
-          <label for="description" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.DESC_LABEL' | translate }} <span class="text-error-500">*</span>
+          <label for="description" class="mb-2 block text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.DESC_LABEL' | translate }} <span class="text-bad-ink">*</span>
           </label>
           <textarea id="description" rows="6" [value]="draft().description"
-            (input)="setDescription($any($event.target).value)"
+            (input)="setDescription(targetValue($event))"
             [placeholder]="'ONBOARDING.DESC_PLACEHOLDER' | translate"
-            class="min-h-40 w-full flex-1 resize-none rounded-lg border border-gray-300 bg-white p-4 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
+            class="min-h-40 w-full flex-1 resize-none rounded-control border border-line bg-surface p-4 text-sm text-ink placeholder:text-ink-faint focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"></textarea>
           <div class="mt-1.5 flex items-start justify-between gap-4 text-xs">
-            <span [class]="showHints() && !stepValid() ? 'text-error-500' : 'text-gray-400'">
+            <span [class]="showHints() && !stepValid() ? 'text-bad-ink' : 'text-ink-faint'">
               {{ (showHints() && !stepValid() ? 'ONBOARDING.DESC_ERROR' : 'ONBOARDING.DESC_HELP') | translate }}
             </span>
-            <span class="shrink-0 text-gray-400">{{ draft().description.length }} / {{ descriptionMax }}</span>
+            <span class="shrink-0 text-ink-faint">{{ draft().description.length }} / {{ descriptionMax }}</span>
           </div>
         </div>
       </div>
@@ -111,31 +93,28 @@
 
       <!-- ---------- 2. Tamaño ---------- -->
       @case (1) {
-      <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <span class="material-symbols-rounded">groups</span>
-      </span>
-      <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S2_TITLE' | translate }}</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'ONBOARDING.S2_BODY' | translate }}</p>
+      <h1 class="mt-4 text-2xl font-semibold text-ink">{{ 'ONBOARDING.S2_TITLE' | translate }}</h1>
+      <p class="mt-1 text-sm text-ink-faint">{{ 'ONBOARDING.S2_BODY' | translate }}</p>
 
       <div class="mt-5 space-y-5">
         <div>
-          <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.EMPLOYEES_LABEL' | translate }} <span class="text-error-500">*</span>
+          <p class="mb-3 text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.EMPLOYEES_LABEL' | translate }} <span class="text-bad-ink">*</span>
           </p>
-          <app-option-chips [options]="catalogs()!.size" [selected]="draft().size ? [draft().size!] : []"
+          <app-option-chips [options]="cat.size" [selected]="asList(draft().size)"
             [ariaLabel]="'ONBOARDING.EMPLOYEES_LABEL' | translate" (picked)="pick('size', $event)" />
           @if (showHints() && !draft().size) {
-          <p class="mt-2 text-xs text-error-500">{{ 'ONBOARDING.CHOOSE_ONE_HINT' | translate }}</p>
+          <p class="mt-2 text-xs text-bad-ink">{{ 'ONBOARDING.CHOOSE_ONE_HINT' | translate }}</p>
           }
         </div>
 
         <div>
-          <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.YEARS_LABEL' | translate }} <span class="font-normal text-gray-400">({{ 'COMMON.OPTIONAL' | translate }})</span>
+          <p class="mb-1 text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.YEARS_LABEL' | translate }} <span class="font-normal text-ink-faint">({{ 'COMMON.OPTIONAL' | translate }})</span>
           </p>
-          <p class="mb-3 text-xs text-gray-400">{{ 'COMMON.WIZARD.SKIP_HELP' | translate }}</p>
-          <app-option-chips [options]="catalogs()!.years"
-            [selected]="draft().years_in_operation ? [draft().years_in_operation!] : []"
+          <p class="mb-3 text-xs text-ink-faint">{{ 'COMMON.WIZARD.SKIP_HELP' | translate }}</p>
+          <app-option-chips [options]="cat.years"
+            [selected]="asList(draft().years_in_operation)"
             [ariaLabel]="'ONBOARDING.YEARS_ARIA' | translate" (picked)="pick('years_in_operation', $event)" />
         </div>
       </div>
@@ -143,33 +122,30 @@
 
       <!-- ---------- 3. Tu negocio ---------- -->
       @case (2) {
-      <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <span class="material-symbols-rounded">storefront</span>
-      </span>
-      <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S3_TITLE' | translate }}</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'ONBOARDING.S3_BODY' | translate }}</p>
+      <h1 class="mt-4 text-2xl font-semibold text-ink">{{ 'ONBOARDING.S3_TITLE' | translate }}</h1>
+      <p class="mt-1 text-sm text-ink-faint">{{ 'ONBOARDING.S3_BODY' | translate }}</p>
 
       <div class="mt-5 space-y-5">
         <div>
-          <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.INDUSTRY_LABEL' | translate }} <span class="text-error-500">*</span>
+          <p class="mb-3 text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.INDUSTRY_LABEL' | translate }} <span class="text-bad-ink">*</span>
           </p>
-          <app-option-chips [options]="catalogs()!.industry" [selected]="draft().industry ? [draft().industry!] : []"
+          <app-option-chips [options]="cat.industry" [selected]="asList(draft().industry)"
             [ariaLabel]="'ONBOARDING.INDUSTRY_ARIA' | translate" (picked)="pick('industry', $event)" />
           @if (showHints() && !draft().industry) {
-          <p class="mt-2 text-xs text-error-500">{{ 'ONBOARDING.INDUSTRY_HINT' | translate }}</p>
+          <p class="mt-2 text-xs text-bad-ink">{{ 'ONBOARDING.INDUSTRY_HINT' | translate }}</p>
           }
         </div>
 
         <div>
-          <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.MODEL_LABEL' | translate }} <span class="text-error-500">*</span>
+          <p class="mb-3 text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.MODEL_LABEL' | translate }} <span class="text-bad-ink">*</span>
           </p>
-          <app-option-chips [options]="catalogs()!.businessModel"
-            [selected]="draft().business_model ? [draft().business_model!] : []" [ariaLabel]="'ONBOARDING.MODEL_ARIA' | translate"
+          <app-option-chips [options]="cat.businessModel"
+            [selected]="asList(draft().business_model)" [ariaLabel]="'ONBOARDING.MODEL_ARIA' | translate"
             (picked)="pick('business_model', $event)" />
           @if (showHints() && !draft().business_model) {
-          <p class="mt-2 text-xs text-error-500">{{ 'ONBOARDING.MODEL_HINT' | translate }}</p>
+          <p class="mt-2 text-xs text-bad-ink">{{ 'ONBOARDING.MODEL_HINT' | translate }}</p>
           }
         </div>
       </div>
@@ -177,16 +153,13 @@
 
       <!-- ---------- 4. Alcance ---------- -->
       @case (3) {
-      <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <span class="material-symbols-rounded">public</span>
-      </span>
-      <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S4_TITLE' | translate }}</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'COMMON.WIZARD.MULTI_EACH' | translate }}</p>
+      <h1 class="mt-4 text-2xl font-semibold text-ink">{{ 'ONBOARDING.S4_TITLE' | translate }}</h1>
+      <p class="mt-1 text-sm text-ink-faint">{{ 'COMMON.WIZARD.MULTI_EACH' | translate }}</p>
 
       <div class="mt-5 space-y-5">
         <div>
-          <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.INCORP_LABEL' | translate }} <span class="text-error-500">*</span>
+          <p class="mb-3 text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.INCORP_LABEL' | translate }} <span class="text-bad-ink">*</span>
           </p>
           <app-option-chips [options]="incorporationMain()" [selected]="draft().incorporation_countries" [multiple]="true"
             [ariaLabel]="'ONBOARDING.INCORP_ARIA' | translate" (picked)="toggle('incorporation_countries', $event)" />
@@ -195,13 +168,13 @@
               [ariaLabel]="'ONBOARDING.INCORP_OTHER_ARIA' | translate" (picked)="toggle('incorporation_countries', $event)" />
           </div>
           @if (showHints() && draft().incorporation_countries.length === 0) {
-          <p class="mt-2 text-xs text-error-500">{{ 'ONBOARDING.COUNTRY_HINT' | translate }}</p>
+          <p class="mt-2 text-xs text-bad-ink">{{ 'ONBOARDING.COUNTRY_HINT' | translate }}</p>
           }
         </div>
 
         <div>
-          <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.CLIENT_LABEL' | translate }} <span class="text-error-500">*</span>
+          <p class="mb-3 text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.CLIENT_LABEL' | translate }} <span class="text-bad-ink">*</span>
           </p>
           <app-option-chips [options]="clientMain()" [selected]="draft().client_countries" [multiple]="true"
             [ariaLabel]="'ONBOARDING.CLIENT_ARIA' | translate" (picked)="toggle('client_countries', $event)" />
@@ -210,7 +183,7 @@
               [ariaLabel]="'ONBOARDING.CLIENT_OTHER_ARIA' | translate" (picked)="toggle('client_countries', $event)" />
           </div>
           @if (showHints() && draft().client_countries.length === 0) {
-          <p class="mt-2 text-xs text-error-500">{{ 'ONBOARDING.COUNTRY_HINT' | translate }}</p>
+          <p class="mt-2 text-xs text-bad-ink">{{ 'ONBOARDING.COUNTRY_HINT' | translate }}</p>
           }
         </div>
       </div>
@@ -218,34 +191,31 @@
 
       <!-- ---------- 5. Cumplimiento ---------- -->
       @case (4) {
-      <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <span class="material-symbols-rounded">verified_user</span>
-      </span>
-      <h1 class="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">{{ 'ONBOARDING.S5_TITLE' | translate }}</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'ONBOARDING.S5_BODY' | translate }}</p>
+      <h1 class="mt-4 text-2xl font-semibold text-ink">{{ 'ONBOARDING.S5_TITLE' | translate }}</h1>
+      <p class="mt-1 text-sm text-ink-faint">{{ 'ONBOARDING.S5_BODY' | translate }}</p>
 
       <div class="mt-5 space-y-5">
         <div>
-          <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.MATURITY_LABEL' | translate }} <span class="text-error-500">*</span>
+          <p class="mb-3 text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.MATURITY_LABEL' | translate }} <span class="text-bad-ink">*</span>
           </p>
-          <app-option-chips [options]="catalogs()!.maturity"
-            [selected]="draft().compliance_maturity ? [draft().compliance_maturity!] : []" [ariaLabel]="'ONBOARDING.MATURITY_ARIA' | translate"
+          <app-option-chips [options]="cat.maturity"
+            [selected]="asList(draft().compliance_maturity)" [ariaLabel]="'ONBOARDING.MATURITY_ARIA' | translate"
             (picked)="pick('compliance_maturity', $event)" />
           @if (showHints() && !draft().compliance_maturity) {
-          <p class="mt-2 text-xs text-error-500">{{ 'ONBOARDING.CHOOSE_ONE_HINT' | translate }}</p>
+          <p class="mt-2 text-xs text-bad-ink">{{ 'ONBOARDING.CHOOSE_ONE_HINT' | translate }}</p>
           }
         </div>
 
         <div>
-          <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'ONBOARDING.REGULATIONS_LABEL' | translate }} <span class="text-error-500">*</span>
+          <p class="mb-1 text-sm font-medium text-ink-muted">
+            {{ 'ONBOARDING.REGULATIONS_LABEL' | translate }} <span class="text-bad-ink">*</span>
           </p>
-          <p class="mb-3 text-xs text-gray-400">{{ 'ONBOARDING.REGULATIONS_HELP' | translate }}</p>
+          <p class="mb-3 text-xs text-ink-faint">{{ 'ONBOARDING.REGULATIONS_HELP' | translate }}</p>
           <app-option-chips [options]="regulationChips()" [selected]="draft().regulation_codes" [multiple]="true"
             [ariaLabel]="'ONBOARDING.REGULATIONS_ARIA' | translate" (picked)="toggle('regulation_codes', $event)" />
           @if (showHints() && draft().regulation_codes.length === 0) {
-          <p class="mt-2 text-xs text-error-500">{{ 'ONBOARDING.REGULATIONS_HINT' | translate }}</p>
+          <p class="mt-2 text-xs text-bad-ink">{{ 'ONBOARDING.REGULATIONS_HINT' | translate }}</p>
           }
         </div>
       </div>
@@ -255,117 +225,114 @@
       @default {
       <!-- La ficha de la empresa: sin tarjeta, directamente sobre la página, con secciones y datos con su etiqueta -->
       <header class="flex items-center gap-4">
-        <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <span class="material-symbols-rounded text-2xl" aria-hidden="true">apartment</span>
-        </span>
         <div class="min-w-0">
-          <h1 class="truncate text-2xl font-semibold text-gray-900 dark:text-white">{{ companyName() }}</h1>
+          <h1 class="truncate text-2xl font-semibold text-ink">{{ companyName() }}</h1>
           @if (!alreadySaved()) {
-          <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">{{ 'ONBOARDING.REVIEW_TITLE' | translate }} · {{ 'ONBOARDING.REVIEW_BODY' | translate }}</p>
+          <p class="mt-0.5 text-sm text-ink-muted">{{ 'ONBOARDING.REVIEW_TITLE' | translate }} · {{ 'ONBOARDING.REVIEW_BODY' | translate }}</p>
           }
         </div>
       </header>
 
       <div class="mt-6 grid gap-4 md:grid-cols-2">
-        <section class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-900 md:col-span-2">
-          <header class="flex items-center justify-between gap-3 border-b px-4 py-2.5 border-blue-100 bg-blue-50/70 dark:border-blue-500/20 dark:bg-blue-500/10">
-            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-gray-900 dark:text-white">
-              <span class="flex size-7 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"><span class="material-symbols-rounded text-[18px]" aria-hidden="true">notes</span></span>{{ 'ONBOARDING.FIELD.DESCRIPTION' | translate }}
+        <section class="flex flex-col overflow-hidden rounded-control border border-line bg-surface md:col-span-2">
+          <header class="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
+              {{ 'ONBOARDING.FIELD.DESCRIPTION' | translate }}
             </h2>
             <button type="button" (click)="goTo(0)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.FIELD.DESCRIPTION' | translate)"
-              class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
+              class="text-sm font-medium text-action hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-action/50">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
-          <p class="whitespace-pre-line break-words p-4 text-sm leading-relaxed text-gray-900 dark:text-gray-100">{{ draft().description }}</p>
+          <p class="whitespace-pre-line break-words p-4 text-sm leading-relaxed text-ink">{{ draft().description }}</p>
         </section>
-        <section class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-900">
-          <header class="flex items-center justify-between gap-3 border-b px-4 py-2.5 border-violet-100 bg-violet-50/70 dark:border-violet-500/20 dark:bg-violet-500/10">
-            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-gray-900 dark:text-white">
-              <span class="flex size-7 items-center justify-center rounded-lg bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200"><span class="material-symbols-rounded text-[18px]" aria-hidden="true">groups</span></span>{{ 'ONBOARDING.STEPS.SIZE' | translate }}
+        <section class="flex flex-col overflow-hidden rounded-control border border-line bg-surface">
+          <header class="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
+              {{ 'ONBOARDING.STEPS.SIZE' | translate }}
             </h2>
             <button type="button" (click)="goTo(1)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.STEPS.SIZE' | translate)"
-              class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
+              class="text-sm font-medium text-action hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-action/50">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'ONBOARDING.FIELD.EMPLOYEES' | translate }}</dt>
-              <dd class="mt-1 text-sm font-medium text-gray-900 dark:text-white">{{ labelOf(catalogs()!.size, draft().size) }}</dd>
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.EMPLOYEES' | translate }}</dt>
+              <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.size, draft().size) }}</dd>
             </div>
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'ONBOARDING.FIELD.YEARS' | translate }}</dt>
-              <dd class="mt-1 text-sm font-medium text-gray-900 dark:text-white">{{ labelOf(catalogs()!.years, draft().years_in_operation) }}</dd>
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.YEARS' | translate }}</dt>
+              <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.years, draft().years_in_operation) }}</dd>
             </div>
           </dl>
         </section>
-        <section class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-900">
-          <header class="flex items-center justify-between gap-3 border-b px-4 py-2.5 border-amber-100 bg-amber-50/70 dark:border-amber-500/20 dark:bg-amber-500/10">
-            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-gray-900 dark:text-white">
-              <span class="flex size-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200"><span class="material-symbols-rounded text-[18px]" aria-hidden="true">storefront</span></span>{{ 'ONBOARDING.STEPS.BUSINESS' | translate }}
+        <section class="flex flex-col overflow-hidden rounded-control border border-line bg-surface">
+          <header class="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
+              {{ 'ONBOARDING.STEPS.BUSINESS' | translate }}
             </h2>
             <button type="button" (click)="goTo(2)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.STEPS.BUSINESS' | translate)"
-              class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
+              class="text-sm font-medium text-action hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-action/50">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'ONBOARDING.FIELD.INDUSTRY' | translate }}</dt>
-              <dd class="mt-1 text-sm font-medium text-gray-900 dark:text-white">{{ labelOf(catalogs()!.industry, draft().industry) }}</dd>
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.INDUSTRY' | translate }}</dt>
+              <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.industry, draft().industry) }}</dd>
             </div>
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'ONBOARDING.FIELD.MODEL' | translate }}</dt>
-              <dd class="mt-1 text-sm font-medium text-gray-900 dark:text-white">{{ labelOf(catalogs()!.businessModel, draft().business_model) }}</dd>
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.MODEL' | translate }}</dt>
+              <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.businessModel, draft().business_model) }}</dd>
             </div>
           </dl>
         </section>
-        <section class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-900">
-          <header class="flex items-center justify-between gap-3 border-b px-4 py-2.5 border-emerald-100 bg-emerald-50/70 dark:border-emerald-500/20 dark:bg-emerald-500/10">
-            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-gray-900 dark:text-white">
-              <span class="flex size-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200"><span class="material-symbols-rounded text-[18px]" aria-hidden="true">public</span></span>{{ 'ONBOARDING.STEPS.REACH' | translate }}
+        <section class="flex flex-col overflow-hidden rounded-control border border-line bg-surface">
+          <header class="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
+              {{ 'ONBOARDING.STEPS.REACH' | translate }}
             </h2>
             <button type="button" (click)="goTo(3)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.STEPS.REACH' | translate)"
-              class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
+              class="text-sm font-medium text-action hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-action/50">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'ONBOARDING.FIELD.INCORPORATION' | translate }}</dt>
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.INCORPORATION' | translate }}</dt>
               <dd class="mt-1.5">
-                <ul class="flex flex-wrap gap-1.5">
-                  @for (item of pills(catalogs()!.incorporation, draft().incorporation_countries); track item.value) {
-                  <li class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white py-1 pl-1.5 pr-2.5 text-xs font-medium text-gray-800 shadow-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">@if (item.flag) {<img [src]="'/images/flags/' + item.flag + '.svg'" alt="" width="16" height="16" class="size-4 rounded-full" />} @else if (item.symbol) {<span class="material-symbols-rounded text-[16px] leading-none text-gray-500" aria-hidden="true">{{ item.symbol }}</span>} {{ item.label }}</li>
-                  } @empty { <li class="text-sm font-medium text-gray-400">—</li> }
+                <ul class="flex flex-wrap gap-x-4 gap-y-1">
+                  @for (item of pills(cat.incorporation, draft().incorporation_countries); track item.value) {
+                  <li class="inline-flex items-center gap-1.5 text-sm font-medium text-ink">@if (item.flag) {<img [src]="'/images/flags/' + item.flag + '.svg'" alt="" width="16" height="16" class="size-4 rounded-full" />} {{ item.label }}</li>
+                  } @empty { <li class="text-sm font-medium text-ink-faint">—</li> }
                 </ul>
               </dd>
             </div>
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'ONBOARDING.FIELD.CLIENTS' | translate }}</dt>
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.CLIENTS' | translate }}</dt>
               <dd class="mt-1.5">
-                <ul class="flex flex-wrap gap-1.5">
-                  @for (item of pills(catalogs()!.client, draft().client_countries); track item.value) {
-                  <li class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white py-1 pl-1.5 pr-2.5 text-xs font-medium text-gray-800 shadow-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">@if (item.flag) {<img [src]="'/images/flags/' + item.flag + '.svg'" alt="" width="16" height="16" class="size-4 rounded-full" />} @else if (item.symbol) {<span class="material-symbols-rounded text-[16px] leading-none text-gray-500" aria-hidden="true">{{ item.symbol }}</span>} {{ item.label }}</li>
-                  } @empty { <li class="text-sm font-medium text-gray-400">—</li> }
+                <ul class="flex flex-wrap gap-x-4 gap-y-1">
+                  @for (item of pills(cat.client, draft().client_countries); track item.value) {
+                  <li class="inline-flex items-center gap-1.5 text-sm font-medium text-ink">@if (item.flag) {<img [src]="'/images/flags/' + item.flag + '.svg'" alt="" width="16" height="16" class="size-4 rounded-full" />} {{ item.label }}</li>
+                  } @empty { <li class="text-sm font-medium text-ink-faint">—</li> }
                 </ul>
               </dd>
             </div>
           </dl>
         </section>
-        <section class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-900">
-          <header class="flex items-center justify-between gap-3 border-b px-4 py-2.5 border-indigo-100 bg-indigo-50/70 dark:border-indigo-500/20 dark:bg-indigo-500/10">
-            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-gray-900 dark:text-white">
-              <span class="flex size-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200"><span class="material-symbols-rounded text-[18px]" aria-hidden="true">verified_user</span></span>{{ 'ONBOARDING.STEPS.COMPLIANCE' | translate }}
+        <section class="flex flex-col overflow-hidden rounded-control border border-line bg-surface">
+          <header class="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+            <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
+              {{ 'ONBOARDING.STEPS.COMPLIANCE' | translate }}
             </h2>
             <button type="button" (click)="goTo(4)" [attr.aria-label]="('COMMON.EDIT' | translate) + ' · ' + ('ONBOARDING.STEPS.COMPLIANCE' | translate)"
-              class="text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{{ 'COMMON.EDIT' | translate }}</button>
+              class="text-sm font-medium text-action hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-action/50">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'ONBOARDING.FIELD.MATURITY' | translate }}</dt>
-              <dd class="mt-1 text-sm font-medium text-gray-900 dark:text-white">{{ labelOf(catalogs()!.maturity, draft().compliance_maturity) }}</dd>
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.MATURITY' | translate }}</dt>
+              <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.maturity, draft().compliance_maturity) }}</dd>
             </div>
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ 'ONBOARDING.FIELD.REGULATIONS' | translate }}</dt>
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.REGULATIONS' | translate }}</dt>
               <dd class="mt-1.5">
-                <ul class="flex flex-wrap gap-1.5">
+                <ul class="flex flex-wrap gap-x-4 gap-y-1">
                   @for (item of regulationList(); track item) {
-                  <li class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-800 ring-1 ring-inset ring-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30"><span class="material-symbols-rounded text-[15px] leading-none" aria-hidden="true">gavel</span>{{ item }}</li>
-                  } @empty { <li class="text-sm font-medium text-gray-400">—</li> }
+                  <li class="text-sm font-medium text-ink">{{ item }}</li>
+                  } @empty { <li class="text-sm font-medium text-ink-faint">—</li> }
                 </ul>
               </dd>
             </div>
@@ -377,19 +344,16 @@
     </div>
 
     @if (saveError()) {
-    <div class="mt-4 flex items-start gap-2 rounded-xl bg-red-50 p-3.5 text-sm text-error-600 dark:bg-red-900/20 border border-red-200 dark:border-red-800" role="alert">
-      <span class="material-symbols-rounded text-[18px]">error</span>
-      <span>{{ saveError() }}</span>
+    <div class="mt-4 flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ saveError() }}</span>
     </div>
     }
 
     <!-- Navegación -->
     @if (!(alreadySaved() && step() === reviewStep && !dirty())) {
-      <div class="mt-10 flex items-center justify-between gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">
+      <div class="mt-10 flex items-center justify-between gap-3 border-t border-line pt-6">
         @if (step() > 0) {
         <button type="button" (click)="back()" [disabled]="stage() === 'saving'"
-          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-          <span class="material-symbols-rounded text-[18px]">arrow_back</span>
+          class="mk-btn-secondary">
           {{ 'COMMON.BACK' | translate }}
         </button>
         } @else {
@@ -398,13 +362,12 @@
 
         @if (step() < reviewStep) {
         <button type="button" (click)="next()"
-          class="group inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
+          class="mk-btn">
           {{ (step() === steps.length - 1 ? 'COMMON.WIZARD.REVIEW' : 'COMMON.NEXT') | translate }}
-          <span class="material-symbols-rounded text-[18px] transition group-hover:translate-x-0.5">arrow_forward</span>
         </button>
         } @else {
         <button type="button" (click)="save()" [disabled]="stage() === 'saving' || !allValid()"
-          class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60">
+          class="mk-btn">
           @if (stage() === 'saving') {
           <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
           {{ 'COMMON.WIZARD.SAVING' | translate }}
@@ -419,9 +382,10 @@
   </div>
 
   @if (!alreadySaved() && step() < reviewStep) {
-  <p class="mt-4 text-center text-xs text-gray-400">
+  <p class="mt-4 text-center text-xs text-ink-faint">
     {{ 'COMMON.WIZARD.PROGRESS_SAVED' | translate }}
   </p>
+  }
   }
   }
   }

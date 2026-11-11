@@ -65,8 +65,7 @@
       "COL_TYPE": "Type",
       "COL_DETAIL": "Detail",
       "COL_STATUS": "Status",
-      "OPEN": "Open",
-      "VIEW_ASSETS": "View assets"
+      "TABLE_CAPTION": "Service connections"
     },
     "CARD": {
       "HIDE_SETUP": "Hide connection details",
@@ -166,12 +165,10 @@
       "MARK_HELP": "Mark the ones that belong to this service. The rest stay out: they are not measured for it.",
       "SEARCH_LABEL": "Search assets",
       "SEARCH_PLACEHOLDER": "Search by name, ID, IP or tag",
-      "MARK_ALL": "Mark all visible assets",
       "COL_ID": "Identifier",
       "COL_PRIVATE_IP": "Private IP",
       "COL_ZONE": "Zone",
       "COL_IN_SERVICE": "In the service",
-      "INCLUDE_ARIA": "Include {{name}} in the service",
       "OS_TITLE": "Operating system according to the image the server was launched with",
       "GLOBAL": "Global",
       "INCLUDED": "Included",
@@ -233,7 +230,12 @@
         "RUNTIME": "Runtime",
         "LAST_MODIFIED": "Last modified",
         "CREATED_AT": "Created"
-      }
+      },
+      "FILTER_KIND": "Filter by type",
+      "TABLE": "Assets the connection found in your account",
+      "GROUP_IN": "In this service",
+      "GROUP_OUT": "Outside the service",
+      "DETAIL_SUBTITLE": "{{code}} · {{kind}}"
     }
   }
 }

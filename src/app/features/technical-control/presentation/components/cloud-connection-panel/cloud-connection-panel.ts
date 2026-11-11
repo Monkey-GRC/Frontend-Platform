@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
-import { Asset } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { Asset } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 type Phase = 'idle' | 'saving' | 'checking';
 
@@ -15,6 +16,7 @@ type Phase = 'idle' | 'saving' | 'checking';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CloudConnectionPanel {
+  protected readonly targetValue = targetValue;
   private readonly api = inject(TechnicalControlService);
   private readonly translate = inject(TranslateService);
 

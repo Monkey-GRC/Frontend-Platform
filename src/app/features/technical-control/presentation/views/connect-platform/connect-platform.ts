@@ -3,14 +3,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { forkJoin } from 'rxjs';
-import { ServiceService } from '@features/services/domain/services/service.service';
+import { ServiceService } from '@shared/domain/services/service.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { Breadcrumb, Crumb } from '@shared/presentation/components/breadcrumb/breadcrumb';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { Asset, Capability, Platform } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { Asset, Capability, Platform } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { ConnectAssetForm } from '../../components/connect-asset-form/connect-asset-form';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { ProviderLogo } from '../../components/provider-logo/provider-logo';
 
 type Stage = 'loading' | 'error' | 'ready';
@@ -19,7 +20,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // o está bloqueada, se vuelve al marketplace: nadie llega aquí a conectar algo que no se puede.
 @Component({
   selector: 'app-connect-platform',
-  imports: [Breadcrumb, ConnectAssetForm, ProviderLogo, LoadingSpinner, TranslatePipe],
+  imports: [Breadcrumb, ConnectAssetForm, ProviderLogo, LoadingSpinner, TranslatePipe, EmptyState],
   templateUrl: './connect-platform.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

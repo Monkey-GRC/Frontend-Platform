@@ -5,18 +5,21 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { forkJoin } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthService } from '@core/domain/services/auth.service';
 import { CatalogOption, RegulationOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { FLAG_FILES, SYMBOLS } from '@shared/domain/utils/country-flags';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import {
   OrganizationalContextDraft,
   draftFromContext,
   emptyDraft,
-} from '../../../domain/models/organizational-context.models';
-import { OnboardingDraftService } from '../../../domain/services/onboarding-draft.service';
-import { OnboardingService } from '../../../domain/services/onboarding.service';
+  inputFromDraft,
+} from '@features/onboarding/domain/models/organizational-context.models';
+import { OnboardingDraftService } from '@features/onboarding/domain/services/onboarding-draft.service';
+import { OnboardingService } from '@features/onboarding/domain/services/onboarding.service';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 interface Catalogs {
   size: CatalogOption[];
@@ -48,11 +51,12 @@ type SingleKey = 'size' | 'years_in_operation' | 'industry' | 'business_model' |
 
 @Component({
   selector: 'app-organizational-context',
-  imports: [OptionChips, TranslatePipe],
+  imports: [OptionChips, TranslatePipe, EmptyState],
   templateUrl: './organizational-context.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationalContextView implements OnInit {
+  protected readonly targetValue = targetValue;
   private readonly onboarding = inject(OnboardingService);
   private readonly catalogService = inject(CatalogService);
   private readonly drafts = inject(OnboardingDraftService);
@@ -235,22 +239,13 @@ export class OrganizationalContextView implements OnInit {
       this.step.set(Math.max(firstPending, 0));
       return;
     }
-    const d = this.draft();
+    const input = inputFromDraft(this.draft());
+    if (!input) return;
     const firstTime = !this.alreadySaved();
     this.stage.set('saving');
     this.saveError.set(null);
     this.onboarding
-      .save({
-        description: d.description.trim(),
-        size: d.size!,
-        industry: d.industry!,
-        business_model: d.business_model!,
-        years_in_operation: d.years_in_operation,
-        incorporation_countries: d.incorporation_countries,
-        client_countries: d.client_countries,
-        compliance_maturity: d.compliance_maturity!,
-        regulation_codes: d.regulation_codes,
-      })
+      .save(input)
       .subscribe({
         next: () => {
           if (this.userId) this.drafts.clear(this.userId);
@@ -280,6 +275,11 @@ export class OrganizationalContextView implements OnInit {
   }
 
   // ---------- presentación ----------
+
+  /** Una opción elegida como lista de un elemento (o vacía) para los chips de selección única. */
+  asList(value: string | null): string[] {
+    return value ? [value] : [];
+  }
 
   labelOf(options: CatalogOption[] | undefined, value: string | null): string {
     return options?.find((o) => o.value === value)?.label ?? '—';

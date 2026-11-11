@@ -1,14 +1,14 @@
 @if (setup(); as s) {
-<section class="mt-3 rounded-xl border border-primary/30 bg-primary/[0.03] p-4" [attr.aria-label]="'TECHNICAL_CONTROL.PANEL.TITLE' | translate">
-  <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'TECHNICAL_CONTROL.PANEL.TITLE' | translate }}</h4>
-  <p class="mt-1 text-xs text-gray-500 dark:text-gray-300">
+<section class="mt-3 rounded-control border border-action/30 bg-tint p-4" [attr.aria-label]="'TECHNICAL_CONTROL.PANEL.TITLE' | translate">
+  <h4 class="text-sm font-semibold text-ink">{{ 'TECHNICAL_CONTROL.PANEL.TITLE' | translate }}</h4>
+  <p class="mt-1 text-xs text-ink-faint">
     {{ 'TECHNICAL_CONTROL.PANEL.INTRO' | translate }}
   </p>
 
   <ol class="mt-4 space-y-3">
     @for (step of s.steps; track $index) {
-    <li class="flex gap-3 text-sm text-gray-700 dark:text-gray-300">
-      <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{{ $index + 1 }}</span>
+    <li class="flex gap-3 text-sm text-ink-muted">
+      <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-control bg-tint-strong text-xs font-semibold text-tint-ink">{{ $index + 1 }}</span>
       <span>{{ step }}</span>
     </li>
     }
@@ -16,21 +16,21 @@
 
   <div class="mt-4">
     <button type="button" (click)="downloadTemplate()" [disabled]="downloading() || busy()"
-      class="inline-flex items-center gap-2 rounded-lg border border-primary/50 bg-white px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-primary/5 disabled:opacity-60 dark:bg-transparent">
+      class="mk-btn-secondary">
       <span class="material-symbols-rounded text-[18px]" [class.animate-spin]="downloading()">{{ downloading() ? 'progress_activity' : 'download' }}</span>
       {{ 'TECHNICAL_CONTROL.PANEL.DOWNLOAD' | translate }}
     </button>
   </div>
 
-  <div class="mk-card mt-4 p-4">
-    <p class="text-xs font-medium text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.PANEL.PASTE_VALUES' | translate }}</p>
+  <div class="mt-4 border-t border-line pt-4">
+    <p class="text-xs font-medium text-ink-faint">{{ 'TECHNICAL_CONTROL.PANEL.PASTE_VALUES' | translate }}</p>
     @for (r of rows(); track r.key) {
     <div class="mt-3">
-      <p class="text-xs text-gray-500 dark:text-gray-300"><code class="font-mono font-semibold text-gray-700 dark:text-white">{{ r.label }}</code> · {{ r.hint | translate }}</p>
+      <p class="text-xs text-ink-faint"><code class="font-mono font-semibold text-ink-muted">{{ r.label }}</code> · {{ r.hint | translate }}</p>
       <div class="mt-1 flex items-center gap-2">
-        <code class="min-w-0 flex-1 truncate rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-800 dark:bg-gray-800 dark:text-white" [title]="r.value">{{ r.value || '—' }}</code>
+        <code class="min-w-0 flex-1 truncate rounded-control bg-canvas px-3 py-2 font-mono text-xs text-ink" [title]="r.value">{{ r.value || '—' }}</code>
         <button type="button" (click)="copy(r.key, r.value)" [disabled]="!r.value"
-          class="inline-flex shrink-0 items-center gap-1 rounded-md border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:border-primary/50 hover:text-primary disabled:opacity-40 dark:border-gray-700 dark:text-gray-300">
+          class="mk-btn-secondary shrink-0 px-3 py-2 text-xs">
           <span class="material-symbols-rounded text-[16px]">{{ copied() === r.key ? 'check' : 'content_copy' }}</span>
           {{ (copied() === r.key ? 'TECHNICAL_CONTROL.PANEL.COPIED' : 'TECHNICAL_CONTROL.PANEL.COPY') | translate }}
         </button>
@@ -38,43 +38,36 @@
     </div>
     }
     @if (missingPrincipal()) {
-    <p class="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3.5 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-      <span class="material-symbols-rounded text-[16px]">warning</span>
-      {{ 'TECHNICAL_CONTROL.PANEL.MISSING_PRINCIPAL' | translate }}
+    <p class="mt-3 flex items-start gap-2 p-3.5 text-xs mk-surface-state-warn text-ink">{{ 'TECHNICAL_CONTROL.PANEL.MISSING_PRINCIPAL' | translate }}
     </p>
     }
   </div>
 
   <div class="mt-4">
-    <label for="role-arn" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.ROLE' | translate }} <span class="text-error-500">*</span></label>
-    <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.PANEL.ROLE_HELP' | translate }}</p>
+    <label for="role-arn" class="mb-1 block text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.EDIT.ROLE' | translate }} <span class="text-bad-ink">*</span></label>
+    <p class="mb-2 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.PANEL.ROLE_HELP' | translate }}</p>
     <input id="role-arn" type="text" autocomplete="off" spellcheck="false" [value]="roleArn()" [disabled]="busy()"
-      (input)="roleArn.set($any($event.target).value)" placeholder="arn:aws:iam::123456789012:role/MonkeyReadOnly"
-      class="h-12 w-full rounded-lg border bg-white px-4 font-mono text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 disabled:opacity-60 dark:bg-gray-900 dark:text-white"
-      [class]="roleError() ? 'border-error-500 focus:border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-primary focus:ring-primary/20 dark:border-gray-700'" />
+      (input)="roleArn.set(targetValue($event))" placeholder="arn:aws:iam::123456789012:role/MonkeyReadOnly"
+      class="h-12 w-full rounded-control border bg-surface px-4 font-mono text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:text-ink-faint disabled:bg-tint"
+      [class]="roleError() ? 'border-bad focus:border-bad focus:ring-bad/20' : 'border-line focus:border-action focus:ring-action/20'" />
     @if (roleError(); as e) {
-    <p class="mt-1.5 flex items-start gap-1.5 text-xs text-error-500" role="alert">
-      <span class="material-symbols-rounded text-[16px]">error</span>{{ e }}
+    <p class="mt-1.5 text-xs text-bad-ink" role="alert">{{ e }}
     </p>
     }
   </div>
 
   @if (message(); as m) {
-  <p class="mt-3 flex items-start gap-2 rounded-lg p-3 text-sm" role="status"
-    [class]="m.kind === 'error' ? 'bg-red-50 text-error-600 dark:bg-red-900/20' : 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'">
-    <span class="material-symbols-rounded text-[18px]">{{ m.kind === 'error' ? 'error' : 'info' }}</span>
-    <span>{{ m.text }}</span>
-  </p>
+  <p class="mt-3 p-3 text-sm text-ink" role="status" [class]="m.kind === 'error' ? 'mk-surface-state-bad' : 'mk-surface-tinted'">{{ m.text }}</p>
   }
 
   <div class="mt-4 flex flex-wrap items-center gap-3">
     <button type="button" (click)="check()" [disabled]="busy()"
-      class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:opacity-60">
-      <span class="material-symbols-rounded text-[20px]" [class.animate-spin]="busy()">{{ busy() ? 'progress_activity' : 'power' }}</span>
+      class="mk-btn">
+      @if (busy()) {<span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>}
       {{ (asset().provisioning.connection_status === 'failed' ? 'TECHNICAL_CONTROL.CARD.CHECK_AGAIN' : 'TECHNICAL_CONTROL.CARD.CHECK_CONNECTION') | translate }}
     </button>
     @if (busy()) {
-    <span class="text-sm text-gray-500 dark:text-gray-300" aria-live="polite">{{ narration() }}</span>
+    <span class="text-sm text-ink-faint" aria-live="polite">{{ narration() }}</span>
     }
   </div>
 </section>

@@ -1,7 +1,5 @@
 {
   "SETTINGS": {
-    "TITLE": "Settings",
-    "INTRO": "Your account configuration, by function.",
     "NAV_LABEL": "Settings sections",
     "SECTIONS": {
       "SECURITY": "Security"

@@ -5,8 +5,9 @@ import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/util
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
-import { Asset, Capability, ConnectionMethod, NewAssetInput, Platform } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { Asset, Capability, ConnectionMethod, NewAssetInput, Platform } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 const ACCOUNT_ID = /^\d{12}$/;
 
@@ -19,6 +20,7 @@ const ACCOUNT_ID = /^\d{12}$/;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConnectAssetForm implements OnInit {
+  protected readonly targetValue = targetValue;
   private readonly api = inject(TechnicalControlService);
   private readonly catalogs = inject(CatalogService);
   private readonly translate = inject(TranslateService);
@@ -98,7 +100,8 @@ export class ConnectAssetForm implements OnInit {
   }
 
   submit(): void {
-    if (!this.valid()) {
+    const method = this.method();
+    if (!this.valid() || !method) {
       this.showHints.set(true);
       return;
     }
@@ -110,11 +113,11 @@ export class ConnectAssetForm implements OnInit {
       location: null,
       criticality: this.criticality(),
       service_ids: [this.service().id, ...this.extraServiceIds()],
-      connection_method: this.method()!,
+      connection_method: method,
       external_account_id: this.accountId().trim(),
       regions: this.regions(),
       // Las llaves solo viajan aquí, se guardan cifradas y no se vuelven a mostrar.
-      ...(this.method() === 'access_keys' ? { credentials: { access_key_id: this.accessKeyId().trim(), secret_access_key: this.secretAccessKey().trim() } } : {}),
+      ...(method === 'access_keys' ? { credentials: { access_key_id: this.accessKeyId().trim(), secret_access_key: this.secretAccessKey().trim() } } : {}),
     });
   }
 

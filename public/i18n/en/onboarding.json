@@ -21,7 +21,6 @@
     },
     "LOAD_ERROR_TITLE": "We couldn't load the form",
     "LOAD_ERROR_BODY": "Check your connection and try again. What you wrote wasn't lost.",
-    "DONE_BODY": "The information for {{name}} was saved. You can edit it from \"My company\".",
     "S1_TITLE": "Organizational context",
     "S1_BODY": "This information defines the scope and recommendations of the compliance program.",
     "LEGAL_NAME": "Legal name",

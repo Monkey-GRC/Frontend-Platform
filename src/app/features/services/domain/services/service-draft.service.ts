@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ServiceDraft } from '../models/service.models';
+import { ServiceDraft } from '@shared/domain/models/service.models';
 
 export interface StoredServiceDraft {
   draft: ServiceDraft;

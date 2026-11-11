@@ -3,21 +3,23 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { forkJoin } from 'rxjs';
-import { ServiceService } from '@features/services/domain/services/service.service';
+import { ServiceService } from '@shared/domain/services/service.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
+import { Breadcrumb, Crumb } from '@shared/presentation/components/breadcrumb/breadcrumb';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { Asset, TechnicalControlState } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { Asset, TechnicalControlState } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { AssetCard } from '../../components/asset-card/asset-card';
-import { categoryLabel } from '../../../domain/utils/category-label';
+import { categoryLabel } from '@shared/domain/utils/category-label';
 
 type Stage = 'loading' | 'error' | 'ready';
 
 // El detalle de una conexión: cómo está conectada y, sobre todo, los activos que Monkey encontró a través de ella.
 @Component({
   selector: 'app-connection-detail',
-  imports: [AssetCard, RouterLink, LoadingSpinner, TranslatePipe],
+  imports: [AssetCard, RouterLink, Breadcrumb, EmptyState, LoadingSpinner, TranslatePipe],
   templateUrl: './connection-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -38,6 +40,13 @@ export class ConnectionDetailView implements OnInit {
   readonly state = signal<TechnicalControlState | null>(null);
   readonly criticalities = signal<CatalogOption[]>([]);
   readonly frequencyOptions = signal<CatalogOption[]>([]);
+
+  // Mis servicios › {servicio} › {conexión}
+  readonly crumbs = computed<Crumb[]>(() => [
+    { label: this.translate.instant('SHELL.NAV.MY_SERVICES'), link: ['/services'] },
+    { label: this.serviceName() || this.translate.instant('TECHNICAL_CONTROL.CRUMB_SERVICE'), link: ['/services', this.serviceId()] },
+    { label: this.asset()?.name ?? this.translate.instant('TECHNICAL_CONTROL.CRUMB_CONNECTION') },
+  ]);
 
   readonly probeMode = computed(() => this.state()?.probe_mode ?? 'unavailable');
   readonly label = computed(() => {

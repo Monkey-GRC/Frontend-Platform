@@ -5,20 +5,21 @@ import { Observable, switchMap, takeWhile, timer } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
-import { Asset, Execution, ProbeMode } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { Asset, Execution, ProbeMode } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { AssetEditForm } from '../asset-edit-form/asset-edit-form';
 import { CloudConnectionPanel } from '../cloud-connection-panel/cloud-connection-panel';
 import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
 import { ExecutionProgress } from '../execution-progress/execution-progress';
+import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { ProviderLogo } from '../provider-logo/provider-logo';
 
-const STATUS: Record<string, { label: string; chip: string; icon: string }> = {
-  pending: { label: 'TECHNICAL_CONTROL.STATUS.PENDING', chip: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300', icon: 'schedule' },
-  validated: { label: 'TECHNICAL_CONTROL.STATUS.VALIDATED', chip: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', icon: 'task_alt' },
-  active: { label: 'TECHNICAL_CONTROL.STATUS.ACTIVE', chip: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: 'bolt' },
-  scheduled: { label: 'TECHNICAL_CONTROL.STATUS.SCHEDULED', chip: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: 'event_repeat' },
-  failed: { label: 'TECHNICAL_CONTROL.STATUS.FAILED', chip: 'bg-red-50 text-error-600 dark:bg-red-900/20', icon: 'error' },
+const STATUS: Record<string, { label: string; tone: StatusTone }> = {
+  pending: { label: 'TECHNICAL_CONTROL.STATUS.PENDING', tone: 'neutral' },
+  validated: { label: 'TECHNICAL_CONTROL.STATUS.VALIDATED', tone: 'ok' },
+  active: { label: 'TECHNICAL_CONTROL.STATUS.ACTIVE', tone: 'ok' },
+  scheduled: { label: 'TECHNICAL_CONTROL.STATUS.SCHEDULED', tone: 'ok' },
+  failed: { label: 'TECHNICAL_CONTROL.STATUS.FAILED', tone: 'bad' },
 };
 
 type Busy = 'validate' | 'schedule';
@@ -27,7 +28,7 @@ type Busy = 'validate' | 'schedule';
 // conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
-  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets, ExecutionProgress, ProviderLogo, TranslatePipe],
+  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets, ExecutionProgress, ProviderLogo, StatusIndicator, TranslatePipe],
   templateUrl: './asset-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -85,11 +86,11 @@ export class AssetCard implements OnInit {
     const e = this.execution();
     if (!e) return null;
     switch (e.status) {
-      case 'queued': return { icon: 'schedule', tone: 'info', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.QUEUED') };
-      case 'running': return { icon: 'progress_activity', tone: 'info', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.RUNNING') };
-      case 'completed': return { icon: 'task_alt', tone: 'ok', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.COMPLETED') };
-      case 'cancelled': return { icon: 'block', tone: 'warn', text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.CANCELLED') };
-      default: return { icon: 'error', tone: 'error', text: e.failure_message ?? this.translate.instant('TECHNICAL_CONTROL.EXECUTION.FAILED') };
+      case 'queued': return { tone: 'neutral' as StatusTone, text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.QUEUED') };
+      case 'running': return { tone: 'neutral' as StatusTone, text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.RUNNING') };
+      case 'completed': return { tone: 'ok' as StatusTone, text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.COMPLETED') };
+      case 'cancelled': return { tone: 'warn' as StatusTone, text: this.translate.instant('TECHNICAL_CONTROL.EXECUTION.CANCELLED') };
+      default: return { tone: 'bad' as StatusTone, text: e.failure_message ?? this.translate.instant('TECHNICAL_CONTROL.EXECUTION.FAILED') };
     }
   });
   // D105 · Lo único que se dice del «corte»: cuándo fue la última revisión automática terminada (fecha y hora). No hay una fecha que fijar ni congelar.

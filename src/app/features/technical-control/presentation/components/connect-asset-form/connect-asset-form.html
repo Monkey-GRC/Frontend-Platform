@@ -1,36 +1,34 @@
 <div>
 
-  <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'TECHNICAL_CONTROL.FORM.TITLE' | translate }}</h2>
-  <p class="mt-4 flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs text-gray-600 dark:bg-gray-900 dark:text-gray-300">
-    <span class="material-symbols-rounded text-[18px] text-primary">lock</span>
+  <h2 class="text-lg font-semibold text-ink">{{ 'TECHNICAL_CONTROL.FORM.TITLE' | translate }}</h2>
+  <p class="mt-4 rounded-control bg-canvas p-3 text-xs text-ink-muted">
     {{ 'TECHNICAL_CONTROL.FORM.READ_ONLY_NOTE' | translate }}
   </p>
 
   <div class="mt-4 space-y-4">
     <div>
-      <label for="asset-name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ 'TECHNICAL_CONTROL.FORM.NAME_LABEL' | translate }} <span class="text-error-500">*</span>
+      <label for="asset-name" class="mb-2 block text-sm font-medium text-ink-muted">
+        {{ 'TECHNICAL_CONTROL.FORM.NAME_LABEL' | translate }} <span class="text-bad-ink">*</span>
       </label>
       <input id="asset-name" type="text" [value]="name()" maxlength="200" autocomplete="off"
-        (input)="name.set($any($event.target).value)" [placeholder]="'TECHNICAL_CONTROL.FORM.NAME_PLACEHOLDER' | translate"
-        class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        (input)="name.set(targetValue($event))" [placeholder]="'TECHNICAL_CONTROL.FORM.NAME_PLACEHOLDER' | translate"
+        class="h-12 w-full rounded-control border border-line bg-surface px-4 text-sm text-ink placeholder:text-ink-faint focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
       @if (showHints() && !name().trim()) {
-      <p class="mt-1.5 text-xs text-error-500">{{ 'TECHNICAL_CONTROL.FORM.NAME_HINT' | translate }}</p>
+      <p class="mt-1.5 text-xs text-bad-ink">{{ 'TECHNICAL_CONTROL.FORM.NAME_HINT' | translate }}</p>
       }
     </div>
 
     <!-- ---------- Canal, cuenta y regiones ---------- -->
     <div>
-      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.METHOD_LABEL' | translate: { name: platform().name } }} <span class="text-error-500">*</span></p>
+      <p class="mb-3 text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.FORM.METHOD_LABEL' | translate: { name: platform().name } }} <span class="text-bad-ink">*</span></p>
       <div class="grid gap-3 sm:grid-cols-2" role="radiogroup" [attr.aria-label]="'TECHNICAL_CONTROL.FORM.METHOD_ARIA' | translate">
         @for (m of methods(); track m.value) {
         <button type="button" role="radio" [attr.aria-checked]="method() === m.value" (click)="method.set(m.value)"
-          class="flex items-start gap-3 rounded-xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          [class]="method() === m.value ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/50 dark:border-gray-700'">
-          <span class="material-symbols-rounded mt-0.5 text-primary">{{ m.value === 'readonly_role' ? 'verified_user' : 'key' }}</span>
+          class="flex items-start gap-3 rounded-control border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action/40"
+          [class]="method() === m.value ? 'border-action bg-tint' : 'border-line hover:border-action/50'">
           <span>
-            <span class="block text-sm font-semibold text-gray-900 dark:text-white">{{ m.label }}</span>
-            <span class="mt-1 block text-xs text-gray-500 dark:text-gray-300">
+            <span class="block text-sm font-semibold text-ink">{{ m.label }}</span>
+            <span class="mt-1 block text-xs text-ink-faint">
               {{ (m.value === 'readonly_role' ? 'TECHNICAL_CONTROL.FORM.METHOD_ROLE_HELP' : 'TECHNICAL_CONTROL.FORM.METHOD_KEYS_HELP') | translate }}
             </span>
           </span>
@@ -40,68 +38,67 @@
     </div>
 
     <div>
-      <label for="aws-account" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.ACCOUNT' | translate }} <span class="text-error-500">*</span></label>
-      <p class="mb-2 text-xs text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.ACCOUNT_HELP' | translate }}</p>
+      <label for="aws-account" class="mb-1 block text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.EDIT.ACCOUNT' | translate }} <span class="text-bad-ink">*</span></label>
+      <p class="mb-2 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.FORM.ACCOUNT_HELP' | translate }}</p>
       <input id="aws-account" type="text" inputmode="numeric" maxlength="12" autocomplete="off" [value]="accountId()"
-        (input)="setAccountId($any($event.target).value)" placeholder="123456789012"
-        class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        (input)="setAccountId(targetValue($event))" placeholder="123456789012"
+        class="h-12 w-full rounded-control border border-line bg-surface px-4 font-mono text-sm text-ink placeholder:text-ink-faint focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
       @if (fieldError('external_account_id'); as e) {
-      <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
+      <p class="mt-1.5 text-xs text-bad-ink">{{ e }}</p>
       } @else if (showHints() && !accountIdValid()) {
-      <p class="mt-1.5 text-xs text-error-500">{{ 'TECHNICAL_CONTROL.FORM.ACCOUNT_HINT' | translate }}</p>
+      <p class="mt-1.5 text-xs text-bad-ink">{{ 'TECHNICAL_CONTROL.FORM.ACCOUNT_HINT' | translate }}</p>
       }
     </div>
 
     <div>
-      <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_LABEL' | translate }} <span class="text-error-500">*</span></p>
-      <p class="mb-3 text-xs text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_HELP' | translate }}</p>
+      <p class="mb-1 text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_LABEL' | translate }} <span class="text-bad-ink">*</span></p>
+      <p class="mb-3 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_HELP' | translate }}</p>
       <app-option-chips [options]="regionChips()" [selected]="regions()" [multiple]="true" [ariaLabel]="'TECHNICAL_CONTROL.EDIT.REGIONS_ARIA' | translate"
         (picked)="toggleRegion($event)" />
       @if (fieldError('regions'); as e) {
-      <p class="mt-2 text-xs text-error-500">{{ e }}</p>
+      <p class="mt-2 text-xs text-bad-ink">{{ e }}</p>
       } @else if (showHints() && regions().length === 0) {
-      <p class="mt-2 text-xs text-error-500">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_HINT' | translate }}</p>
+      <p class="mt-2 text-xs text-bad-ink">{{ 'TECHNICAL_CONTROL.FORM.REGIONS_HINT' | translate }}</p>
       }
     </div>
 
     @if (method() === 'access_keys') {
-    <div class="space-y-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-900/10">
-      <p class="flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300">
-        <span class="material-symbols-rounded text-[18px]">warning</span>
+    <div class="space-y-4 p-4 mk-surface-state-warn text-ink">
+      <p class="text-xs text-warn-ink">
         {{ 'TECHNICAL_CONTROL.FORM.KEYS_NOTE' | translate }}
       </p>
       <div>
-        <label for="aws-key-id" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.KEY_ID' | translate }} <span class="text-error-500">*</span></label>
-        <input id="aws-key-id" type="text" autocomplete="off" spellcheck="false" [value]="accessKeyId()" (input)="accessKeyId.set($any($event.target).value)"
-          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        <label for="aws-key-id" class="mb-1 block text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.FORM.KEY_ID' | translate }} <span class="text-bad-ink">*</span></label>
+        <input id="aws-key-id" type="text" autocomplete="off" spellcheck="false" [value]="accessKeyId()" (input)="accessKeyId.set(targetValue($event))"
+          class="h-12 w-full rounded-control border border-line bg-surface px-4 font-mono text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
         @if (fieldError('access_key_id'); as e) {
-        <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
+        <p class="mt-1.5 text-xs text-bad-ink">{{ e }}</p>
         }
       </div>
       <div>
-        <label for="aws-key-secret" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.EDIT.SECRET' | translate }} <span class="text-error-500">*</span></label>
-        <input id="aws-key-secret" type="password" autocomplete="off" spellcheck="false" [value]="secretAccessKey()" (input)="secretAccessKey.set($any($event.target).value)"
-          class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+        <label for="aws-key-secret" class="mb-1 block text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.EDIT.SECRET' | translate }} <span class="text-bad-ink">*</span></label>
+        <input id="aws-key-secret" type="password" autocomplete="off" spellcheck="false" [value]="secretAccessKey()" (input)="secretAccessKey.set(targetValue($event))"
+          class="h-12 w-full rounded-control border border-line bg-surface px-4 font-mono text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
         @if (fieldError('secret_access_key'); as e) {
-        <p class="mt-1.5 text-xs text-error-500">{{ e }}</p>
+        <p class="mt-1.5 text-xs text-bad-ink">{{ e }}</p>
         }
       </div>
     </div>
     }
 
     <div>
-      <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.IMPORTANCE' | translate }}</p>
+      <p class="mb-3 text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.FORM.IMPORTANCE' | translate }}</p>
       <app-option-chips [options]="criticalityChips()" [selected]="[criticality()]" [ariaLabel]="'TECHNICAL_CONTROL.FORM.IMPORTANCE_ARIA' | translate"
         (picked)="criticality.set($event)" />
     </div>
 
     @if (otherServices().length > 0) {
     <div>
-      <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.ALSO_SUPPORTS' | translate }}</p>
-      <p class="mb-3 text-xs text-gray-500 dark:text-gray-300">{{ 'TECHNICAL_CONTROL.FORM.ALSO_SUPPORTS_HELP' | translate }}</p>
+      <p class="mb-1 text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.FORM.ALSO_SUPPORTS' | translate }}</p>
+      <p class="mb-3 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.FORM.ALSO_SUPPORTS_HELP' | translate }}</p>
       <div class="space-y-2">
         @for (s of otherServices(); track s.id) {
-        <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300">
+        <label class="flex cursor-pointer items-center gap-3 rounded-control border border-line p-3 text-sm text-ink-muted">
           <input type="checkbox" [checked]="extraServiceIds().includes(s.id)" (change)="toggleService(s.id)" class="h-4 w-4" />
           {{ s.name }}
         </label>
@@ -112,24 +109,20 @@
   </div>
 
   @if (error()) {
-  <div class="mt-4 flex items-start gap-2 rounded-xl bg-red-50 p-3.5 text-sm text-error-600 dark:bg-red-900/20 border border-red-200 dark:border-red-800" role="alert">
-    <span class="material-symbols-rounded text-[18px]">error</span>
-    <span>{{ error() }}</span>
+  <div class="mt-4 flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ error() }}</span>
   </div>
   }
 
   <div class="mt-5 flex items-center justify-between gap-3">
-    <button type="button" (click)="cancelled.emit()" [disabled]="saving()"
-      class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+    <button type="button" (click)="cancelled.emit()" [disabled]="saving()" class="mk-btn-secondary">
       {{ 'COMMON.CANCEL' | translate }}
     </button>
     <button type="button" (click)="submit()" [disabled]="saving()"
-      class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:opacity-60">
+      class="mk-btn">
       @if (saving()) {
-      <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
+      <span class="material-symbols-rounded animate-spin text-[20px] leading-none" aria-hidden="true">progress_activity</span>
       {{ 'COMMON.WIZARD.SAVING' | translate }}
       } @else {
-      <span class="material-symbols-rounded text-[20px]">add</span>
       {{ 'TECHNICAL_CONTROL.FORM.REGISTER' | translate }}
       }
     </button>

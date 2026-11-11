@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { Observable, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { SecurityService } from '../../../domain/services/security.service';
+import { SecurityService } from '@features/settings/domain/services/security.service';
 import { ChangePasswordCard } from './change-password-card';
 
 const CURRENT = 'Actual-Clave-2026!';

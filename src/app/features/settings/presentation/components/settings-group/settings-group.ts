@@ -8,8 +8,8 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   host: { class: 'block' },
   template: `
     <section>
-      <h2 class="mb-3 text-lg font-medium text-gray-900 dark:text-white">{{ title() }}</h2>
-      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3">
+      <h2 class="mb-3 text-lg font-medium text-ink">{{ title() }}</h2>
+      <div class="overflow-hidden rounded-card border border-line bg-surface">
         <ng-content />
       </div>
     </section>

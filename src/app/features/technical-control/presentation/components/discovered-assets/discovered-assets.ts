@@ -4,12 +4,16 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
+import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
+import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
+import { Tag } from '@shared/presentation/components/tag/tag';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { Asset, DiscoveredAsset, DiscoveredAssetsPage } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
-import { OsIcon } from '../os-icon/os-icon';
+import { Asset, DiscoveredAsset, DiscoveredAssetsPage } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 
-const KIND_ICON: Record<string, string> = { server: 'dns', database: 'database', storage: 'folder_open', function: 'function', other: 'category' };
 const SERVICE_NAME: Record<string, string> = {
   ec2: 'TECHNICAL_CONTROL.ASSETS.SERVICE_NAME.EC2',
   rds: 'TECHNICAL_CONTROL.ASSETS.SERVICE_NAME.RDS',
@@ -47,7 +51,7 @@ const ATTRIBUTE_LABEL: Record<string, string> = {
 // cliente marca cuáles son de ESTE servicio; los demás quedan fuera de lo que se mide.
 @Component({
   selector: 'app-discovered-assets',
-  imports: [OsIcon, LoadingSpinner, TranslatePipe],
+  imports: [LoadingSpinner, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, SideDrawer, Tag],
   templateUrl: './discovered-assets.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -79,7 +83,9 @@ export class DiscoveredAssets {
   private readonly criticalities = signal<CatalogOption[]>([]);
 
   readonly items = computed(() => this.page()?.items ?? []);
-  readonly chips = computed(() => (this.page()?.summary ?? []).map((s) => ({ ...s, label: this.kindLabel(s.kind), icon: KIND_ICON[s.kind] ?? 'category' })));
+  readonly chips = computed(() => (this.page()?.summary ?? []).map((s) => ({ ...s, label: this.kindLabel(s.kind) })));
+  /** Los filtros por tipo, cada uno con cuántos activos hay de ese tipo. */
+  readonly kindChips = computed(() => this.chips().map((c) => ({ value: c.kind, label: `${c.label} (${c.count})` })));
   readonly total = computed(() => this.items().length);
   readonly incomplete = computed(() => (this.page()?.incomplete_services ?? []).map((s) => (SERVICE_NAME[s] ? this.translate.instant(SERVICE_NAME[s]) : s)).join(', '));
   readonly visible = computed(() => {
@@ -100,19 +106,42 @@ export class DiscoveredAssets {
     const rows = this.visible();
     return rows.some((a) => saved.has(a.id)) ? (rows.find((a) => !saved.has(a.id))?.id ?? null) : null;
   });
+  /** Con algún activo ya guardado en el servicio, la tabla separa «En este servicio» de «Fuera del servicio»; si no hay ninguno, no hay separador. */
+  readonly groupFn = computed<((a: DiscoveredAsset) => string) | null>(() => {
+    const saved = this.original();
+    return this.items().some((a) => saved.has(a.id)) ? (a) => (saved.has(a.id) ? 'in' : 'out') : null;
+  });
+  protected readonly groupLabel = (key: string): string => this.translate.instant(key === 'in' ? 'TECHNICAL_CONTROL.ASSETS.GROUP_IN' : 'TECHNICAL_CONTROL.ASSETS.GROUP_OUT');
+  protected readonly columns: TableColumn<DiscoveredAsset>[] = [
+    { key: 'name', headerKey: 'SERVICES.LIST.COL_NAME', class: 'max-w-[16rem]' },
+    { key: 'identifier', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_ID' },
+    { key: 'ip', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_PRIVATE_IP' },
+    { key: 'kind', headerKey: 'TECHNICAL_CONTROL.LIST.COL_TYPE' },
+    { key: 'detail', headerKey: 'TECHNICAL_CONTROL.LIST.COL_DETAIL' },
+    { key: 'zone', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_ZONE' },
+    { key: 'state', headerKey: 'TECHNICAL_CONTROL.LIST.COL_STATUS' },
+    { key: 'inService', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_IN_SERVICE' },
+  ];
+  protected readonly assetKey = (a: DiscoveredAsset): string => a.id;
+  protected readonly assetLabel = (a: DiscoveredAsset): string => a.name ?? a.code;
+
+  /** La selección de la tabla (casillas de las filas y la de «marcar todo»): es lo que el cliente quiere incluir en el servicio. */
+  protected onSelection(next: Set<string | number>): void {
+    this.notice.set(null);
+    this.selected.set(next as Set<string>);
+  }
+
   readonly includedNow = computed(() => this.selected().size);
   readonly dirty = computed(() => {
     const now = this.selected();
     const before = this.original();
     return now.size !== before.size || [...now].some((id) => !before.has(id));
   });
-  readonly allVisibleSelected = computed(() => this.visible().length > 0 && this.visible().every((a) => this.selected().has(a.id)));
-  readonly someVisibleSelected = computed(() => this.visible().some((a) => this.selected().has(a.id)) && !this.allVisibleSelected());
 
   constructor() {
     // Cuando la conexión vuelve a comprobarse (cambia su última validación), la lista se vuelve a leer.
     effect(() => {
-      this.asset().provisioning.last_validated_at;
+      void this.asset().provisioning.last_validated_at;
       this.serviceId();
       untracked(() => this.load());
     });
@@ -156,16 +185,6 @@ export class DiscoveredAssets {
     });
   }
 
-  toggleVisible(): void {
-    this.notice.set(null);
-    const all = this.allVisibleSelected();
-    this.selected.update((s) => {
-      const next = new Set(s);
-      for (const a of this.visible()) all ? next.delete(a.id) : next.add(a.id);
-      return next;
-    });
-  }
-
   discard(): void {
     this.selected.set(new Set(this.original()));
     this.notice.set(null);
@@ -196,10 +215,6 @@ export class DiscoveredAssets {
     return this.kinds().find((k) => k.value === kind)?.label ?? kind;
   }
 
-  icon(kind: string): string {
-    return KIND_ICON[kind] ?? 'category';
-  }
-
   criticalityLabel(value: string): string {
     return this.criticalities().find((c) => c.value === value)?.label ?? value;
   }
@@ -221,18 +236,7 @@ export class DiscoveredAssets {
     return '';
   }
 
-  iconOf(a: DiscoveredAsset): string | null {
-    const at = a.attributes;
-    if (a.kind === 'server') return typeof at['os'] === 'string' ? (at['os'] as string) : typeof at['platform'] === 'string' ? (at['platform'] as string) : null;
-    if (a.kind === 'database') return typeof at['engine'] === 'string' ? (at['engine'] as string) : null;
-    return null;
-  }
-
-  hasIcon(a: DiscoveredAsset): boolean {
-    return a.kind === 'server' || a.kind === 'database';
-  }
-
-  // El estado se dice como lo dice AWS pero en el idioma del cliente, con color: verde lo que funciona, gris lo apagado, ámbar lo que está cambiando.
+  // El estado se dice en el idioma del cliente, con su punto de estado.
   state(a: DiscoveredAsset): string | null {
     const s = a.attributes['state'] ?? a.attributes['status'];
     return typeof s === 'string' ? s : null;
@@ -244,10 +248,11 @@ export class DiscoveredAssets {
     return text === key ? state : text;
   }
 
-  stateTone(state: string): { icon: string; text: string } {
-    if (['running', 'available', 'active'].includes(state)) return { icon: 'check_circle', text: 'text-green-700 dark:text-green-300' };
-    if (['stopped', 'terminated'].includes(state)) return { icon: 'do_not_disturb_on', text: 'text-gray-700 dark:text-gray-200' };
-    return { icon: 'schedule', text: 'text-amber-700 dark:text-amber-300' };
+  /** Lo que funciona es `ok`, lo apagado `neutral` y lo que está cambiando `warn`; el texto del estado va siempre junto al punto. */
+  stateTone(state: string): StatusTone {
+    if (['running', 'available', 'active'].includes(state)) return 'ok';
+    if (['stopped', 'terminated'].includes(state)) return 'neutral';
+    return 'warn';
   }
 
   // Los datos del panel de detalle, con nombre legible y el valor dicho en el idioma del cliente.

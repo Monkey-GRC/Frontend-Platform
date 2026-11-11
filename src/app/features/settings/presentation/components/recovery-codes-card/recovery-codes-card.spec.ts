@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
-import { SecurityService } from '../../../domain/services/security.service';
+import { SecurityService } from '@features/settings/domain/services/security.service';
 import { RecoveryCodesCard } from './recovery-codes-card';
 
 describe('RecoveryCodesCard (D94, SEG-16)', () => {

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { Execution } from '../../../domain/models/technical-control.models';
+import { Execution } from '@shared/domain/models/technical-control.models';
 import { ESTIMATE_CAP, ExecutionProgress, SLOW_AFTER_SECONDS, estimateProgress } from './execution-progress';
 
 const agoIso = (seconds: number) => new Date(Date.now() - seconds * 1000).toISOString();

@@ -3,21 +3,25 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { catchError, forkJoin, of } from 'rxjs';
-import { RiskReadinessService } from '@features/compliance/domain/services/risk-readiness.service';
-import { RiskProgress } from '@features/compliance/domain/utils/risk-progress';
-import { Asset, TechnicalControlState } from '@features/technical-control/domain/models/technical-control.models';
-import { categoryLabel } from '@features/technical-control/domain/utils/category-label';
-import { TechnicalControlService } from '@features/technical-control/domain/services/technical-control.service';
-import { RiskWizard } from '@features/compliance/presentation/components/risk-wizard/risk-wizard';
-import { ConnectionsList } from '@features/technical-control/presentation/components/connections-list/connections-list';
-import { CatalogName, CatalogOption } from '@shared/domain/models/catalog.models';
+import { RiskReadinessService } from '@shared/domain/services/risk-readiness.service';
+import { RiskProgress } from '@shared/domain/utils/risk-progress';
+import { Asset, TechnicalControlState } from '@shared/domain/models/technical-control.models';
+import { categoryLabel } from '@shared/domain/utils/category-label';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { RiskWizard } from '@shared/presentation/components/risk-wizard/risk-wizard';
+import { ConnectionsList } from '@shared/presentation/components/connections-list/connections-list';
+import { CatalogName, CatalogOption, FrameworkOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { Service } from '../../../domain/models/service.models';
-import { DATA_ICONS, FLAG_FILES, SYMBOLS } from '../../../domain/utils/service-display';
+import { Service } from '@shared/domain/models/service.models';
+import { FLAG_FILES, SYMBOLS } from '@features/services/domain/utils/service-display';
 import { ChipOption } from '@shared/presentation/components/option-chips/option-chips';
-import { ServiceService } from '../../../domain/services/service.service';
+import { ServiceService } from '@shared/domain/services/service.service';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { Section } from '@shared/presentation/components/section/section';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { Tag } from '@shared/presentation/components/tag/tag';
 
 type Stage = 'loading' | 'error' | 'ready';
 const CATALOGS: CatalogName[] = ['service_type', 'served_industry', 'service_country', 'data_type', 'trust_criterion', 'expected_availability', 'previous_certification'];
@@ -25,7 +29,7 @@ const CATALOGS: CatalogName[] = ['service_type', 'served_industry', 'service_cou
 // El servicio del cliente: su información ordenada arriba y, debajo, las conexiones con las que Monkey llega a sus activos (Componente 3).
 @Component({
   selector: 'app-service-detail',
-  imports: [PageHeader, RouterLink, ConnectionsList, LoadingSpinner, TranslatePipe, RiskWizard],
+  imports: [PageHeader, RouterLink, ConnectionsList, LoadingSpinner, TranslatePipe, RiskWizard, EmptyState, Section, StatusIndicator, Tag],
   templateUrl: './service-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -47,7 +51,12 @@ export class ServiceDetailView implements OnInit {
   readonly risks = signal<RiskProgress | null>(null);
   /** D89 · ¿Está abierto el asistente de riesgos aquí mismo? Se abre con el botón del aviso o al llegar con ?evaluar=riesgos (el guard de las rutas de conexión). */
   readonly evaluating = signal(false);
-  readonly risksPending = computed(() => (this.risks() && !this.risks()!.ready ? this.risks() : null));
+  readonly risksPending = computed(() => {
+    const risks = this.risks();
+    return risks && !risks.ready ? risks : null;
+  });
+  // El nombre de los marcos sale del catálogo del backend; sin él se muestra el código.
+  private readonly frameworks = signal<FrameworkOption[]>([]);
   private readonly options = signal<Partial<Record<CatalogName, CatalogOption[]>>>({});
 
   readonly capabilityLabels = computed(() => Object.fromEntries((this.state()?.applicable_capabilities ?? []).map((c) => [c.catalog_code, categoryLabel(this.translate, c.catalog_code, c.category)])));
@@ -61,6 +70,7 @@ export class ServiceDetailView implements OnInit {
         forkJoin(CATALOGS.map((c) => this.catalogs.options(c))).subscribe((catalogs) =>
           this.options.set(Object.fromEntries(CATALOGS.map((c, i) => [c, catalogs[i]]))),
         );
+        this.catalogs.frameworks().pipe(catchError(() => of([] as FrameworkOption[]))).subscribe((f) => this.frameworks.set(f));
       });
     });
   }
@@ -79,8 +89,10 @@ export class ServiceDetailView implements OnInit {
       assets: this.api.listAssets(id),
       risks: this.readiness.progress(id).pipe(catchError(() => of(null))),
       catalogs: forkJoin(CATALOGS.map((c) => this.catalogs.options(c))),
+      frameworks: this.catalogs.frameworks().pipe(catchError(() => of([] as FrameworkOption[]))),
     }).subscribe({
-      next: ({ service, state, assets, risks, catalogs }) => {
+      next: ({ service, state, assets, risks, catalogs, frameworks }) => {
+        this.frameworks.set(frameworks);
         this.service.set(service);
         this.risks.set(risks);
         if (risks && !risks.ready && this.route.snapshot.queryParamMap.get('evaluar') === 'riesgos') this.evaluating.set(true);
@@ -116,15 +128,11 @@ export class ServiceDetailView implements OnInit {
     return (values ?? []).map((v) => ({ value: v, label: this.label(catalog, v), ...(FLAG_FILES.has(v) ? { flag: v } : {}), ...(SYMBOLS[v] ? { symbol: SYMBOLS[v] } : {}) }));
   }
 
-  dataIcon(value: string): string {
-    return DATA_ICONS[value] ?? 'dataset';
-  }
-
   labels(catalog: CatalogName, values: string[] | undefined): string {
     return values?.length ? values.map((v) => this.label(catalog, v)).join(', ') : '—';
   }
 
   frameworkLabel(code: string): string {
-    return code === 'soc2' ? 'SOC 2' : code;
+    return this.frameworks().find((f) => f.code === code)?.label ?? code;
   }
 }

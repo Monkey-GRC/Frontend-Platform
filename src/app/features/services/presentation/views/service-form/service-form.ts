@@ -5,9 +5,11 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { Observable, catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthService } from '@core/domain/services/auth.service';
 import { CatalogOption, FrameworkOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { Modal } from '@shared/presentation/components/modal/modal';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import {
   ALL_TRUST_CRITERIA,
@@ -19,12 +21,12 @@ import {
   inputFromDraft,
   isHttpUrl,
   systemDescriptionFileError,
-} from '../../../domain/models/service.models';
-import { CRITERION_STYLES, DATA_ICONS, FLAG_FILES, SYMBOLS } from '../../../domain/utils/service-display';
-import { ServiceDraftService } from '../../../domain/services/service-draft.service';
-import { ServiceService } from '../../../domain/services/service.service';
-import { RiskWizard } from '@features/compliance/presentation/components/risk-wizard/risk-wizard';
-import { PageHeader } from '@shared/presentation/components/page-header/page-header';
+} from '@shared/domain/models/service.models';
+import { FLAG_FILES, SYMBOLS } from '@features/services/domain/utils/service-display';
+import { ServiceDraftService } from '@features/services/domain/services/service-draft.service';
+import { ServiceService } from '@shared/domain/services/service.service';
+import { RiskWizard } from '@shared/presentation/components/risk-wizard/risk-wizard';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 interface Catalogs {
   type: CatalogOption[];
@@ -44,12 +46,12 @@ interface Catalogs {
 // Las 6 pantallas del Componente 2 (contexto del servicio) y una de revisión. Agrupan los 16
 // campos del Excel por afinidad para que cada pantalla haga pocas preguntas.
 const STEPS = [
-  { key: 'service', labelKey: 'SERVICES.FORM.STEPS.SERVICE', icon: 'inventory_2' },
-  { key: 'clients', labelKey: 'SERVICES.FORM.STEPS.CLIENTS', icon: 'groups' },
-  { key: 'data', labelKey: 'SERVICES.FORM.STEPS.DATA', icon: 'database' },
-  { key: 'framework', labelKey: 'SERVICES.FORM.STEPS.FRAMEWORK', icon: 'verified_user' },
-  { key: 'providers', labelKey: 'SERVICES.FORM.STEPS.PROVIDERS', icon: 'cloud' },
-  { key: 'compliance', labelKey: 'SERVICES.FORM.STEPS.COMPLIANCE', icon: 'gavel' },
+  { key: 'service', labelKey: 'SERVICES.FORM.STEPS.SERVICE' },
+  { key: 'clients', labelKey: 'SERVICES.FORM.STEPS.CLIENTS' },
+  { key: 'data', labelKey: 'SERVICES.FORM.STEPS.DATA' },
+  { key: 'framework', labelKey: 'SERVICES.FORM.STEPS.FRAMEWORK' },
+  { key: 'providers', labelKey: 'SERVICES.FORM.STEPS.PROVIDERS' },
+  { key: 'compliance', labelKey: 'SERVICES.FORM.STEPS.COMPLIANCE' },
 ] as const;
 const REVIEW_STEP = STEPS.length;
 const FRAMEWORK_STEP = 3;
@@ -94,11 +96,12 @@ type SubserviceTextKey = 'service_provided' | 'responsibility';
 
 @Component({
   selector: 'app-service-form',
-  imports: [PageHeader, OptionChips, RouterLink, TranslatePipe, RiskWizard],
+  imports: [OptionChips, RouterLink, TranslatePipe, RiskWizard, EmptyState, Modal],
   templateUrl: './service-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServiceFormView implements OnInit {
+  protected readonly targetValue = targetValue;
   private readonly services = inject(ServiceService);
   private readonly catalogService = inject(CatalogService);
   private readonly drafts = inject(ServiceDraftService);
@@ -424,6 +427,7 @@ export class ServiceFormView implements OnInit {
       return;
     }
     const input = inputFromDraft(this.draft());
+    if (!input) return;
     const id = this.serviceId();
     // Se decide antes de guardar: al subir el archivo el formulario ya guarda el id del servicio nuevo y parecería una edición (D89).
     const creating = !id;
@@ -525,6 +529,11 @@ export class ServiceFormView implements OnInit {
 
   // ---------- presentación ----------
 
+  /** Una opción elegida como lista de un elemento (o vacía) para los chips de selección única. */
+  asList(value: string | null): string[] {
+    return value ? [value] : [];
+  }
+
   labelOf(options: { value: string; label: string }[] | undefined, value: string | null): string {
     return options?.find((o) => o.value === value)?.label ?? '—';
   }
@@ -540,14 +549,6 @@ export class ServiceFormView implements OnInit {
       const label = options?.find((o) => o.value === v)?.label ?? v;
       return { value: v, label, ...(FLAG_FILES.has(v) ? { flag: v } : {}), ...(SYMBOLS[v] ? { symbol: SYMBOLS[v] } : {}) };
     });
-  }
-
-  dataIcon(value: string): string {
-    return DATA_ICONS[value] ?? 'dataset';
-  }
-
-  criterionStyle(value: string): { icon: string; chip: string } {
-    return CRITERION_STYLES[value] ?? { icon: 'check_circle', chip: 'bg-gray-50 text-gray-700 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700' };
   }
 
   frameworkPills(): ChipOption[] {

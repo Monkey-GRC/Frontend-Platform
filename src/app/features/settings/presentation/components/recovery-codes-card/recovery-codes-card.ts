@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { SecondFactorAnswer, SecondFactorDialog } from '@shared/presentation/components/second-factor-dialog/second-factor-dialog';
-import { SecurityService } from '../../../domain/services/security.service';
+import { SecurityService } from '@features/settings/domain/services/security.service';
 
 // Códigos de recuperación del segundo factor (D94, SEG-16): generar 10 nuevos exige un código vigente de la app (se pide en un modal) y los anteriores dejan de servir.
 // Se muestran una sola vez.

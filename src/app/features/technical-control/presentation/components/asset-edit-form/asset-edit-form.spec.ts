@@ -2,8 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER } from 'rxjs';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { Asset } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { Asset } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { AssetEditForm } from './asset-edit-form';
 
 const asset = {

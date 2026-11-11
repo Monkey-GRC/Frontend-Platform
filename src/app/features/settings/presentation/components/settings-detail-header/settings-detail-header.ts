@@ -12,14 +12,14 @@ import { TranslatePipe } from '@ngx-translate/core';
   template: `
     <!-- «← Atrás» vive en la esquina superior izquierda del panel de la sección (el contenedor relativo de Ajustes), fuera de la columna del contenido, como en el patrón de referencia. -->
     <a [routerLink]="backLink()" data-testid="settings-detail-back"
-      class="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-base text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white">
+      class="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-control px-2.5 py-1.5 text-base text-ink-muted transition hover:bg-canvas hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-action/50">
       <span class="material-symbols-rounded text-[20px]" aria-hidden="true">arrow_back</span>{{ 'SETTINGS.PREVIOUS' | translate }}
     </a>
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-3xl font-semibold text-gray-900 dark:text-white">{{ title() }}</h1>
+        <h1 class="text-3xl font-semibold text-ink">{{ title() }}</h1>
         @if (subtitle()) {
-          <p class="mt-1.5 text-base text-gray-500 dark:text-gray-400">{{ subtitle() }}</p>
+          <p class="mt-1.5 text-base text-ink-faint">{{ subtitle() }}</p>
         }
       </div>
       <ng-content />
