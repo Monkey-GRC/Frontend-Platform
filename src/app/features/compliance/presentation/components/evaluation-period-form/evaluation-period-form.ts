@@ -2,16 +2,16 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { DatePicker } from '@shared/presentation/components/date-picker/date-picker';
-import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
-import { OverviewFramework } from '../../../domain/models/overview.models';
-import { OverviewService } from '../../../domain/services/overview.service';
+import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { OverviewFramework } from '@features/compliance/domain/models/overview.models';
+import { OverviewService } from '@features/compliance/domain/services/overview.service';
 
 // El período auditado de un marco del servicio y, si se quiere, su fecha de corte congelada (D87, MD-168). Sin período el motor no mide. Las fechas son días (`AAAA-MM-DD`):
 // inicio y fin pueden ser el mismo día (SOC 2 Tipo I). La fecha de corte sin congelar es siempre «hoy»; congelarla no borra evidencia ni resultados. Lo mismo que el servidor
 // valida (orden, dentro del período, no futura) se avisa aquí para no hacer esperar a quien se equivoca, pero manda el servidor.
 @Component({
   selector: 'app-evaluation-period-form',
-  imports: [TranslatePipe, SidePanel, DatePicker],
+  imports: [TranslatePipe, SideDrawer, DatePicker],
   templateUrl: './evaluation-period-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

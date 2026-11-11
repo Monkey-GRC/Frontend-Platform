@@ -10,6 +10,7 @@ import { authGuard } from '@core/domain/guards/auth.guard';
 import { guestGuard } from '@core/domain/guards/guest.guard';
 import { roleGuard } from '@core/domain/guards/role.guard';
 import { workLandingGuard } from '@core/domain/guards/work-landing.guard';
+import { legacyComplianceRedirectGuard } from '@features/compliance/domain/guards/legacy-compliance-redirect.guard';
 import { risksEvaluatedGuard } from '@features/services/domain/guards/risks-evaluated.guard';
 
 export const routes: Routes = [
@@ -86,20 +87,33 @@ export const routes: Routes = [
         title: 'PAGE_TITLE.SERVICE_EDIT',
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
       },
-      // Cumplimiento (MD-119): entrada del menú y, dentro de cada servicio, el módulo con sus pestañas. Cada pestaña muestra
-      // un contenido provisional hasta que su historia cambie el `loadComponent` (resumen MD-140 y evidencias MD-129). Ya son reales:
-      // controles (MD-120, MD-121), riesgos y causas (MD-124). Las rutas más específicas van antes que `services/:id`.
+      // Cumplimiento (MD-119) es un grupo del menú: `/cumplimiento` (sin sección) es el General o la entrada, y cada sección es una página de `/cumplimiento/<sección>`.
+      // El servicio activo no va en la ruta: lo elige el selector del encabezado y se recuerda (`ActiveComplianceService`). Cada sección muestra un contenido provisional
+      // hasta que su historia cambie el `loadComponent`. Ya son reales: resumen (MD-140), controles (MD-120, MD-121), riesgos y causas (MD-124), evidencias (MD-129).
       {
         path: 'cumplimiento',
+        pathMatch: 'full',
         title: 'PAGE_TITLE.COMPLIANCE',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
       },
-      // El equipo de la empresa (D96, D102): lo gestiona el administrador; el responsable ve a su equipo de delegados y crea delegados para él.
+      // El equipo de la empresa (D96, D102): lo gestiona el administrador; el responsable ve a su equipo de delegados y crea delegados para él. Personas y Grupos son dos
+      // subítems del grupo Equipo del menú; `/equipo` redirige a Personas. El guard es del padre y vale para las dos.
       {
         path: 'equipo',
-        title: 'PAGE_TITLE.TEAM',
         canActivate: [roleGuard('admin_empresa', 'responsable')],
-        loadComponent: () => import('@features/team/presentation/views/team/team').then(m => m.TeamView),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'personas' },
+          {
+            path: 'personas',
+            title: 'PAGE_TITLE.TEAM_PEOPLE',
+            loadComponent: () => import('@features/team/presentation/views/team-people/team-people').then(m => m.TeamPeopleView),
+          },
+          {
+            path: 'grupos',
+            title: 'PAGE_TITLE.TEAM_GROUPS',
+            loadComponent: () => import('@features/team/presentation/views/team-groups/team-groups').then(m => m.TeamGroupsView),
+          },
+        ],
       },
       // Los cargos responsables son de la organización, no de un servicio (MD-135).
       {
@@ -108,17 +122,15 @@ export const routes: Routes = [
         loadComponent: () => import('@features/compliance/presentation/views/responsibles/responsibles').then(m => m.ResponsiblesView),
       },
       {
-        path: 'services/:id/cumplimiento',
+        path: 'cumplimiento',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-shell/compliance-shell').then(m => m.ComplianceShellView),
         children: [
-          // Se entra por el Resumen (MD-140): el estado del servicio antes que el detalle.
-          { path: '', redirectTo: 'resumen', pathMatch: 'full' },
           {
             path: 'resumen',
             title: 'PAGE_TITLE.COMPLIANCE_OVERVIEW',
             loadComponent: () => import('@features/compliance/presentation/views/overview/overview').then(m => m.OverviewView),
           },
-          // El orden de las rutas es el de las pestañas: riesgos → causas → controles → evidencias.
+          // El orden de las rutas es el del menú: riesgos → causas → controles → evidencias.
           // Riesgos y Causas son la misma vista con dos rutas: una causa no depende de un riesgo (10 de las 56 del catálogo no pertenecen a ninguno).
           {
             path: 'riesgos',
@@ -137,8 +149,6 @@ export const routes: Routes = [
             title: 'PAGE_TITLE.COMPLIANCE_CONTROLS',
             loadComponent: () => import('@features/compliance/presentation/views/controls-list/controls-list').then(m => m.ControlsListView),
           },
-          // Antes se llamaba «acciones»: se conserva el enlace viejo.
-          { path: 'acciones', redirectTo: 'controles', pathMatch: 'full' },
           {
             path: 'evidencias',
             title: 'PAGE_TITLE.COMPLIANCE_EVIDENCE',
@@ -151,6 +161,9 @@ export const routes: Routes = [
           },
         ],
       },
+      // Las rutas viejas de Cumplimiento dentro de un servicio redirigen a las nuevas y fijan ese servicio como activo (el guard siempre devuelve una redirección).
+      { path: 'services/:id/cumplimiento', pathMatch: 'full', canActivate: [legacyComplianceRedirectGuard], children: [] },
+      { path: 'services/:id/cumplimiento/:tab', canActivate: [legacyComplianceRedirectGuard], children: [] },
       // Enlace de la pantalla anterior (el paso «control técnico» ya no existe como pantalla aparte).
       { path: 'services/:id/technical-control', redirectTo: '/services/:id' },
       {

@@ -1,11 +1,11 @@
-import { COMPLIANCE_OPTIONS, RISK_MATRIX, provideCatalogStub } from '../../../testing/catalog-options';
+import { COMPLIANCE_OPTIONS, RISK_MATRIX, provideCatalogStub } from '@shared/testing/catalog-options';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
-import { Responsible, RiskDetail, RiskEvaluationEntry, RiskTreatmentRecord } from '../../../domain/models/risk.models';
-import { ResponsibleService } from '../../../domain/services/responsible.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { Responsible, RiskDetail, RiskEvaluationEntry, RiskTreatmentRecord } from '@shared/domain/models/risk.models';
+import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { RiskAssessment } from './risk-assessment';
 
 const RISK: RiskDetail = {
@@ -106,7 +106,7 @@ describe('RiskAssessment', () => {
     setup(EVALUATED);
     const cell = el().querySelector('[data-test-position] [data-cell="3-4"]')!;
     expect(cell.getAttribute('aria-current')).toBe('true');
-    expect(cell.className).toContain('bg-orange-600'); // el nivel Alto, con el tono intenso de la casilla guardada
+    expect(cell.className).toContain('bg-risk-high'); // el nivel Alto, con el tono intenso de la casilla guardada
     expect(el().querySelectorAll('[data-test-position] [data-cell][aria-current="true"]').length).toBe(1);
   });
 

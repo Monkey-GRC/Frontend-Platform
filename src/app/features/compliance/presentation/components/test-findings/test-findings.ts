@@ -1,18 +1,21 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { Finding, FindingSeverity } from '../../../domain/models/finding.models';
-import { FindingService } from '../../../domain/services/finding.service';
-import { remediationBlocks } from '../../../domain/utils/remediation-text';
+import { riskLevelLook } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
+import { Finding, FindingSeverity } from '@features/compliance/domain/models/finding.models';
+import { FindingService } from '@features/compliance/domain/services/finding.service';
+import { remediationBlocks } from '@features/compliance/domain/utils/remediation-text';
 
 type Stage = 'closed' | 'loading' | 'ready' | 'error';
 
+// La severidad de un hallazgo usa la escala de nivel de riesgo del sistema (`risk-*`: crítica, alta, media = moderada, baja) y el neutro para lo informativo; no son los tonos de
+// estado. La severidad siempre va con su palabra y sin icono.
 const SEVERITY_CHIP: Record<FindingSeverity, string> = {
-  critical: 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/30 dark:text-red-300',
-  high: 'bg-orange-50 text-orange-800 ring-1 ring-inset ring-orange-600/25 dark:bg-orange-900/30 dark:text-orange-300',
-  medium: 'bg-yellow-50 text-yellow-800 ring-1 ring-inset ring-yellow-600/25 dark:bg-yellow-900/30 dark:text-yellow-300',
-  low: 'bg-blue-50 text-blue-800 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-300',
-  informational: 'bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-400/30 dark:bg-gray-800 dark:text-gray-300',
+  critical: riskLevelLook('critical'),
+  high: riskLevelLook('high'),
+  medium: riskLevelLook('moderate'),
+  low: riskLevelLook('low'),
+  informational: 'border-line bg-canvas text-ink-muted',
 };
 const SHOWN_RESOURCES = 5;
 

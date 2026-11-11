@@ -9,27 +9,13 @@
       "CAUSE": "Causa",
       "EVIDENCE": "Evidencias"
     },
-    "STATUS_HINT": {
-      "READY": "Todo lo aplicable cumple.",
-      "ALMOST_READY": "Casi todo cumple; faltan pocos puntos.",
-      "NEEDS_WORK": "Hay varios puntos por resolver.",
-      "NOT_MEASURED": "Aún no hay resultados para determinar si cumple. No es un incumplimiento."
-    },
-    "STATUS": {
-      "READY": "Preparado",
-      "ALMOST_READY": "Casi listo",
-      "NEEDS_WORK": "Requiere trabajo",
-      "NOT_MEASURED": "Sin medir"
-    },
-    "TABS": {
+    "SECTIONS": {
       "SUMMARY": "Resumen",
       "EXCLUSIONS": "Exclusiones"
     },
     "SHELL": {
       "TITLE": "Cumplimiento",
-      "BACK_TO_SERVICE": "Volver al servicio",
       "TECHNICAL_VIEW": "Vista técnica",
-      "COMING_SOON": "Sección en construcción.",
       "FRAMEWORKS": "Marcos del servicio",
       "SERVICE": "Servicio",
       "GENERAL": "General"
@@ -40,7 +26,7 @@
       "LOAD_ERROR_TITLE": "No se pudo cargar el resumen",
       "EVALUATION": "Período {{start}} – {{end}} · catálogo v{{version}}",
       "NOT_DEFINED_TITLE": "La evaluación aún no está definida.",
-      "NOT_DEFINED_BODY": "Falta el período auditado; mientras tanto el resumen se muestra «Sin medir».",
+      "NOT_DEFINED_BODY": "Sin período auditado, todo aparece «Sin medir».",
       "VERDICT": {
         "COMPLIANT": "Cumple",
         "NON_COMPLIANT": "No cumple",
@@ -49,39 +35,44 @@
       },
       "BODY": {
         "COMPLIANT": "Todos los controles en alcance son efectivos.",
-        "NON_COMPLIANT": "Hay controles con pruebas que no cumplen o están vencidas. Un solo incumplimiento impide el cumplimiento del marco.",
-        "EVALUATING": "Aún hay controles sin decidir: lo pendiente nunca cuenta como cumplido.",
-        "NOT_MEASURED": "Todavía no hay resultados para decidir si cumple. No es un incumplimiento.",
-        "NO_CONTROLS": "El marco no tiene controles en alcance."
+        "NON_COMPLIANT": "Un solo incumplimiento impide cumplir el marco.",
+        "EVALUATING": "Lo pendiente nunca cuenta como cumplido.",
+        "NOT_MEASURED": "Aún sin resultados; no es un incumplimiento.",
+        "NO_CONTROLS": "Sin controles en alcance."
       },
       "PROGRESS": "Avance",
-      "PROGRESS_NOTE": "El avance indica cuánto se ha logrado, pero no equivale a cumplimiento.",
       "COVERAGE": "Cobertura",
       "KPI_EVALUATED": "Controles evaluados",
       "KPI_EFFECTIVE": "Efectivos",
       "KPI_INEFFECTIVE": "No efectivos",
       "KPI_PENDING": "Pendientes",
       "CATEGORIES_TITLE": "Criterios de confianza",
-      "CATEGORY_COUNT": "{{done}} de {{total}} controles efectivos",
+      "CATEGORY_COUNT": "{{done}} de {{total}} efectivos",
       "ATTENTION_TITLE": "Controles que requieren atención",
       "ATTENTION_ALL": "Ver todos los controles",
       "ATTENTION_EMPTY": "Ningún control incumple por ahora.",
       "ATTENTION_EMPTY_UNMEASURED": "Aún no hay resultados, así que no hay controles que señalar.",
+      "ATTENTION_COL": {
+        "CODE": "Código",
+        "CONTROL": "Control",
+        "FAILS": "Dónde falla",
+        "STATUS": "Estado"
+      },
       "TESTS": "{{done}}/{{total}} pruebas cumplen",
       "NO_FRAMEWORKS_TITLE": "Este servicio aún no tiene un marco contratado",
       "NO_FRAMEWORKS_BODY": "Cuando contrates un marco verás aquí su estado de cumplimiento."
     },
     "HEATMAP": {
       "TITLE": "Matriz inherente",
-      "INTRO": "Dónde cae cada riesgo evaluado según su probabilidad y su impacto, antes de contar con los controles. No dice si un riesgo está mitigado: eso lo deciden los controles y sus pruebas.",
+      "INTRO": "Antes de los controles; no indica si el riesgo está mitigado.",
       "EVALUATED": "{{evaluated}} de {{total}} riesgos evaluados",
       "WORST": "Nivel más alto presente:",
-      "NOT_EVALUATED": "Sin evaluar: {{count}}. Evalúalos desde Riesgos para que aparezcan aquí.",
-      "EMPTY": "Aún no hay riesgos evaluados. Evalúa un riesgo (probabilidad e impacto) y aparecerá aquí.",
+      "NOT_EVALUATED": "Sin evaluar: {{count}}",
+      "EMPTY": "Aún no hay riesgos evaluados.",
       "HINT": "Pulsa una casilla para ver sus riesgos.",
       "SUMMARY": "Resumen",
       "DISTRIBUTION": "Riesgos por nivel",
-      "RESIDUAL_NOTE": "La matriz residual se mostrará cuando existan los datos de la fórmula de mitigación.",
+      "RESIDUAL_NOTE": "Matriz residual: aún no disponible.",
       "CELL_ARIA": "Probabilidad {{likelihood}}, impacto {{impact}}: {{count}} riesgos",
       "LEGEND": "Niveles de riesgo, de menor a mayor"
     },
@@ -98,12 +89,14 @@
       "EMPTY_READER_BODY": "Cuando el administrador de la empresa declare un servicio, podrás verlo aquí.",
       "GENERAL_TITLE": "Cumplimiento general",
       "GENERAL_BODY": "Cada servicio se mide por separado frente a cada marco. Aquí ves cómo va cada uno; entra a uno para ver su detalle. No hay un porcentaje combinado de varios servicios.",
-      "SERVICE_COUNT": "{{count}} servicios con este marco",
+      "GENERAL_TABLE": "Servicios agrupados por marco",
+      "COL_SERVICE": "Servicio",
+      "COL_STATUS": "Estado",
+      "COL_PROGRESS": "Avance y cobertura",
       "ROW_ERROR": "No se pudo leer el resumen de este servicio.",
       "NO_FRAMEWORK": "Sin marco contratado"
     },
     "CONTROLS": {
-      "INTRO": "Controles del servicio por categoría, con su porcentaje de cumplimiento y su cobertura.",
       "FILTER_TOPIC": "Categoría",
       "FILTER_STATUS": "Estado",
       "ALL_TOPICS": "Todas las categorías",
@@ -156,8 +149,8 @@
       "INTERPRETATION": "Interpretación",
       "CUSTOMIZED": "Interpretación redactada por tu organización.",
       "DIMENSIONS": "Dimensiones",
-      "APPLIES": "aplica",
-      "NOT_APPLIES": "no aplica",
+      "APPLIES": "Aplica",
+      "NOT_APPLIES": "No aplica",
       "REASON": "Motivo por el que no aplica",
       "REASON_IS": "Motivo: {{reason}}",
       "PROPOSAL_NOTE": "El cambio se aplica al instante y el avance del servicio se recalcula.",
@@ -175,7 +168,6 @@
     },
     "RISKS": {
       "ALL": "Todos",
-      "INTRO": "Riesgos del servicio y las causas que los originan, con los controles que las mitigan.",
       "SEARCH": "Buscar por código o nombre",
       "FILTER_CRITERION": "Criterio",
       "FILTER_CATEGORY": "Categoría de falla",
@@ -191,7 +183,11 @@
       "RISKS_COUNT": "Riesgos: {{count}}",
       "CONTROLS_COUNT": "Controles: {{count}}",
       "NOT_EVALUATED": "Sin evaluar",
-      "INTRO_CAUSES": "Causas que originan los riesgos del servicio, con los controles que las mitigan."
+      "TABLE_RISKS": "Riesgos del servicio, agrupados por criterio",
+      "TABLE_CAUSES": "Causas del servicio, agrupadas por categoría de falla",
+      "COL_CODE": "Código",
+      "COL_NAME": "Nombre",
+      "COL_LEVEL": "Nivel de riesgo"
     },
     "RISK_LEVEL": {
       "LOW": "Bajo",
@@ -327,6 +323,11 @@
       "TYPE": "Cargo",
       "PERSON": "Persona",
       "SELECT": "Selecciona",
+      "TABLE_CAPTION": "Cargos responsables de la organización",
+      "COL_STATUS": "Estado",
+      "COL_ACTIONS": "Acciones",
+      "EMPTY_TITLE": "Aún no hay cargos responsables",
+      "ADD_HINT": "Elige el cargo y escribe el nombre de la persona que responde.",
       "SAVE": "Guardar",
       "CHANGE_PERSON": "Cambiar persona",
       "REMOVE": "Quitar",
@@ -348,8 +349,9 @@
       "REJECTED": "Rechazada"
     },
     "EXCLUSIONS": {
-      "TITLE": "Exclusiones",
-      "INTRO": "Sacar un activo de una prueba cambia lo que se mide. La crea y la decide el administrador de la empresa en un solo acto: nace aprobada y el activo deja de medirse en esa prueba hasta que venza.",
+      "TABLE": "Exclusiones del servicio",
+      "COL_TEST": "Prueba y activo",
+      "COL_STATUS": "Estado",
       "FILTER": "Filtrar por estado",
       "ALL": "Todas",
       "EMPTY": "Este servicio no tiene exclusiones.",
@@ -395,6 +397,7 @@
       "EMPTY": "Este control no tiene evidencias requeridas.",
       "NOT_DELIVERED": "Aún no se ha entregado.",
       "RESPONSIBLE": "Responsable: {{role}} · {{person}}",
+      "NO_RESPONSIBLE": "Sin responsable asignado",
       "NO_PERSON": "sin persona asignada",
       "VALIDITY": "Vigencia: {{value}}",
       "VERSION": "v{{version}}",
@@ -443,11 +446,9 @@
       "ERR_RANGE": "El fin no puede ser anterior al inicio.",
       "DEFINE": "Definir el período",
       "EDIT": "Cambiar período",
-      "LINE": "Período auditado: {{start}} – {{end}}",
       "ASK_ADMIN": "Pídele al administrador de la empresa que lo defina."
     },
     "EVIDENCE_INBOX": {
-      "INTRO": "Lo que cada control pide que aportes y cómo va. Abre una fila para subir el archivo o descargar lo entregado. Quien aporta sube el documento; lo valida el administrador de la empresa.",
       "FILTER": "Mostrar",
       "ALL": "Todas ({{count}})",
       "MISSING": "Sin entregar ({{count}})",
@@ -482,18 +483,48 @@
       "Q_LIKELIHOOD": "¿Qué tan probable es que esto ocurra en tu servicio?",
       "Q_IMPACT": "Si ocurriera, ¿qué tan grave sería el impacto?",
       "LIKELIHOOD": {
-        "L1": { "LABEL": "Raro", "DESC": "Puede ocurrir solo en circunstancias excepcionales" },
-        "L2": { "LABEL": "Improbable", "DESC": "Podría ocurrir en algún momento" },
-        "L3": { "LABEL": "Posible", "DESC": "Podría ocurrir ocasionalmente" },
-        "L4": { "LABEL": "Probable", "DESC": "Ocurre en la mayoría de las circunstancias" },
-        "L5": { "LABEL": "Casi seguro", "DESC": "Se espera que ocurra en la mayoría de los casos" }
+        "L1": {
+          "LABEL": "Raro",
+          "DESC": "Puede ocurrir solo en circunstancias excepcionales"
+        },
+        "L2": {
+          "LABEL": "Improbable",
+          "DESC": "Podría ocurrir en algún momento"
+        },
+        "L3": {
+          "LABEL": "Posible",
+          "DESC": "Podría ocurrir ocasionalmente"
+        },
+        "L4": {
+          "LABEL": "Probable",
+          "DESC": "Ocurre en la mayoría de las circunstancias"
+        },
+        "L5": {
+          "LABEL": "Casi seguro",
+          "DESC": "Se espera que ocurra en la mayoría de los casos"
+        }
       },
       "IMPACT": {
-        "L1": { "LABEL": "Insignificante", "DESC": "Efecto mínimo, sin consecuencias relevantes" },
-        "L2": { "LABEL": "Menor", "DESC": "Impacto leve, manejable con recursos normales" },
-        "L3": { "LABEL": "Moderado", "DESC": "Impacto notable, requiere gestión específica" },
-        "L4": { "LABEL": "Mayor", "DESC": "Impacto significativo en la operación o el cumplimiento" },
-        "L5": { "LABEL": "Crítico", "DESC": "Impacto severo, amenaza la continuidad o genera sanciones graves" }
+        "L1": {
+          "LABEL": "Insignificante",
+          "DESC": "Efecto mínimo, sin consecuencias relevantes"
+        },
+        "L2": {
+          "LABEL": "Menor",
+          "DESC": "Impacto leve, manejable con recursos normales"
+        },
+        "L3": {
+          "LABEL": "Moderado",
+          "DESC": "Impacto notable, requiere gestión específica"
+        },
+        "L4": {
+          "LABEL": "Mayor",
+          "DESC": "Impacto significativo en la operación o el cumplimiento"
+        },
+        "L5": {
+          "LABEL": "Crítico",
+          "DESC": "Impacto severo, amenaza la continuidad o genera sanciones graves"
+        }
       },
       "SAVE_NEXT": "Guardar y seguir",
       "SAVE_LAST": "Guardar y terminar",
@@ -507,7 +538,6 @@
       "REVIEW_BACK": "Volver",
       "CONFIRM_EVALUATION": "Confirmar evaluación",
       "EDIT_LATER": "Puedes corregir cualquier calificación después, en Cumplimiento › Riesgos.",
-      "FINISH": "Declarar los activos",
       "DONE_REMOVED": "Retiraste {{removed}} por no aplicar a tu servicio.",
       "STEPPER_ARIA": "Riesgos del servicio",
       "RESULT_TITLE": "Así quedaría este riesgo",
@@ -537,7 +567,8 @@
       "CAUSES_NEW": "Nueva causa",
       "CAUSES_DONE": "Listo, calificar este riesgo",
       "CAUSES_ERROR": "No se pudo actualizar la causa. Inténtalo de nuevo.",
-      "CAUSES_LOAD_ERROR": "No se pudieron cargar las causas del servicio."
+      "CAUSES_LOAD_ERROR": "No se pudieron cargar las causas del servicio.",
+      "EVALUATED_MARK": "Evaluado"
     },
     "TESTS": {
       "TITLE": "Pruebas",
@@ -585,6 +616,13 @@
       "AUTOMATED": "Automática",
       "HYBRID": "Híbrida",
       "TECHNICAL_MANUAL": "Técnica manual"
+    },
+    "BANNER": {
+      "RISKS": "Riesgos en el servicio: {{count}}",
+      "CAUSES": "Causas registradas: {{count}}",
+      "CONTROLS": "Controles del servicio: {{count}}",
+      "EVIDENCE": "Evidencias solicitadas: {{count}}",
+      "EXCLUSIONS": "Exclusiones: {{count}}"
     }
   }
 }

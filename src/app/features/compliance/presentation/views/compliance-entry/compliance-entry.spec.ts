@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ComplianceServicesService } from '../../../domain/services/compliance-services.service';
+import { ComplianceServicesService } from '@features/compliance/domain/services/compliance-services.service';
 import { ComplianceEntryView } from './compliance-entry';
 
 // Una empresa sin servicios para este rol: solo el administrador puede crear uno (D96); el responsable y el delegado esperan su asignación y el auditor espera que se declare.
@@ -39,5 +39,31 @@ describe('ComplianceEntryView · sin servicios', () => {
     const el = render('auditor');
     expect(el.textContent).toContain('COMPLIANCE.ENTRY.EMPTY_READER_TITLE');
     expect(el.querySelector('a[href="/services/new"]')).toBeNull();
+  });
+});
+
+// Con un solo servicio no hay nada que elegir: se entra directo al Resumen, con ese servicio como activo.
+describe('ComplianceEntryView · un solo servicio', () => {
+  it('goes to the Summary page with the only service in ?servicio=', () => {
+    const navigate = spyOn(Router.prototype, 'navigate').and.resolveTo(true);
+    TestBed.configureTestingModule({
+      imports: [ComplianceEntryView],
+      providers: [provideRouter([]), provideTranslateService(), { provide: ComplianceServicesService, useValue: { list: () => of([{ id: 's1', name: 'Facturación', frameworks: [] }]) } }],
+    });
+    TestBed.inject(SessionService).set({ id: 'u', email: 'a@x.co', name: null, last_name: null, role: 'admin_empresa' }, { id: 'c', name: 'ACME' });
+    TestBed.createComponent(ComplianceEntryView).detectChanges();
+    expect(navigate).toHaveBeenCalledWith(['/', 'cumplimiento', 'resumen'], { queryParams: { servicio: 's1' }, replaceUrl: true });
+  });
+  it('follows the session: the role flags are computed, not read once', () => {
+    TestBed.configureTestingModule({
+      imports: [ComplianceEntryView],
+      providers: [provideRouter([]), provideTranslateService(), { provide: ComplianceServicesService, useValue: { list: () => of([]) } }],
+    });
+    const session = TestBed.inject(SessionService);
+    session.set({ id: 'u', email: 'a@x.co', name: null, last_name: null, role: 'responsable' }, { id: 'c', name: 'ACME' });
+    const view = TestBed.createComponent(ComplianceEntryView).componentInstance;
+    expect([view.isAdminRole(), view.isAssignedRole()]).toEqual([false, true]);
+    session.set({ id: 'u', email: 'a@x.co', name: null, last_name: null, role: 'admin_empresa' }, { id: 'c', name: 'ACME' });
+    expect([view.isAdminRole(), view.isAssignedRole()]).toEqual([true, false]);
   });
 });

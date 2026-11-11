@@ -1,30 +1,35 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
-import { COMPLIANCE_ROUTE } from '../../../domain/models/compliance.models';
-import { RiskListItem } from '../../../domain/models/risk.models';
-import { FailingAffected, OverviewCategory, OverviewFailingControl, OverviewFramework, OverviewReadiness, RollupState } from '../../../domain/models/overview.models';
-import { ComplianceContextService } from '../../../domain/services/compliance-context.service';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { OverviewService } from '../../../domain/services/overview.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { Card } from '@shared/presentation/components/card/card';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { PageInfo } from '@shared/presentation/components/data-table/table-page';
+import { Donut, DonutTone } from '@shared/presentation/components/donut/donut';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { readinessLook } from '@shared/domain/utils/readiness-look';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { Tag } from '@shared/presentation/components/tag/tag';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
+import { COMPLIANCE_ROUTE } from '@features/compliance/domain/models/compliance.models';
+import { RiskListItem } from '@shared/domain/models/risk.models';
+import { FailingAffected, OverviewCategory, OverviewFailingControl, OverviewFramework, OverviewReadiness, RollupState } from '@features/compliance/domain/models/overview.models';
+import { ComplianceContextService } from '@features/compliance/domain/services/compliance-context.service';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { OverviewService } from '@features/compliance/domain/services/overview.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { EvaluationPeriodForm } from '../../components/evaluation-period-form/evaluation-period-form';
-import { ProgressRing, RingTone } from '../../components/progress-ring/progress-ring';
 import { RiskHeatmap } from '../../components/risk-heatmap/risk-heatmap';
 
 type Stage = 'loading' | 'error' | 'ready';
-type Tone = 'green' | 'amber' | 'red' | 'gray';
+type Tone = DonutTone;
 
 interface Banner {
   tone: Tone;
-  icon: string;
   titleKey: string;
   bodyKey: string;
 }
@@ -41,37 +46,19 @@ interface AttentionRow {
   tests: { done: number; total: number } | null;
 }
 
-// Los colores del banner y de los anillos: el rojo es «no cumple», el verde «cumple», el ámbar «casi / en evaluación» y el gris «sin medir» (leyenda del comité).
-const BANNER_CLASS: Record<Tone, string> = {
-  // Tonos profundos, no los más brillantes de cada color: el veredicto se lee de lejos sin gritar.
-  // En modo oscuro el veredicto se apaga un escalón (más oscuro y con un filo de su color): sobre un fondo oscuro, el rojo de día deslumbra.
-  green: 'bg-linear-to-br from-success-700 to-success-800 text-white dark:from-success-800 dark:to-success-950 dark:ring-1 dark:ring-inset dark:ring-success-500/30',
-  amber: 'bg-linear-to-br from-amber-300 to-amber-400 text-amber-950 dark:from-amber-700 dark:to-amber-800 dark:text-white dark:ring-1 dark:ring-inset dark:ring-amber-400/30',
-  red: 'bg-linear-to-br from-error-700 to-error-800 text-white dark:from-error-800 dark:to-error-950 dark:ring-1 dark:ring-inset dark:ring-error-500/30',
-  gray: 'bg-linear-to-br from-gray-600 to-gray-700 text-white dark:from-gray-700 dark:to-gray-800 dark:ring-1 dark:ring-inset dark:ring-white/10',
-};
-// El veredicto lleva su color lleno: es lo primero que se lee de la pantalla. El icono ya no necesita su propio color (va sobre un cristal blanco).
-const ICON_CLASS: Record<Tone, string> = { green: '', amber: '', red: '', gray: '' };
-
-// El acento de una tarjeta de categoría sale del estado (semáforo), nunca de la categoría: Seguridad y Disponibilidad se distinguen por su nombre, no por un color propio.
-const ACCENT_CLASS: Record<string, string> = {
-  ready: 'border-l-green-600',
-  almost_ready: 'border-l-amber-500',
-  needs_work: 'border-l-red-700',
-  not_measured: 'border-l-gray-300 dark:border-l-gray-600',
-};
+const PAGE_SIZES = [10, 25, 50];
 
 // La pestaña «Resumen» de un servicio (MD-140), según la pantalla «Estado de cumplimiento» del comité: el veredicto del marco (todo o nada), el avance y la cobertura por
 // separado, los criterios de confianza y los controles que requieren atención. El avance NO es el estado: «80 %» puede convivir con «No cumple». Lo pendiente, en revisión o
 // vencido nunca cuenta como cumplido, y sin resultados no se inventa ningún porcentaje. El cumplimiento se mide por servicio × marco; nunca hay un total de la empresa.
 @Component({
   selector: 'app-overview',
-  imports: [TranslatePipe, RouterLink, StatusBadge, LoadingSpinner, ProgressRing, RiskHeatmap, EvaluationPeriodForm],
+  imports: [TranslatePipe, RouterLink, StatusIndicator, Tag, Card, Donut, EmptyState, DataTable, TableCell, LoadingSpinner, RiskHeatmap, EvaluationPeriodForm],
   templateUrl: './overview.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OverviewView {
-  private readonly route = inject(ActivatedRoute);
+  protected readonly readinessLook = readinessLook;
   private readonly api = inject(OverviewService);
   private readonly riskApi = inject(RiskService);
   private readonly catalogs = inject(CatalogService);
@@ -82,9 +69,9 @@ export class OverviewView {
   /** Lo que se comparte con el encabezado del servicio: el marco elegido y el período de su evaluación. */
   readonly context = inject(ComplianceContextService);
 
-  // La vista es hija de `services/:id/cumplimiento`: el id del servicio está en la ruta del padre.
-  private readonly params = toSignal(this.route.parent!.paramMap, { requireSync: true });
-  readonly serviceId = computed(() => this.params().get('id') ?? '');
+  // El servicio activo lo elige el encabezado de Cumplimiento y se recuerda entre secciones (`ActiveComplianceService`).
+  private readonly activeService = inject(ActiveComplianceService);
+  readonly serviceId = computed(() => this.activeService.serviceId() ?? '');
 
   readonly stage = signal<Stage>('loading');
   readonly frameworks = signal<OverviewFramework[]>([]);
@@ -96,7 +83,7 @@ export class OverviewView {
   private readonly dimensions = signal<CatalogOption[]>([]);
   private requestSeq = 0;
 
-  readonly controlsLink = computed(() => ['/services', this.serviceId(), COMPLIANCE_ROUTE, 'controles']);
+  readonly controlsLink = computed(() => ['/', COMPLIANCE_ROUTE, 'controles']);
 
   readonly framework = computed<OverviewFramework | null>(() => {
     const all = this.frameworks();
@@ -120,24 +107,21 @@ export class OverviewView {
   readonly banner = computed<Banner | null>(() => {
     const fw = this.framework();
     if (!fw) return null;
-    if (fw.readiness === 'not_measured') return { tone: 'gray', icon: 'hourglass_empty', titleKey: 'COMPLIANCE.STATUS.NOT_MEASURED', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.NOT_MEASURED' };
+    if (fw.readiness === 'not_measured') return { tone: 'neutral', titleKey: 'COMMON.READINESS.LABEL.NOT_MEASURED', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.NOT_MEASURED' };
     if (fw.technical) {
       const byState: Record<RollupState, Banner> = {
-        compliant: { tone: 'green', icon: 'check', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.COMPLIANT', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.COMPLIANT' },
-        non_compliant: { tone: 'red', icon: 'close', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.NON_COMPLIANT', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.NON_COMPLIANT' },
-        evaluating: { tone: 'amber', icon: 'timelapse', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.EVALUATING', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.EVALUATING' },
-        no_controls: { tone: 'gray', icon: 'hourglass_empty', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.NO_CONTROLS', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.NO_CONTROLS' },
-        out_of_scope: { tone: 'gray', icon: 'hourglass_empty', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.NO_CONTROLS', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.NO_CONTROLS' },
+        compliant: { tone: 'ok', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.COMPLIANT', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.COMPLIANT' },
+        non_compliant: { tone: 'bad', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.NON_COMPLIANT', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.NON_COMPLIANT' },
+        evaluating: { tone: 'warn', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.EVALUATING', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.EVALUATING' },
+        no_controls: { tone: 'neutral', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.NO_CONTROLS', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.NO_CONTROLS' },
+        out_of_scope: { tone: 'neutral', titleKey: 'COMPLIANCE.OVERVIEW.VERDICT.NO_CONTROLS', bodyKey: 'COMPLIANCE.OVERVIEW.BODY.NO_CONTROLS' },
       };
       return byState[fw.technical.state];
     }
     const level = fw.readiness as OverviewReadiness;
-    const tone: Tone = level === 'ready' ? 'green' : level === 'needs_work' ? 'red' : 'amber';
-    return { tone, icon: level === 'ready' ? 'check' : level === 'needs_work' ? 'close' : 'timelapse', titleKey: `COMPLIANCE.STATUS.${level.toUpperCase()}`, bodyKey: `COMPLIANCE.STATUS_HINT.${level.toUpperCase()}` };
+    const tone: Tone = level === 'ready' ? 'ok' : level === 'needs_work' ? 'bad' : 'warn';
+    return { tone, titleKey: `COMMON.READINESS.LABEL.${level.toUpperCase()}`, bodyKey: `COMMON.READINESS.HINT.${level.toUpperCase()}` };
   });
-
-  readonly bannerClass = computed(() => BANNER_CLASS[this.banner()?.tone ?? 'gray']);
-  readonly iconClass = computed(() => ICON_CLASS[this.banner()?.tone ?? 'gray']);
 
   readonly counts = computed(() => {
     const fw = this.framework();
@@ -165,6 +149,37 @@ export class OverviewView {
     return [...rows.values()].sort((a, b) => a.code.localeCompare(b.code, 'es', { numeric: true }));
   });
 
+  /** La tabla se pagina aquí, sobre la lista que ya llegó: no se pide nada más al servidor. */
+  readonly attentionPageSizes = PAGE_SIZES;
+  private readonly attentionPageSize = signal(PAGE_SIZES[0]);
+  private readonly attentionPageRequested = signal(1);
+  readonly attentionPageInfo = computed<PageInfo>(() => {
+    const total = this.attention().length;
+    const pageSize = this.attentionPageSize();
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    return { page: Math.min(this.attentionPageRequested(), totalPages), pageSize, total, totalPages };
+  });
+  readonly attentionPage = computed<AttentionRow[]>(() => {
+    const { page, pageSize } = this.attentionPageInfo();
+    return this.attention().slice((page - 1) * pageSize, page * pageSize);
+  });
+  readonly attentionColumns: TableColumn<AttentionRow>[] = [
+    { key: 'code', headerKey: 'COMPLIANCE.OVERVIEW.ATTENTION_COL.CODE', class: 'w-28' },
+    { key: 'name', headerKey: 'COMPLIANCE.OVERVIEW.ATTENTION_COL.CONTROL' },
+    { key: 'failing', headerKey: 'COMPLIANCE.OVERVIEW.ATTENTION_COL.FAILS' },
+    { key: 'status', headerKey: 'COMPLIANCE.OVERVIEW.ATTENTION_COL.STATUS' },
+  ];
+  readonly attentionKey = (r: AttentionRow): string => r.id;
+
+  goToAttentionPage(page: number): void {
+    this.attentionPageRequested.set(page);
+  }
+
+  resizeAttention(size: number): void {
+    this.attentionPageSize.set(size);
+    this.attentionPageRequested.set(1);
+  }
+
   constructor() {
     // El backend traduce los catálogos: al cambiar el idioma se vuelven a pedir.
     effect(() => {
@@ -190,8 +205,15 @@ export class OverviewView {
       untracked(() => {
         this.context.evaluationText.set(text);
         this.context.selectable.set(this.frameworks().length > 1);
+        // «Cambiar período» vive en el banner: solo se ofrece a quien puede y con el período ya definido.
+        this.context.editPeriod.set(this.canEditPeriod() && this.evaluationDefined() ? () => this.openPeriod() : null);
         if (fw && this.context.selected() !== fw.framework_code) this.context.selected.set(fw.framework_code);
       });
+    });
+    // La línea de contexto del banner: el veredicto del marco en texto y su significado (el porcentaje, la cobertura y el estado están en las tarjetas de abajo).
+    effect(() => {
+      const b = this.banner();
+      untracked(() => this.context.insight.set(b ? { kind: 'status', statusKey: b.titleKey, hintKey: b.bodyKey } : null));
     });
     // El período y el marco son de esta pestaña: al salir, el encabezado vuelve a estar sin ellos.
     this.destroyRef.onDestroy(() => this.context.clear());
@@ -241,13 +263,18 @@ export class OverviewView {
     return percentOf(part, total);
   }
 
-  /** El color de un anillo sale del semáforo; sin medir es gris, no rojo. */
-  tone(readiness: string): RingTone {
-    return readiness === 'ready' ? 'green' : readiness === 'needs_work' ? 'red' : readiness === 'almost_ready' ? 'amber' : 'gray';
+  /** El color de una dona sale del semáforo (tokens de estado); sin medir es neutro, no rojo. */
+  tone(readiness: string): DonutTone {
+    return readiness === 'ready' ? 'ok' : readiness === 'needs_work' ? 'bad' : readiness === 'almost_ready' ? 'warn' : 'neutral';
   }
 
-  accent(readiness: string): string {
-    return ACCENT_CLASS[readiness] ?? ACCENT_CLASS['not_measured'];
+  /** Una dona sin total o sin medir queda vacía: ni un 0 % inventado. */
+  donutValue(readiness: string, part: number, total: number): number | null {
+    return readiness === 'not_measured' ? null : this.value(part, total);
+  }
+
+  donutText(readiness: string, part: number, total: number): string {
+    return readiness === 'not_measured' ? '—' : this.pct(part, total);
   }
 
   criterionLabel(value: string): string {

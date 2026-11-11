@@ -3,7 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { PageInfo } from '@shared/domain/utils/pagination';
+import { unwrapData } from '@shared/domain/utils/unwrap-response';
+import { PageInfo } from '@shared/presentation/components/data-table/table-page';
 import { ControlDetail, ControlFilters, ControlListItem, ControlsPageDto, UpdateControlBody } from '../models/control.models';
 
 export interface ControlsPage {
@@ -24,8 +25,8 @@ export class ControlService {
     if (filters.readiness) params = params.set('readiness', filters.readiness);
     if (view) params = params.set('view', view);
     return this.http.get<SuccessResponse<ControlsPageDto>>(`${this.base}/services/${serviceId}/controls`, { params }).pipe(
-      map((r) => {
-        const data = r.data!;
+      unwrapData<ControlsPageDto>(),
+      map((data) => {
         return { items: data.items, page: { page: data.page, pageSize: data.page_size, total: data.total, totalPages: data.total_pages } };
       }),
     );
@@ -42,13 +43,13 @@ export class ControlService {
 
   get(id: string, view?: 'technical'): Observable<ControlDetail> {
     const params = view ? new HttpParams().set('view', view) : undefined;
-    return this.http.get<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}`, { params }).pipe(map((r) => r.data!));
+    return this.http.get<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}`, { params }).pipe(unwrapData());
   }
 
   /** Edita la interpretación o las dimensiones al instante (D96). Responde con el control ya cambiado. */
   update(id: string, body: UpdateControlBody, view?: 'technical'): Observable<ControlDetail> {
     const params = view ? new HttpParams().set('view', view) : undefined;
-    return this.http.patch<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}`, body, { params }).pipe(map((r) => r.data!));
+    return this.http.patch<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}`, body, { params }).pipe(unwrapData());
   }
 
   /** Da de baja el control (no lo borra): deja de contar y el histórico se conserva. */

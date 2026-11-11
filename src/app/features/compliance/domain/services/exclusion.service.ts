@@ -1,10 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
+import { EMPTY, Observable, expand, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
+import { unwrapData } from '@shared/domain/utils/unwrap-response';
 import { Exclusion, ExclusionStatus } from '../models/exclusion.models';
-import { Page } from '../models/risk.models';
+import { Page } from '@shared/domain/models/risk.models';
 
 const PAGE_SIZE = 100;
 
@@ -21,7 +22,7 @@ export class ExclusionService {
     const page = (n: number) => {
       let params = new HttpParams().set('page', n).set('page_size', PAGE_SIZE);
       if (status) params = params.set('status', status);
-      return this.http.get<SuccessResponse<Page<Exclusion>>>(url, { params }).pipe(map((r) => r.data!));
+      return this.http.get<SuccessResponse<Page<Exclusion>>>(url, { params }).pipe(unwrapData());
     };
     return page(1).pipe(
       expand((p) => (p.page < p.total_pages ? page(p.page + 1) : EMPTY)),

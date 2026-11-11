@@ -1,21 +1,25 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { merge } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { READINESS_LEVELS, Readiness } from '@shared/domain/models/readiness.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { PageInfo } from '@shared/domain/utils/pagination';
+import { PageInfo } from '@shared/presentation/components/data-table/table-page';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
-import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
-import { ControlListItem, TrustCriterion } from '../../../domain/models/control.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { ControlService } from '../../../domain/services/control.service';
+import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
+import { readinessLook } from '@shared/domain/utils/readiness-look';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { bindInsight } from '@features/compliance/domain/services/compliance-context.service';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
+import { ControlListItem, TrustCriterion } from '@features/compliance/domain/models/control.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { ControlService } from '@features/compliance/domain/services/control.service';
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
 
 type Stage = 'loading' | 'error' | 'ready';
@@ -28,21 +32,21 @@ const PAGE_SIZE = 25;
 // porcentaje de cumplimiento y su cobertura, con los conteos entre paréntesis (D80); nunca un porcentaje solo. «Sin medir» no es un fallo.
 @Component({
   selector: 'app-controls-list',
-  imports: [TranslatePipe, DataTable, TableCell, OptionChips, StatusBadge, LoadingSpinner, ControlDetailPanel],
+  imports: [TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, EmptyState, LoadingSpinner, ControlDetailPanel],
   templateUrl: './controls-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ControlsListView {
-  private readonly route = inject(ActivatedRoute);
+  protected readonly readinessLook = readinessLook;
   private readonly api = inject(ControlService);
   private readonly catalogs = inject(CatalogService);
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
   readonly view = inject(ComplianceViewService);
 
-  // La lista es hija de `services/:id/cumplimiento`: el id del servicio está en la ruta del padre.
-  private readonly params = toSignal(this.route.parent!.paramMap, { requireSync: true });
-  readonly serviceId = computed(() => this.params().get('id') ?? '');
+  // El servicio activo lo elige el encabezado de Cumplimiento y se recuerda entre secciones (`ActiveComplianceService`).
+  private readonly activeService = inject(ActiveComplianceService);
+  readonly serviceId = computed(() => this.activeService.serviceId() ?? '');
 
   readonly stage = signal<Stage>('loading');
   readonly rows = signal<ControlListItem[]>([]);
@@ -66,10 +70,10 @@ export class ControlsListView {
     ...this.trustOptions().map((o) => ({ value: o.value, label: o.label })),
   ]);
 
-  // Los estados salen del enum del backend (`readiness`) y su texto del glosario ya aprobado (`COMPLIANCE.STATUS`).
+  // Los estados salen del enum del backend (`readiness`) y su texto del glosario ya aprobado (`COMMON.READINESS`).
   readonly readinessChips = computed(() => [
     { value: ALL, label: this.t('COMPLIANCE.CONTROLS.ALL_STATUSES') },
-    ...READINESS_LEVELS.map((level) => ({ value: level, label: this.t(`COMPLIANCE.STATUS.${level.toUpperCase()}`) })),
+    ...READINESS_LEVELS.map((level) => ({ value: level, label: this.t(`COMMON.READINESS.LABEL.${level.toUpperCase()}`) })),
   ]);
 
   readonly columns = computed<TableColumn<ControlListItem>[]>(() => [
@@ -93,6 +97,11 @@ export class ControlsListView {
   private readonly translationsTick = signal(0);
 
   constructor() {
+    // Con un filtro puesto el total es el del filtro, no el de los controles del servicio: no se publica.
+    bindInsight(() => {
+      const total = this.page()?.total;
+      return this.stage() === 'ready' && !this.hasFilters() && total !== undefined ? { kind: 'count', labelKey: 'COMPLIANCE.BANNER.CONTROLS', count: total } : null;
+    });
     merge(this.translate.onLangChange, this.translate.onTranslationChange)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.translationsTick.update((n) => n + 1));

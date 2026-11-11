@@ -1,15 +1,17 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LanguageService } from '@core/domain/services/language.service';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
-import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
-import { ComplianceServiceRef } from '../../../domain/models/compliance.models';
-import { OverviewFramework } from '../../../domain/models/overview.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { OverviewService } from '../../../domain/services/overview.service';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { readinessLook } from '@shared/domain/utils/readiness-look';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { ComplianceServiceRef } from '@features/compliance/domain/models/compliance.models';
+import { OverviewFramework } from '@features/compliance/domain/models/overview.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { OverviewService } from '@features/compliance/domain/services/overview.service';
 
 interface Row {
   service: ComplianceServiceRef;
@@ -17,110 +19,99 @@ interface Row {
   framework: OverviewFramework | null;
 }
 
-interface FrameworkGroup {
-  code: string;
-  name: string;
-  rows: Row[];
-}
-
 // «General»: para cada marco, cómo va CADA servicio que lo tiene contratado. No hay un porcentaje que junte servicios (la unidad es servicio × marco, §9, D68):
 // cada fila trae el estado, el avance y la cobertura de ese servicio, y lleva a su detalle (controles, riesgos, causas, evidencias…).
 @Component({
   selector: 'app-compliance-general',
-  imports: [RouterLink, TranslatePipe, StatusBadge],
+  imports: [RouterLink, TranslatePipe, StatusIndicator, DataTable, TableCell],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.ENTRY.GENERAL_TITLE' | translate }}</h1>
-    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.ENTRY.GENERAL_BODY' | translate }}</p>
+    <h1 class="text-2xl font-semibold text-ink">{{ 'COMPLIANCE.ENTRY.GENERAL_TITLE' | translate }}</h1>
+    <p class="mt-1 text-sm text-ink-muted">{{ 'COMPLIANCE.ENTRY.GENERAL_BODY' | translate }}</p>
 
     @if (loading()) {
       <div class="mt-6 flex justify-center py-10" role="status">
-        <span class="material-symbols-rounded animate-spin text-[28px] text-primary" aria-hidden="true">progress_activity</span>
+        <span class="material-symbols-rounded animate-spin text-[28px] text-action" aria-hidden="true">progress_activity</span>
         <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
       </div>
     } @else {
-      @for (g of groups(); track g.code) {
-        <section class="mt-6" [attr.aria-label]="g.name" [attr.data-framework]="g.code">
-          <div class="flex items-baseline justify-between gap-3">
-            <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-              <span class="material-symbols-rounded text-[20px] text-primary" aria-hidden="true">workspace_premium</span>{{ g.name }}
-            </h2>
-            <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.ENTRY.SERVICE_COUNT' | translate: { count: g.rows.length } }}</p>
-          </div>
-          <ul class="mt-3 mk-card divide-y divide-gray-100 overflow-hidden dark:divide-gray-800">
-            @for (r of g.rows; track r.service.id) {
-              <li>
-                <a [routerLink]="['/services', r.service.id, 'cumplimiento', 'resumen']" data-service-row
-                  class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 transition hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <div class="min-w-0 flex-1 basis-56">
-                    <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">{{ r.service.name }}</p>
-                    @if (r.framework; as f) {
-                      <div class="mt-1.5"><app-status-badge [status]="f.readiness" /></div>
-                    } @else {
-                      <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.ENTRY.ROW_ERROR' | translate }}</p>
-                    }
+      <!-- Una sola tabla agrupada por marco: cada fila es un servicio con su propio estado, avance y cobertura (nunca uno combinado). -->
+      @if (rows().length) {
+        <div class="mt-6">
+          <app-data-table captionKey="COMPLIANCE.ENTRY.GENERAL_TABLE" [columns]="columns" [rows]="rows()" [rowKey]="rowKey" [rowLabel]="rowLabel" [clickable]="true" [focusable]="false"
+            [chevron]="true" [groupBy]="frameworkOf" [groupLabel]="frameworkName" (rowClick)="open($event.service.id)">
+            <ng-template appCell="service" let-r>
+              <a [routerLink]="['/cumplimiento', 'resumen']" [queryParams]="{ servicio: r.service.id }" data-service-row class="font-medium text-ink hover:underline">{{ r.service.name }}</a>
+              @if (!r.framework) {
+                <span class="block text-xs text-ink-muted">{{ 'COMPLIANCE.ENTRY.ROW_ERROR' | translate }}</span>
+              }
+            </ng-template>
+            <ng-template appCell="status" let-r>
+              @if (r.framework; as f) {
+                @let look = readinessLook(f.readiness);
+                <app-status-indicator [tone]="look.tone" [labelKey]="look.labelKey" [hintKey]="look.hintKey" [attr.data-status]="look.level" />
+              }
+            </ng-template>
+            <!-- Avance y cobertura juntos y junto al estado; el avance informa, no decide. -->
+            <ng-template appCell="progress" let-r>
+              @if (r.framework; as f) {
+                <div class="min-w-[12rem]">
+                  <p class="text-sm font-medium text-ink" data-progress>{{ 'COMPLIANCE.CONTROLS.PROGRESS_VALUE' | translate: { percent: pct(f.progress.done, f.progress.total), done: f.progress.done, total: f.progress.total } }}</p>
+                  <div class="mt-1 h-1 w-full overflow-hidden rounded-full bg-tint-strong" aria-hidden="true">
+                    <div class="h-full rounded-full bg-action" [style.width.%]="percentOf(f.progress.done, f.progress.total) ?? 0"></div>
                   </div>
-                  @if (r.framework; as f) {
-                    <div class="w-full min-w-[14rem] flex-1 basis-72">
-                      <div class="flex items-baseline justify-between gap-3">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.PROGRESS_LABEL' | translate }}</p>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white" data-progress>{{ 'COMPLIANCE.CONTROLS.PROGRESS_VALUE' | translate: { percent: pct(f.progress.done, f.progress.total), done: f.progress.done, total: f.progress.total } }}</p>
-                      </div>
-                      <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700" aria-hidden="true">
-                        <div class="h-full rounded-full bg-primary" [style.width.%]="percentOf(f.progress.done, f.progress.total) ?? 0"></div>
-                      </div>
-                      <p class="mt-1.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.CONTROLS.COVERAGE' | translate: { percent: pct(f.coverage.measured, f.coverage.applicable), measured: f.coverage.measured, applicable: f.coverage.applicable } }}</p>
-                    </div>
-                  }
-                  <span class="material-symbols-rounded text-[20px] text-gray-500" aria-hidden="true">chevron_right</span>
-                </a>
-              </li>
-            }
-          </ul>
-        </section>
+                  <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.CONTROLS.COVERAGE' | translate: { percent: pct(f.coverage.measured, f.coverage.applicable), measured: f.coverage.measured, applicable: f.coverage.applicable } }}</p>
+                </div>
+              }
+            </ng-template>
+          </app-data-table>
+        </div>
       }
 
       @if (withoutFramework().length) {
         <section class="mt-6" [attr.aria-label]="'COMPLIANCE.ENTRY.NO_FRAMEWORK' | translate">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.ENTRY.NO_FRAMEWORK' | translate }}</h2>
-          <ul class="mt-3 mk-card divide-y divide-gray-100 overflow-hidden dark:divide-gray-800">
-            @for (s of withoutFramework(); track s.id) {
-              <li>
-                <a [routerLink]="['/services', s.id, 'cumplimiento']" class="flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50 dark:text-white dark:hover:bg-gray-800">
-                  <span class="truncate">{{ s.name }}</span>
-                  <span class="material-symbols-rounded text-[18px] text-gray-500" aria-hidden="true">chevron_right</span>
-                </a>
-              </li>
-            }
-          </ul>
+          <h2 class="mb-3 text-base font-semibold text-ink">{{ 'COMPLIANCE.ENTRY.NO_FRAMEWORK' | translate }}</h2>
+          <app-data-table captionKey="COMPLIANCE.ENTRY.NO_FRAMEWORK" [columns]="plainColumns" [rows]="withoutFramework()" [rowKey]="serviceKey" [rowLabel]="serviceLabel" [clickable]="true" [focusable]="false"
+            (rowClick)="open($event.id)">
+            <ng-template appCell="service" let-s>
+              <a [routerLink]="['/cumplimiento', 'resumen']" [queryParams]="{ servicio: s.id }" class="font-medium text-ink hover:underline">{{ s.name }}</a>
+            </ng-template>
+          </app-data-table>
         </section>
       }
     }
   `,
 })
 export class ComplianceGeneral implements OnInit {
+  protected readonly readinessLook = readinessLook;
   private readonly overview = inject(OverviewService);
   private readonly view = inject(ComplianceViewService);
   private readonly language = inject(LanguageService);
+  private readonly router = inject(Router);
 
   readonly services = input.required<ComplianceServiceRef[]>();
 
   protected readonly loading = signal(true);
-  private readonly rows = signal<Row[]>([]);
+  protected readonly rows = signal<Row[]>([]);
   protected readonly percentOf = percentOf;
 
-  /** Un grupo por marco, en el orden en que aparece; dentro, un servicio por fila. */
-  protected readonly groups = computed<FrameworkGroup[]>(() => {
-    const byCode = new Map<string, FrameworkGroup>();
-    for (const r of this.rows()) {
-      const code = r.framework?.framework_code;
-      if (!code || !r.framework) continue;
-      const group = byCode.get(code) ?? { code, name: r.framework.name, rows: [] };
-      group.rows.push(r);
-      byCode.set(code, group);
-    }
-    return [...byCode.values()];
-  });
+  protected readonly columns: TableColumn<Row>[] = [
+    { key: 'service', headerKey: 'COMPLIANCE.ENTRY.COL_SERVICE' },
+    { key: 'status', headerKey: 'COMPLIANCE.ENTRY.COL_STATUS' },
+    { key: 'progress', headerKey: 'COMPLIANCE.ENTRY.COL_PROGRESS' },
+  ];
+  protected readonly plainColumns: TableColumn<ComplianceServiceRef>[] = [{ key: 'service', headerKey: 'COMPLIANCE.ENTRY.COL_SERVICE' }];
+  protected readonly rowKey = (r: Row): string => `${r.framework?.framework_code ?? ''}:${r.service.id}`;
+  protected readonly rowLabel = (r: Row): string => r.service.name;
+  protected readonly serviceKey = (s: ComplianceServiceRef): string => s.id;
+  protected readonly serviceLabel = (s: ComplianceServiceRef): string => s.name;
+  /** Una sección por marco, en el orden en que aparece; dentro, un servicio por fila. */
+  protected readonly frameworkOf = (r: Row): string => r.framework?.framework_code ?? '';
+  protected readonly frameworkName = (code: string, rows: Row[]): string => rows[0]?.framework?.name ?? code;
+
+  protected open(serviceId: string): void {
+    void this.router.navigate(['/cumplimiento', 'resumen'], { queryParams: { servicio: serviceId } });
+  }
 
   /** Servicios que no tienen ningún marco contratado: no hay nada que comparar, pero se puede entrar a ellos. */
   protected readonly withoutFramework = computed(() => this.services().filter((s) => s.frameworks.length === 0));
@@ -141,7 +132,7 @@ export class ComplianceGeneral implements OnInit {
         ),
       ),
     ).subscribe((lists) => {
-      this.rows.set(lists.flat());
+      this.rows.set(lists.flat().filter((r) => !!r.framework?.framework_code));
       this.loading.set(false);
     });
   }

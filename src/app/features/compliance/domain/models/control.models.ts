@@ -99,7 +99,7 @@ export interface ControlFilters {
 }
 
 // Editar un control es directo y al instante (D96): lo hace el administrador de la empresa, sin propuesta ni aprobación.
-export type UpdateControlBody = {
+export interface UpdateControlBody {
   interpretation?: { text: string };
   dimensions?: { dimension: ControlDimension; applies: boolean; reason_not_applicable?: string }[];
-};
+}

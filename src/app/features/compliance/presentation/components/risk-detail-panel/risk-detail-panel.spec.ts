@@ -1,12 +1,12 @@
-import { provideCatalogStub } from '../../../testing/catalog-options';
+import { provideCatalogStub } from '@shared/testing/catalog-options';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { Cause, RiskDetail } from '../../../domain/models/risk.models';
-import { ResponsibleService } from '../../../domain/services/responsible.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { Cause, RiskDetail } from '@shared/domain/models/risk.models';
+import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { RiskDetailPanel } from './risk-detail-panel';
 
 const DETAIL: RiskDetail = {

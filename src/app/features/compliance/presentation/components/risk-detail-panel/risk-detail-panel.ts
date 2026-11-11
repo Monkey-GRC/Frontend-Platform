@@ -3,15 +3,17 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
-import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
-import { RiskCauseNode, RiskDetail } from '../../../domain/models/risk.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { EnumLabelService } from '../../../domain/services/enum-label.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { Tag } from '@shared/presentation/components/tag/tag';
+import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { RiskCauseNode, RiskDetail } from '@shared/domain/models/risk.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { DetailCard } from '../detail-card/detail-card';
 import { LinkPicker, PickerItem } from '../link-picker/link-picker';
 import { RiskAssessment } from '../risk-assessment/risk-assessment';
-import { RiskLevelBadge } from '../risk-level-badge/risk-level-badge';
+import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -19,7 +21,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // empresa puede vincular y quitar causas y dar de baja un riesgo propio; el resto de roles solo lee. La evaluación 5×5 y el tratamiento los trae `app-risk-assessment` (MD-123).
 @Component({
   selector: 'app-risk-detail-panel',
-  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailCard],
+  imports: [TranslatePipe, SideDrawer, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailCard],
   templateUrl: './risk-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,6 +30,13 @@ export class RiskDetailPanel {
   private readonly translate = inject(TranslateService);
   readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
+
+  // Las causas del riesgo: una lista compacta (la tabla única en su variante para paneles) con la causa y sus controles a un lado y las acciones al otro.
+  readonly causeColumns: TableColumn<RiskCauseNode>[] = [
+    { key: 'cause', headerKey: 'COMPLIANCE.GLOSSARY.CAUSES' },
+    { key: 'actions', headerKey: 'COMMON.TABLE.ACTIONS', align: 'right', srOnlyHeader: true },
+  ];
+  readonly causeKey = (c: RiskCauseNode) => c.id;
 
   readonly riskId = input.required<string>();
   readonly closed = output<void>();

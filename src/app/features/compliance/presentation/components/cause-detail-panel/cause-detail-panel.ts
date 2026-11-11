@@ -3,12 +3,14 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
-import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
-import { Cause, ControlLink } from '../../../domain/models/risk.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { ControlService } from '../../../domain/services/control.service';
-import { EnumLabelService } from '../../../domain/services/enum-label.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { Tag } from '@shared/presentation/components/tag/tag';
+import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { Cause, CauseRiskRef, ControlLink } from '@shared/domain/models/risk.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { ControlService } from '@features/compliance/domain/services/control.service';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { DetailCard } from '../detail-card/detail-card';
 import { LinkPicker, PickerItem } from '../link-picker/link-picker';
 
@@ -18,7 +20,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // controles y dar de baja una causa propia; el resto de roles solo lee.
 @Component({
   selector: 'app-cause-detail-panel',
-  imports: [TranslatePipe, SidePanel, ConfirmDialog, LinkPicker, DetailCard],
+  imports: [TranslatePipe, SideDrawer, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, DetailCard],
   templateUrl: './cause-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,6 +30,18 @@ export class CauseDetailPanel {
   private readonly translate = inject(TranslateService);
   readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
+
+  // Los riesgos que origina y los controles que la mitigan: listas compactas (la tabla única en su variante para paneles), con las acciones al extremo.
+  readonly riskColumns: TableColumn<CauseRiskRef>[] = [
+    { key: 'risk', headerKey: 'COMPLIANCE.CAUSE_DETAIL.RISKS_ORIGINATED' },
+    { key: 'actions', headerKey: 'COMMON.TABLE.ACTIONS', align: 'right', srOnlyHeader: true },
+  ];
+  readonly controlColumns: TableColumn<ControlLink>[] = [
+    { key: 'control', headerKey: 'COMPLIANCE.CAUSE_DETAIL.MITIGATING_CONTROLS' },
+    { key: 'actions', headerKey: 'COMMON.TABLE.ACTIONS', align: 'right', srOnlyHeader: true },
+  ];
+  readonly byId = (r: CauseRiskRef) => r.id;
+  readonly controlKey = (k: ControlLink) => k.control_id;
 
   readonly causeId = input.required<string>();
   readonly closed = output<void>();

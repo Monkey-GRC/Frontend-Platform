@@ -1,13 +1,14 @@
-import { COMPLIANCE_OPTIONS, provideCatalogStub } from '../../../testing/catalog-options';
+import { signal } from '@angular/core';
+import { COMPLIANCE_OPTIONS, provideCatalogStub } from '@shared/testing/catalog-options';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { Exclusion } from '../../../domain/models/exclusion.models';
-import { ExclusionService } from '../../../domain/services/exclusion.service';
+import { Exclusion } from '@features/compliance/domain/models/exclusion.models';
+import { ExclusionService } from '@features/compliance/domain/services/exclusion.service';
 import { ExclusionsView } from './exclusions';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 
 const person = { id: 'u1', name: 'Laura', last_name: 'Gómez' };
 const exclusion = (id: string, patch: Partial<Exclusion> = {}): Exclusion => ({
@@ -36,7 +37,7 @@ describe('ExclusionsView', () => {
       providers: [provideCatalogStub(), 
         provideTranslateService({ fallbackLang: 'es' }),
         { provide: ExclusionService, useValue: api },
-        { provide: ActivatedRoute, useValue: { parent: { paramMap: of(convertToParamMap({ id: 's1' })) } } },
+        { provide: ActiveComplianceService, useValue: { serviceId: signal<string | null>('s1') } },
       ],
     });
     const translate = TestBed.inject(TranslateService);
@@ -56,7 +57,7 @@ describe('ExclusionsView', () => {
 
   it('builds the status filters from the statuses that the backend serves, with their labels', () => {
     setup('admin_empresa');
-    const filters = Array.from(el().querySelectorAll('[data-test-filter]')).map((b) => b.getAttribute('data-test-filter'));
+    const filters = Array.from(el().querySelectorAll('[data-option]')).map((b) => b.getAttribute('data-option'));
     expect(filters).toEqual(['all', ...COMPLIANCE_OPTIONS['exclusion_status'].map((o) => o.value)]);
   });
 
@@ -67,12 +68,22 @@ describe('ExclusionsView', () => {
 
   it('shows each exclusion with its test, its asset, its justification, its status and who decided it', () => {
     setup('admin_empresa', [APPROVED]);
-    expect(el().querySelectorAll('[data-test-list] > li').length).toBe(1);
+    expect(el().querySelectorAll('[data-test-list] tbody tr').length).toBe(1);
     expect(text()).toContain('Cuentas privilegiadas con doble factor');
     expect(text()).toContain('COMPLIANCE.EXCLUSIONS.ASSET');
     expect(text()).toContain('Se apaga en noviembre.');
     expect(text()).toContain('Aislado de la red.');
     expect(text()).toContain('COMPLIANCE.EXCLUSIONS.DECIDED_BY');
+  });
+
+  it('draws the exclusions in the one table, with the status as a dot and a word, not a pill', () => {
+    setup('admin_empresa', [APPROVED, LEGACY_PENDING, LEGACY_REJECTED]);
+    expect(el().querySelectorAll('app-data-table').length).toBe(1);
+    expect(el().querySelector('[data-test-list] table')).not.toBeNull();
+    const tones = Array.from(el().querySelectorAll('[data-test-status] app-status-indicator')).map((s) => s.getAttribute('data-tone'));
+    expect(tones).toEqual(['ok', 'warn', 'bad']);
+    expect(el().querySelector('[data-test-status]')!.textContent).toContain('Aprobada');
+    expect(el().querySelector('[data-test-list]')!.innerHTML).not.toContain('rounded-full px-');
   });
 
   it('has nothing to decide: the administrator decides when creating, so no screen offers to approve or reject', () => {
@@ -93,12 +104,12 @@ describe('ExclusionsView', () => {
 
   it('filters by status', () => {
     setup('auditor');
-    click('[data-test-filter="approved"]');
-    const rows = el().querySelectorAll('[data-test-list] > li');
+    click('[data-option="approved"]');
+    const rows = el().querySelectorAll('[data-test-list] tbody tr');
     expect(rows.length).toBe(1);
-    expect(rows[0].getAttribute('data-status')).toBe('approved');
-    click('[data-test-filter="all"]');
-    expect(el().querySelectorAll('[data-test-list] > li').length).toBe(3);
+    expect(rows[0].querySelector('[data-status]')!.getAttribute('data-status')).toBe('approved');
+    click('[data-option="all"]');
+    expect(el().querySelectorAll('[data-test-list] tbody tr').length).toBe(3);
   });
 
   it('says so when the role has no access, when the service has none and when it cannot be loaded', () => {
@@ -112,6 +123,6 @@ describe('ExclusionsView', () => {
     expect(text()).toContain('COMPLIANCE.EXCLUSIONS.LOAD_ERROR');
     api.listAll.and.returnValue(of([APPROVED]));
     click('[data-test-retry]');
-    expect(el().querySelectorAll('[data-test-list] > li').length).toBe(1);
+    expect(el().querySelectorAll('[data-test-list] tbody tr').length).toBe(1);
   });
 });

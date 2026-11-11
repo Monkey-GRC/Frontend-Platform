@@ -1,16 +1,16 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
-import { convertToParamMap } from '@angular/router';
+import { NEVER, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ComplianceOverview, OverviewCategory, OverviewFramework } from '../../../domain/models/overview.models';
-import { ComplianceContextService } from '../../../domain/services/compliance-context.service';
-import { OverviewService } from '../../../domain/services/overview.service';
-import { RiskService } from '../../../domain/services/risk.service';
-import { RISK_MATRIX, provideCatalogStub } from '../../../testing/catalog-options';
+import { ComplianceOverview, OverviewCategory, OverviewFramework } from '@features/compliance/domain/models/overview.models';
+import { ComplianceContextService } from '@features/compliance/domain/services/compliance-context.service';
+import { OverviewService } from '@features/compliance/domain/services/overview.service';
+import { RiskService } from '@shared/domain/services/risk.service';
+import { RISK_MATRIX, provideCatalogStub } from '@shared/testing/catalog-options';
 import { OverviewView } from './overview';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 
 const DEFINED = { catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: '2026-10-14', cutoff_frozen: false };
 const UNDEFINED = { catalog_version: null, period_start: null, period_end: null, cutoff_date: null, cutoff_frozen: null };
@@ -46,7 +46,7 @@ describe('OverviewView', () => {
         provideTranslateService(), provideRouter([]), provideCatalogStub(),
         { provide: OverviewService, useValue: api },
         { provide: RiskService, useValue: riskApi },
-        { provide: ActivatedRoute, useValue: { parent: { paramMap: new BehaviorSubject(convertToParamMap({ id: 's1' })) } } },
+        { provide: ActiveComplianceService, useValue: { serviceId: signal<string | null>('s1') } },
       ],
     });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
@@ -69,35 +69,37 @@ describe('OverviewView', () => {
 
   it('says «does not comply» when one control fails, even if the progress is 80 %: the progress is not the status', () => {
     setup('admin_empresa', [framework({ technical: technical('non_compliant') })]);
-    expect(q('[data-verdict]')!.getAttribute('data-verdict')).toBe('red');
+    expect(q('[data-verdict]')!.getAttribute('data-verdict')).toBe('bad');
     expect(q('[data-verdict-title]')!.textContent).toContain('COMPLIANCE.OVERVIEW.VERDICT.NON_COMPLIANT');
     expect(q('[data-progress]')!.textContent).toContain('80');
-    expect(text()).toContain('COMPLIANCE.OVERVIEW.PROGRESS_NOTE');
+    // El avance va con su propio estado y su cobertura, aparte del veredicto.
+    expect(q('[data-progress]')!.textContent).toContain('COMMON.READINESS.LABEL.ALMOST_READY');
+    expect(q('[data-coverage]')).not.toBeNull();
   });
 
   it('says «complies» only when the engine says so', () => {
     setup('admin_empresa', [framework({ readiness: 'ready', progress: { done: 5, total: 5 }, categories: [category('security', { progress: { done: 5, total: 5 }, readiness: 'ready' })], technical: technical('compliant') })]);
-    expect(q('[data-verdict]')!.getAttribute('data-verdict')).toBe('green');
+    expect(q('[data-verdict]')!.getAttribute('data-verdict')).toBe('ok');
     expect(q('[data-verdict-title]')!.textContent).toContain('COMPLIANCE.OVERVIEW.VERDICT.COMPLIANT');
   });
 
   it('shows what is pending as «under evaluation», never as complying', () => {
     setup('admin_empresa', [framework({ coverage: { measured: 3, applicable: 5 }, technical: technical('evaluating') })]);
-    expect(q('[data-verdict]')!.getAttribute('data-verdict')).toBe('amber');
+    expect(q('[data-verdict]')!.getAttribute('data-verdict')).toBe('warn');
     expect(q('[data-verdict-title]')!.textContent).toContain('COMPLIANCE.OVERVIEW.VERDICT.EVALUATING');
   });
 
   it('a user without the technical view sees the four-level status instead of the engine verdict', () => {
     setup('responsable', [framework()]);
-    expect(q('[data-verdict-title]')!.textContent).toContain('COMPLIANCE.STATUS.ALMOST_READY');
+    expect(q('[data-verdict-title]')!.textContent).toContain('COMMON.READINESS.LABEL.ALMOST_READY');
     expect(text()).not.toContain('COMPLIANCE.OVERVIEW.VERDICT');
   });
 
   it('a service with no results is «not measured» and invents no percentage; it also says why when the evaluation is not defined', () => {
     setup('admin_empresa', [framework({ readiness: 'not_measured', progress: { done: 0, total: 5 }, coverage: { measured: 0, applicable: 5 }, evaluation: UNDEFINED, technical: technical('evaluating'),
       categories: [category('security', { readiness: 'not_measured', progress: { done: 0, total: 5 }, coverage: { measured: 0, applicable: 5 } })] })]);
-    expect(q('[data-verdict]')!.getAttribute('data-verdict')).toBe('gray');
-    expect(q('[data-verdict-title]')!.textContent).toContain('COMPLIANCE.STATUS.NOT_MEASURED');
+    expect(q('[data-verdict]')!.getAttribute('data-verdict')).toBe('neutral');
+    expect(q('[data-verdict-title]')!.textContent).toContain('COMMON.READINESS.LABEL.NOT_MEASURED');
     expect(q('[data-progress]')!.textContent).not.toMatch(/\d+\s?%/);
     expect(q('[data-coverage]')!.textContent).toContain('—');
     expect(q('[data-not-defined]')).not.toBeNull();
@@ -137,20 +139,33 @@ describe('OverviewView', () => {
       }
     });
 
-    it('with the period defined, the admin sees the period (and no cutoff date, D105) and can change it', () => {
+    it('with the period defined, the admin changes it from the banner (no bar here, no cutoff date, D105): the summary hands the banner the action', () => {
       setup('admin_empresa', [framework({ evaluation: { ...DEFINED, cutoff_frozen: true } })]);
       expect(q('[data-not-defined]')).toBeNull();
       expect(q('[data-cutoff]')).toBeNull();
-      expect(q('[data-period-bar]')!.textContent).toContain('COMPLIANCE.PERIOD.LINE');
-      (q('[data-edit-period]') as HTMLButtonElement).click();
+      expect(q('[data-period-bar]')).toBeNull();
+      const context = TestBed.inject(ComplianceContextService);
+      expect(context.editPeriod()).not.toBeNull();
+      context.editPeriod()!();
       fixture.detectChanges();
       expect(q('app-evaluation-period-form')).not.toBeNull();
     });
 
-    it('the period is not an action of the other roles: they get no bar and no button', () => {
+    it('the period is not an action of the other roles, and without a period there is nothing to change: the banner gets no action', () => {
       setup('auditor', [framework()]);
-      expect(q('[data-period-bar]')).toBeNull();
-      expect(q('[data-edit-period]')).toBeNull();
+      expect(TestBed.inject(ComplianceContextService).editPeriod()).toBeNull();
+      TestBed.resetTestingModule();
+      setup('admin_empresa', [undefinedFw()]);
+      expect(TestBed.inject(ComplianceContextService).editPeriod()).toBeNull();
+    });
+
+    it('tells the banner the verdict of the framework (status and meaning), and takes it back when it closes', () => {
+      setup('admin_empresa', [framework()]);
+      const context = TestBed.inject(ComplianceContextService);
+      expect(context.insight()).toEqual(jasmine.objectContaining({ kind: 'status' }));
+      fixture.destroy();
+      expect(context.insight()).toBeNull();
+      expect(context.editPeriod()).toBeNull();
     });
 
     it('the evaluation counts as defined with a start and an end, even without a stored cutoff', () => {
@@ -204,6 +219,16 @@ describe('OverviewView', () => {
     expect(kpi('pending')).toBe('3');
   });
 
+  it('lays the counts out as a header with the evaluated figure and a 3-column grid of aligned figures, each with its state dot and word', () => {
+    setup('admin_empresa', [framework({ progress: { done: 3, total: 10 }, coverage: { measured: 7, applicable: 10 }, technical: technical('non_compliant') })]);
+    const card = q('[data-kpis]')!;
+    expect(card.querySelector('.grid-cols-3')!.className).toContain('tabular-nums');
+    expect(card.querySelectorAll('.grid-cols-3 app-status-indicator').length).toBe(3);
+    expect(Array.from(card.querySelectorAll('.grid-cols-3 app-status-indicator')).map((i) => i.getAttribute('data-tone'))).toEqual(['ok', 'bad', 'warn']);
+    expect(card.textContent).toContain('COMPLIANCE.OVERVIEW.KPI_EVALUATED');
+    expect(card.querySelector<HTMLElement>('[style*="width"]')!.style.width).toBe('70%');
+  });
+
   it('shows one card per criterion with the names the backend serves', () => {
     setup('admin_empresa', [framework({ categories: [category('security'), category('availability', { readiness: 'ready', progress: { done: 4, total: 4 } })], technical: technical('non_compliant') })]);
     expect(q('[data-category="security"]')!.textContent).toContain('Seguridad');
@@ -214,7 +239,7 @@ describe('OverviewView', () => {
   it('lists the controls that need attention with their code, where they fail and the affected asset; one row even if it fails in two criteria', () => {
     const shared = failing('k1', 'IAC-12', 'Gestión de accesos');
     setup('admin_empresa', [framework({ categories: [category('security', { failing_controls: [shared, failing('k2', 'MON-3', 'Monitoreo')] }), category('availability', { failing_controls: [shared] })], technical: technical('non_compliant') })]);
-    const rows = Array.from(el().querySelectorAll('[data-attention] li'));
+    const rows = Array.from(el().querySelectorAll('[data-attention] tbody tr'));
     expect(rows.length).toBe(2);
     expect(rows[0].textContent).toContain('IAC-12');
     expect(rows[0].textContent).toContain('Gestión de accesos');

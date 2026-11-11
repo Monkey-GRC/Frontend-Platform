@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
+import { unwrapData } from '@shared/domain/utils/unwrap-response';
 import { EvidenceDisposition, EvidenceDownload, EvidenceRequirement, EvidenceSubmission, EvidenceTestList } from '../models/evidence.models';
 
 // Evidencias de un control. Los endpoints son los del contrato (MD-126, MD-127); mientras el backend no los tenga, `list` falla con 404 y quien lo usa
@@ -24,14 +25,14 @@ export class EvidenceService {
   uploadForTest(controlId: string, testId: string, file: File): Observable<EvidenceSubmission> {
     const body = new FormData();
     body.append('file', file, file.name);
-    return this.http.post<SuccessResponse<EvidenceSubmission>>(`${this.base}/controls/${controlId}/tests/${testId}/evidence`, body).pipe(map((r) => r.data!));
+    return this.http.post<SuccessResponse<EvidenceSubmission>>(`${this.base}/controls/${controlId}/tests/${testId}/evidence`, body).pipe(unwrapData());
   }
 
   /** Sube el archivo como una evidencia entregada nueva (una versión más) del requerimiento. */
   upload(requirementId: string, file: File): Observable<EvidenceSubmission> {
     const body = new FormData();
     body.append('file', file, file.name);
-    return this.http.post<SuccessResponse<EvidenceSubmission>>(`${this.base}/evidence-requirements/${requirementId}/submissions`, body).pipe(map((r) => r.data!));
+    return this.http.post<SuccessResponse<EvidenceSubmission>>(`${this.base}/evidence-requirements/${requirementId}/submissions`, body).pipe(unwrapData());
   }
 
   /** La evidencia de UNA prueba manual y los otros controles a los que también aplica (D85). */
@@ -45,6 +46,6 @@ export class EvidenceService {
   /** Un enlace temporal (5 minutos) para ver (`inline`, solo PDF/PNG/JPG) o bajar (`attachment`) una evidencia entregada: el archivo nunca es público. */
   download(submissionId: string, disposition: EvidenceDisposition = 'attachment'): Observable<EvidenceDownload> {
     const params = new HttpParams().set('disposition', disposition);
-    return this.http.get<SuccessResponse<EvidenceDownload>>(`${this.base}/evidence-submissions/${submissionId}/download`, { params }).pipe(map((r) => r.data!));
+    return this.http.get<SuccessResponse<EvidenceDownload>>(`${this.base}/evidence-submissions/${submissionId}/download`, { params }).pipe(unwrapData());
   }
 }

@@ -1,25 +1,29 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, from, map, mergeMap, of, switchMap, tap, toArray } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
+import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
-import { ControlListItem } from '../../../domain/models/control.models';
+import { bindInsight } from '@features/compliance/domain/services/compliance-context.service';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
+import { ControlListItem } from '@features/compliance/domain/models/control.models';
 import {
   EVIDENCE_FILTERS,
   EvidenceFilter,
   EvidenceInboxRow,
   EvidenceRequirement,
   buildInboxRows,
+  evidenceStateTone,
   evidenceFilterOf,
-} from '../../../domain/models/evidence.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { ControlService } from '../../../domain/services/control.service';
-import { EnumLabelService } from '../../../domain/services/enum-label.service';
-import { EvidenceService } from '../../../domain/services/evidence.service';
+} from '@features/compliance/domain/models/evidence.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { ControlService } from '@features/compliance/domain/services/control.service';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
 
 type Stage = 'loading' | 'error' | 'ready';
@@ -34,12 +38,11 @@ const CONCURRENCY = 6;
 // Hoy lo ve el administrador de la empresa; el detalle por rol espera a los permisos por pantalla (P3).
 @Component({
   selector: 'app-evidence-inbox',
-  imports: [TranslatePipe, DataTable, TableCell, OptionChips, LoadingSpinner, ControlDetailPanel],
+  imports: [TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, EmptyState, StatusIndicator, LoadingSpinner, ControlDetailPanel],
   templateUrl: './evidence-inbox.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EvidenceInboxView {
-  private readonly route = inject(ActivatedRoute);
   private readonly controlsApi = inject(ControlService);
   private readonly api = inject(EvidenceService);
   private readonly translate = inject(TranslateService);
@@ -47,9 +50,9 @@ export class EvidenceInboxView {
   private readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
 
-  // Hija de `services/:id/cumplimiento`: el id del servicio está en la ruta del padre.
-  private readonly params = toSignal(this.route.parent!.paramMap, { requireSync: true });
-  readonly serviceId = computed(() => this.params().get('id') ?? '');
+  // El servicio activo lo elige el encabezado de Cumplimiento y se recuerda entre secciones (`ActiveComplianceService`).
+  private readonly activeService = inject(ActiveComplianceService);
+  readonly serviceId = computed(() => this.activeService.serviceId() ?? '');
 
   readonly stage = signal<Stage>('loading');
   readonly progress = signal({ done: 0, total: 0 });
@@ -90,6 +93,7 @@ export class EvidenceInboxView {
   readonly rowKey = (row: EvidenceInboxRow): string => row.requirement.id;
 
   constructor() {
+    bindInsight(() => (this.stage() === 'ready' ? { kind: 'count', labelKey: 'COMPLIANCE.BANNER.EVIDENCE', count: this.rows().length } : null));
     this.translate.onLangChange.subscribe(() => this.langTick.update((n) => n + 1));
     effect(() => {
       this.serviceId();
@@ -169,12 +173,9 @@ export class EvidenceInboxView {
     return row.latest ? this.labels.of('COMPLIANCE.EVIDENCE_STATUS', row.latest.evidence_state) : this.translate.instant('COMPLIANCE.EVIDENCE_INBOX.NOT_DELIVERED');
   }
 
-  stateClass(row: EvidenceInboxRow): string {
-    const state = row.latest?.evidence_state;
-    if (state === 'compliant') return 'bg-green-50 text-green-800 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-300';
-    if (state === 'non_compliant' || state === 'expired') return 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/30 dark:text-red-300';
-    if (!state) return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200';
-    return 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25 dark:bg-amber-900/30 dark:text-amber-300';
+  /** El estado de la última entrega, con el tono de estado del sistema; el texto siempre va junto al punto. */
+  stateTone(row: EvidenceInboxRow): StatusTone {
+    return evidenceStateTone(row.latest?.evidence_state);
   }
 
   lastDelivery(row: EvidenceInboxRow): string {

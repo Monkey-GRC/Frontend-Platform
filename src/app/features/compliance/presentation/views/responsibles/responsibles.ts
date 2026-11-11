@@ -6,11 +6,17 @@ import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/co
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { Responsible } from '../../../domain/models/risk.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { EnumLabelService } from '../../../domain/services/enum-label.service';
-import { ResponsibleService } from '../../../domain/services/responsible.service';
+import { Responsible } from '@shared/domain/models/risk.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { Field } from '@shared/presentation/components/field/field';
+import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -19,11 +25,12 @@ type Stage = 'loading' | 'error' | 'ready';
 // El administrador de la empresa crea, cambia la persona y quita; el resto de roles solo lee. Un cargo del que algo depende no se puede quitar (409).
 @Component({
   selector: 'app-responsibles',
-  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner],
+  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DataTable, TableCell, EmptyState, Field, SideDrawer, StatusIndicator],
   templateUrl: './responsibles.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ResponsiblesView implements OnInit {
+  protected readonly targetValue = targetValue;
   private readonly api = inject(ResponsibleService);
   private readonly translate = inject(TranslateService);
   readonly view = inject(ComplianceViewService);
@@ -38,7 +45,17 @@ export class ResponsiblesView implements OnInit {
   readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
-  // Alta
+  // Tabla: la columna de acciones solo existe para quien administra.
+  readonly columns = computed<TableColumn<Responsible>[]>(() => [
+    { key: 'type', headerKey: 'COMPLIANCE.RESPONSIBLES.TYPE' },
+    { key: 'person', headerKey: 'COMPLIANCE.RESPONSIBLES.PERSON' },
+    { key: 'status', headerKey: 'COMPLIANCE.RESPONSIBLES.COL_STATUS' },
+    ...(this.view.canManage() ? [{ key: 'actions', headerKey: 'COMPLIANCE.RESPONSIBLES.COL_ACTIONS', align: 'right' as const, srOnlyHeader: true }] : []),
+  ]);
+  readonly rowKey = (r: Responsible): string => r.id;
+
+  // Alta: el formulario vive en un drawer que abre «Agregar responsable».
+  readonly addOpen = signal(false);
   readonly newType = signal('');
   readonly newName = signal('');
   readonly canAdd = computed(() => !!this.newType() && !!this.newName().trim() && !this.saving());
@@ -63,9 +80,22 @@ export class ResponsiblesView implements OnInit {
     });
   }
 
+  openAdd(): void {
+    this.reset();
+    this.addOpen.set(true);
+  }
+
+  closeAdd(): void {
+    if (this.saving()) return;
+    this.addOpen.set(false);
+    this.newType.set('');
+    this.newName.set('');
+  }
+
   add(): void {
     if (!this.canAdd()) return;
     this.run(this.api.create(this.newType(), this.newName().trim()), 'COMPLIANCE.RESPONSIBLES.CREATED', () => {
+      this.addOpen.set(false);
       this.newType.set('');
       this.newName.set('');
     });

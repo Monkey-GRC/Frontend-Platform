@@ -1,81 +1,24 @@
 <section class="w-full pb-10">
-  <!-- Encabezado compacto: de qué servicio se habla. El cumplimiento es de un servicio y de un marco, nunca de la empresa. -->
-  <div class="mk-hero px-4 py-3 md:px-6">
-    <div class="relative z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-      <div class="flex min-w-0 items-center gap-3">
-        @if (view.canOpenService()) {
-        <a [routerLink]="['/services', serviceId()]" [attr.aria-label]="'COMPLIANCE.SHELL.BACK_TO_SERVICE' | translate" [title]="'COMPLIANCE.SHELL.BACK_TO_SERVICE' | translate"
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-inset ring-white/25 transition hover:bg-white/25">
-          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">arrow_back</span>
-        </a>
+  <!-- El banner del Cumplimiento (única excepción a «sin banner con fondo»): sección abierta, servicio activo, marcos, período y una línea de contexto de la sección. El cumplimiento es de un servicio y de un marco, nunca de la empresa. -->
+  <app-compliance-banner [eyebrow]="'COMPLIANCE.SHELL.TITLE' | translate" [title]="section().labelKey | translate" [service]="current()?.name ?? null" [frameworks]="bannerFrameworks()"
+    [selectable]="context.selectable()" [selected]="context.selected()" [frameworksLabel]="'COMPLIANCE.SHELL.FRAMEWORKS' | translate" (frameworkPick)="pickFramework($event)"
+    [period]="context.evaluationText()" [canEditPeriod]="!!context.editPeriod()" (periodEdit)="editPeriod()" [insight]="context.insight()">
+    @if (canSwitch()) {
+    <div actions class="flex items-center gap-2">
+      <label for="service-switch" class="text-xs font-medium">{{ 'COMPLIANCE.SHELL.SERVICE' | translate }}</label>
+      <select id="service-switch" (change)="switchTo(targetValue($event))" class="mk-input h-9 max-w-[16rem]">
+        <option [value]="GENERAL">{{ 'COMPLIANCE.SHELL.GENERAL' | translate }}</option>
+        @for (s of others(); track s.id) {
+        <option [value]="s.id" [selected]="s.id === serviceId()">{{ s.name }}</option>
         }
-        <div class="min-w-0">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{{ 'COMPLIANCE.SHELL.TITLE' | translate }}</p>
-          @if (current(); as s) {
-          <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h1 class="truncate text-2xl font-semibold tracking-tight">{{ s.name }}</h1>
-            @if (s.frameworks.length) {
-            <ul class="flex flex-wrap items-center gap-1.5" [attr.aria-label]="'COMPLIANCE.SHELL.FRAMEWORKS' | translate">
-              @for (f of s.frameworks; track f.code) {
-              <li>
-                @if (context.selectable()) {
-                <!-- Con más de un marco, el del Resumen se elige aquí: el elegido va lleno. -->
-                <button type="button" (click)="pickFramework(f.code)" [attr.aria-pressed]="isSelected(f.code)" [attr.data-framework-pick]="f.code"
-                  class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition"
-                  [class]="isSelected(f.code) ? 'bg-white text-brand-700 shadow-theme-xs' : 'bg-white/15 text-white ring-1 ring-inset ring-white/25 hover:bg-white/25'">
-                  <span class="material-symbols-rounded text-[15px]" aria-hidden="true">workspace_premium</span>{{ frameworkLabel(f.code) }}
-                </button>
-                } @else {
-                <span class="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white ring-1 ring-inset ring-white/25">
-                  <span class="material-symbols-rounded text-[15px]" aria-hidden="true">workspace_premium</span>{{ frameworkLabel(f.code) }}
-                </span>
-                }
-              </li>
-              }
-            </ul>
-            }
-          </div>
-          @if (context.evaluationText(); as period) {
-          <!-- El período sobre el que se mide el marco elegido: lo cuenta el Resumen. -->
-          <p class="mt-1 flex items-center gap-1.5 text-xs text-white/80" data-evaluation>
-            <span class="material-symbols-rounded text-[16px]" aria-hidden="true">event_available</span>{{ period }}
-          </p>
-          }
-          } @else {
-          <h1 class="text-2xl font-semibold tracking-tight">{{ 'COMPLIANCE.SHELL.TITLE' | translate }}</h1>
-          }
-        </div>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3">
-        @if (canSwitch()) {
-        <div class="flex items-center gap-2">
-          <label for="service-switch" class="text-xs font-medium text-white/80">{{ 'COMPLIANCE.SHELL.SERVICE' | translate }}</label>
-          <select id="service-switch" (change)="switchTo($any($event.target).value)"
-            class="h-9 max-w-[16rem] rounded-lg border-0 bg-white px-3 text-sm font-medium text-gray-900 shadow-theme-xs focus:outline-none focus:ring-2 focus:ring-white/60">
-            <option [value]="GENERAL">{{ 'COMPLIANCE.SHELL.GENERAL' | translate }}</option>
-            @for (s of others(); track s.id) {
-            <option [value]="s.id" [selected]="s.id === serviceId()">{{ s.name }}</option>
-            }
-          </select>
-        </div>
-        }
-      </div>
+      </select>
     </div>
-  </div>
-
-  <!-- Pestañas: una píldora llena marca dónde estás -->
-  <nav class="mk-card mt-3 flex gap-1 overflow-x-auto p-1.5" [attr.aria-label]="'COMPLIANCE.SHELL.TITLE' | translate">
-    @for (tab of tabs; track tab.path) {
-    <a [routerLink]="tab.path" routerLinkActive="bg-primary text-white shadow-theme-sm hover:text-white" #active="routerLinkActive"
-      [attr.aria-current]="active.isActive ? 'page' : null"
-      class="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-brand-50 hover:text-primary dark:text-gray-300 dark:hover:bg-white/5">
-      <span class="material-symbols-rounded text-[19px]" aria-hidden="true">{{ tab.icon }}</span>{{ tab.labelKey | translate }}
-    </a>
     }
-  </nav>
+  </app-compliance-banner>
 
   <div class="mt-4">
+    @if (serviceId()) {
     <router-outlet />
+    }
   </div>
 </section>

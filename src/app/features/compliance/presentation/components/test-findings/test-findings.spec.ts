@@ -2,8 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
-import { Finding, FindingsPage } from '../../../domain/models/finding.models';
-import { FindingService } from '../../../domain/services/finding.service';
+import { Finding, FindingsPage } from '@features/compliance/domain/models/finding.models';
+import { FindingService } from '@features/compliance/domain/services/finding.service';
 import { TestFindings } from './test-findings';
 
 const finding = (id: string, patch: Partial<Finding> = {}): Finding => ({

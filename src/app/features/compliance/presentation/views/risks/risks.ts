@@ -1,20 +1,25 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
-import { COMPLIANCE_ROUTE } from '../../../domain/models/compliance.models';
-import { Cause, RiskDetail, RiskListItem } from '../../../domain/models/risk.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { EnumLabelService } from '../../../domain/services/enum-label.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
+import { Tag } from '@shared/presentation/components/tag/tag';
+import { bindInsight } from '@features/compliance/domain/services/compliance-context.service';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
+import { COMPLIANCE_ROUTE } from '@features/compliance/domain/models/compliance.models';
+import { Cause, RiskDetail, RiskListItem } from '@shared/domain/models/risk.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { CauseDetailPanel } from '../../components/cause-detail-panel/cause-detail-panel';
 import { RiskDetailPanel } from '../../components/risk-detail-panel/risk-detail-panel';
-import { RiskForm } from '../../components/risk-form/risk-form';
-import { RiskLevelBadge } from '../../components/risk-level-badge/risk-level-badge';
+import { RiskForm } from '@shared/presentation/components/risk-form/risk-form';
+import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 
 type Stage = 'loading' | 'error' | 'ready';
 type Section = 'risks' | 'causes';
@@ -33,7 +38,7 @@ interface Group<T> {
 // Un riesgo sin evaluar no es «bajo»: se muestra «Sin evaluar» hasta que exista la evaluación (MD-123).
 @Component({
   selector: 'app-risks',
-  imports: [FormsModule, TranslatePipe, OptionChips, LoadingSpinner, RiskLevelBadge, RiskDetailPanel, CauseDetailPanel, RiskForm],
+  imports: [TranslatePipe, OptionChips, LoadingSpinner, DataTable, TableCell, TableToolbar, EmptyState, Tag, RiskLevelBadge, RiskDetailPanel, CauseDetailPanel, RiskForm],
   templateUrl: './risks.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -44,9 +49,9 @@ export class RisksView {
   readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
 
-  // La vista es hija de `services/:id/cumplimiento`: el id del servicio está en la ruta del padre.
-  private readonly params = toSignal(this.route.parent!.paramMap, { requireSync: true });
-  readonly serviceId = computed(() => this.params().get('id') ?? '');
+  // El servicio activo lo elige el encabezado de Cumplimiento y se recuerda entre secciones (`ActiveComplianceService`).
+  private readonly activeService = inject(ActiveComplianceService);
+  readonly serviceId = computed(() => this.activeService.serviceId() ?? '');
 
   private readonly data = toSignal(this.route.data, { requireSync: true });
   readonly section = computed<Section>(() => (this.data()['section'] === 'causes' ? 'causes' : 'risks'));
@@ -94,9 +99,36 @@ export class RisksView {
   readonly riskGroups = computed<Group<RiskListItem>[]>(() => this.grouped(this.filtered() as RiskListItem[]));
   readonly causeGroups = computed<Group<Cause>[]>(() => this.grouped(this.filtered() as Cause[]));
   readonly visibleCount = computed(() => this.filtered().length);
+  /** Las filas de cada tabla: los grupos uno tras otro (por texto), con sus elementos por código; la tabla pone un encabezado de sección donde cambia el grupo. */
+  readonly riskRows = computed(() => this.riskGroups().flatMap((g) => g.items));
+  readonly causeRows = computed(() => this.causeGroups().flatMap((g) => g.items));
+
+  protected readonly riskColumns: TableColumn<RiskListItem>[] = [
+    { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', class: 'w-28' },
+    { key: 'name', headerKey: 'COMPLIANCE.RISKS.COL_NAME' },
+    { key: 'level', headerKey: 'COMPLIANCE.RISKS.COL_LEVEL', class: 'w-40' },
+  ];
+  protected readonly causeColumns: TableColumn<Cause>[] = [
+    { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', class: 'w-28' },
+    { key: 'name', headerKey: 'COMPLIANCE.RISKS.COL_NAME' },
+  ];
+  protected readonly byId = (item: RiskListItem | Cause): string => item.id;
+  protected readonly rowLabel = (item: RiskListItem | Cause): string => `${item.code} ${item.name}`;
+  protected readonly groupKey = (item: RiskListItem | Cause): string => this.groupOf(item);
+  protected readonly groupLabel = computed(() => {
+    const prefix = this.groupPrefix();
+    return (key: string): string => this.labels.of(prefix, key);
+  });
+  protected readonly emptyTitleKey = computed(() =>
+    this.hasFilters() ? 'COMPLIANCE.RISKS.EMPTY_FILTERED_TITLE' : this.section() === 'risks' ? 'COMPLIANCE.RISKS.EMPTY_RISKS_TITLE' : 'COMPLIANCE.RISKS.EMPTY_CAUSES_TITLE',
+  );
+  protected readonly emptyDescriptionKey = computed(() => (this.hasFilters() ? 'COMPLIANCE.RISKS.EMPTY_FILTERED_BODY' : 'COMPLIANCE.RISKS.EMPTY_BODY'));
   readonly hasFilters = computed(() => this.group() !== null || this.query().trim() !== '');
 
   constructor() {
+    bindInsight(() =>
+      this.stage() === 'ready' ? { kind: 'count', labelKey: this.section() === 'risks' ? 'COMPLIANCE.BANNER.RISKS' : 'COMPLIANCE.BANNER.CAUSES', count: this.current().length } : null,
+    );
     effect(() => {
       this.serviceId();
       this.section();
@@ -188,7 +220,7 @@ export class RisksView {
   }
 
   private jump(tab: 'riesgos' | 'causas', id: string): void {
-    this.router.navigate(['/services', this.serviceId(), COMPLIANCE_ROUTE, tab], { queryParams: { abrir: id } });
+    this.router.navigate(['/', COMPLIANCE_ROUTE, tab], { queryParams: { abrir: id } });
   }
 
   private clearOpenParam(): void {

@@ -5,99 +5,54 @@
 }
 
 @case ('forbidden') {
-<div class="py-12 text-center">
-  <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">lock</span>
-  <h2 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.EXCLUSIONS.FORBIDDEN_TITLE' | translate }}</h2>
-  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.FORBIDDEN_BODY' | translate }}</p>
-</div>
+<app-empty-state icon="" titleKey="COMPLIANCE.EXCLUSIONS.FORBIDDEN_TITLE" descriptionKey="COMPLIANCE.EXCLUSIONS.FORBIDDEN_BODY" />
 }
 
 @case ('error') {
-<div class="py-12 text-center">
-  <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
-  <h2 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.EXCLUSIONS.LOAD_ERROR' | translate }}</h2>
-  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
-  <button type="button" (click)="load()" data-test-retry
-    class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm hover:bg-brand-600 transition">
-    <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
-  </button>
-</div>
+<app-empty-state icon="" titleKey="COMPLIANCE.EXCLUSIONS.LOAD_ERROR" descriptionKey="COMMON.CHECK_CONNECTION">
+  <button action type="button" (click)="load()" data-test-retry class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+</app-empty-state>
 }
 
 @default {
 <div class="flex flex-col gap-4">
-  <div>
-    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.EXCLUSIONS.TITLE' | translate }} <span class="font-normal text-gray-600 dark:text-gray-300">({{ all().length }})</span></h2>
-    <p class="mt-0.5 max-w-3xl text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.INTRO' | translate }}</p>
-  </div>
+  <app-table-toolbar>
+    <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[filter() ?? 'all']" [ariaLabel]="'COMPLIANCE.EXCLUSIONS.FILTER' | translate" (picked)="pick($event)" />
+  </app-table-toolbar>
 
-  <div class="flex flex-wrap gap-2" role="group" [attr.aria-label]="'COMPLIANCE.EXCLUSIONS.FILTER' | translate">
-    <button type="button" (click)="filter.set(null)" [attr.aria-pressed]="filter() === null" data-test-filter="all"
-      class="rounded-full border px-3 py-1 text-xs font-medium transition"
-      [class]="filter() === null ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-700 hover:border-primary dark:border-gray-600 dark:text-gray-200'">
-      {{ 'COMPLIANCE.EXCLUSIONS.ALL' | translate }} ({{ all().length }})
-    </button>
-    @for (s of statuses(); track s.value) {
-    <button type="button" (click)="filter.set($any(s.value))" [attr.aria-pressed]="filter() === s.value" [attr.data-test-filter]="s.value"
-      class="rounded-full border px-3 py-1 text-xs font-medium transition"
-      [class]="filter() === s.value ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-700 hover:border-primary dark:border-gray-600 dark:text-gray-200'">
-      {{ s.label }} ({{ count($any(s.value)) }})
-    </button>
-    }
-  </div>
-
-  @if (items().length === 0) {
-  <p class="text-sm text-gray-600 dark:text-gray-300" data-test-empty>{{ (all().length === 0 ? 'COMPLIANCE.EXCLUSIONS.EMPTY' : 'COMPLIANCE.EXCLUSIONS.EMPTY_FILTER') | translate }}</p>
-  } @else {
-  <ul class="flex flex-col gap-3" data-test-list>
-    @for (e of items(); track e.id) {
-    <li class="rounded-xl border border-gray-200 p-4 text-sm dark:border-gray-700" [attr.data-status]="e.status">
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <p class="font-medium text-gray-900 dark:text-white">{{ e.test.display_name }}</p>
-          <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.ASSET' | translate: { name: e.asset.name } }}</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" data-test-status
-            [class]="e.status === 'approved' ? 'bg-green-50 text-green-800 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-300' : e.status === 'rejected' ? 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/30 dark:text-red-300' : 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25 dark:bg-amber-900/30 dark:text-amber-300'">
-            {{ labels.of('COMPLIANCE.EXCLUSION_STATUS', e.status) }}
-          </span>
-          @if (e.is_expired) {
-          <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-200" data-test-expired>{{ 'COMPLIANCE.EXCLUSIONS.EXPIRED' | translate }}</span>
-          }
-        </div>
-      </div>
-
-      <dl class="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-        <div>
-          <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.JUSTIFICATION' | translate }}</dt>
-          <dd class="whitespace-pre-line text-gray-900 dark:text-white">{{ e.justification }}</dd>
-        </div>
+  <div data-test-list>
+    <app-data-table captionKey="COMPLIANCE.EXCLUSIONS.TABLE" [columns]="columns" [rows]="items()" [rowKey]="byId">
+      <ng-template appCell="test" let-e>
+        <span class="block font-medium text-ink">{{ e.test.display_name }}</span>
+        <span class="block text-xs text-ink-muted">{{ 'COMPLIANCE.EXCLUSIONS.ASSET' | translate: { name: e.asset.name } }}</span>
+      </ng-template>
+      <ng-template appCell="justification" let-e>
+        <span class="block max-w-md whitespace-pre-line text-ink">{{ e.justification }}</span>
         @if (e.technical_justification) {
-        <div>
-          <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.TECHNICAL_JUSTIFICATION' | translate }}</dt>
-          <dd class="whitespace-pre-line text-gray-900 dark:text-white">{{ e.technical_justification }}</dd>
-        </div>
+        <span class="mt-1 block max-w-md whitespace-pre-line text-xs text-ink-muted">{{ 'COMPLIANCE.EXCLUSIONS.TECHNICAL_JUSTIFICATION' | translate }}: {{ e.technical_justification }}</span>
         }
-        <div>
-          <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.VALIDITY' | translate }}</dt>
-          <dd class="text-gray-900 dark:text-white">{{ day(e.valid_from) }} – {{ day(e.valid_until) }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.CREATED_BY' | translate }}</dt>
-          <dd class="text-gray-900 dark:text-white">{{ fullName(e.proposed_by) }}</dd>
-        </div>
-      </dl>
-
-      @if (e.status === 'rejected' && e.decision_note) {
-      <p class="mt-3 text-xs text-error-600" data-test-decision-note>{{ 'COMPLIANCE.EXCLUSIONS.REJECTED_NOTE' | translate: { note: e.decision_note } }}</p>
-      }
-      @if (e.decided_by) {
-      <p class="mt-3 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.EXCLUSIONS.DECIDED_BY' | translate: { name: fullName(e.decided_by) } }}</p>
-      }    </li>
-    }
-  </ul>
-  }
+        @if (e.status === 'rejected' && e.decision_note) {
+        <span class="mt-1 block max-w-md text-xs text-bad-ink" data-test-decision-note>{{ 'COMPLIANCE.EXCLUSIONS.REJECTED_NOTE' | translate: { note: e.decision_note } }}</span>
+        }
+      </ng-template>
+      <ng-template appCell="status" let-e>
+        <span class="flex flex-col items-start gap-1" [attr.data-status]="e.status">
+          <span data-test-status><app-status-indicator [tone]="tone(e.status)" [label]="labels.of('COMPLIANCE.EXCLUSION_STATUS', e.status)" /></span>
+          @if (e.is_expired) {
+          <span data-test-expired><app-status-indicator tone="neutral" labelKey="COMPLIANCE.EXCLUSIONS.EXPIRED" /></span>
+          }
+        </span>
+      </ng-template>
+      <ng-template appCell="validity" let-e>{{ day(e.valid_from) }} – {{ day(e.valid_until) }}</ng-template>
+      <ng-template appCell="people" let-e>
+        <span class="block text-ink">{{ fullName(e.proposed_by) }}</span>
+        @if (e.decided_by) {
+        <span class="block text-xs text-ink-muted">{{ 'COMPLIANCE.EXCLUSIONS.DECIDED_BY' | translate: { name: fullName(e.decided_by) } }}</span>
+        }
+      </ng-template>
+      <app-empty-state tableEmpty icon="" data-test-empty [titleKey]="all().length === 0 ? 'COMPLIANCE.EXCLUSIONS.EMPTY' : 'COMPLIANCE.EXCLUSIONS.EMPTY_FILTER'" />
+    </app-data-table>
+  </div>
 </div>
 }
 

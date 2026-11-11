@@ -120,3 +120,11 @@ export interface EvidenceTestList {
 // confirmación con el comité. Esto es solo una validación previa para avisar rápido: el backend es quien manda (415 y 413).
 export const EVIDENCE_FILE_ACCEPT: readonly string[] = ['.pdf', '.docx', '.xlsx', '.png', '.jpg', '.jpeg'];
 export const EVIDENCE_MAX_BYTES = 25 * 1024 * 1024;
+
+/** El tono de estado de una evidencia entregada: cumple, no cumple (o vencida), sin entregar y en trámite. Lo dice el servidor; aquí solo se elige el color que acompaña a su palabra. */
+export function evidenceStateTone(state: string | null | undefined): 'ok' | 'bad' | 'warn' | 'neutral' {
+  if (state === 'compliant') return 'ok';
+  if (state === 'non_compliant' || state === 'expired') return 'bad';
+  if (!state) return 'neutral';
+  return 'warn';
+}

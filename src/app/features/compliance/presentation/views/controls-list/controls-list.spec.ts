@@ -1,12 +1,13 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { ControlListItem } from '../../../domain/models/control.models';
-import { ControlService } from '../../../domain/services/control.service';
+import { ControlListItem } from '@features/compliance/domain/models/control.models';
+import { ControlService } from '@features/compliance/domain/services/control.service';
 import { ControlsListView } from './controls-list';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 
 const ITEM: ControlListItem = {
   id: 'c1',
@@ -41,7 +42,7 @@ describe('ControlsListView', () => {
         provideTranslateService(),
         { provide: ControlService, useValue: api },
         { provide: CatalogService, useValue: catalogs },
-        { provide: ActivatedRoute, useValue: { parent: { paramMap: new BehaviorSubject(convertToParamMap({ id: 's1' })) } } },
+        { provide: ActiveComplianceService, useValue: { serviceId: signal<string | null>('s1') } },
       ],
     });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });

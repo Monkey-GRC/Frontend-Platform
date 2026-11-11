@@ -1,14 +1,15 @@
+import { signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ControlListItem } from '../../../domain/models/control.models';
-import { EvidenceRequirement, EvidenceSubmission, buildInboxRows, evidenceFilterOf } from '../../../domain/models/evidence.models';
-import { ControlService } from '../../../domain/services/control.service';
-import { EvidenceService } from '../../../domain/services/evidence.service';
+import { ControlListItem } from '@features/compliance/domain/models/control.models';
+import { EvidenceRequirement, EvidenceSubmission, buildInboxRows, evidenceFilterOf } from '@features/compliance/domain/models/evidence.models';
+import { ControlService } from '@features/compliance/domain/services/control.service';
+import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { EvidenceInboxView } from './evidence-inbox';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 
 const control = (id: string, name: string, code: string | null = null): ControlListItem => ({
   id, code: code ?? id.toUpperCase(), requirement_codes: [], own_code: null, name, origin: 'catalog', type: 'hybrid', trust_criteria: ['security'], approval: 'approved', readiness: 'not_measured',
@@ -47,7 +48,7 @@ describe('EvidenceInboxView', () => {
         provideTranslateService(),
         { provide: ControlService, useValue: controls },
         { provide: EvidenceService, useValue: api },
-        { provide: ActivatedRoute, useValue: { parent: { paramMap: new BehaviorSubject(convertToParamMap({ id: 's1' })) } } },
+        { provide: ActiveComplianceService, useValue: { serviceId: signal<string | null>('s1') } },
       ],
     });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
@@ -73,6 +74,17 @@ describe('EvidenceInboxView', () => {
     expect(fixture.nativeElement.querySelector('[data-state="pending"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-state="compliant"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-state="missing"]')).not.toBeNull();
+  });
+
+  it('says each state with a dot and its word (never a coloured pill) and keeps the table the only one of the view', () => {
+    setup();
+    const el = fixture.nativeElement as HTMLElement;
+    const tone = (state: string) => el.querySelector(`app-status-indicator[data-state="${state}"]`)!.getAttribute('data-tone');
+    expect(tone('compliant')).toBe('ok');
+    expect(tone('pending')).toBe('warn');
+    expect(tone('missing')).toBe('neutral');
+    expect(el.innerHTML).not.toContain('rounded-full px-');
+    expect(el.querySelectorAll('app-data-table').length).toBe(1);
   });
 
   it('leaves out the controls that ask for no evidence', () => {

@@ -4,13 +4,14 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { Responsible, RiskDetail, RiskEvaluationEntry } from '../../../domain/models/risk.models';
-import { EnumLabelService } from '../../../domain/services/enum-label.service';
-import { ResponsibleService } from '../../../domain/services/responsible.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { Responsible, RiskDetail, RiskEvaluationEntry } from '@shared/domain/models/risk.models';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { DetailCard } from '../detail-card/detail-card';
-import { RiskLevelBadge } from '../risk-level-badge/risk-level-badge';
-import { MatrixCell, MatrixPosition, RiskMatrix } from '../risk-matrix/risk-matrix';
+import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
+import { MatrixCell, MatrixPosition, RiskMatrix } from '@shared/presentation/components/risk-matrix/risk-matrix';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 // La evaluación 5×5 de un riesgo y su tratamiento (MD-123). Cada evaluación y cada decisión se AGREGA (nunca pisa la anterior) y el servidor calcula el valor y el
 // nivel: aquí solo se eligen probabilidad e impacto de 1 a 5. Evalúa y trata el administrador de la empresa; los demás roles leen. El historial se pide al abrirlo,
@@ -22,6 +23,7 @@ import { MatrixCell, MatrixPosition, RiskMatrix } from '../risk-matrix/risk-matr
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RiskAssessment {
+  protected readonly targetValue = targetValue;
   private readonly api = inject(RiskService);
   private readonly responsiblesApi = inject(ResponsibleService);
   private readonly translate = inject(TranslateService);
