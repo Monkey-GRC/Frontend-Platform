@@ -5,7 +5,6 @@ describe('ThemeService (el modo se recuerda al recargar)', () => {
   const clean = () => {
     localStorage.removeItem('theme');
     document.documentElement.classList.remove('dark');
-    document.body.classList.remove('dark:bg-gray-900');
   };
   beforeEach(clean);
   afterEach(clean);
@@ -29,5 +28,13 @@ describe('ThemeService (el modo se recuerda al recargar)', () => {
     service.toggleTheme();
     expect(localStorage.getItem('theme')).toBe('light');
     expect(document.documentElement.classList).not.toContain('dark');
+  });
+
+  it('leaves the body canvas to the token in light and dark (no extra background class)', () => {
+    const service = TestBed.inject(ThemeService);
+    service.toggleTheme();
+    expect(document.body.className).not.toContain('bg-gray-900');
+    service.toggleTheme();
+    expect(document.body.className).not.toContain('bg-gray-900');
   });
 });

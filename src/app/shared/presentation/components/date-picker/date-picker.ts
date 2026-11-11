@@ -23,7 +23,8 @@ const parse = (iso: string): { y: number; m: number; d: number } | null => {
   return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d ? { y, m: m - 1, d } : null;
 };
 const addDays = (iso: string, days: number): string => {
-  const p = parse(iso)!;
+  const p = parse(iso);
+  if (!p) return iso;
   const date = new Date(Date.UTC(p.y, p.m, p.d + days));
   return toIso(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 };
@@ -96,7 +97,9 @@ export class DatePicker {
   });
   readonly canGoToday = computed(() => {
     const today = this.today();
-    return (!this.min() || today >= this.min()!) && (!this.max() || today <= this.max()!);
+    const min = this.min();
+    const max = this.max();
+    return (!min || today >= min) && (!max || today <= max);
   });
 
   constructor() {
@@ -104,7 +107,8 @@ export class DatePicker {
     effect(() => {
       if (!this.open()) return;
       untracked(() => {
-        const start = parse(this.value()) ?? parse(this.today())!;
+        const start = parse(this.value()) ?? parse(this.today());
+        if (!start) return;
         this.view.set({ y: start.y, m: start.m });
         this.focused.set(toIso(start.y, start.m, start.d));
       });
@@ -180,7 +184,8 @@ export class DatePicker {
   }
 
   private moveFocus(iso: string): void {
-    const p = parse(iso)!;
+    const p = parse(iso);
+    if (!p) return;
     this.focused.set(iso);
     if (p.y !== this.view().y || p.m !== this.view().m) this.view.set({ y: p.y, m: p.m });
     setTimeout(() => this.focusDay());

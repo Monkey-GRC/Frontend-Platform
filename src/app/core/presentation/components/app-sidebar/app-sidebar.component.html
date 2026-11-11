@@ -1,170 +1,111 @@
 <aside
-  class="fixed flex flex-col top-0 px-3.5 left-0 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 dark:border-gray-800"
+  class="mk-panel fixed inset-y-3 left-3 z-50 flex flex-col px-3 text-ink transition-all duration-300 ease-in-out"
   [ngClass]="{
-    'w-[290px]':
-      (isExpanded$ | async) || (isMobileOpen$ | async) || (isHovered$ | async),
-    'w-[90px]': !(
-      (isExpanded$ | async) ||
-      (isMobileOpen$ | async) ||
-      (isHovered$ | async)
-    ),
-    'translate-x-0': isMobileOpen$ | async,
-    '-translate-x-full': !(isMobileOpen$ | async),
+    'w-[270px]': showLabels(),
+    'w-[84px]': !showLabels(),
+    'translate-x-0 shadow-float': isMobileOpen(),
+    '-translate-x-[120%]': !isMobileOpen(),
     'xl:translate-x-0': true
   }" (mouseenter)="onSidebarMouseEnter()" (mouseleave)="sidebarService.setHovered(false)">
   <!-- Logo -->
-  <div class="py-6 sm:py-2 flex" [ngClass]="{
-      'xl:justify-center h-17': !((isExpanded$ | async) || (isHovered$ | async)),
-      'justify-start': (isExpanded$ | async) || (isHovered$ | async)
-    }">
+  <div class="flex py-6 sm:py-2" [ngClass]="centerIcons() ? 'xl:justify-center h-17' : 'justify-start'">
     <a routerLink="/">
-      @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-      <img class="dark:hidden" src="images/logo/logo-light.svg" alt="Logo" width="300" height="80" />
-      <img class="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Logo" width="300" height="80" />
+      @if (showLabels()) {
+      <img class="dark:hidden" src="images/logo/logo-light.svg" [attr.alt]="'SHELL.NAV.LOGO_ALT' | translate" width="300" height="80" />
+      <img class="hidden dark:block" src="/images/logo/logo-dark.svg" [attr.alt]="'SHELL.NAV.LOGO_ALT' | translate" width="300" height="80" />
       } @else {
-      <img class="dark:hidden h-17" src="/images/logo/icon-light.svg" alt="Logo"/>
-      <img class="hidden dark:block h-17" src="/images/logo/icon-dark.svg" alt="Logo"/>
+      <img class="dark:hidden h-17" src="/images/logo/icon-light.svg" [attr.alt]="'SHELL.NAV.LOGO_ALT' | translate"/>
+      <img class="hidden dark:block h-17" src="/images/logo/icon-dark.svg" [attr.alt]="'SHELL.NAV.LOGO_ALT' | translate"/>
       }
     </a>
   </div>
 
   <!-- Navigation -->
-  <div class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-    <nav class="mb-6">
+  <div class="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto duration-300 ease-linear">
+    <nav class="mb-6" [attr.aria-label]="'SHELL.NAV.LABEL' | translate">
       <div class="flex flex-col gap-4">
-        <!-- Iterar sobre cada sección única -->
         @for (section of sections; track section) {
-        <!-- Obtener items de esta sección -->
         @let sectionItems = getItemsBySection(section);
 
         @if (sectionItems.length > 0) {
         <div>
-          <!-- Section Header -->
-          <h2 class="mb-4 text-xs uppercase flex text-gray-400 dark:text-gray-500" [ngClass]="{
-                  'xl:justify-center': !(
-                    (isExpanded$ | async) || (isHovered$ | async)
-                  ),
-                  'justify-start': (isExpanded$ | async) || (isHovered$ | async)
-                }">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-            {{ sectionLabelKey(section) | translate }}
-            }
-          </h2>
+          @if (showLabels()) {
+          <h2 class="mb-2 px-3 text-xs font-medium text-ink-faint">{{ sectionLabelKey(section) | translate }}</h2>
+          }
 
-          <!-- Items de esta sección -->
           <ul class="flex flex-col gap-1">
             @for (item of sectionItems; track item.name) {
-            <li>
-              @if (item.subItems) {
-              <!-- Item con submenú -->
-              <button (click)="toggleSubmenu(item.name)" class="menu-item group cursor-pointer"
-                [class.menu-item-active]="openSubmenu === item.name"
-                [class.menu-item-inactive]="openSubmenu !== item.name" [ngClass]="{
-                          'xl:justify-center': !(
-                            (isExpanded$ | async) || (isHovered$ | async)
-                          ),
-                          'xl:justify-start':
-                            (isExpanded$ | async) || (isHovered$ | async)
-                        }">
-                <!-- Google Symbols Icon -->
+            @if (item.subItems; as children) {
+            <!-- Group: one button that only opens or closes the children (it never navigates). Its title shows «contains the active page» when a child is the current route.
+                 Collapsed menu: a flyout with the children on hover or focus. -->
+            <li #row class="relative" tabindex="-1" (mouseenter)="openFlyout(item.name, row)" (mouseleave)="closeFlyout()"
+              (focusin)="openFlyout(item.name, row)" (focusout)="onFocusOut($event, row)" (keydown.escape)="closeFlyout()">
+              <button type="button" class="menu-group-toggle group" (click)="toggleGroup(item.name)"
+                [attr.aria-expanded]="showLabels() && isOpen(item.name)" [attr.aria-controls]="groupId(item.name)"
+                [attr.aria-label]="showLabels() ? null : (labelOf(item) | translate)"
+                [attr.data-contains-active]="containsActive(item) ? '' : null"
+                [ngClass]="{ 'menu-item-contains-active': containsActive(item), 'menu-item-inactive': !containsActive(item), 'xl:justify-center': centerIcons() }">
                 <span class="menu-item-icon-size">
-                  <span class="material-symbols-outlined text-xl"
-                    [class.menu-item-icon-active]="openSubmenu === item.name"
-                    [class.menu-item-icon-inactive]="openSubmenu !== item.name">
-                    {{ item.icon }}
-                  </span>
+                  <span class="material-symbols-outlined text-xl" [ngClass]="containsActive(item) ? 'menu-item-icon-active' : 'menu-item-icon-inactive'">{{ item.icon }}</span>
                 </span>
-
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">
-                  {{ item.labelKey | translate }}
-                </span>
-                }
-
-                @if (item.new && ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async))) {
-                <span class="ml-auto absolute right-10 menu-dropdown-badge" [ngClass]="{
-                              'menu-dropdown-badge-active': openSubmenu === item.name,
-                              'menu-dropdown-badge-inactive': openSubmenu !== item.name
-                            }">
-                  new
-                </span>
-                }
-
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <svg [ngClass]="{
-                              'rotate-180 text-brand-500': openSubmenu === item.name
-                            }" width="1em" height="1em" viewBox="0 0 20 20" fill="none"
-                  xmlns="http://www.w3.org/2000/svg" class="ml-auto w-5 h-5 transition-transform duration-200">
+                @if (showLabels()) {
+                <span class="menu-item-text truncate">{{ labelOf(item) | translate }}</span>
+                <svg class="menu-chevron-icon" [attr.data-open]="isOpen(item.name)" viewBox="0 0 20 20" fill="none"
+                  xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396" stroke="currentColor" stroke-width="1.5"
                     stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
                 }
               </button>
 
-              <!-- Submenú -->
-              <div class="overflow-hidden transition-all duration-300" [id]="item.name" [style.display]="
-                          (isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)
-                            ? 'block'
-                            : 'none'
-                        " [ngStyle]="{
-                          height:
-                            openSubmenu === item.name
-                              ? (subMenuHeights[item.name] || 0) + 'px'
-                              : '0px'
-                        }">
-                <ul class="mt-2 space-y-1 ml-9">
-                  @for (subItem of item.subItems; track subItem.name) {
-                  <li>
-                    <a [routerLink]="subItem.path" routerLinkActive="" (click)="onSubmenuClick()"
-                      class="menu-dropdown-item" [ngClass]="{
-                                  'menu-dropdown-item-inactive': !isActive(subItem.path || ''),
-                                  'menu-dropdown-item-active': isActive(subItem.path || ''),
-                                }">
-                      {{ subItem.labelKey | translate }}
-                      <span class="flex items-center gap-1 ml-auto">
-                        @if (subItem.new) {
-                        <span class="menu-dropdown-badge" [ngClass]="{
-                                        'menu-dropdown-badge-active': isActive(subItem.path || ''),
-                                        'menu-dropdown-badge-inactive': !isActive(subItem.path || '')
-                                      }">
-                          new
-                        </span>
-                        }
-                        @if (subItem.pro) {
-                        <span class="ml-auto menu-dropdown-badge-pro" [ngClass]="{
-                                        'menu-dropdown-badge-pro-active': isActive(subItem.path || ''),
-                                        'menu-dropdown-badge-pro-inactive': !isActive(subItem.path || '')
-                                      }">
-                          pro
-                        </span>
-                        }
-                      </span>
-                    </a>
-                  </li>
-                  }
-                </ul>
+              <div [id]="groupId(item.name)" class="menu-group-panel" [attr.data-open]="showLabels() && isOpen(item.name)">
+                <div>
+                  <ul class="flex flex-col gap-1 pt-1">
+                    @for (child of children; track child.name) {
+                    <li>
+                      <a [routerLink]="child.path" class="menu-child" (click)="onNavigate()"
+                        [ngClass]="isActive(child.path) ? 'menu-child-active' : 'menu-child-inactive'"
+                        [attr.aria-current]="isActive(child.path) ? 'page' : null">{{ labelOf(child) | translate }}</a>
+                    </li>
+                    }
+                  </ul>
+                </div>
               </div>
-              } @else {
-              <!-- Item simple (sin submenú) -->
-              @if (item.path) {
-              <a [routerLink]="item.path" class="menu-item group" [ngClass]="{ 'menu-item-active': isActive(item.path), 'menu-item-inactive': !isActive(item.path), 'xl:justify-center': !((isExpanded$ | async) || (isHovered$ | async)) }" [attr.aria-current]="isActive(item.path) ? 'page' : null" [attr.aria-label]="item.labelKey | translate">
-                <!-- Google Symbols Icon -->
-                <span class="menu-item-icon-size">
-                  <span class="material-symbols-outlined text-xl" [ngClass]="{
-                                'menu-item-icon-active': isActive(item.path),
-                                'menu-item-icon-inactive': !isActive(item.path)
-                              }">
-                    {{ item.icon }}
-                  </span>
-                </span>
-                <!-- Sin el texto (menú contraído) no se pinta el contenedor: dejaba un hueco de 12 px a la derecha del icono y lo descentraba -->
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ item.labelKey | translate }}</span>
-                }
-              </a>
+
+              @if (flyout(); as f) {
+              @if (f.name === item.name && !showLabels()) {
+              <div class="fixed z-60 pl-2" [style.top.px]="f.top" [style.left.px]="f.left">
+                <div class="min-w-52 rounded-surface border border-line bg-surface p-2 shadow-float">
+                  <p class="px-3 py-1.5 text-xs font-medium text-ink-faint">{{ labelOf(item) | translate }}</p>
+                  <ul class="flex flex-col gap-0.5">
+                    @for (child of children; track child.name) {
+                    <li>
+                      <a [routerLink]="child.path" class="menu-child pl-4!" (click)="onNavigate()"
+                        [ngClass]="isActive(child.path) ? 'menu-child-active' : 'menu-child-inactive'"
+                        [attr.aria-current]="isActive(child.path) ? 'page' : null">{{ labelOf(child) | translate }}</a>
+                    </li>
+                    }
+                  </ul>
+                </div>
+              </div>
               }
               }
             </li>
+            } @else if (item.path) {
+            <!-- Simple item -->
+            <li>
+              <a [routerLink]="item.path" class="menu-item group" [attr.aria-current]="isActive(item.path) ? 'page' : null"
+                [attr.aria-label]="labelOf(item) | translate"
+                [ngClass]="{ 'menu-item-active': isActive(item.path), 'menu-item-inactive': !isActive(item.path), 'xl:justify-center': centerIcons() }">
+                <span class="menu-item-icon-size">
+                  <span class="material-symbols-outlined text-xl" [ngClass]="isActive(item.path) ? 'menu-item-icon-active' : 'menu-item-icon-inactive'">{{ item.icon }}</span>
+                </span>
+                @if (showLabels()) {
+                <span class="menu-item-text">{{ labelOf(item) | translate }}</span>
+                }
+              </a>
+            </li>
+            }
             }
           </ul>
         </div>

@@ -1,0 +1,38 @@
+<div class="inline-flex items-stretch gap-2" data-matrix>
+  <!-- Eje de la probabilidad, vertical -->
+  <div class="flex items-center">
+    <span class="whitespace-nowrap text-xs font-medium text-ink-muted [writing-mode:vertical-rl] rotate-180">{{ 'COMPLIANCE.RISK_ASSESSMENT.MATRIX_LIKELIHOOD' | translate }} →</span>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <div class="grid gap-1" [style.grid-template-columns]="columns()" role="grid" [attr.aria-label]="'COMPLIANCE.RISK_ASSESSMENT.MATRIX_TITLE' | translate">
+      @for (l of likelihoods(); track l) {
+      <div class="contents" role="row">
+        <span class="flex items-center justify-end text-xs text-ink-muted" aria-hidden="true">{{ l }}</span>
+        @for (i of impacts(); track i) {
+        @if (editable()) {
+        <button type="button" role="gridcell" [attr.data-cell]="l + '-' + i" [attr.aria-label]="label(l, i)" [attr.aria-pressed]="isSelected(l, i)" [disabled]="disabled()"
+          [attr.tabindex]="isStop(l, i) ? 0 : -1" (click)="pick(l, i)" (keydown)="move($event, l, i)"
+          class="rounded-control border text-xs font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action disabled:cursor-not-allowed"
+          [class]="cell() + ' ' + (isSelected(l, i) ? 'border-action bg-action text-white ring-2 ring-action ring-offset-1' : isSaved(l, i) ? savedTone() : soft(l, i) + ' enabled:hover:ring-2 enabled:hover:ring-action/60')">
+          @if (isSelected(l, i)) {<span class="material-symbols-rounded text-[16px] leading-none" aria-hidden="true">check</span>}
+        </button>
+        } @else {
+        <div role="gridcell" [attr.data-cell]="l + '-' + i" [attr.aria-label]="label(l, i)" [attr.aria-current]="isSaved(l, i) ? 'true' : null"
+          class="flex items-center justify-center rounded-control border text-xs"
+          [class]="cell() + ' ' + (isSaved(l, i) ? savedTone() + ' ring-2 ring-ink ring-offset-1 ring-offset-surface' : soft(l, i))">
+          @if (isSaved(l, i)) {<span class="material-symbols-rounded text-[16px] leading-none" aria-hidden="true">location_on</span>}
+        </div>
+        }
+        }
+      </div>
+      }
+    </div>
+    <!-- Eje del impacto -->
+    <div class="grid gap-1" [style.grid-template-columns]="columns()" aria-hidden="true">
+      <span></span>
+      @for (i of impacts(); track i) {<span class="text-center text-xs text-ink-muted">{{ i }}</span>}
+    </div>
+    <span class="pl-6 text-xs font-medium text-ink-muted">{{ 'COMPLIANCE.RISK_ASSESSMENT.MATRIX_IMPACT' | translate }} →</span>
+  </div>
+</div>

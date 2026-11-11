@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthService } from '@core/domain/services/auth.service';
 
 // El inverso de `authGuard`: las pantallas para quien NO ha entrado (inicio de sesión y activación). Con una sesión válida no se muestran:
 // se vuelve a donde el cliente trabaja, así «atrás» o «adelante» del navegador no lo devuelven al login estando dentro.

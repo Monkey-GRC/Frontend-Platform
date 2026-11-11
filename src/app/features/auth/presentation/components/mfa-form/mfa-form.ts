@@ -4,11 +4,12 @@ import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { apiErrorCode, apiErrorMessage } from '@core/domain/utils/api-error';
-import { AuthPayload, MfaSetupStart } from '@features/auth/domain/models/auth.models';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthPayload, MfaSetupStart } from '@core/domain/models/auth.models';
+import { AuthService } from '@core/domain/services/auth.service';
 import { CodeInput } from '@shared/presentation/components/code-input/code-input';
 import { Stepper, StepperItem } from '@shared/presentation/components/stepper/stepper';
 import { QrCode } from '@shared/presentation/components/qr-code/qr-code';
+import { targetChecked } from '@shared/presentation/utils/event-target';
 
 // Segundo factor (D94, contracts/modules/auth.md). Una sola pantalla con dos recorridos:
 //   · Quien ya tiene el factor: escribe el código de su app, o uno de recuperación (verify → recovery).
@@ -22,6 +23,7 @@ type Stage = 'verify' | 'recovery' | 'install' | 'scan' | 'confirm' | 'codes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MfaForm {
+  protected readonly targetChecked = targetChecked;
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);

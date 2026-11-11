@@ -4,6 +4,7 @@
       "SECTION_MENU": "Menu",
       "HOME": "Home",
       "MY_COMPANY": "My company",
+      "COMPANY_CONTEXT": "Company context",
       "MY_SERVICES": "My services",
       "COMPLIANCE": "Compliance",
       "RESPONSIBLES": "Responsible roles",
@@ -11,7 +12,12 @@
       "MY_WORK": "My work",
       "ASSIGNMENT": "Assignment",
       "ASSIGN_EXECUTOR": "Assign executor",
-      "MY_TEAM": "My team"
+      "MY_TEAM": "My team",
+      "LABEL": "Main navigation",
+      "TOGGLE_SIDEBAR": "Show or hide the side menu",
+      "TEAM_PEOPLE": "People",
+      "TEAM_GROUPS": "Groups",
+      "LOGO_ALT": "Monkey logo"
     },
     "COMING_SOON": "This section is under construction.",
     "HEADER": {

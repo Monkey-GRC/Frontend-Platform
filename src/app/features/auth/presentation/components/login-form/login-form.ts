@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthService } from '@core/domain/services/auth.service';
 import { PasswordToggle } from '@shared/presentation/components/password-toggle/password-toggle';
 
 @Component({

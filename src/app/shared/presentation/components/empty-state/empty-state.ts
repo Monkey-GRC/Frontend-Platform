@@ -1,22 +1,26 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
-// «Aún no hay nada aquí»: ícono, título, una frase que explica qué hacer y, si hace falta, la acción (se proyecta dentro:
-// `<app-empty-state ...><a routerLink="...">Crear</a></app-empty-state>`). Los textos son claves de traducción.
+/**
+ * «Nothing here yet»: a line icon with no background, one title, one sentence and, if needed, the action (projected with `action`):
+ *   <app-empty-state icon="group" titleKey="…" descriptionKey="…"><a action routerLink="…">…</a></app-empty-state>
+ * An empty `icon` (`icon=""`) draws no icon. Texts are translation keys. Anything projected without `action` also goes in the action slot (compatibility with the older usage).
+ */
 @Component({
   selector: 'app-empty-state',
   imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block' },
   template: `
-    <div class="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-gray-900">
-      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <span class="material-symbols-rounded text-3xl" aria-hidden="true">{{ icon() }}</span>
-      </span>
-      <h2 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{{ titleKey() | translate }}</h2>
-      @if (descriptionKey(); as description) {
-        <p class="mx-auto mt-1 max-w-sm text-sm text-gray-600 dark:text-gray-300">{{ description | translate }}</p>
+    <div class="px-4 py-10 text-center">
+      @if (icon()) {
+        <span class="material-symbols-rounded text-[32px] leading-none text-ink-faint" aria-hidden="true">{{ icon() }}</span>
       }
-      <div class="mt-6 flex justify-center empty:hidden"><ng-content /></div>
+      <h2 class="mt-3 text-base font-semibold text-ink">{{ titleKey() | translate }}</h2>
+      @if (descriptionKey(); as description) {
+        <p class="mx-auto mt-1 max-w-sm text-sm text-ink-muted">{{ description | translate }}</p>
+      }
+      <div class="mt-5 flex justify-center empty:hidden"><ng-content select="[action]" /><ng-content /></div>
     </div>
   `,
 })

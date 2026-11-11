@@ -21,15 +21,14 @@ import { BackdropComponent } from '../../components/backdrop/backdrop.component'
 })
 
 export class AppLayoutComponent {
-  readonly isExpanded$;
-  readonly isHovered$;
-  readonly isMobileOpen$;
-  constructor(public sidebarService: SidebarService) {
+  readonly sidebarService = inject(SidebarService);
+  readonly isExpanded$ = this.sidebarService.isExpanded$;
+  readonly isHovered$ = this.sidebarService.isHovered$;
+  readonly isMobileOpen$ = this.sidebarService.isMobileOpen$;
+
+  constructor() {
     // Empieza a recordar en qué pantalla está la persona, para que «Volver a la aplicación» de Ajustes sepa a dónde volver.
     inject(NavigationHistoryService);
-    this.isExpanded$ = this.sidebarService.isExpanded$;
-    this.isHovered$ = this.sidebarService.isHovered$;
-    this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
   }
 
   get containerClasses() {

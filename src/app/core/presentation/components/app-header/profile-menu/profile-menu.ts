@@ -6,7 +6,7 @@ import { map } from 'rxjs';
 import { Language, LanguageService } from '@core/domain/services/language.service';
 import { SessionService } from '@core/domain/services/session.service';
 import { ThemeService } from '@core/domain/services/theme.service';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthService } from '@core/domain/services/auth.service';
 import { displayNameOf, initialsOf } from '@shared/domain/utils/initials';
 
 // El menú de la persona en sesión (el círculo con sus iniciales, arriba a la derecha): reúne lo que es suyo y no de la pantalla: sus ajustes, el idioma, el modo oscuro y

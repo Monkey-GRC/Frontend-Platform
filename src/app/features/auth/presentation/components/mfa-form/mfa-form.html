@@ -1,6 +1,6 @@
 <div class="relative w-full h-full min-h-screen lg:min-h-0 overflow-hidden flex items-center justify-center">
 
-    <div class="relative w-full max-w-sm  px-6 md:px-10 py-8 md:py-12" [class]="stage() === 'scan' ? 'md:max-w-xl' : 'md:max-w-lg'">
+    <div class="relative w-full max-w-sm px-6 md:px-10 py-8 md:py-12" [class]="stage() === 'scan' ? 'md:max-w-xl' : 'md:max-w-lg'">
 
         <!-- Configuración: ¿en qué paso va? -->
         @if (setupStep > 0) {
@@ -14,21 +14,20 @@
         <!-- ───────── Ingreso: código de la app ───────── -->
         @case ('verify') {
         <div class="text-center">
-            <span class="material-symbols-rounded text-[40px] text-primary">shield_lock</span>
-            <h1 class="mt-2 text-2xl md:text-3xl font-bold text-primary dark:text-white">{{ 'AUTH.MFA.VERIFY_TITLE' | translate }}</h1>
-            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">{{ 'AUTH.MFA.VERIFY_HELP' | translate }}</p>
+            <h1 class="mt-2 text-2xl md:text-3xl font-bold text-ink">{{ 'AUTH.MFA.VERIFY_TITLE' | translate }}</h1>
+            <p class="mt-3 text-sm text-ink-muted">{{ 'AUTH.MFA.VERIFY_HELP' | translate }}</p>
         </div>
         <div class="mt-8">
             <app-code-input [(value)]="code" [label]="'AUTH.MFA.CODE_LABEL' | translate" [disabled]="loading() || expired()"
                 [invalid]="!!errorMessage()" (complete)="submitCode($event)" />
         </div>
         @if (loading()) {
-        <p class="mt-4 flex items-center justify-center gap-2 text-center text-xs text-gray-500" role="status">
+        <p class="mt-4 flex items-center justify-center gap-2 text-center text-xs text-ink-muted" role="status">
             <span class="material-symbols-rounded animate-spin text-[20px] leading-none" aria-hidden="true">progress_activity</span>
             {{ 'AUTH.MFA.VERIFYING' | translate }}
         </p>
         }
-        <button type="button" class="mt-6 block mx-auto text-sm font-medium text-primary hover:underline" (click)="showRecovery()">
+        <button type="button" class="mt-6 block mx-auto text-sm font-medium text-action hover:underline" (click)="showRecovery()">
             {{ 'AUTH.MFA.USE_RECOVERY' | translate }}
         </button>
         }
@@ -36,23 +35,22 @@
         <!-- ───────── Ingreso: código de recuperación ───────── -->
         @case ('recovery') {
         <div class="text-center">
-            <span class="material-symbols-rounded text-[40px] text-primary">key</span>
-            <h1 class="mt-2 text-2xl md:text-3xl font-bold text-primary dark:text-white">{{ 'AUTH.MFA.RECOVERY_TITLE' | translate }}</h1>
-            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">{{ 'AUTH.MFA.RECOVERY_HELP' | translate }}</p>
+            <h1 class="mt-2 text-2xl md:text-3xl font-bold text-ink">{{ 'AUTH.MFA.RECOVERY_TITLE' | translate }}</h1>
+            <p class="mt-3 text-sm text-ink-muted">{{ 'AUTH.MFA.RECOVERY_HELP' | translate }}</p>
         </div>
         <form class="mt-8" (ngSubmit)="submitRecovery()">
-            <label class="block text-xs font-medium text-gray-400 mb-2" for="recovery-code">{{ 'AUTH.MFA.RECOVERY_LABEL' | translate }}</label>
+            <label class="block text-xs font-medium text-ink-muted mb-2" for="recovery-code">{{ 'AUTH.MFA.RECOVERY_LABEL' | translate }}</label>
             <input id="recovery-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" [formControl]="recovery"
                 placeholder="XXXXX-XXXXX"
-                class="w-full h-12 text-center text-lg font-semibold tracking-widest uppercase rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-[#162036] dark:text-white focus:bg-white dark:focus:bg-[#0E1525] focus:border-primary/60 transition" />
+                class="mk-input !h-12 text-center !text-lg font-semibold tracking-widest uppercase" />
             <button type="submit" [disabled]="loading() || expired()"
                 [attr.aria-busy]="loading()"
-                class="mt-5 w-full h-11 md:h-12 inline-flex items-center justify-center gap-2 text-sm md:text-base font-semibold rounded-xl text-white bg-primary hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                class="mt-5 w-full h-11 md:h-12 mk-btn">
                 @if (loading()) { <span class="material-symbols-rounded animate-spin text-[20px] leading-none" aria-hidden="true">progress_activity</span> }
                 {{ (loading() ? 'AUTH.MFA.VERIFYING' : 'AUTH.MFA.CONTINUE') | translate }}
             </button>
         </form>
-        <button type="button" class="mt-5 block mx-auto text-sm font-medium text-primary hover:underline" (click)="showCode()">
+        <button type="button" class="mt-5 block mx-auto text-sm font-medium text-action hover:underline" (click)="showCode()">
             {{ 'AUTH.MFA.USE_APP' | translate }}
         </button>
         }
@@ -60,17 +58,16 @@
         <!-- ───────── Configuración · 1: instalar la app ───────── -->
         @case ('install') {
         <div class="mt-4 text-center">
-            <span class="material-symbols-rounded text-[40px] text-primary">phonelink_lock</span>
-            <h1 class="mt-2 text-2xl md:text-3xl font-bold text-primary dark:text-white">{{ 'AUTH.MFA.INSTALL_TITLE' | translate }}</h1>
-            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">{{ 'AUTH.MFA.SETUP_INTRO' | translate }}</p>
+            <h1 class="mt-2 text-2xl md:text-3xl font-bold text-ink">{{ 'AUTH.MFA.INSTALL_TITLE' | translate }}</h1>
+            <p class="mt-3 text-sm text-ink-muted">{{ 'AUTH.MFA.SETUP_INTRO' | translate }}</p>
         </div>
-        <div class="mt-6 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-sm text-gray-600 dark:text-gray-300">
-            <p class="font-medium text-gray-800 dark:text-white">{{ 'AUTH.MFA.INSTALL_BODY' | translate }}</p>
+        <div class="mt-6 rounded-control border border-line p-4 text-sm text-ink-muted">
+            <p class="font-medium text-ink">{{ 'AUTH.MFA.INSTALL_BODY' | translate }}</p>
             <p class="mt-2">{{ 'AUTH.MFA.INSTALL_EXAMPLES' | translate }}</p>
         </div>
         <button type="button" (click)="startSetup()" [disabled]="loading() || expired()"
             [attr.aria-busy]="loading()"
-            class="mt-6 w-full h-11 md:h-12 inline-flex items-center justify-center gap-2 text-sm md:text-base font-semibold rounded-xl text-white bg-primary hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed">
+            class="mt-6 w-full h-11 md:h-12 mk-btn">
             @if (loading()) { <span class="material-symbols-rounded animate-spin text-[20px] leading-none" aria-hidden="true">progress_activity</span> }
             {{ (loading() ? 'AUTH.MFA.VERIFYING' : 'AUTH.MFA.INSTALLED') | translate }}
         </button>
@@ -80,37 +77,34 @@
         @case ('scan') {
         @if (setup(); as s) {
         <div class="mt-4 text-center">
-            <h1 class="text-2xl md:text-3xl font-bold text-primary dark:text-white">{{ 'AUTH.MFA.SCAN_TITLE' | translate }}</h1>
-            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">{{ 'AUTH.MFA.SCAN_HELP' | translate }}</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-ink">{{ 'AUTH.MFA.SCAN_TITLE' | translate }}</h1>
+            <p class="mt-3 text-sm text-ink-muted">{{ 'AUTH.MFA.SCAN_HELP' | translate }}</p>
         </div>
         @if (!qrRevealed()) {
         <button type="button" (click)="qrRevealed.set(true)"
-            class="mt-6 mx-auto flex h-52 w-52 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-[#162036] px-4 text-center transition hover:border-primary hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-primary">
-            <span class="material-symbols-rounded text-[44px] text-primary" aria-hidden="true">visibility</span>
-            <span class="text-sm font-semibold text-gray-800 dark:text-white">{{ 'AUTH.MFA.QR_REVEAL' | translate }}</span>
-            <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ 'AUTH.MFA.QR_REVEAL_HINT' | translate }}</span>
+            class="mt-6 mx-auto flex h-52 w-52 flex-col items-center justify-center gap-2 rounded-control border-2 border-dashed border-line bg-canvas px-4 text-center transition hover:border-action hover:bg-tint focus-visible:outline-2 focus-visible:outline-action">
+            <span class="text-sm font-semibold text-ink">{{ 'AUTH.MFA.QR_REVEAL' | translate }}</span>
+            <span class="text-[11px] text-ink-muted">{{ 'AUTH.MFA.QR_REVEAL_HINT' | translate }}</span>
         </button>
         } @else {
         <div class="mt-6 flex flex-col items-center gap-2">
             <app-qr-code [value]="s.otpauth_uri" [label]="'AUTH.MFA.QR_ALT' | translate" />
-            <button type="button" (click)="qrRevealed.set(false)" class="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:underline">
-                <span class="material-symbols-rounded text-[16px]" aria-hidden="true">visibility_off</span>{{ 'AUTH.MFA.QR_HIDE' | translate }}
+            <button type="button" (click)="qrRevealed.set(false)" class="inline-flex items-center gap-1 text-xs font-medium text-ink-muted hover:underline">{{ 'AUTH.MFA.QR_HIDE' | translate }}
             </button>
         </div>
-        <div class="mt-5 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'AUTH.MFA.MANUAL_HELP' | translate }}</p>
+        <div class="mt-5 rounded-control border border-line p-4">
+            <p class="text-xs text-ink-muted">{{ 'AUTH.MFA.MANUAL_HELP' | translate }}</p>
             <div class="mt-2 flex items-center gap-2">
-                <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-md bg-gray-100 dark:bg-[#162036] px-3 py-2 text-xs md:text-sm font-semibold tracking-wide text-gray-800 dark:text-white select-all">{{ s.secret }}</code>
+                <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-control bg-canvas px-3 py-2 text-xs md:text-sm font-semibold tracking-wide text-ink select-all">{{ s.secret }}</code>
                 <button type="button" (click)="copy(s.secret, 'key')"
-                    class="inline-flex items-center gap-1 rounded-md border border-gray-300 dark:border-gray-700 px-3 h-9 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5">
-                    <span class="material-symbols-rounded text-[16px]">{{ copied() === 'key' ? 'check' : 'content_copy' }}</span>
+                    class="mk-btn-secondary">
                     {{ (copied() === 'key' ? 'AUTH.MFA.COPIED' : 'AUTH.MFA.COPY') | translate }}
                 </button>
             </div>
         </div>
         }
         <button type="button" (click)="toConfirm()" [disabled]="!qrRevealed()"
-            class="mt-6 w-full h-11 md:h-12 text-sm md:text-base font-semibold rounded-xl text-white bg-primary hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed">
+            class="mt-6 w-full h-11 md:h-12 mk-btn">
             {{ 'AUTH.MFA.SCANNED' | translate }}
         </button>
         }
@@ -119,20 +113,20 @@
         <!-- ───────── Configuración · 3: confirmar el primer código ───────── -->
         @case ('confirm') {
         <div class="mt-4 text-center">
-            <h1 class="text-2xl md:text-3xl font-bold text-primary dark:text-white">{{ 'AUTH.MFA.CONFIRM_TITLE' | translate }}</h1>
-            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">{{ 'AUTH.MFA.CONFIRM_HELP' | translate }}</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-ink">{{ 'AUTH.MFA.CONFIRM_TITLE' | translate }}</h1>
+            <p class="mt-3 text-sm text-ink-muted">{{ 'AUTH.MFA.CONFIRM_HELP' | translate }}</p>
         </div>
         <div class="mt-8">
             <app-code-input [(value)]="code" [label]="'AUTH.MFA.CODE_LABEL' | translate" [disabled]="loading() || expired()"
                 [invalid]="!!errorMessage()" (complete)="submitCode($event)" />
         </div>
         @if (loading()) {
-        <p class="mt-4 flex items-center justify-center gap-2 text-center text-xs text-gray-500" role="status">
+        <p class="mt-4 flex items-center justify-center gap-2 text-center text-xs text-ink-muted" role="status">
             <span class="material-symbols-rounded animate-spin text-[20px] leading-none" aria-hidden="true">progress_activity</span>
             {{ 'AUTH.MFA.VERIFYING' | translate }}
         </p>
         }
-        <button type="button" class="mt-6 block mx-auto text-sm font-medium text-primary hover:underline" (click)="backToScan()">
+        <button type="button" class="mt-6 block mx-auto text-sm font-medium text-action hover:underline" (click)="backToScan()">
             {{ 'AUTH.MFA.BACK_TO_QR' | translate }}
         </button>
         }
@@ -140,34 +134,31 @@
         <!-- ───────── Códigos de recuperación (se muestran una sola vez) ───────── -->
         @case ('codes') {
         <div class="text-center">
-            <span class="material-symbols-rounded text-[40px] text-success-500">verified_user</span>
-            <h1 class="mt-2 text-2xl md:text-3xl font-bold text-primary dark:text-white">{{ 'AUTH.MFA.CODES_TITLE' | translate }}</h1>
-            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">{{ 'AUTH.MFA.CODES_HELP' | translate }}</p>
+            <h1 class="mt-2 text-2xl md:text-3xl font-bold text-ink">{{ 'AUTH.MFA.CODES_TITLE' | translate }}</h1>
+            <p class="mt-3 text-sm text-ink-muted">{{ 'AUTH.MFA.CODES_HELP' | translate }}</p>
         </div>
-        <ul class="mt-6 grid grid-cols-2 gap-2 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+        <ul class="mt-6 grid grid-cols-2 gap-2 rounded-control border border-line p-4">
             @for (c of recoveryCodes(); track c) {
-            <li class="text-center font-mono text-sm font-semibold tracking-wider text-gray-800 dark:text-white select-all">{{ c }}</li>
+            <li class="text-center font-mono text-sm font-semibold tracking-wider text-ink select-all">{{ c }}</li>
             }
         </ul>
         <div class="mt-3 flex gap-2">
             <button type="button" (click)="copy(recoveryCodes().join('\n'), 'codes')"
-                class="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-gray-300 dark:border-gray-700 h-10 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5">
-                <span class="material-symbols-rounded text-[18px]">{{ copied() === 'codes' ? 'check' : 'content_copy' }}</span>
+                class="mk-btn-secondary flex-1">
                 {{ (copied() === 'codes' ? 'AUTH.MFA.COPIED' : 'AUTH.MFA.COPY_ALL') | translate }}
             </button>
             <button type="button" (click)="download()"
-                class="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-gray-300 dark:border-gray-700 h-10 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5">
-                <span class="material-symbols-rounded text-[18px]">download</span>
+                class="mk-btn-secondary flex-1">
                 {{ 'AUTH.MFA.DOWNLOAD' | translate }}
             </button>
         </div>
-        <label class="mt-5 flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-            <input type="checkbox" class="mt-0.5 h-4 w-4 accent-[var(--color-primary,#2563eb)]" [checked]="saved()" (change)="saved.set($any($event.target).checked)" />
+        <label class="mt-5 flex items-start gap-3 text-sm text-ink-muted cursor-pointer">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 accent-action" [checked]="saved()" (change)="saved.set(targetChecked($event))" />
             <span>{{ 'AUTH.MFA.SAVED' | translate }}</span>
         </label>
         <button type="button" (click)="finish()" [disabled]="!saved() || loading()"
             [attr.aria-busy]="loading()"
-            class="mt-5 w-full h-11 md:h-12 inline-flex items-center justify-center gap-2 text-sm md:text-base font-semibold rounded-xl text-white bg-primary hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed">
+            class="mt-5 w-full h-11 md:h-12 mk-btn">
             @if (loading()) { <span class="material-symbols-rounded animate-spin text-[20px] leading-none" aria-hidden="true">progress_activity</span> }
             {{ (loading() ? 'AUTH.MFA.VERIFYING' : 'AUTH.MFA.ENTER') | translate }}
         </button>
@@ -175,14 +166,14 @@
         }
 
         @if (errorMessage()) {
-        <p class="mt-4 text-center text-xs text-error-500" role="alert">{{ errorMessage() }}</p>
+        <p class="mt-4 text-center text-xs text-bad-ink" role="alert">{{ errorMessage() }}</p>
         }
         @if (expired()) {
         <button type="button" (click)="backToLogin()"
-            class="mt-4 block mx-auto text-sm font-medium text-primary hover:underline">{{ 'AUTH.MFA.BACK_TO_LOGIN' | translate }}</button>
+            class="mt-4 block mx-auto text-sm font-medium text-action hover:underline">{{ 'AUTH.MFA.BACK_TO_LOGIN' | translate }}</button>
         } @else if (stage() === 'verify' || stage() === 'recovery' || stage() === 'install') {
         <button type="button" (click)="backToLogin()"
-            class="mt-6 block mx-auto text-xs text-gray-500 hover:underline">{{ 'AUTH.MFA.CANCEL' | translate }}</button>
+            class="mt-6 block mx-auto text-xs text-ink-muted hover:underline">{{ 'AUTH.MFA.CANCEL' | translate }}</button>
         }
     </div>
 </div>

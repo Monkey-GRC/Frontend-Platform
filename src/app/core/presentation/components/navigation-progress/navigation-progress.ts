@@ -9,8 +9,8 @@ import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Rout
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (navigating()) {
-      <div class="pointer-events-none fixed inset-x-0 top-0 z-[100003] h-0.5 overflow-hidden bg-primary/15" role="progressbar" aria-busy="true" data-testid="navigation-progress">
-        <div class="h-full w-1/3 animate-[navbar_1.1s_ease-in-out_infinite] rounded-full bg-primary"></div>
+      <div class="pointer-events-none fixed inset-x-0 top-0 z-[100003] h-0.5 overflow-hidden bg-tint" role="progressbar" aria-busy="true" data-testid="navigation-progress">
+        <div class="h-full w-1/3 animate-[navbar_1.1s_ease-in-out_infinite] rounded-full bg-action"></div>
       </div>
     }
   `,

@@ -6,7 +6,7 @@ import { toDataURL } from 'qrcode';
   selector: 'app-qr-code',
   template: `
     @if (src()) {
-      <img [src]="src()" [alt]="label()" [attr.width]="size()" [attr.height]="size()" class="rounded-lg bg-white p-2" />
+      <img [src]="src()" [alt]="label()" [attr.width]="size()" [attr.height]="size()" class="rounded-control bg-surface p-2" />
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

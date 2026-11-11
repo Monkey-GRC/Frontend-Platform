@@ -7,7 +7,6 @@
     "DELETE": "Eliminar",
     "CANCEL": "Cancelar",
     "EDIT": "Editar",
-    "CHANGE": "Cambiar",
     "SAVE": "Guardar",
     "CONTINUE": "Continuar",
     "BACK": "Atrás",
@@ -15,6 +14,13 @@
     "OPTIONAL": "opcional",
     "REMOVE": "Quitar",
     "CLOSE": "Cerrar",
+    "TOAST": {
+      "REGION": "Avisos",
+      "INFO": "Información",
+      "SUCCESS": "Correcto",
+      "WARNING": "Aviso",
+      "ERROR": "Error"
+    },
     "DATE_PICKER": {
       "PLACEHOLDER": "Elige una fecha",
       "PREV_MONTH": "Mes anterior",
@@ -34,7 +40,15 @@
       "PAGE_OF": "Página {{page}} de {{pages}}",
       "PREVIOUS": "Página anterior",
       "NEXT": "Página siguiente",
-      "EMPTY_TITLE": "No hay nada que mostrar todavía"
+      "GO_TO_PAGE": "Ir a la página {{page}}",
+      "OPEN_DETAIL": "Abrir detalle",
+      "ACTIONS": "Acciones",
+      "SELECT_ALL": "Seleccionar todo",
+      "SELECT_ROW": "Seleccionar {{name}}",
+      "EMPTY_TITLE": "No hay nada que mostrar todavía",
+      "GROUP_COUNT": "Elementos: {{count}}",
+      "GROUP_COLLAPSE": "Contraer grupo {{name}}",
+      "GROUP_EXPAND": "Desplegar grupo {{name}}"
     },
     "FILE": {
       "DROP_OR_CLICK": "Arrastra un archivo aquí o haz clic para elegirlo",
@@ -59,14 +73,13 @@
     "NOT_FOUND": {
       "TITLE": "ERROR",
       "MESSAGE": "No encontramos la página que buscas.",
-      "BACK_HOME": "Volver al inicio"
+      "BACK_HOME": "Volver al inicio",
+      "COPYRIGHT": "© {{year}} Monkey"
     },
     "PASSWORD": {
       "NEW": "Contraseña nueva",
       "CONFIRM": "Confirma la contraseña nueva",
-      "RULES": "Mínimo 12 caracteres, con mayúscula, minúscula, número y símbolo.",
       "REQUIRED": "La contraseña es obligatoria.",
-      "WEAK": "La contraseña no cumple los requisitos.",
       "MISMATCH": "Las contraseñas no coinciden.",
       "GUIDE": {
         "TITLE": "Tu contraseña debe tener:",
@@ -92,6 +105,20 @@
     "SECOND_FACTOR_DIALOG": {
       "DESCRIPTION": "Por seguridad, escribe el código de tu app de autenticación.",
       "CONFIRMING": "Confirmando…"
+    },
+    "READINESS": {
+      "LABEL": {
+        "READY": "Preparado",
+        "ALMOST_READY": "Casi listo",
+        "NEEDS_WORK": "Requiere trabajo",
+        "NOT_MEASURED": "Sin medir"
+      },
+      "HINT": {
+        "READY": "Todo lo aplicable cumple.",
+        "ALMOST_READY": "Casi todo cumple; faltan pocos puntos.",
+        "NEEDS_WORK": "Hay varios puntos por resolver.",
+        "NOT_MEASURED": "Aún no hay resultados para determinar si cumple. No es un incumplimiento."
+      }
     }
   },
   "PAGE_TITLE": {
@@ -111,7 +138,8 @@
     "COMPLIANCE_CONTROLS": "Cumplimiento · Controles",
     "COMPLIANCE_EVIDENCE": "Cumplimiento · Evidencias",
     "COMPLIANCE_EXCLUSIONS": "Cumplimiento · Exclusiones",
-    "TEAM": "Equipo",
+    "TEAM_PEOPLE": "Personas",
+    "TEAM_GROUPS": "Grupos",
     "MY_WORK": "Mi trabajo",
     "ASSIGNMENT": "Asignación",
     "RESPONSIBLES": "Responsables",

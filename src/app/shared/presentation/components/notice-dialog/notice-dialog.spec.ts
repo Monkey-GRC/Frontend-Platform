@@ -4,7 +4,7 @@ import { highlightFontSize, NoticeDialog } from './notice-dialog';
 
 @Component({
   imports: [NoticeDialog],
-  template: `<app-notice-dialog [open]="open()" icon="mark_email_read" title="Te enviamos un correo" message="Enviamos un enlace a:" [highlight]="highlight()" [hint]="hint()" closeLabel="Entendido" (closed)="closes = closes + 1" />`,
+  template: `<app-notice-dialog [open]="open()" title="Te enviamos un correo" message="Enviamos un enlace a:" [highlight]="highlight()" [hint]="hint()" closeLabel="Entendido" (closed)="closes = closes + 1" />`,
 })
 class Host {
   readonly open = signal(false);

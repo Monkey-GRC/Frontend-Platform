@@ -7,7 +7,6 @@
     "DELETE": "Delete",
     "CANCEL": "Cancel",
     "EDIT": "Edit",
-    "CHANGE": "Change",
     "SAVE": "Save",
     "CONTINUE": "Continue",
     "BACK": "Back",
@@ -15,6 +14,13 @@
     "OPTIONAL": "optional",
     "REMOVE": "Remove",
     "CLOSE": "Close",
+    "TOAST": {
+      "REGION": "Notices",
+      "INFO": "Information",
+      "SUCCESS": "Success",
+      "WARNING": "Warning",
+      "ERROR": "Error"
+    },
     "DATE_PICKER": {
       "PLACEHOLDER": "Pick a date",
       "PREV_MONTH": "Previous month",
@@ -34,7 +40,15 @@
       "PAGE_OF": "Page {{page}} of {{pages}}",
       "PREVIOUS": "Previous page",
       "NEXT": "Next page",
-      "EMPTY_TITLE": "Nothing to show yet"
+      "GO_TO_PAGE": "Go to page {{page}}",
+      "OPEN_DETAIL": "Open details",
+      "ACTIONS": "Actions",
+      "SELECT_ALL": "Select all",
+      "SELECT_ROW": "Select {{name}}",
+      "EMPTY_TITLE": "Nothing to show yet",
+      "GROUP_COUNT": "Items: {{count}}",
+      "GROUP_COLLAPSE": "Collapse group {{name}}",
+      "GROUP_EXPAND": "Expand group {{name}}"
     },
     "FILE": {
       "DROP_OR_CLICK": "Drag a file here or click to choose one",
@@ -59,14 +73,13 @@
     "NOT_FOUND": {
       "TITLE": "ERROR",
       "MESSAGE": "We can't find the page you are looking for.",
-      "BACK_HOME": "Back to home"
+      "BACK_HOME": "Back to home",
+      "COPYRIGHT": "© {{year}} Monkey"
     },
     "PASSWORD": {
       "NEW": "New password",
       "CONFIRM": "Confirm the new password",
-      "RULES": "At least 12 characters, with an uppercase letter, a lowercase letter, a number and a symbol.",
       "REQUIRED": "The password is required.",
-      "WEAK": "The password does not meet the requirements.",
       "MISMATCH": "The passwords do not match.",
       "GUIDE": {
         "TITLE": "Your password must have:",
@@ -92,6 +105,20 @@
     "SECOND_FACTOR_DIALOG": {
       "DESCRIPTION": "For security, enter the code from your authenticator app.",
       "CONFIRMING": "Confirming…"
+    },
+    "READINESS": {
+      "LABEL": {
+        "READY": "Ready",
+        "ALMOST_READY": "Almost ready",
+        "NEEDS_WORK": "Needs work",
+        "NOT_MEASURED": "Not measured"
+      },
+      "HINT": {
+        "READY": "Everything that applies is met.",
+        "ALMOST_READY": "Almost everything is met; only a few points remain.",
+        "NEEDS_WORK": "Several points still need to be resolved.",
+        "NOT_MEASURED": "There are no results yet to determine whether it is met. This is not a failure."
+      }
     }
   },
   "PAGE_TITLE": {
@@ -111,7 +138,8 @@
     "COMPLIANCE_CONTROLS": "Compliance · Controls",
     "COMPLIANCE_EVIDENCE": "Compliance · Evidence",
     "COMPLIANCE_EXCLUSIONS": "Compliance · Exclusions",
-    "TEAM": "Team",
+    "TEAM_PEOPLE": "People",
+    "TEAM_GROUPS": "Groups",
     "MY_WORK": "My work",
     "ASSIGNMENT": "Assignment",
     "RESPONSIBLES": "Responsibles",

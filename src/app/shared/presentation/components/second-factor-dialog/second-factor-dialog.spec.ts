@@ -136,11 +136,11 @@ describe('SecondFactorDialog (el modal del código)', () => {
 
   it('paints the confirm button red for a serious action, and in the brand colour otherwise', () => {
     const { fixture, host, q } = setup();
-    expect(q('factor-confirm')!.className).toContain('bg-primary');
+    expect(q('factor-confirm')!.className).toContain('mk-btn');
+    expect(q('factor-confirm')!.className).not.toContain('mk-btn-danger');
     host.danger.set(true);
     fixture.detectChanges();
-    expect(q('factor-confirm')!.className).toContain('bg-error-600');
-    expect(q('factor-confirm')!.className).not.toContain('bg-primary');
+    expect(q('factor-confirm')!.className).toContain('mk-btn-danger');
   });
 
   it('hides the recovery option when it is not allowed', () => {

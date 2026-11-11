@@ -1,0 +1,9 @@
+<app-data-table captionKey="TECHNICAL_CONTROL.LIST.TABLE_CAPTION" [columns]="columns" [rows]="assets()" [rowKey]="rowKey" [clickable]="true" [focusable]="false" (rowClick)="open($event)">
+  <ng-template appCell="connection" let-a>
+    <a [routerLink]="['/services', serviceId(), 'connections', a.id]" class="block font-medium text-ink hover:text-action">{{ a.name }}</a>
+    <span class="text-xs text-ink-muted">{{ a.code }}</span>
+  </ng-template>
+  <ng-template appCell="type" let-a><span class="text-sm text-ink">{{ kind(a) }}</span></ng-template>
+  <ng-template appCell="detail" let-a><span class="text-sm text-ink">{{ detail(a) || '—' }}</span></ng-template>
+  <ng-template appCell="status" let-a><app-status-indicator [tone]="status(a).tone" [labelKey]="status(a).label" /></ng-template>
+</app-data-table>

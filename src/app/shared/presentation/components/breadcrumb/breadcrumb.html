@@ -1,15 +1,15 @@
 <nav [attr.aria-label]="'COMMON.BREADCRUMB' | translate">
-  <ol class="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-gray-600 dark:text-gray-300">
+  <ol class="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-ink-muted">
     @for (c of items(); track $index; let last = $last) {
     <li class="flex items-center gap-1">
       @if (!last && c.link) {
       <a [routerLink]="c.link"
-        class="rounded font-medium hover:text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{{ c.label }}</a>
+        class="rounded-control font-medium hover:text-action hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-action">{{ c.label }}</a>
       } @else {
-      <span [attr.aria-current]="last ? 'page' : null" [class]="last ? 'font-semibold text-gray-900 dark:text-white' : ''">{{ c.label }}</span>
+      <span [attr.aria-current]="last ? 'page' : null" [class]="last ? 'font-semibold text-ink' : ''">{{ c.label }}</span>
       }
       @if (!last) {
-      <span class="material-symbols-rounded text-[18px] text-gray-400" aria-hidden="true">chevron_right</span>
+      <span class="material-symbols-rounded text-[18px] text-ink-faint" aria-hidden="true">chevron_right</span>
       }
     </li>
     }

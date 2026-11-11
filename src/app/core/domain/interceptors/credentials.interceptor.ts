@@ -6,7 +6,7 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { storedLanguage } from '@core/domain/services/language.service';
 import { SessionService } from '@core/domain/services/session.service';
 import { sanitizeHttpError } from '@core/domain/utils/sanitize-http-error';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthService } from '@core/domain/services/auth.service';
 
 // Endpoints de auth: su 401 lo maneja AuthService (credenciales malas, sesión vencida), no aquí.
 const AUTH_ENDPOINT = /\/auth\/(login|redeem|refresh|logout|me|mfa\/(verify|setup|setup\/confirm|recovery-codes))$/;
