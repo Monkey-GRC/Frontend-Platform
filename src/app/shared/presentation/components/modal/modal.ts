@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import { pushOverlay, takeEscape } from '@shared/presentation/components/overlay-stack/overlay-stack';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const SIZES = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-4xl' } as const;
@@ -11,7 +12,7 @@ const SIZES = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-4xl' 
   selector: 'app-modal',
   templateUrl: './modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '(document:keydown.escape)': 'dismiss()' },
+  host: { '(document:keydown.escape)': 'onEscape($event)' },
 })
 export class Modal {
   readonly open = input(false);
@@ -31,6 +32,7 @@ export class Modal {
       if (!this.open()) return;
       const previous = document.activeElement as HTMLElement | null;
       document.body.classList.add('overflow-hidden');
+      const release = pushOverlay(this);
       // El foco entra al modal; si quien lo usa ya puso el cursor en un campo (p. ej. el del código), se respeta.
       const timer = setTimeout(() => {
         const root = this.panel()?.nativeElement;
@@ -38,6 +40,7 @@ export class Modal {
       });
       onCleanup(() => {
         clearTimeout(timer);
+        release();
         document.body.classList.remove('overflow-hidden');
         previous?.focus?.();
       });
@@ -46,6 +49,11 @@ export class Modal {
 
   get sizeClass(): string {
     return SIZES[this.size()];
+  }
+
+  // Esc: solo la capa de arriba lo atiende (un diálogo abierto sobre el modal se lo lleva primero).
+  onEscape(event: Event): void {
+    if (this.open() && takeEscape(this, event)) this.dismiss();
   }
 
   dismiss(): void {

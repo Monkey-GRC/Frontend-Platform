@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Field } from '@shared/presentation/components/field/field';
 import { apiErrorCode, apiErrorData, apiErrorMessage } from '@core/domain/utils/api-error';
-import { Group } from '../../../domain/models/group.models';
-import { InviteDto, InvitedMember, TeamActor, TeamMember, TeamRole } from '../../../domain/models/team.models';
-import { GroupService } from '../../../domain/services/group.service';
-import { TeamService } from '../../../domain/services/team.service';
+import { Group } from '@features/team/domain/models/group.models';
+import { InviteDto, InvitedMember, TeamActor, TeamMember, TeamRole } from '@shared/domain/models/team.models';
+import { GroupService } from '@features/team/domain/services/group.service';
+import { TeamService } from '@shared/domain/services/team.service';
+import { isCompanyAdmin } from '@shared/domain/utils/roles';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 export type InviteActor = TeamActor;
 
@@ -20,11 +23,12 @@ const CREATABLE: Record<InviteActor, readonly TeamRole[]> = {
 // Al crear a un responsable se crea también su equipo (D104: lo crea el administrador por él), con el nombre que se escriba o «Equipo de <nombre>»: así nadie tiene que crear grupos aparte.
 @Component({
   selector: 'app-team-invite-form',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Field],
   templateUrl: './team-invite-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeamInviteForm {
+  protected readonly targetValue = targetValue;
   private readonly api = inject(TeamService);
   private readonly groupApi = inject(GroupService);
   private readonly translate = inject(TranslateService);
@@ -61,7 +65,13 @@ export class TeamInviteForm {
   readonly emailError = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
+  /** Hay algo escrito o elegido sin enviar: quien aloja el formulario no debe descartarlo con Esc ni con un clic fuera. */
+  readonly dirty = computed(
+    () => !!(this.email().trim() || this.name().trim() || this.lastName().trim() || this.chosenRole() || this.isInternal() !== null || this.groupId() || this.teamName().trim()),
+  );
+
   readonly roleOptions = computed(() => CREATABLE[this.actor()]);
+  readonly isAdminActor = computed(() => isCompanyAdmin(this.actor()));
   readonly role = computed<TeamRole>(() => {
     const chosen = this.chosenRole();
     return chosen && this.roleOptions().includes(chosen) ? chosen : this.roleOptions()[0];
@@ -69,9 +79,10 @@ export class TeamInviteForm {
 
   readonly teams = computed(() => this.groups().filter((g) => g.kind === 'team'));
   /** Para pedir el nombre del equipo: el administrador, al crear a un responsable. */
-  readonly showTeamName = computed(() => this.actor() === 'admin_empresa' && this.role() === 'responsable');
-  readonly showTeamPick = computed(() => this.actor() === 'admin_empresa' && this.role() === 'delegado' && this.teams().length > 0);
+  readonly showTeamName = computed(() => isCompanyAdmin(this.actor()) && this.role() === 'responsable');
+  readonly showTeamPick = computed(() => isCompanyAdmin(this.actor()) && this.role() === 'delegado' && this.teams().length > 0);
   /** Un delegado no existe sin equipo (D104): sin equipo al que añadirlo, no se puede crear. */
+  readonly isDelegateRole = computed(() => this.role() === 'delegado');
   readonly noTeam = computed(() => this.groupsLoaded() && this.role() === 'delegado' && this.teams().length === 0);
 
   /** El correo identifica a la persona: si ya está en el equipo se avisa antes de intentar crear nada. Si es de otra empresa, lo dice el servidor al enviar (409). */
@@ -117,13 +128,13 @@ export class TeamInviteForm {
     const body: InviteDto = { email: this.email().trim(), name: this.name().trim(), last_name: this.lastName().trim(), role };
     if (role === 'delegado') {
       body.is_internal = this.isInternal() as boolean;
-      if (this.actor() === 'admin_empresa') body.group_id = this.groupId();
+      if (isCompanyAdmin(this.actor())) body.group_id = this.groupId();
     }
     this.saving.set(true);
     this.error.set(null);
     this.api.invite(body).subscribe({
       next: (created) => {
-        const teamRequest = role === 'responsable' && this.actor() === 'admin_empresa' ? { person: this.personName(created), email: created.email, typed: this.teamName().trim() } : null;
+        const teamRequest = role === 'responsable' && isCompanyAdmin(this.actor()) ? { person: this.personName(created), email: created.email, typed: this.teamName().trim() } : null;
         this.saving.set(false);
         this.email.set('');
         this.name.set('');

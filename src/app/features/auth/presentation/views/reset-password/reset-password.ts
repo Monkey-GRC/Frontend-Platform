@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorCode, apiErrorMessage } from '@core/domain/utils/api-error';
 import { AuthPageLayoutComponent } from '@core/presentation/pages/auth-page-layout/auth-page-layout.component';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthService } from '@core/domain/services/auth.service';
 import { passwordsMatch, STRONG_PASSWORD } from '@shared/domain/utils/password-rules';
 import { NewPasswordFields } from '@shared/presentation/components/new-password-fields/new-password-fields';
 import { SecondFactorField } from '@shared/presentation/components/second-factor-field/second-factor-field';

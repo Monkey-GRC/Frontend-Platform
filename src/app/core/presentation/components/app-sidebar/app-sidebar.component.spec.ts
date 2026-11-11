@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Component } from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
 import { AppSidebarComponent } from './app-sidebar.component';
@@ -14,7 +15,7 @@ describe('AppSidebarComponent · menú por rol', () => {
   }
 
   it('shows the administrator everything, including the team and the control assignment', () => {
-    expect(menuFor('admin_empresa')).toEqual(['Inicio', 'Mi empresa', 'Mis servicios', 'Cumplimiento', 'Responsables', 'Equipo', 'Asignación']);
+    expect(menuFor('admin_empresa')).toEqual(['Inicio', 'Mi empresa', 'Cumplimiento', 'Equipo', 'Asignación']);
   });
 
   it('gives the owner «Mi trabajo», Cumplimiento, the executor assignment and their team, and nothing of the company', () => {
@@ -27,5 +28,218 @@ describe('AppSidebarComponent · menú por rol', () => {
 
   it('hides from the auditor what the backend refuses them (company, services, team, assignment)', () => {
     expect(menuFor('auditor')).toEqual(['Inicio', 'Cumplimiento', 'Responsables']);
+  });
+});
+
+@Component({ template: '' })
+class Blank {}
+
+// Menu with groups (design system): the title of a group only opens or closes (it never navigates), the children navigate, and the state is a session signal.
+describe('AppSidebarComponent · groups', () => {
+  async function render(role: string, url: string) {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [AppSidebarComponent],
+      providers: [provideRouter([{ path: '**', component: Blank }]), provideTranslateService()],
+    });
+    TestBed.inject(SessionService).set({ id: 'u', email: 'a@x.co', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
+    await TestBed.inject(Router).navigateByUrl(url);
+    const fixture = TestBed.createComponent(AppSidebarComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function title(root: HTMLElement, controls: string): HTMLButtonElement {
+    return root.querySelector(`button[aria-controls="${controls}"]`) as HTMLButtonElement;
+  }
+
+  function panel(root: HTMLElement, id: string): HTMLElement {
+    return root.querySelector(`#${id}`) as HTMLElement;
+  }
+
+  it('starts closed and opens by clicking the title, without leaving the page', async () => {
+    const fixture = await render('admin_empresa', '/');
+    const button = title(fixture.nativeElement, 'nav-group-equipo');
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(panel(fixture.nativeElement, 'nav-group-equipo').getAttribute('data-open')).toBe('false');
+
+    button.click();
+    fixture.detectChanges();
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(panel(fixture.nativeElement, 'nav-group-equipo').getAttribute('data-open')).toBe('true');
+    expect(TestBed.inject(Router).url).toBe('/');
+
+    button.click();
+    fixture.detectChanges();
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('never navigates from the title of a group: Compliance, My company and Team have no link on the title', async () => {
+    const fixture = await render('admin_empresa', '/');
+    for (const id of ['nav-group-cumplimiento', 'nav-group-mi-empresa', 'nav-group-equipo']) {
+      const button = title(fixture.nativeElement, id);
+      expect(button.tagName).toBe('BUTTON');
+      expect(button.closest('a')).toBeNull();
+      expect(button.querySelector('a')).toBeNull();
+      button.click();
+      fixture.detectChanges();
+      expect(TestBed.inject(Router).url).toBe('/');
+    }
+  });
+
+  it('is a real button, reachable and operable with the keyboard (Enter and Space are the native click of a button), with aria-expanded and aria-controls', async () => {
+    const fixture = await render('admin_empresa', '/');
+    const button = title(fixture.nativeElement, 'nav-group-cumplimiento');
+    expect(button.type).toBe('button');
+    expect(button.tabIndex).toBe(0);
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(panel(fixture.nativeElement, 'nav-group-cumplimiento')).not.toBeNull();
+  });
+
+  it('lists the six sections of Compliance as children, in the order of the tabs they replace, for every role', async () => {
+    for (const role of ['admin_empresa', 'auditor', 'responsable', 'delegado']) {
+      const fixture = await render(role, '/');
+      const links = Array.from(panel(fixture.nativeElement, 'nav-group-cumplimiento').querySelectorAll('a')).map((a) => a.getAttribute('href'));
+      expect(links).toEqual(['/cumplimiento/resumen', '/cumplimiento/riesgos', '/cumplimiento/causas', '/cumplimiento/controles', '/cumplimiento/evidencias', '/cumplimiento/exclusiones']);
+    }
+  });
+
+  it('opens the group that holds the active page, marks its title as «contains the active section» (not as an active item) and marks the child as the current page', async () => {
+    const fixture = await render('admin_empresa', '/cumplimiento/riesgos');
+    const button = title(fixture.nativeElement, 'nav-group-cumplimiento');
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(button.hasAttribute('data-contains-active')).toBeTrue();
+    expect(button.classList).not.toContain('menu-item-active');
+    expect(button.hasAttribute('aria-current')).toBeFalse();
+    const current = panel(fixture.nativeElement, 'nav-group-cumplimiento').querySelector('a[aria-current="page"]');
+    expect(current?.getAttribute('href')).toBe('/cumplimiento/riesgos');
+    expect(title(fixture.nativeElement, 'nav-group-equipo').hasAttribute('data-contains-active')).toBeFalse();
+    expect(title(fixture.nativeElement, 'nav-group-equipo').getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('also marks Compliance on the general view /cumplimiento, which is not a section', async () => {
+    const fixture = await render('admin_empresa', '/cumplimiento');
+    expect(title(fixture.nativeElement, 'nav-group-cumplimiento').hasAttribute('data-contains-active')).toBeTrue();
+    expect(panel(fixture.nativeElement, 'nav-group-cumplimiento').querySelector('a[aria-current="page"]')).toBeNull();
+  });
+
+  it('opens by itself the group whose child route is active, and does not mark «Mis servicios» on a service page of Compliance', async () => {
+    const fixture = await render('admin_empresa', '/responsables');
+    expect(title(fixture.nativeElement, 'nav-group-equipo').getAttribute('aria-expanded')).toBe('true');
+    expect(title(fixture.nativeElement, 'nav-group-mi-empresa').getAttribute('aria-expanded')).toBe('false');
+    const onCompliance = await render('admin_empresa', '/cumplimiento/resumen');
+    expect(title(onCompliance.nativeElement, 'nav-group-mi-empresa').hasAttribute('data-contains-active')).toBeFalse();
+  });
+
+  it('gives My company its own page («Contexto de la empresa») and Team its own («Personas») as the first children', async () => {
+    const fixture = await render('admin_empresa', '/');
+    const hrefs = (id: string) => Array.from(panel(fixture.nativeElement, id).querySelectorAll('a')).map((a) => a.getAttribute('href'));
+    expect(hrefs('nav-group-mi-empresa')).toEqual(['/onboarding', '/services']);
+    expect(hrefs('nav-group-equipo')).toEqual(['/equipo/personas', '/equipo/grupos', '/equipo/organigrama', '/responsables']);
+  });
+
+  it('gives the owner «Mi equipo» as a group with People, Groups and Org chart, and no «Cargos responsables» (the administrator reaches it under Team)', async () => {
+    const fixture = await render('responsable', '/');
+    const hrefs = (id: string) => Array.from(panel(fixture.nativeElement, id).querySelectorAll('a')).map((a) => a.getAttribute('href'));
+    expect(hrefs('nav-group-mi-equipo')).toEqual(['/equipo/personas', '/equipo/grupos', '/equipo/organigrama']);
+    expect(fixture.nativeElement.querySelector('#nav-group-equipo')).toBeNull();
+  });
+
+  it('opens the Team group on a page of People or Groups', async () => {
+    const people = await render('admin_empresa', '/equipo/personas');
+    expect(title(people.nativeElement, 'nav-group-equipo').getAttribute('aria-expanded')).toBe('true');
+    const groups = await render('admin_empresa', '/equipo/grupos');
+    expect(title(groups.nativeElement, 'nav-group-equipo').getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('shows the auditor «Cargos responsables» as a simple item, with no group button for it', async () => {
+    const fixture = await render('auditor', '/');
+    expect(fixture.nativeElement.querySelector('button[aria-controls="nav-group-equipo"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href="/responsables"]')).not.toBeNull();
+  });
+
+  // The animation: the panel is always in the DOM (a node that is created and destroyed has nothing to transition from) and only its state attribute changes.
+  describe('animation', () => {
+    const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    async function attached(url = '/') {
+      const fixture = await render('admin_empresa', url);
+      document.body.appendChild(fixture.nativeElement);
+      return fixture;
+    }
+
+    it('keeps the panel in the DOM, closed and open, and only flips its state attribute and the one of the chevron', async () => {
+      const fixture = await attached();
+      const root = fixture.nativeElement as HTMLElement;
+      const button = title(root, 'nav-group-equipo');
+      const chevron = button.querySelector('.menu-chevron-icon') as SVGElement;
+      const before = panel(root, 'nav-group-equipo');
+      expect(before.getAttribute('data-open')).toBe('false');
+      expect(chevron.getAttribute('data-open')).toBe('false');
+
+      button.click();
+      fixture.detectChanges();
+      expect(panel(root, 'nav-group-equipo')).toBe(before);
+      expect(before.getAttribute('data-open')).toBe('true');
+      expect(chevron.getAttribute('data-open')).toBe('true');
+
+      button.click();
+      fixture.detectChanges();
+      expect(panel(root, 'nav-group-equipo')).toBe(before);
+      expect(before.isConnected).toBeTrue();
+      expect(before.getAttribute('data-open')).toBe('false');
+      fixture.nativeElement.remove();
+    });
+
+    it('has a computed transition of 280 ms on height and opacity (and the chevron turns at the same pace), unless the system asks for reduced motion', async () => {
+      if (reduced()) return pending('the system asks for reduced motion');
+      const fixture = await attached();
+      const root = fixture.nativeElement as HTMLElement;
+      const style = getComputedStyle(panel(root, 'nav-group-equipo'));
+      expect(style.transitionProperty).toContain('grid-template-rows');
+      expect(style.transitionProperty).toContain('opacity');
+      expect(style.transitionDuration.split(', ').slice(0, 2)).toEqual(['0.28s', '0.28s']);
+      expect(style.transitionTimingFunction).toContain('cubic-bezier(0.4, 0, 0.2, 1)');
+      const chevron = getComputedStyle(title(root, 'nav-group-equipo').querySelector('.menu-chevron-icon')!);
+      expect(chevron.transitionDuration).toBe('0.28s');
+      expect(chevron.transitionProperty).toBe('transform');
+      root.remove();
+    });
+
+    it('really interpolates the height: a moment after opening it is taller than closed and shorter than open', async () => {
+      if (reduced()) return pending('the system asks for reduced motion');
+      const fixture = await attached();
+      const root = fixture.nativeElement as HTMLElement;
+      const target = panel(root, 'nav-group-equipo');
+      const closed = target.getBoundingClientRect().height;
+      expect(closed).toBe(0);
+      title(root, 'nav-group-equipo').click();
+      fixture.detectChanges();
+      await new Promise((r) => setTimeout(r, 90));
+      const middle = target.getBoundingClientRect().height;
+      await new Promise((r) => setTimeout(r, 500));
+      const open = target.getBoundingClientRect().height;
+      expect(middle).toBeGreaterThan(0);
+      expect(middle).toBeLessThan(open);
+      root.remove();
+    });
+
+    it('paints each child as a whole box (full width, at least 44 px high), not only the letters', async () => {
+      const fixture = await attached('/cumplimiento/riesgos');
+      const root = fixture.nativeElement as HTMLElement;
+      const links = Array.from(panel(root, 'nav-group-cumplimiento').querySelectorAll<HTMLElement>('a.menu-child'));
+      expect(links.length).toBe(6);
+      const width = panel(root, 'nav-group-cumplimiento').getBoundingClientRect().width;
+      for (const a of links) {
+        expect(a.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+        expect(a.getBoundingClientRect().width).toBeCloseTo(width, 0);
+      }
+      const active = panel(root, 'nav-group-cumplimiento').querySelector('a[aria-current="page"]')!;
+      expect(active.classList).toContain('menu-child-active');
+      expect(getComputedStyle(active).backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+      root.remove();
+    });
   });
 });

@@ -1,0 +1,143 @@
+<section class="w-full pb-10" data-test-groups>
+  <app-page-header [title]="(isAdmin() ? 'TEAM.GROUPS.TITLE' : 'TEAM.GROUPS.TITLE_OWN') | translate" [description]="(isAdmin() ? 'TEAM.GROUPS.INTRO_ADMIN' : 'TEAM.GROUPS.INTRO_OWN') | translate">
+    @if (loaded() && (isAdmin() || !ownTeam())) {
+    <button actions type="button" (click)="openCreate()" data-test-open-create class="mk-btn">{{ (isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE') | translate }}</button>
+    }
+  </app-page-header>
+
+  @if (notice(); as n) {
+  @if (!detail() && !createOpen()) {
+  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status" data-test-groups-notice><span>{{ n }}</span>
+  </div>
+  }
+  }
+  @if (error(); as e) {
+  @if (!detail() && !createOpen()) {
+  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
+  </div>
+  }
+  }
+
+  @if (!loaded()) {
+  <app-loading-spinner data-test-groups-loading />
+  } @else if (loadFailed()) {
+  <app-empty-state icon="" titleKey="TEAM.LOAD_ERROR" descriptionKey="COMMON.CHECK_CONNECTION" data-test-groups-load-error>
+    <button action type="button" (click)="reload()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  } @else if (groups().length === 0) {
+  <app-empty-state icon="" titleKey="TEAM.GROUPS.EMPTY_TITLE" [descriptionKey]="isAdmin() ? 'TEAM.GROUPS.EMPTY_BODY_ADMIN' : 'TEAM.GROUPS.EMPTY_BODY_OWN'" data-test-groups-empty />
+  } @else {
+
+  <app-table-toolbar searchPlaceholderKey="TEAM.GROUPS.SEARCH" [query]="query()" (queryChange)="query.set($event)">
+    @if (isAdmin()) {
+    <app-table-filter filters data-test-filter-kind labelKey="TEAM.GROUPS.COLUMNS.KIND" [options]="kindOptions" [value]="kindFilter()" (valueChange)="setKindFilter($event)" />
+    }
+    @if (hasFilters()) {
+    <button filters type="button" (click)="clearFilters()" class="h-10 text-sm font-medium text-action hover:underline">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
+    }
+  </app-table-toolbar>
+
+  <app-data-table captionKey="TEAM.GROUPS.TABLE_CAPTION" [columns]="columns" [rows]="visible()" [rowKey]="rowKey" [clickable]="true" emptyIcon=""
+    emptyTitleKey="TEAM.GROUPS.EMPTY_FILTERED_TITLE" emptyDescriptionKey="TEAM.EMPTY_FILTERED_BODY" (rowClick)="openDetail($event)">
+    <ng-template appCell="name" let-g><span class="font-medium text-ink" [attr.data-test-group]="g.id" data-test-group-name>{{ g.name }}</span></ng-template>
+    <ng-template appCell="kind" let-g><span class="text-sm text-ink" data-test-group-kind>{{ (g.kind === 'team' ? 'TEAM.GROUPS.KIND_TEAM' : 'TEAM.GROUPS.KIND_RESPONSABLES') | translate }}</span></ng-template>
+    <ng-template appCell="leader" let-g>
+      <app-person-cell data-test-group-leader [name]="leaderName(g)" [initialsFrom]="leaderName(g)" />
+    </ng-template>
+    <ng-template appCell="members" let-g><span class="text-sm tabular-nums text-ink" data-test-group-count>{{ g.members_count }}</span></ng-template>
+  </app-data-table>
+  }
+</section>
+
+<!-- Crear: el administrador un grupo de responsables o el equipo de un responsable; el responsable, el suyo (una sola vez, D104) -->
+<app-side-drawer [open]="createOpen()" [titleKey]="isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE'" (closed)="createOpen.set(false)">
+  @if (createOpen()) {
+  @if (error(); as e) {
+  <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
+  </div>
+  }
+  @if (isAdmin()) {
+  <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); createResponsablesGroup()" [attr.aria-label]="'TEAM.GROUPS.CREATE_RESPONSABLES_TITLE' | translate">
+    <h3 class="text-sm font-semibold text-ink">{{ 'TEAM.GROUPS.CREATE_RESPONSABLES_TITLE' | translate }}</h3>
+    <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="responsables-name" hintKey="TEAM.GROUPS.CREATE_RESPONSABLES_HELP">
+      <input id="responsables-name" type="text" data-test-responsables-name [attr.maxlength]="maxName" autocomplete="off" [value]="responsablesGroupName()" (input)="responsablesGroupName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+    </app-field>
+    <div><button type="submit" [disabled]="!canCreateResponsablesGroup()" data-test-create-responsables class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
+  </form>
+
+  <form class="mt-6 flex flex-col gap-3 border-t border-line pt-6" (submit)="$event.preventDefault(); createTeam()" [attr.aria-label]="'TEAM.GROUPS.CREATE_TEAM_TITLE' | translate">
+    <h3 class="text-sm font-semibold text-ink">{{ 'TEAM.GROUPS.CREATE_TEAM_TITLE' | translate }}</h3>
+    <p class="text-xs text-ink-muted">{{ 'TEAM.GROUPS.CREATE_TEAM_HELP' | translate }}</p>
+    @if (eligibleLeaders().length === 0) {
+    <p class="text-sm text-ink-muted" data-test-no-eligible>{{ 'TEAM.GROUPS.NO_ELIGIBLE' | translate }}</p>
+    } @else {
+    <app-field labelKey="TEAM.GROUPS.RESPONSIBLE_LABEL" forId="team-leader">
+      <select id="team-leader" data-test-team-leader (change)="teamLeaderId.set(targetValue($event))" [disabled]="saving()" class="mk-input">
+        <option value="" [selected]="!teamLeaderId()">{{ 'TEAM.GROUPS.RESPONSIBLE_PICK' | translate }}</option>
+        @for (m of eligibleLeaders(); track m.id) {<option [value]="m.id" [selected]="teamLeaderId() === m.id">{{ personName(m) }}</option>}
+      </select>
+    </app-field>
+    <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="team-name">
+      <input id="team-name" type="text" data-test-team-name [attr.maxlength]="maxName" autocomplete="off" [value]="teamName()" (input)="teamName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+    </app-field>
+    <div><button type="submit" [disabled]="!canCreateTeam()" data-test-create-team class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
+    }
+  </form>
+  } @else {
+  <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); createOwnTeam()" [attr.aria-label]="'TEAM.GROUPS.CREATE_OWN_TITLE' | translate" data-test-create-own>
+    <p class="text-sm text-ink-muted">{{ 'TEAM.GROUPS.CREATE_OWN_HELP' | translate }}</p>
+    <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="own-name">
+      <input id="own-name" type="text" data-test-own-name [attr.maxlength]="maxName" autocomplete="off" [value]="ownTeamName()" (input)="ownTeamName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+    </app-field>
+    <div><button type="submit" [disabled]="!canCreateOwnTeam()" data-test-create-own-submit class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
+  </form>
+  }
+  }
+</app-side-drawer>
+
+<!-- El detalle de un grupo: sus datos, renombrarlo (administrador) y sus personas -->
+<app-side-drawer [open]="!!detail()" titleKey="TEAM.GROUPS.DETAIL_TITLE" size="lg" (closed)="closeDetail()">
+  @if (detail(); as g) {
+  <div [attr.data-test-group-detail]="g.id">
+    @if (notice(); as n) {
+    <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status" data-test-groups-notice><span>{{ n }}</span>
+    </div>
+    }
+    @if (error(); as e) {
+    <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
+    </div>
+    }
+
+    @if (renamingId() === g.id) {
+    <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); saveRename()">
+      <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="rename-name">
+        <input id="rename-name" type="text" data-test-rename-input [attr.maxlength]="maxName" autocomplete="off" [value]="renameDraft()" (input)="renameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+      </app-field>
+      <div class="flex items-center gap-4">
+        <button type="submit" [disabled]="!canRename()" data-test-rename-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.SAVE' | translate }}</button>
+        <button type="button" (click)="cancelRename()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+      </div>
+    </form>
+    } @else {
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <h3 class="min-w-0 text-lg font-semibold text-ink">{{ g.name }}</h3>
+      @if (isAdmin()) {
+      <button type="button" (click)="startRename(g)" [disabled]="saving()" data-test-rename class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.RENAME' | translate }}</button>
+      }
+    </div>
+    }
+
+    <dl class="mt-4 grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-6 gap-y-3">
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.GROUPS.COLUMNS.KIND' | translate }}</dt>
+      <dd class="text-ink">{{ (g.kind === 'team' ? 'TEAM.GROUPS.KIND_TEAM' : 'TEAM.GROUPS.KIND_RESPONSABLES') | translate }}</dd>
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.GROUPS.COLUMNS.LEADER' | translate }}</dt>
+      <dd class="text-ink">{{ leaderName(g) }}</dd>
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.GROUPS.COLUMNS.MEMBERS' | translate }}</dt>
+      <dd class="tabular-nums text-ink">{{ g.members_count }}</dd>
+    </dl>
+
+    <h4 class="mt-6 border-b border-line pb-2 text-sm font-semibold text-ink">{{ 'TEAM.GROUPS.PEOPLE_TITLE' | translate }}</h4>
+    <div class="mt-3"><app-group-members [group]="g" [teams]="teams()" [canMove]="isAdmin()" (moved)="onMoved()" /></div>
+  </div>
+  }
+</app-side-drawer>

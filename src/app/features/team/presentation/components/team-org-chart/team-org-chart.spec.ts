@@ -2,12 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER, of, throwError } from 'rxjs';
-import { Group } from '../../../domain/models/group.models';
-import { TeamActor, TeamMember, TeamRole, TeamStatus } from '../../../domain/models/team.models';
+import { Group } from '@features/team/domain/models/group.models';
+import { TeamActor, TeamMember, TeamRole, TeamStatus } from '@shared/domain/models/team.models';
 import { SessionService } from '@core/domain/services/session.service';
-import { GroupService } from '../../../domain/services/group.service';
-import { TeamService } from '../../../domain/services/team.service';
-import { OrgWorkload } from '../../../domain/utils/team-org';
+import { GroupService } from '@features/team/domain/services/group.service';
+import { TeamService } from '@shared/domain/services/team.service';
+import { OrgWorkload } from '@features/team/domain/utils/team-org';
 import { TeamOrgChart } from './team-org-chart';
 
 const member = (id: string, role: TeamRole, name: string, over: Partial<TeamMember> = {}): TeamMember => ({
@@ -45,7 +45,7 @@ describe('TeamOrgChart', () => {
   const q = <T extends HTMLElement>(s: string) => el().querySelector<T>(s);
   const click = (s: string | HTMLElement) => { (typeof s === 'string' ? q(s)! : s).click(); fixture.detectChanges(); };
   const type = (s: string, value: string) => { const i = q<HTMLInputElement | HTMLSelectElement>(s)!; i.value = value; i.dispatchEvent(new Event(i instanceof HTMLSelectElement ? 'change' : 'input')); fixture.detectChanges(); };
-  const names = (s: string) => Array.from(el().querySelectorAll(`${s} [data-org-name]`)).map((n) => n.textContent!.trim());
+  const names = (s: string) => Array.from(el().querySelectorAll(`${s} [data-person-name]`)).map((n) => n.textContent!.trim());
 
   it('asks once for the whole team and draws the administrators on top, each responsible with their own delegates, and the auditors apart', () => {
     setup([ADMIN, MARIA, ANDRES, AUDITOR, JUAN, delegate('d2', 'Pedro', ANDRES, T_ANDRES)], [T_MARIA, T_ANDRES]);

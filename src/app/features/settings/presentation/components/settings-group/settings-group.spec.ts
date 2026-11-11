@@ -11,6 +11,6 @@ describe('SettingsGroup', () => {
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('h2')!.textContent).toBe('Cómo inicias sesión');
-    expect(el.querySelector('.rounded-2xl [data-testid="inside"]')).not.toBeNull();
+    expect(el.querySelector('.rounded-card [data-testid="inside"]')).not.toBeNull();
   });
 });

@@ -5,20 +5,16 @@
 }
 
 @case ('error') {
-<div class="mk-card py-12 text-center">
-  <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300">cloud_off</span>
-  <h2 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.OVERVIEW.LOAD_ERROR_TITLE' | translate }}</h2>
-  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
-  <button type="button" (click)="load()"
-    class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600">
-    <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
-  </button>
-</div>
+<app-card class="text-center" data-load-error>
+  <h2 class="text-base font-semibold text-ink">{{ 'COMPLIANCE.OVERVIEW.LOAD_ERROR_TITLE' | translate }}</h2>
+  <p class="mt-1 text-sm text-ink-muted">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+  <button type="button" (click)="load()" class="mt-3 text-sm font-semibold text-action hover:underline">{{ 'COMMON.RETRY' | translate }}</button>
+</app-card>
 }
 
 @default {
 @if (framework(); as fw) {
-<div class="flex flex-col gap-7">
+<div class="flex flex-col gap-8">
 
   <!-- Sin título propio: el servicio, los marcos y el período de la evaluación están en el encabezado de Cumplimiento. Solo si ese encabezado no muestra los marcos
        (hoy solo el administrador conoce la lista de servicios), se eligen aquí. -->
@@ -26,88 +22,101 @@
   <div class="flex gap-2" role="group" [attr.aria-label]="'COMPLIANCE.OVERVIEW.FRAMEWORK' | translate">
     @for (f of frameworks(); track f.framework_code) {
     <button type="button" (click)="pick(f.framework_code)" [attr.aria-pressed]="f.framework_code === fw.framework_code"
-      class="rounded-xl border px-4 py-2 text-sm font-semibold transition"
-      [class]="f.framework_code === fw.framework_code ? 'border-primary bg-primary text-white shadow-theme-sm' : 'border-gray-300 bg-white text-gray-700 hover:bg-brand-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800'">{{ f.name }}</button>
+      class="rounded-control border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40"
+      [class]="f.framework_code === fw.framework_code ? 'border-tint-strong bg-tint text-tint-ink' : 'border-line text-ink-muted hover:bg-tint'">{{ f.name }}</button>
     }
   </div>
   }
 
   @if (notice(); as n) {
-  <div class="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-3.5 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-300" role="status" data-notice>
-    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">check_circle</span><span>{{ n }}</span>
-  </div>
+  <app-card tone="ok" role="status" data-notice><p class="text-sm text-ink">{{ n }}</p></app-card>
   }
 
   @if (!evaluationDefined()) {
-  <div class="flex flex-wrap items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-100" role="note" data-not-defined>
-    <span class="material-symbols-rounded text-[22px] text-amber-600" aria-hidden="true">event_busy</span>
-    <span class="min-w-0 flex-1"><strong>{{ 'COMPLIANCE.OVERVIEW.NOT_DEFINED_TITLE' | translate }}</strong> {{ 'COMPLIANCE.OVERVIEW.NOT_DEFINED_BODY' | translate }}
-      @if (!canEditPeriod()) { {{ 'COMPLIANCE.PERIOD.ASK_ADMIN' | translate }} }</span>
-    @if (canEditPeriod()) {
-    <button type="button" (click)="openPeriod()" data-define-period
-      class="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-amber-700">
-      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">edit_calendar</span>{{ 'COMPLIANCE.PERIOD.DEFINE' | translate }}
-    </button>
-    }
-  </div>
+  <app-card tone="warn" role="note" data-not-defined>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="min-w-0 flex-1 text-sm text-ink"><strong class="font-semibold">{{ 'COMPLIANCE.OVERVIEW.NOT_DEFINED_TITLE' | translate }}</strong> {{ 'COMPLIANCE.OVERVIEW.NOT_DEFINED_BODY' | translate }}
+        @if (!canEditPeriod()) { {{ 'COMPLIANCE.PERIOD.ASK_ADMIN' | translate }} }</p>
+      @if (canEditPeriod()) {
+      <button type="button" (click)="openPeriod()" data-define-period class="mk-btn">{{ 'COMPLIANCE.PERIOD.DEFINE' | translate }}</button>
+      }
+    </div>
+  </app-card>
   }
+  <!-- Con el período definido, cuál es y «Cambiar período» van en el banner de Cumplimiento (no hay fecha de corte: se mide siempre con lo último que revisó la evaluación automática, D105). -->
 
-  <!-- El veredicto, el avance y los conteos, en una sola franja. El avance no es el estado: el veredicto va aparte, en su color. -->
-  <div class="flex flex-col gap-3 lg:flex-row lg:items-stretch">
+  <!-- El veredicto, el avance y los conteos, a la misma altura. El avance no es el estado: el veredicto va aparte, con el color del estado. -->
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
     @if (banner(); as b) {
-    <section class="relative flex items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 shadow-card lg:w-[19rem] lg:shrink-0" [class]="bannerClass()" [attr.data-verdict]="b.tone" aria-live="polite">
-      <span class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-inset ring-white/40">
-        <span class="material-symbols-rounded text-[24px]" aria-hidden="true">{{ b.icon }}</span>
-      </span>
-      <div class="relative min-w-0">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-80">{{ fw.name }}</p>
-        <h3 class="text-lg font-bold uppercase leading-tight tracking-tight" data-verdict-title>{{ b.titleKey | translate }}</h3>
-        <p class="mt-0.5 text-xs leading-snug opacity-95">{{ b.bodyKey | translate }}</p>
+    <app-card class="h-full" [tone]="b.tone" [attr.data-verdict]="b.tone" aria-live="polite">
+      <div class="flex h-full flex-col gap-2">
+        <app-tag [text]="fw.name" />
+        <h2 class="text-2xl font-semibold text-ink" data-verdict-title>{{ b.titleKey | translate }}</h2>
+        <p class="mt-auto text-sm text-ink-muted">{{ b.bodyKey | translate }}</p>
       </div>
-    </section>
+    </app-card>
     }
 
-    <section class="mk-card flex items-center gap-3 px-4 py-3 lg:w-[18rem] lg:shrink-0" data-progress>
-      <div class="flex items-center gap-3">
-        <app-progress-ring [value]="value(fw.progress.done, fw.progress.total)" [text]="measured() ? pct(fw.progress.done, fw.progress.total) : '—'"
-          [tone]="tone(fw.readiness)" [size]="60" [ariaLabel]="('COMPLIANCE.OVERVIEW.PROGRESS' | translate) + ' ' + (measured() ? pct(fw.progress.done, fw.progress.total) : '—')" />
-        <div class="text-xs">
-          <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.OVERVIEW.PROGRESS' | translate }}<span class="block text-[11px] font-normal leading-snug text-gray-500 dark:text-gray-400">{{ 'COMPLIANCE.OVERVIEW.PROGRESS_NOTE' | translate }}</span></p>
-          <p class="mt-0.5 flex flex-wrap items-center gap-x-1.5 font-semibold text-brand-700 dark:text-brand-300" data-coverage>
-            <span class="material-symbols-rounded text-[16px]" aria-hidden="true">radar</span>
-            <span class="whitespace-nowrap">{{ 'COMPLIANCE.OVERVIEW.COVERAGE' | translate }}: {{ measured() ? pct(fw.coverage.measured, fw.coverage.applicable) : '—' }}</span>
-            <span class="font-normal opacity-80">({{ fw.coverage.measured }}/{{ fw.coverage.applicable }})</span></p>
+    <app-card class="h-full" data-progress>
+      <div class="flex h-full items-center gap-5">
+        <app-donut [value]="donutValue(fw.readiness, fw.progress.done, fw.progress.total)" [text]="donutText(fw.readiness, fw.progress.done, fw.progress.total)" [tone]="tone(fw.readiness)"
+          [size]="128" [large]="true" [ariaLabel]="('COMPLIANCE.OVERVIEW.PROGRESS' | translate) + ' ' + donutText(fw.readiness, fw.progress.done, fw.progress.total)" />
+        <div class="flex min-w-0 flex-col gap-2">
+          <p class="text-sm font-medium text-ink-muted">{{ 'COMPLIANCE.OVERVIEW.PROGRESS' | translate }}</p>
+          @let fwLook = readinessLook(fw.readiness);
+          <app-status-indicator [tone]="fwLook.tone" [labelKey]="fwLook.labelKey" [hintKey]="fwLook.hintKey" [attr.data-status]="fwLook.level" />
+          <p class="text-sm text-ink-muted" data-coverage>{{ 'COMPLIANCE.OVERVIEW.COVERAGE' | translate }}: {{ measured() ? pct(fw.coverage.measured, fw.coverage.applicable) : '—' }}
+            <span class="text-ink-faint">({{ fw.coverage.measured }}/{{ fw.coverage.applicable }})</span></p>
         </div>
       </div>
-
-    </section>
+    </app-card>
 
     @if (counts(); as c) {
-    <ul class="mk-card grid grid-cols-1 content-center xsm:grid-cols-2 gap-x-4 gap-y-1.5 px-4 py-3 text-xs lg:flex-1" data-kpis>
-        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span class="material-symbols-rounded text-[20px] text-brand-500" aria-hidden="true">fact_check</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_EVALUATED' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="evaluated">{{ c.measured }}<span class="text-sm font-medium text-gray-500 dark:text-gray-400">/{{ c.total }}</span></span></li>
-        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span class="material-symbols-rounded text-[20px] text-green-600 dark:text-green-400" aria-hidden="true">check_circle</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_EFFECTIVE' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="effective">{{ c.done }}</span></li>
-        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span class="material-symbols-rounded text-[20px] text-red-700 dark:text-red-400" aria-hidden="true">cancel</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_INEFFECTIVE' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="ineffective">{{ c.notEffective }}</span></li>
-        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5"><span class="material-symbols-rounded text-[20px] text-amber-500" aria-hidden="true">schedule</span><span class="text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.KPI_PENDING' | translate }}</span><span class="text-base font-bold text-gray-900 dark:text-white" data-kpi="pending">{{ c.pending }}</span></li>
-      </ul>
+    <app-card class="h-full md:col-span-2 xl:col-span-1" data-kpis>
+      <div class="flex h-full flex-col justify-between gap-5">
+        <div>
+          <p class="mk-stat tabular-nums"><span class="mk-stat-value text-3xl" data-kpi="evaluated">{{ c.measured }}<span class="text-lg font-medium text-ink-faint">/{{ c.total }}</span></span><span class="mk-stat-label">{{ 'COMPLIANCE.OVERVIEW.KPI_EVALUATED' | translate }}</span></p>
+          <div class="mt-3 h-1 overflow-hidden rounded-full bg-tint-strong" aria-hidden="true">
+            <div class="h-full rounded-full bg-action" [style.width.%]="c.total ? (c.measured * 100) / c.total : 0"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 border-t border-line pt-4 tabular-nums">
+          <div class="flex min-w-0 flex-col gap-1">
+            <p class="text-3xl leading-none font-semibold text-action" data-kpi="effective">{{ c.done }}</p>
+            <p class="min-w-0 text-sm"><app-status-indicator tone="ok" labelKey="COMPLIANCE.OVERVIEW.KPI_EFFECTIVE" /></p>
+          </div>
+          <div class="flex min-w-0 flex-col gap-1">
+            <p class="text-3xl leading-none font-semibold text-action" data-kpi="ineffective">{{ c.notEffective }}</p>
+            <p class="min-w-0 text-sm"><app-status-indicator tone="bad" labelKey="COMPLIANCE.OVERVIEW.KPI_INEFFECTIVE" /></p>
+          </div>
+          <div class="flex min-w-0 flex-col gap-1">
+            <p class="text-3xl leading-none font-semibold text-action" data-kpi="pending">{{ c.pending }}</p>
+            <p class="min-w-0 text-sm"><app-status-indicator tone="warn" labelKey="COMPLIANCE.OVERVIEW.KPI_PENDING" /></p>
+          </div>
+        </div>
+      </div>
+    </app-card>
     }
   </div>
 
-  <!-- Criterios de confianza: el color de la franja es el del estado, no el de la categoría -->
+  <!-- Criterios de confianza: el color es el del estado, no el de la categoría -->
   <section [attr.aria-label]="'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate">
-    <h3 class="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-primary" aria-hidden="true"></span>{{ 'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate }}</h3>
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <h2 class="mb-3 text-base font-semibold text-ink">{{ 'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate }}</h2>
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       @for (cat of fw.categories; track cat.trust_criterion) {
-      <article class="mk-card flex items-center gap-3 overflow-hidden border-l-4 px-4 py-2.5" [class]="accent(cat.readiness)" [attr.data-category]="cat.trust_criterion">
-        <app-progress-ring [value]="value(cat.progress.done, cat.progress.total)" [text]="cat.readiness === 'not_measured' ? '—' : pct(cat.progress.done, cat.progress.total)" [tone]="tone(cat.readiness)" [size]="52"
-          [ariaLabel]="criterionLabel(cat.trust_criterion)" />
-        <div class="min-w-0">
-          <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ criterionLabel(cat.trust_criterion) }}</h4>
-            <app-status-badge [status]="cat.readiness" size="sm" />
+      <app-card class="h-full" [attr.data-category]="cat.trust_criterion">
+        <div class="flex h-full items-center gap-4">
+          <app-donut [value]="donutValue(cat.readiness, cat.progress.done, cat.progress.total)" [text]="donutText(cat.readiness, cat.progress.done, cat.progress.total)" [tone]="tone(cat.readiness)"
+            [size]="96" [ariaLabel]="criterionLabel(cat.trust_criterion) + ' ' + donutText(cat.readiness, cat.progress.done, cat.progress.total)" />
+          <div class="flex min-w-0 flex-col gap-1.5">
+            <h3 class="text-sm font-semibold text-ink">{{ criterionLabel(cat.trust_criterion) }}</h3>
+            @let catLook = readinessLook(cat.readiness);
+            <app-status-indicator [tone]="catLook.tone" [labelKey]="catLook.labelKey" [hintKey]="catLook.hintKey" [attr.data-status]="catLook.level" />
+            <p class="text-xs text-ink-muted">{{ 'COMPLIANCE.OVERVIEW.CATEGORY_COUNT' | translate: { done: cat.progress.done, total: cat.progress.total } }}</p>
+            <p class="text-xs text-ink-muted">{{ 'COMPLIANCE.OVERVIEW.COVERAGE' | translate }}: {{ pct(cat.coverage.measured, cat.coverage.applicable) }}</p>
           </div>
-          <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.CATEGORY_COUNT' | translate: { done: cat.progress.done, total: cat.progress.total } }}</p>
         </div>
-      </article>
+      </app-card>
       }
     </div>
   </section>
@@ -115,46 +124,45 @@
   <!-- La matriz inherente: dónde cae cada riesgo evaluado del servicio -->
   @if (risks(); as list) {
   <section [attr.aria-label]="'COMPLIANCE.HEATMAP.TITLE' | translate" data-heatmap-section>
-    <div class="mb-4">
-      <h3 class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-primary" aria-hidden="true"></span>{{ 'COMPLIANCE.HEATMAP.TITLE' | translate }}</h3>
-      <p class="mt-1.5 pl-3 text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.HEATMAP.INTRO' | translate }}</p>
-    </div>
+    <h2 class="text-base font-semibold text-ink">{{ 'COMPLIANCE.HEATMAP.TITLE' | translate }}</h2>
+    <p class="mb-3 mt-0.5 text-sm text-ink-muted">{{ 'COMPLIANCE.HEATMAP.INTRO' | translate }}</p>
     <app-risk-heatmap [risks]="list" [serviceId]="serviceId()" />
   </section>
   }
 
   <!-- Controles que requieren atención -->
   <section [attr.aria-label]="'COMPLIANCE.OVERVIEW.ATTENTION_TITLE' | translate">
-    <div class="mb-4 flex items-center justify-between gap-3">
-      <h3 class="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white"><span class="h-4 w-1 rounded-full bg-red-600" aria-hidden="true"></span>{{ 'COMPLIANCE.OVERVIEW.ATTENTION_TITLE' | translate }}</h3>
-      <a [routerLink]="controlsLink()" class="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">{{ 'COMPLIANCE.OVERVIEW.ATTENTION_ALL' | translate }}<span class="material-symbols-rounded text-[18px]" aria-hidden="true">arrow_forward</span></a>
+    <div class="mb-3 flex items-baseline justify-between gap-3">
+      <h2 class="text-base font-semibold text-ink">{{ 'COMPLIANCE.OVERVIEW.ATTENTION_TITLE' | translate }}</h2>
+      <a [routerLink]="controlsLink()" class="rounded-control text-sm font-medium text-action hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40">{{ 'COMPLIANCE.OVERVIEW.ATTENTION_ALL' | translate }}</a>
     </div>
     @if (attention().length === 0) {
-    <p class="mk-card border-dashed p-6 text-center text-sm text-gray-600 dark:text-gray-300" data-attention-empty>
-      {{ (measured() ? 'COMPLIANCE.OVERVIEW.ATTENTION_EMPTY' : 'COMPLIANCE.OVERVIEW.ATTENTION_EMPTY_UNMEASURED') | translate }}
-    </p>
+    <app-card>
+      <p class="text-center text-sm text-ink-muted" data-attention-empty>{{ (measured() ? 'COMPLIANCE.OVERVIEW.ATTENTION_EMPTY' : 'COMPLIANCE.OVERVIEW.ATTENTION_EMPTY_UNMEASURED') | translate }}</p>
+    </app-card>
     } @else {
-    <ul class="mk-card divide-y divide-gray-100 overflow-hidden dark:divide-gray-800" data-attention>
-      @for (row of attention(); track row.id) {
-      <li class="flex flex-wrap items-start gap-x-5 gap-y-1 px-4 py-2.5 transition hover:bg-brand-25 dark:hover:bg-white/5">
-        <span class="mt-0.5 w-20 shrink-0 rounded-md bg-brand-50 px-2 py-1 text-center font-mono text-xs font-bold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">{{ row.code }}</span>
-        <div class="min-w-0 flex-1">
-          <p class="font-semibold text-gray-900 dark:text-white">{{ row.name }}</p>
-          <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-300">
+    <div data-attention>
+      <app-data-table captionKey="COMPLIANCE.OVERVIEW.ATTENTION_TITLE" [columns]="attentionColumns" [rows]="attentionPage()" [rowKey]="attentionKey" [page]="attentionPageInfo()" [pageSizes]="attentionPageSizes"
+        (pageChange)="goToAttentionPage($event)" (pageSizeChange)="resizeAttention($event)">
+        <ng-template appCell="code" let-row><app-tag [text]="row.code" /></ng-template>
+        <ng-template appCell="name" let-row>
+          <span class="font-medium">{{ row.name }}</span>
+          <span class="block text-xs text-ink-muted">
             @for (c of row.categories; track c; let last = $last) {<span>{{ criterionLabel(c) }}@if (!last) {, }</span>}
             @if (row.tests; as t) { · {{ 'COMPLIANCE.OVERVIEW.TESTS' | translate: { done: t.done, total: t.total } }} }
-          </p>
+          </span>
+        </ng-template>
+        <ng-template appCell="failing" let-row>
           @for (f of row.failing; track f.dimension) {
-          <p class="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-gray-700 dark:text-gray-200">
-            <span class="rounded-md bg-red-50 px-1.5 py-0.5 font-semibold text-red-700 dark:bg-red-500/15 dark:text-red-300">{{ dimensionLabel(f.dimension) }}</span>
-            @for (a of f.affected; track a.id) {<span class="rounded-md bg-gray-100 px-1.5 py-0.5 dark:bg-white/10">{{ affectedName(a) }}</span>}
-          </p>
+          <span class="block text-sm"><span class="font-medium">{{ dimensionLabel(f.dimension) }}</span>@for (a of f.affected; track a.id; let first = $first) {<span>{{ first ? ': ' : ', ' }}{{ affectedName(a) }}</span>}</span>
           }
-        </div>
-        <app-status-badge [status]="row.readiness" size="sm" />
-      </li>
-      }
-    </ul>
+        </ng-template>
+        <ng-template appCell="status" let-row>
+          @let rowLook = readinessLook(row.readiness);
+          <app-status-indicator [tone]="rowLook.tone" [labelKey]="rowLook.labelKey" [hintKey]="rowLook.hintKey" [attr.data-status]="rowLook.level" />
+        </ng-template>
+      </app-data-table>
+    </div>
     }
   </section>
 </div>
@@ -163,11 +171,9 @@
 <app-evaluation-period-form [serviceId]="serviceId()" [framework]="fw" (closed)="periodOpen.set(false)" (saved)="onPeriodSaved()" />
 }
 } @else {
-<div class="mk-card border-dashed p-10 text-center" data-no-frameworks>
-  <span class="material-symbols-rounded text-4xl text-gray-500 dark:text-gray-300" aria-hidden="true">verified_user</span>
-  <h3 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{{ 'COMPLIANCE.OVERVIEW.NO_FRAMEWORKS_TITLE' | translate }}</h3>
-  <p class="mx-auto mt-1 max-w-sm text-sm text-gray-600 dark:text-gray-300">{{ 'COMPLIANCE.OVERVIEW.NO_FRAMEWORKS_BODY' | translate }}</p>
-</div>
+<app-card [padded]="false" data-no-frameworks>
+  <app-empty-state icon="" titleKey="COMPLIANCE.OVERVIEW.NO_FRAMEWORKS_TITLE" descriptionKey="COMPLIANCE.OVERVIEW.NO_FRAMEWORKS_BODY" />
+</app-card>
 }
 }
 

@@ -2,13 +2,15 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
-import { ServiceService } from '@features/services/domain/services/service.service';
+import { ServiceService } from '@shared/domain/services/service.service';
 import { Breadcrumb, Crumb } from '@shared/presentation/components/breadcrumb/breadcrumb';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { Capability, ConnectionMethod, Platform } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { Capability, ConnectionMethod, Platform } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { ProviderLogo } from '../../components/provider-logo/provider-logo';
-import { categoryLabel } from '../../../domain/utils/category-label';
+import { categoryLabel } from '@shared/domain/utils/category-label';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
 type Stage = 'loading' | 'error' | 'ready';
@@ -17,7 +19,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // si están disponibles salen del catálogo del backend; esta pantalla no fija ninguna. Las que aún no tienen flujo se muestran bloqueadas.
 @Component({
   selector: 'app-new-connection',
-  imports: [PageHeader, Breadcrumb, ProviderLogo, RouterLink, LoadingSpinner, TranslatePipe],
+  imports: [PageHeader, Breadcrumb, ProviderLogo, RouterLink, LoadingSpinner, TranslatePipe, EmptyState, StatusIndicator],
   templateUrl: './new-connection.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

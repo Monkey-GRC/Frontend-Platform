@@ -9,27 +9,13 @@
       "CAUSE": "Cause",
       "EVIDENCE": "Evidence"
     },
-    "STATUS_HINT": {
-      "READY": "Everything that applies is met.",
-      "ALMOST_READY": "Almost everything is met; only a few points remain.",
-      "NEEDS_WORK": "Several points still need to be resolved.",
-      "NOT_MEASURED": "There are no results yet to determine whether it is met. This is not a failure."
-    },
-    "STATUS": {
-      "READY": "Ready",
-      "ALMOST_READY": "Almost ready",
-      "NEEDS_WORK": "Needs work",
-      "NOT_MEASURED": "Not measured"
-    },
-    "TABS": {
+    "SECTIONS": {
       "SUMMARY": "Summary",
       "EXCLUSIONS": "Exclusions"
     },
     "SHELL": {
       "TITLE": "Compliance",
-      "BACK_TO_SERVICE": "Back to the service",
       "TECHNICAL_VIEW": "Technical view",
-      "COMING_SOON": "Section under construction.",
       "FRAMEWORKS": "Frameworks of the service",
       "SERVICE": "Service",
       "GENERAL": "General"
@@ -40,7 +26,7 @@
       "LOAD_ERROR_TITLE": "The summary could not be loaded",
       "EVALUATION": "Period {{start}} – {{end}} · catalog v{{version}}",
       "NOT_DEFINED_TITLE": "The evaluation is not defined yet.",
-      "NOT_DEFINED_BODY": "The audited period is missing; until then the summary shows “Not measured”.",
+      "NOT_DEFINED_BODY": "Without an audited period, everything shows “Not measured”.",
       "VERDICT": {
         "COMPLIANT": "Compliant",
         "NON_COMPLIANT": "Non-compliant",
@@ -49,39 +35,44 @@
       },
       "BODY": {
         "COMPLIANT": "All in-scope controls are effective.",
-        "NON_COMPLIANT": "Some controls have failing or expired tests. A single failure prevents the framework from being compliant.",
-        "EVALUATING": "Some controls are still undecided: anything pending never counts as compliant.",
-        "NOT_MEASURED": "There are no results yet to decide whether it complies. This is not a failure.",
-        "NO_CONTROLS": "The framework has no controls in scope."
+        "NON_COMPLIANT": "A single failure prevents the framework from being compliant.",
+        "EVALUATING": "Anything pending never counts as compliant.",
+        "NOT_MEASURED": "No results yet; this is not a failure.",
+        "NO_CONTROLS": "No controls in scope."
       },
       "PROGRESS": "Progress",
-      "PROGRESS_NOTE": "Progress shows how much has been achieved, but it is not the same as compliance.",
       "COVERAGE": "Coverage",
       "KPI_EVALUATED": "Evaluated controls",
       "KPI_EFFECTIVE": "Effective",
       "KPI_INEFFECTIVE": "Not effective",
       "KPI_PENDING": "Pending",
       "CATEGORIES_TITLE": "Trust criteria",
-      "CATEGORY_COUNT": "{{done}} of {{total}} controls effective",
+      "CATEGORY_COUNT": "{{done}} of {{total}} effective",
       "ATTENTION_TITLE": "Controls that need attention",
       "ATTENTION_ALL": "See all controls",
       "ATTENTION_EMPTY": "No control is failing for now.",
       "ATTENTION_EMPTY_UNMEASURED": "There are no results yet, so there are no controls to point out.",
+      "ATTENTION_COL": {
+        "CODE": "Code",
+        "CONTROL": "Control",
+        "FAILS": "Where it fails",
+        "STATUS": "Status"
+      },
       "TESTS": "{{done}}/{{total}} tests pass",
       "NO_FRAMEWORKS_TITLE": "This service has no framework yet",
       "NO_FRAMEWORKS_BODY": "Once you contract a framework you will see its compliance status here."
     },
     "HEATMAP": {
       "TITLE": "Inherent matrix",
-      "INTRO": "Where each evaluated risk falls by its likelihood and impact, before counting on controls. It does not say whether a risk is mitigated: controls and their tests decide that.",
+      "INTRO": "Before controls; it does not say whether the risk is mitigated.",
       "EVALUATED": "{{evaluated}} of {{total}} risks evaluated",
       "WORST": "Highest level present:",
-      "NOT_EVALUATED": "Not evaluated: {{count}}. Evaluate them from Risks so they show up here.",
-      "EMPTY": "No risk has been evaluated yet. Evaluate a risk (likelihood and impact) and it will appear here.",
+      "NOT_EVALUATED": "Not evaluated: {{count}}",
+      "EMPTY": "No risks evaluated yet.",
       "HINT": "Select a cell to see its risks.",
       "SUMMARY": "Summary",
       "DISTRIBUTION": "Risks by level",
-      "RESIDUAL_NOTE": "The residual matrix will be shown once the mitigation formula data exists.",
+      "RESIDUAL_NOTE": "Residual matrix: not available yet.",
       "CELL_ARIA": "Likelihood {{likelihood}}, impact {{impact}}: {{count}} risks",
       "LEGEND": "Risk levels, from lowest to highest"
     },
@@ -98,12 +89,14 @@
       "EMPTY_READER_BODY": "Once the company administrator declares a service, you will see it here.",
       "GENERAL_TITLE": "Overall compliance",
       "GENERAL_BODY": "Each service is measured separately against each framework. Here you see how each one is doing; open one to see its detail. There is no combined percentage across services.",
-      "SERVICE_COUNT": "{{count}} services with this framework",
+      "GENERAL_TABLE": "Services grouped by framework",
+      "COL_SERVICE": "Service",
+      "COL_STATUS": "Status",
+      "COL_PROGRESS": "Progress and coverage",
       "ROW_ERROR": "This service's summary could not be read.",
       "NO_FRAMEWORK": "No framework contracted"
     },
     "CONTROLS": {
-      "INTRO": "Controls of the service by category, with their compliance percentage and coverage.",
       "FILTER_TOPIC": "Category",
       "FILTER_STATUS": "Status",
       "ALL_TOPICS": "All categories",
@@ -156,8 +149,8 @@
       "INTERPRETATION": "Interpretation",
       "CUSTOMIZED": "Interpretation written by your organization.",
       "DIMENSIONS": "Dimensions",
-      "APPLIES": "applies",
-      "NOT_APPLIES": "does not apply",
+      "APPLIES": "Applies",
+      "NOT_APPLIES": "Does not apply",
       "REASON": "Reason why it does not apply",
       "REASON_IS": "Reason: {{reason}}",
       "PROPOSAL_NOTE": "The change applies immediately and the service progress is recalculated.",
@@ -175,7 +168,6 @@
     },
     "RISKS": {
       "ALL": "All",
-      "INTRO": "Risks of the service and the causes that originate them, with the controls that mitigate them.",
       "SEARCH": "Search by code or name",
       "FILTER_CRITERION": "Criterion",
       "FILTER_CATEGORY": "Failure category",
@@ -191,7 +183,11 @@
       "RISKS_COUNT": "Risks: {{count}}",
       "CONTROLS_COUNT": "Controls: {{count}}",
       "NOT_EVALUATED": "Not evaluated",
-      "INTRO_CAUSES": "Causes that originate the risks of the service, with the controls that mitigate them."
+      "TABLE_RISKS": "Risks of the service, grouped by criterion",
+      "TABLE_CAUSES": "Causes of the service, grouped by failure category",
+      "COL_CODE": "Code",
+      "COL_NAME": "Name",
+      "COL_LEVEL": "Risk level"
     },
     "RISK_LEVEL": {
       "LOW": "Low",
@@ -327,6 +323,11 @@
       "TYPE": "Role",
       "PERSON": "Person",
       "SELECT": "Select",
+      "TABLE_CAPTION": "Responsible roles of the organization",
+      "COL_STATUS": "Status",
+      "COL_ACTIONS": "Actions",
+      "EMPTY_TITLE": "There are no responsible roles yet",
+      "ADD_HINT": "Pick the role and type the name of the person in charge.",
       "SAVE": "Save",
       "CHANGE_PERSON": "Change person",
       "REMOVE": "Remove",
@@ -348,8 +349,9 @@
       "REJECTED": "Rejected"
     },
     "EXCLUSIONS": {
-      "TITLE": "Exclusions",
-      "INTRO": "Taking an asset out of a test changes what is measured. The company administrator creates and decides it in a single act: it is born approved and the asset stops being measured in that test until it expires.",
+      "TABLE": "Exclusions of the service",
+      "COL_TEST": "Test and asset",
+      "COL_STATUS": "Status",
       "FILTER": "Filter by status",
       "ALL": "All",
       "EMPTY": "This service has no exclusions.",
@@ -395,6 +397,7 @@
       "EMPTY": "This control has no required evidence.",
       "NOT_DELIVERED": "Not delivered yet.",
       "RESPONSIBLE": "Responsible: {{role}} · {{person}}",
+      "NO_RESPONSIBLE": "No owner assigned",
       "NO_PERSON": "no person assigned",
       "VALIDITY": "Validity: {{value}}",
       "VERSION": "v{{version}}",
@@ -443,11 +446,9 @@
       "ERR_RANGE": "The end cannot be before the start.",
       "DEFINE": "Set the period",
       "EDIT": "Change period",
-      "LINE": "Audited period: {{start}} – {{end}}",
       "ASK_ADMIN": "Ask the company administrator to set it."
     },
     "EVIDENCE_INBOX": {
-      "INTRO": "What each control asks you to provide, and where it stands. Open a row to upload the file or download what was delivered. Whoever provides it uploads the document; the company administrator validates it.",
       "FILTER": "Show",
       "ALL": "All ({{count}})",
       "MISSING": "Not delivered ({{count}})",
@@ -482,18 +483,48 @@
       "Q_LIKELIHOOD": "How likely is this to happen in your service?",
       "Q_IMPACT": "If it happened, how serious would the impact be?",
       "LIKELIHOOD": {
-        "L1": { "LABEL": "Rare", "DESC": "May occur only in exceptional circumstances" },
-        "L2": { "LABEL": "Unlikely", "DESC": "Could occur at some time" },
-        "L3": { "LABEL": "Possible", "DESC": "Could occur occasionally" },
-        "L4": { "LABEL": "Likely", "DESC": "Occurs in most circumstances" },
-        "L5": { "LABEL": "Almost certain", "DESC": "Expected to occur in most cases" }
+        "L1": {
+          "LABEL": "Rare",
+          "DESC": "May occur only in exceptional circumstances"
+        },
+        "L2": {
+          "LABEL": "Unlikely",
+          "DESC": "Could occur at some time"
+        },
+        "L3": {
+          "LABEL": "Possible",
+          "DESC": "Could occur occasionally"
+        },
+        "L4": {
+          "LABEL": "Likely",
+          "DESC": "Occurs in most circumstances"
+        },
+        "L5": {
+          "LABEL": "Almost certain",
+          "DESC": "Expected to occur in most cases"
+        }
       },
       "IMPACT": {
-        "L1": { "LABEL": "Insignificant", "DESC": "Minimal effect, no relevant consequences" },
-        "L2": { "LABEL": "Minor", "DESC": "Slight impact, manageable with normal resources" },
-        "L3": { "LABEL": "Moderate", "DESC": "Notable impact, requires specific management" },
-        "L4": { "LABEL": "Major", "DESC": "Significant impact on operations or compliance" },
-        "L5": { "LABEL": "Critical", "DESC": "Severe impact, threatens continuity or leads to serious penalties" }
+        "L1": {
+          "LABEL": "Insignificant",
+          "DESC": "Minimal effect, no relevant consequences"
+        },
+        "L2": {
+          "LABEL": "Minor",
+          "DESC": "Slight impact, manageable with normal resources"
+        },
+        "L3": {
+          "LABEL": "Moderate",
+          "DESC": "Notable impact, requires specific management"
+        },
+        "L4": {
+          "LABEL": "Major",
+          "DESC": "Significant impact on operations or compliance"
+        },
+        "L5": {
+          "LABEL": "Critical",
+          "DESC": "Severe impact, threatens continuity or leads to serious penalties"
+        }
       },
       "SAVE_NEXT": "Save and continue",
       "SAVE_LAST": "Save and finish",
@@ -507,7 +538,6 @@
       "REVIEW_BACK": "Back",
       "CONFIRM_EVALUATION": "Confirm evaluation",
       "EDIT_LATER": "You can correct any rating later, in Compliance › Risks.",
-      "FINISH": "Declare the assets",
       "DONE_REMOVED": "You removed {{removed}} because they don't apply to your service.",
       "STEPPER_ARIA": "Service risks",
       "RESULT_TITLE": "This is how this risk would land",
@@ -537,7 +567,8 @@
       "CAUSES_NEW": "New cause",
       "CAUSES_DONE": "Done, rate this risk",
       "CAUSES_ERROR": "Could not update the cause. Try again.",
-      "CAUSES_LOAD_ERROR": "Could not load the service causes."
+      "CAUSES_LOAD_ERROR": "Could not load the service causes.",
+      "EVALUATED_MARK": "Evaluated"
     },
     "TESTS": {
       "TITLE": "Tests",
@@ -585,6 +616,13 @@
       "AUTOMATED": "Automated",
       "HYBRID": "Hybrid",
       "TECHNICAL_MANUAL": "Technical manual"
+    },
+    "BANNER": {
+      "RISKS": "Risks in the service: {{count}}",
+      "CAUSES": "Causes on record: {{count}}",
+      "CONTROLS": "Service controls: {{count}}",
+      "EVIDENCE": "Evidence requested: {{count}}",
+      "EXCLUSIONS": "Exclusions: {{count}}"
     }
   }
 }

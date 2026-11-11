@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
-import { ControlDimensionDetail } from '../../../domain/models/control.models';
-import { FindingService } from '../../../domain/services/finding.service';
+import { ControlDimensionDetail } from '@features/compliance/domain/models/control.models';
+import { FindingService } from '@features/compliance/domain/services/finding.service';
 import { ControlTest, ControlTests } from './control-tests';
 
 const DIMENSIONS: ControlDimensionDetail[] = [
@@ -55,12 +55,12 @@ describe('ControlTests', () => {
     expect(el.textContent).toContain('T-DOC-001');
     expect(el.textContent).toContain('Revisión de diseño y vigencia de la política');
     expect(el.querySelector('[data-test-state="compliant"]')!.textContent).toContain('Cumple');
-    expect(el.querySelectorAll('li').length).toBe(3);
+    expect(el.querySelectorAll('tbody tr').length).toBe(3);
   });
 
   it('tells apart the manual tests from the automatic ones, by the type of their dimension', () => {
     const el = render(TESTS);
-    const rows = Array.from(el.querySelectorAll('li')).map((li) => li.textContent ?? '');
+    const rows = Array.from(el.querySelectorAll('tbody tr')).map((li) => li.textContent ?? '');
     expect(rows.find((r) => r.includes('T-DOC-001'))).toContain('Manual');
     expect(rows.find((r) => r.includes('T-SRV-001'))).toContain('Automática');
   });
@@ -74,7 +74,7 @@ describe('ControlTests', () => {
 
   it('keeps the tests of the same dimension together and in order of code', () => {
     const el = render(TESTS);
-    const codes = Array.from(el.querySelectorAll('li p span.font-mono')).map((s) => s.textContent!.trim());
+    const codes = Array.from(el.querySelectorAll('tbody tr p app-tag')).map((s) => s.textContent!.trim());
     expect(codes).toEqual(['T-DOC-001', 'T-DOC-002', 'T-SRV-001']);
   });
 
@@ -88,8 +88,8 @@ describe('ControlTests', () => {
     expect(slots.map((s) => s.getAttribute('data-test-id'))).toEqual(['id-doc-1', 'id-doc-2']);
     for (const s of slots) expect(s.getAttribute('data-dimension')).toBe('policy');
     // cada espacio queda dentro de la fila de SU prueba
-    for (const s of slots) expect(s.closest('li')!.textContent).toContain(s.getAttribute('data-test-code')!);
-    expect(Array.from(el.querySelectorAll('li')).find((li) => li.textContent!.includes('T-SRV-001'))!.querySelector('[data-test-evidence]')).toBeNull();
+    for (const s of slots) expect(s.closest('tr')!.textContent).toContain(s.getAttribute('data-test-code')!);
+    expect(Array.from(el.querySelectorAll('tbody tr')).find((li) => li.textContent!.includes('T-SRV-001'))!.querySelector('[data-test-evidence]')).toBeNull();
   });
 
   it('offers what failed and how to fix it only under a cloud test that does not comply, and only when it knows the control (D90)', () => {
@@ -106,7 +106,7 @@ describe('ControlTests', () => {
       return fixture.nativeElement as HTMLElement;
     };
     const el = withControl('c1');
-    const rows = Array.from(el.querySelectorAll('li')).filter((li) => li.querySelector('app-test-findings'));
+    const rows = Array.from(el.querySelectorAll('tbody tr')).filter((li) => li.querySelector('app-test-findings'));
     expect(rows.length).toBe(1);
     expect(rows[0].textContent).toContain('T-CLD-001');
     expect(withControl(null).querySelector('app-test-findings')).toBeNull();
@@ -142,7 +142,7 @@ describe('ControlTests', () => {
 
   it('says how many tests the control has when the view does not bring the list', () => {
     const el = render(null, 3);
-    expect(el.querySelectorAll('li').length).toBe(0);
+    expect(el.querySelectorAll('tbody tr').length).toBe(0);
     expect(el.textContent).toContain('COMPLIANCE.TESTS.COUNT_ONLY');
   });
 

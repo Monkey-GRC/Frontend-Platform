@@ -1,49 +1,46 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-// El encabezado de una pantalla de Monkey: el bloque azul de la marca, compacto, con un título, un subtítulo opcional y, a la derecha, las acciones de la pantalla.
-//   <app-page-header title="Mis servicios" subtitle="…" icon="inventory_2" backLink="/" backLabel="Inicio">
-//     <button actions class="mk-hero-btn">…</button>
-//   </app-page-header>
-// Lo que lleve `actions` va a la derecha; lo que lleve `meta` queda bajo el título (etiquetas, el período…). Los botones del bloque usan `mk-hero-btn` (translúcido) o `mk-hero-btn-solid` (blanco).
+/**
+ * The header of a screen: title, optional description and back link, actions on the right and tabs below.
+ * No background, no gradient, no icon box (design-system README, section 2).
+ *
+ *   <app-page-header [title]="…" [description]="…" [backLink]="['/services']" [backLabel]="…">
+ *     <a actions routerLink="/services/new" class="mk-btn">…</a>
+ *     <nav tabs>…</nav>
+ *   </app-page-header>
+ *
+ * Whatever carries `actions` goes to the right; whatever carries `tabs` goes below the title. The primary action uses `mk-btn`, the others `mk-btn-secondary`.
+ */
 @Component({
   selector: 'app-page-header',
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    <div class="mk-hero px-5 py-3 md:px-6">
-      <div class="relative z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div class="flex min-w-0 items-center gap-3">
+    <header class="flex flex-col gap-4 pb-4">
+      <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div class="min-w-0">
           @if (backLink(); as link) {
-            <a [routerLink]="link" [attr.aria-label]="backLabel()" [title]="backLabel()"
-              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-inset ring-white/25 transition hover:bg-white/25">
-              <span class="material-symbols-rounded text-[20px]" aria-hidden="true">arrow_back</span>
+            <a [routerLink]="link" [attr.aria-label]="backLabel() || null"
+              class="mb-2 inline-flex items-center gap-1 rounded-control text-sm text-ink-muted transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40">
+              <span class="material-symbols-rounded text-[18px]" aria-hidden="true">arrow_back</span>
+              @if (backLabel()) {<span>{{ backLabel() }}</span>}
             </a>
-          } @else if (icon(); as glyph) {
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-inset ring-white/25">
-              <span class="material-symbols-rounded text-[24px]" aria-hidden="true">{{ glyph }}</span>
-            </span>
           }
-          <div class="min-w-0">
-            @if (eyebrow(); as e) {<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{{ e }}</p>}
-            <h1 class="truncate text-xl font-semibold tracking-tight">{{ title() }}</h1>
-            @if (subtitle(); as s) {<p class="mt-0.5 text-sm text-white/80">{{ s }}</p>}
-            <ng-content select="[meta]" />
-          </div>
+          <h1 class="truncate text-2xl font-semibold text-ink">{{ title() }}</h1>
+          @if (description(); as text) {<p class="mt-1 text-sm text-ink-muted">{{ text }}</p>}
         </div>
         <div class="flex flex-wrap items-center gap-2"><ng-content select="[actions]" /></div>
       </div>
-    </div>
+      <ng-content select="[tabs]" />
+    </header>
   `,
 })
 export class PageHeader {
   readonly title = input.required<string>();
-  readonly subtitle = input<string | null>(null);
-  /** Un texto pequeño en mayúsculas sobre el título. */
-  readonly eyebrow = input<string | null>(null);
-  readonly icon = input<string | null>(null);
-  /** Si viene, a la izquierda va un botón redondo de «volver» a esa ruta (y no el ícono). */
+  readonly description = input<string | null>(null);
+  /** When it comes, a «back» link to that route shows above the title. */
   readonly backLink = input<string | readonly string[] | null>(null);
   readonly backLabel = input('');
 }

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { ToastContainer } from '@shared/presentation/components/toast-container/toast-container';
 import { NavigationProgress } from '@core/presentation/components/navigation-progress/navigation-progress';
 
 @Component({
@@ -8,6 +9,7 @@ import { NavigationProgress } from '@core/presentation/components/navigation-pro
   imports: [
     RouterModule,
     NavigationProgress,
+    ToastContainer,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

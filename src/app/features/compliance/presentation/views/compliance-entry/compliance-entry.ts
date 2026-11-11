@@ -1,13 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, computed, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
+import { isAssignedRole, isCompanyAdmin } from '@shared/domain/utils/roles';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { ComplianceGeneral } from '../../components/compliance-general/compliance-general';
-import { COMPLIANCE_ROUTE, ComplianceServiceRef } from '../../../domain/models/compliance.models';
-import { ComplianceServicesService } from '../../../domain/services/compliance-services.service';
+import { COMPLIANCE_ROUTE, COMPLIANCE_SERVICE_PARAM, ComplianceServiceRef, DEFAULT_COMPLIANCE_SECTION } from '@features/compliance/domain/models/compliance.models';
+import { ComplianceServicesService } from '@features/compliance/domain/services/compliance-services.service';
 
 type Stage = 'loading' | 'error' | 'forbidden' | 'empty' | 'choose';
 
@@ -25,7 +26,10 @@ export class ComplianceEntryView implements OnInit {
   private readonly session = inject(SessionService);
 
   /** Solo el administrador crea servicios: al responsable, al delegado y al auditor un servicio vacío no les pide crear nada (D96). */
-  readonly role = this.session.user()?.role ?? null;
+  readonly role = computed(() => this.session.user()?.role ?? null);
+  readonly isAdminRole = computed(() => isCompanyAdmin(this.role()));
+  /** El responsable y el delegado ven solo lo que se les asignó (D102). */
+  readonly isAssignedRole = computed(() => isAssignedRole(this.role()));
 
   readonly stage = signal<Stage>('loading');
   readonly services = signal<ComplianceServiceRef[]>([]);
@@ -39,7 +43,7 @@ export class ComplianceEntryView implements OnInit {
     this.api.list().subscribe({
       next: (items) => {
         if (items.length === 1) {
-          this.router.navigate(['/services', items[0].id, COMPLIANCE_ROUTE], { replaceUrl: true });
+          this.router.navigate(['/', COMPLIANCE_ROUTE, DEFAULT_COMPLIANCE_SECTION], { queryParams: { [COMPLIANCE_SERVICE_PARAM]: items[0].id }, replaceUrl: true });
           return;
         }
         this.services.set(items);

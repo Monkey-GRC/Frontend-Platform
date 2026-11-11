@@ -1,5 +1,5 @@
-import { Group } from '../models/group.models';
-import { TeamMember } from '../models/team.models';
+import { Group } from '@features/team/domain/models/group.models';
+import { TeamMember } from '@shared/domain/models/team.models';
 
 /** Lo que se sabe de la carga de una persona cuando el Backend la entregue (MD-195): cuántos controles tiene y cuánto lleva. Mientras no llegue, el organigrama no muestra nada de esto. */
 export interface OrgWorkload {

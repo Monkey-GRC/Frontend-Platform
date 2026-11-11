@@ -51,6 +51,16 @@ describe('Modal (la base de todos los modales)', () => {
     expect(panel.className).toContain('max-w-sm');
   });
 
+  it('has the four sizes of the system, with xl for wide content such as a document preview', () => {
+    const fixture = TestBed.createComponent(Modal);
+    fixture.componentRef.setInput('labelledBy', 't');
+    const sizes = (['sm', 'md', 'lg', 'xl'] as const).map((size) => {
+      fixture.componentRef.setInput('size', size);
+      return fixture.componentInstance.sizeClass;
+    });
+    expect(sizes).toEqual(['max-w-sm', 'max-w-md', 'max-w-lg', 'max-w-4xl']);
+  });
+
   it('puts the keyboard focus inside when it opens', async () => {
     const s = setup();
     await open(s);

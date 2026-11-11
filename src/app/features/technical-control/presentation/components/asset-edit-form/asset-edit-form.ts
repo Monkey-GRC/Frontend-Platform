@@ -5,8 +5,9 @@ import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
-import { Asset, UpdateAssetInput } from '../../../domain/models/technical-control.models';
-import { TechnicalControlService } from '../../../domain/services/technical-control.service';
+import { Asset, UpdateAssetInput } from '@shared/domain/models/technical-control.models';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 const ACCOUNT_ID = /^\d{12}$/;
 
@@ -19,6 +20,7 @@ const ACCOUNT_ID = /^\d{12}$/;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AssetEditForm implements OnInit {
+  protected readonly targetValue = targetValue;
   private readonly api = inject(TechnicalControlService);
   private readonly catalogs = inject(CatalogService);
   private readonly translate = inject(TranslateService);

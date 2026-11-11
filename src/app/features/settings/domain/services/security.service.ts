@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
+import { unwrapData } from '@shared/domain/utils/unwrap-response';
 import { ChangePasswordInput } from '../models/security.models';
 
 // La seguridad de la propia cuenta (contracts/modules/auth.md): cambiar la contraseña (D101) y renovar los códigos de recuperación (D94).
@@ -25,6 +26,6 @@ export class SecurityService {
   regenerateRecoveryCodes(code: string): Observable<string[]> {
     return this.http
       .post<SuccessResponse<{ recovery_codes: string[] }>>(`${this.baseUrl}/mfa/recovery-codes`, { code })
-      .pipe(map((res) => res.data!.recovery_codes));
+      .pipe(unwrapData(), map((d) => d.recovery_codes));
   }
 }

@@ -2,8 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
-import { OverviewFramework } from '../../../domain/models/overview.models';
-import { OverviewService } from '../../../domain/services/overview.service';
+import { OverviewFramework } from '@features/compliance/domain/models/overview.models';
+import { OverviewService } from '@features/compliance/domain/services/overview.service';
 import { EvaluationPeriodForm } from './evaluation-period-form';
 
 const TODAY = new Date().toISOString().slice(0, 10);

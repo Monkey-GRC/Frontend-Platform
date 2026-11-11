@@ -7,7 +7,7 @@ import { DetailCard } from './detail-card';
   selector: 'app-host',
   imports: [DetailCard],
   template: `
-    <app-detail-card titleKey="COMPLIANCE.DETAIL.INTERPRETATION" icon="description" [startOpen]="startOpen()" [forceOpen]="force()">
+    <app-detail-card titleKey="COMPLIANCE.DETAIL.INTERPRETATION" [startOpen]="startOpen()" [forceOpen]="force()">
       <button actions type="button" data-action>Editar</button>
       <p data-body>contenido</p>
     </app-detail-card>
@@ -29,10 +29,10 @@ describe('DetailCard', () => {
     fixture.detectChanges();
   });
 
-  it('starts open, shows its icon and the projected actions, and closes on click', () => {
+  it('starts open, shows the projected actions and no decorative icon, and closes on click', () => {
     expect(el().querySelector('[data-body]')).not.toBeNull();
     expect(el().querySelector('[data-action]')).not.toBeNull();
-    expect(el().textContent).toContain('description');
+    expect(el().querySelector('.rounded-full')).toBeNull();
     toggle().click();
     fixture.detectChanges();
     expect(el().querySelector('[data-body]')).toBeNull();

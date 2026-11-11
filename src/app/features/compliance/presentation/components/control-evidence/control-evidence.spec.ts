@@ -3,9 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER, Subject, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ControlEvidence as Summary } from '../../../domain/models/control.models';
-import { EvidenceRequirement, EvidenceSubmission } from '../../../domain/models/evidence.models';
-import { EvidenceService } from '../../../domain/services/evidence.service';
+import { ControlEvidence as Summary } from '@features/compliance/domain/models/control.models';
+import { EvidenceRequirement, EvidenceSubmission } from '@features/compliance/domain/models/evidence.models';
+import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlEvidence } from './control-evidence';
 
 const person = { id: 'u1', name: 'Laura', last_name: 'Gómez' };
@@ -142,7 +142,7 @@ describe('ControlEvidence', () => {
 
     it('offers "view" only for PDF, PNG and JPG; a Word or Excel file can only be downloaded', () => {
       setup('admin_empresa', true, [requirement('e1', [asType(submission(1), 'application/pdf')]), requirement('e2', [asType(submission(1), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')])]);
-      const rows = Array.from(fixture.nativeElement.querySelectorAll('li')) as HTMLElement[];
+      const rows = Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLElement[];
       expect(rows[0].querySelector('[data-preview-open]')).not.toBeNull();
       expect(rows[1].querySelector('[data-preview-open]')).toBeNull();
       expect(rows[1].querySelector('[data-download]')).not.toBeNull();

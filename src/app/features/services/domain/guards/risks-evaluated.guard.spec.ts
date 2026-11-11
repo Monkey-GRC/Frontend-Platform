@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, UrlTree, convertToParamMap, provideRouter } from '@angular/router';
 import { Observable, firstValueFrom, isObservable, of, throwError } from 'rxjs';
-import { RiskReadinessService } from '@features/compliance/domain/services/risk-readiness.service';
-import { RiskProgress } from '@features/compliance/domain/utils/risk-progress';
+import { RiskReadinessService } from '@shared/domain/services/risk-readiness.service';
+import { RiskProgress } from '@shared/domain/utils/risk-progress';
 import { risksEvaluatedGuard } from './risks-evaluated.guard';
 
 describe('risksEvaluatedGuard (D89)', () => {

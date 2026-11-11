@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -18,15 +18,12 @@ import { SidebarService } from '@core/domain/services/sidebar.service';
   ],
   templateUrl: './app-header.component.html',
 })
-export class AppHeaderComponent {
+export class AppHeaderComponent implements AfterViewInit, OnDestroy {
+  readonly sidebarService = inject(SidebarService);
   isApplicationMenuOpen = false;
-  readonly isMobileOpen$;
+  readonly isMobileOpen$ = this.sidebarService.isMobileOpen$;
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
-
-  constructor(public sidebarService: SidebarService) {
-    this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
-  }
 
   handleToggle() {
     if (window.innerWidth >= 1280) {

@@ -8,7 +8,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   imports: [TranslatePipe],
   template: `
     <div class="flex items-center justify-center py-16" role="status" [attr.aria-label]="'COMMON.LOADING' | translate">
-      <span class="material-symbols-rounded animate-spin text-primary" [style.font-size.px]="size()" aria-hidden="true">progress_activity</span>
+      <span class="material-symbols-rounded animate-spin text-action" [style.font-size.px]="size()" aria-hidden="true">progress_activity</span>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

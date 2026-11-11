@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 // `label` es una clave de i18n.
-export type StepperItem = { icon: string; label: string };
+export interface StepperItem { icon: string; label: string }
 
 // Pasos de un recorrido: un círculo con el icono de cada paso unidos por una línea; los hechos llevan check, el actual resalta y los siguientes quedan apagados.
 //   <app-stepper [steps]="[{ icon: 'qr_code_scanner', label: 'AUTH.MFA.STEP_SCAN' }]" [current]="1" [ariaLabel]="'Paso 1 de 4'" />
@@ -23,7 +23,7 @@ export type StepperItem = { icon: string; label: string };
             </span>
             <span class="h-0.5 flex-1 rounded-full transition-colors" [class]="last ? 'opacity-0' : line(i + 1 < current())"></span>
           </div>
-          <span class="max-w-full truncate px-1 text-[11px]" [class]="i + 1 === current() ? 'font-semibold text-primary' : i + 1 < current() ? 'font-medium text-primary' : 'font-medium text-gray-400'">{{ step.label | translate }}</span>
+          <span class="max-w-full truncate px-1 text-[11px]" [class]="i + 1 === current() ? 'font-semibold text-action' : i + 1 < current() ? 'font-medium text-action' : 'font-medium text-ink-faint'">{{ step.label | translate }}</span>
         </li>
       }
     </ol>
@@ -35,12 +35,12 @@ export class Stepper {
   readonly ariaLabel = input('');
 
   line(done: boolean): string {
-    return done ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700';
+    return done ? 'bg-action' : 'bg-line';
   }
 
   circle(n: number): string {
-    if (n < this.current()) return 'border-primary bg-primary text-white';
-    if (n === this.current()) return 'border-primary bg-primary/10 text-primary ring-4 ring-primary/20';
-    return 'border-gray-200 dark:border-gray-700 text-gray-400';
+    if (n < this.current()) return 'border-action bg-action text-white';
+    if (n === this.current()) return 'border-action bg-tint text-action ring-4 ring-action/20';
+    return 'border-line text-ink-faint';
   }
 }

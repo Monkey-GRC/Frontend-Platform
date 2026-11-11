@@ -3,10 +3,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ControlListItem } from '../../../domain/models/control.models';
-import { Cause } from '../../../domain/models/risk.models';
-import { ControlService } from '../../../domain/services/control.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { ControlListItem } from '@features/compliance/domain/models/control.models';
+import { Cause } from '@shared/domain/models/risk.models';
+import { ControlService } from '@features/compliance/domain/services/control.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { CauseDetailPanel } from './cause-detail-panel';
 
 const DETAIL: Cause = {

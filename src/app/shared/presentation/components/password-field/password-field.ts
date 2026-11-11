@@ -18,9 +18,8 @@ export class PasswordField {
   readonly inputId = input.required<string>();
   readonly autocomplete = input<'current-password' | 'new-password'>('current-password');
   readonly describedBy = input<string | null>(null);
-  // Las pantallas de acceso (inicio de sesión, activación) usan etiquetas más pequeñas y un candado a la izquierda; los formularios de ajustes, no.
+  // Las pantallas de acceso (inicio de sesión, activación) usan etiquetas más pequeñas; los formularios de ajustes, no.
   readonly compact = input(false);
-  readonly leadingIcon = input<string | null>(null);
 
   readonly visible = signal(false);
 }

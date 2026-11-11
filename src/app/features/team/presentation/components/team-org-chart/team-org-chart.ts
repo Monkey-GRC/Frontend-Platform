@@ -3,32 +3,40 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, ou
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { apiErrorCode, apiErrorData, apiErrorMessage } from '@core/domain/utils/api-error';
-import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
-import { Group } from '../../../domain/models/group.models';
-import { TeamActor, TeamMember, UpdateMemberDto } from '../../../domain/models/team.models';
-import { GroupService } from '../../../domain/services/group.service';
-import { TeamService } from '../../../domain/services/team.service';
 import { SessionService } from '@core/domain/services/session.service';
-import { OrgResponsible, OrgWorkload, buildOrgChart } from '../../../domain/utils/team-org';
+import { isCompanyAdmin } from '@shared/domain/utils/roles';
+import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
+import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { targetChecked, targetValue } from '@shared/presentation/utils/event-target';
+import { Group } from '@features/team/domain/models/group.models';
+import { TeamActor, TeamMember, UpdateMemberDto } from '@shared/domain/models/team.models';
+import { GroupService } from '@features/team/domain/services/group.service';
+import { TeamService } from '@shared/domain/services/team.service';
+import { OrgResponsible, OrgWorkload, buildOrgChart } from '@features/team/domain/utils/team-org';
 
 type Stage = 'loading' | 'error' | 'ready';
 // Quien ejecuta controles no se mueve sin confirmar (USER_HAS_ASSIGNMENTS trae cuántos).
-type PendingMove = { member: TeamMember; controls: number };
+interface PendingMove { member: TeamMember; controls: number }
 
 /** Con pocos responsables se ven todos abiertos; con muchos, cerrados, para no saturar. */
 const OPEN_BY_DEFAULT_UP_TO = 4;
 
-// El organigrama de la empresa (D102, D104): administradores arriba, bajo cada responsable sus delegados y, aparte, los auditores. Reemplaza a la antigua pestaña «Grupos»: el cliente
-// ve quién depende de quién, sin pensar en «grupos». Debajo hay un grupo por responsable (su equipo), que nace solo al crear al responsable; aquí se puede renombrar (administrador) y
+// El organigrama de la empresa (D102, D104): administradores arriba, bajo cada responsable sus delegados y, aparte, los auditores. Es una página propia (`/equipo/organigrama`): el cliente
+// ve quién depende de quién. Debajo hay un grupo por responsable (su equipo), que nace solo al crear al responsable; aquí se puede renombrar (administrador) y
 // crear si falta. Mover a un delegado es elegir otro responsable. Todo usa las llamadas que ya existen (`/users`, `/groups`): no hay contrato nuevo.
 // Cuando el Backend entregue la carga por persona (MD-195), `workload` mostrará controles y avance; mientras no, no se pinta nada de eso.
 @Component({
   selector: 'app-team-org-chart',
-  imports: [TranslatePipe, ConfirmDialog, NgTemplateOutlet],
+  imports: [TranslatePipe, ConfirmDialog, NgTemplateOutlet, PersonCell, StatusIndicator, EmptyState, LoadingSpinner],
   templateUrl: './team-org-chart.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeamOrgChart implements OnInit {
+  protected readonly targetValue = targetValue;
+  protected readonly targetChecked = targetChecked;
   private readonly teamApi = inject(TeamService);
   private readonly groupApi = inject(GroupService);
   private readonly translate = inject(TranslateService);
@@ -51,7 +59,7 @@ export class TeamOrgChart implements OnInit {
   readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
-  readonly isAdmin = computed(() => this.actor() === 'admin_empresa');
+  readonly isAdmin = computed(() => isCompanyAdmin(this.actor()));
   /** Un responsable que mira se dibuja a sí mismo aunque aún no tenga equipo ni la lista lo traiga. */
   private readonly self = computed(() => {
     const user = this.session.user();

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, signal, untracked } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Execution } from '../../../domain/models/technical-control.models';
+import { Execution } from '@shared/domain/models/technical-control.models';
 
 /** Cuánto suele tardar una evaluación de una cuenta de nube, en segundos (unos 6 minutos). */
 export const TYPICAL_SECONDS = 360;

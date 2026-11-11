@@ -73,8 +73,7 @@
       "COL_TYPE": "Tipo",
       "COL_DETAIL": "Detalle",
       "COL_STATUS": "Estado",
-      "OPEN": "Abrir",
-      "VIEW_ASSETS": "Ver activos"
+      "TABLE_CAPTION": "Conexiones del servicio"
     },
     "CARD": {
       "HIDE_SETUP": "Ocultar datos de conexión",
@@ -174,12 +173,10 @@
       "MARK_HELP": "Marca los que son de este servicio. Los demás quedan fuera: no se miden para él.",
       "SEARCH_LABEL": "Buscar activos",
       "SEARCH_PLACEHOLDER": "Buscar por nombre, ID, IP o etiqueta",
-      "MARK_ALL": "Marcar todos los activos visibles",
       "COL_ID": "Identificador",
       "COL_PRIVATE_IP": "IP privada",
       "COL_ZONE": "Zona",
       "COL_IN_SERVICE": "En el servicio",
-      "INCLUDE_ARIA": "Incluir {{name}} en el servicio",
       "OS_TITLE": "Sistema operativo según la imagen con la que se lanzó el servidor",
       "GLOBAL": "Global",
       "INCLUDED": "Incluido",
@@ -241,7 +238,12 @@
         "RUNTIME": "Runtime",
         "LAST_MODIFIED": "Última modificación",
         "CREATED_AT": "Creado"
-      }
+      },
+      "FILTER_KIND": "Filtrar por tipo",
+      "TABLE": "Activos que la conexión reconoció en tu cuenta",
+      "GROUP_IN": "En este servicio",
+      "GROUP_OUT": "Fuera del servicio",
+      "DETAIL_SUBTITLE": "{{code}} · {{kind}}"
     }
   }
 }

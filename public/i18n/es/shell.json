@@ -4,6 +4,7 @@
       "SECTION_MENU": "Menú",
       "HOME": "Inicio",
       "MY_COMPANY": "Mi empresa",
+      "COMPANY_CONTEXT": "Contexto de la empresa",
       "MY_SERVICES": "Mis servicios",
       "COMPLIANCE": "Cumplimiento",
       "RESPONSIBLES": "Cargos responsables",
@@ -11,7 +12,13 @@
       "MY_WORK": "Mi trabajo",
       "ASSIGNMENT": "Asignación",
       "ASSIGN_EXECUTOR": "Asignar ejecutor",
-      "MY_TEAM": "Mi equipo"
+      "MY_TEAM": "Mi equipo",
+      "LABEL": "Navegación principal",
+      "TOGGLE_SIDEBAR": "Mostrar u ocultar el menú lateral",
+      "TEAM_PEOPLE": "Personas",
+      "TEAM_GROUPS": "Grupos",
+      "TEAM_ORG": "Organigrama",
+      "LOGO_ALT": "Logotipo de Monkey"
     },
     "COMING_SOON": "Sección en construcción.",
     "HEADER": {

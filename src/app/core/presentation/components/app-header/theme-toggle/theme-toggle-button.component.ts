@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { ThemeService } from '../../../../domain/services/theme.service';
+import { Component, inject } from '@angular/core';
+import { ThemeService } from '@core/domain/services/theme.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -9,11 +9,8 @@ import { CommonModule } from '@angular/common';
 })
 export class ThemeToggleButtonComponent {
 
-  theme$;
-
-  constructor(private themeService: ThemeService) {
-    this.theme$ = this.themeService.theme$;
-  }
+  private readonly themeService = inject(ThemeService);
+  theme$ = this.themeService.theme$;
 
   toggleTheme() {
     this.themeService.toggleTheme();

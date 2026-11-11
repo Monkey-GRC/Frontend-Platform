@@ -1,12 +1,14 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { Cause, RiskListItem } from '../../../domain/models/risk.models';
-import { ControlService } from '../../../domain/services/control.service';
-import { RiskService } from '../../../domain/services/risk.service';
+import { Cause, RiskListItem } from '@shared/domain/models/risk.models';
+import { ControlService } from '@features/compliance/domain/services/control.service';
+import { RiskService } from '@shared/domain/services/risk.service';
 import { RisksView } from './risks';
+import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 
 const risk = (id: string, code: string, name: string, criterion: string, level: string | null = null): RiskListItem => ({
   id, code, name, trust_criterion: criterion, origin: 'catalog', is_active: true, likelihood: null, impact: null, inherent_risk_value: null, inherent_risk_level: level, treatment: null, causes_count: 2,
@@ -39,10 +41,10 @@ describe('RisksView', () => {
         { provide: RiskService, useValue: api },
         { provide: ControlService, useValue: jasmine.createSpyObj<ControlService>('ControlService', ['listAll']) },
         { provide: Router, useValue: router },
+        { provide: ActiveComplianceService, useValue: { serviceId: signal<string | null>('s1') } },
         {
           provide: ActivatedRoute,
           useValue: {
-            parent: { paramMap: new BehaviorSubject(convertToParamMap({ id: 's1' })) },
             data: new BehaviorSubject({ section }),
             queryParamMap: new BehaviorSubject(convertToParamMap(abrir ? { abrir } : {})),
           },
@@ -131,7 +133,7 @@ describe('RisksView', () => {
     view.openRisk('r1');
     expect(view.selectedRisk()).toBe('r1');
     view.openCause('c1');
-    expect(router.navigate).toHaveBeenCalledWith(['/services', 's1', 'cumplimiento', 'causas'], { queryParams: { abrir: 'c1' } });
+    expect(router.navigate).toHaveBeenCalledWith(['/', 'cumplimiento', 'causas'], { queryParams: { abrir: 'c1' } });
   });
 
   it('opens a cause in its own panel when it is in the causes tab, and jumps to the risks tab to open a risk', () => {
@@ -139,7 +141,7 @@ describe('RisksView', () => {
     view.openCause('c1');
     expect(view.selectedCause()).toBe('c1');
     view.openRisk('r1');
-    expect(router.navigate).toHaveBeenCalledWith(['/services', 's1', 'cumplimiento', 'riesgos'], { queryParams: { abrir: 'r1' } });
+    expect(router.navigate).toHaveBeenCalledWith(['/', 'cumplimiento', 'riesgos'], { queryParams: { abrir: 'r1' } });
   });
 
   it('opens the element that arrives in ?abrir= in the tab it belongs to', () => {
@@ -155,5 +157,33 @@ describe('RisksView', () => {
     fixture.detectChanges();
     expect(view.stage()).toBe('error');
     expect(text()).toContain('COMPLIANCE.RISKS.LOAD_ERROR_TITLE');
+  });
+
+  it('draws one table with a section header (and its count) per criterion, and a click on a row opens the risk', () => {
+    const view = setup('admin_empresa');
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('app-data-table').length).toBe(1);
+    expect(Array.from(el.querySelectorAll('[data-group-header]')).map((h) => h.getAttribute('data-group'))).toEqual(['availability', 'confidentiality']);
+    expect(el.querySelectorAll('tbody tr:not([data-group-header])').length).toBe(3);
+    expect(el.querySelector('app-risk-level-badge')).not.toBeNull();
+    (el.querySelectorAll('tbody tr:not([data-group-header])')[1] as HTMLElement).click();
+    expect(view.selectedRisk()).toBe('r1');
+  });
+
+  it('draws the causes in the same kind of table, grouped by failure category', () => {
+    setup('admin_empresa', 'causes');
+    const el = fixture.nativeElement as HTMLElement;
+    expect(Array.from(el.querySelectorAll('[data-group-header]')).map((h) => h.getAttribute('data-group'))).toEqual(['human_resource', 'information_technology']);
+    expect(el.querySelector('app-risk-level-badge')).toBeNull();
+  });
+
+  it('with a search that matches nothing it says so and offers to clear the filters', () => {
+    const view = setup('admin_empresa');
+    view.query.set('nada que coincida');
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('COMPLIANCE.RISKS.EMPTY_FILTERED_TITLE');
+    el.querySelector<HTMLButtonElement>('app-empty-state button')!.click();
+    expect(view.hasFilters()).toBeFalse();
   });
 });

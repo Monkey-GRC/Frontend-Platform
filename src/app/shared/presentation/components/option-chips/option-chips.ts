@@ -9,7 +9,7 @@ export interface ChipOption {
   symbol?: string;
 }
 
-// Opciones como píldoras que se tocan para elegir: más rápidas y amables que una lista
+// Opciones como botones de borde fino que se tocan para elegir: más rápidas y amables que una lista
 // desplegable cuando hay pocas opciones. Sirve para elegir una (`multiple = false`) o varias.
 // No decide nada: solo avisa qué opción se tocó y quien la usa aplica la regla.
 @Component({
@@ -22,6 +22,8 @@ export class OptionChips {
   readonly selected = input<string[]>([]);
   readonly multiple = input(false);
   readonly ariaLabel = input('Opciones');
+  // Más bajas, para una barra de herramientas encima de una tabla.
+  readonly compact = input(false);
 
   readonly picked = output<string>();
 

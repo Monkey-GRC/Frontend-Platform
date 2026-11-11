@@ -13,27 +13,27 @@ import { RouterLink } from '@angular/router';
   // La línea que separa una fila de la anterior es un pseudo-elemento inset: arranca donde empieza el texto y termina a la misma distancia del borde derecho, sin tocar el borde de la tarjeta.
   host: {
     class:
-      'relative block [&:not(:first-child)]:before:absolute [&:not(:first-child)]:before:inset-x-5 [&:not(:first-child)]:before:top-0 [&:not(:first-child)]:before:h-px [&:not(:first-child)]:before:bg-gray-100 dark:[&:not(:first-child)]:before:bg-gray-800',
+      'relative block [&:not(:first-child)]:before:absolute [&:not(:first-child)]:before:inset-x-5 [&:not(:first-child)]:before:top-0 [&:not(:first-child)]:before:h-px [&:not(:first-child)]:before:bg-line',
   },
   template: `
     <ng-template #body>
       <div class="min-w-0 flex-1">
-        <p class="text-base font-medium text-gray-900 dark:text-white">{{ title() }}</p>
+        <p class="text-base font-medium text-ink">{{ title() }}</p>
         @if (description()) {
-          <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ description() }}</p>
+          <p class="mt-0.5 text-sm text-ink-faint">{{ description() }}</p>
         }
       </div>
-      <div class="flex shrink-0 items-center gap-2 text-base text-gray-600 dark:text-gray-300">
+      <div class="flex shrink-0 items-center gap-2 text-base text-ink-muted">
         <ng-content />
         @if (link()) {
-          <span class="material-symbols-rounded text-[24px] text-gray-400" aria-hidden="true">chevron_right</span>
+          <span class="material-symbols-rounded text-[24px] text-ink-faint" aria-hidden="true">chevron_right</span>
         }
       </div>
     </ng-template>
 
     @if (link(); as target) {
       <a [routerLink]="target" data-testid="settings-row-link"
-        class="flex items-center gap-4 px-5 py-4 transition hover:bg-gray-50 focus:outline-none focus-visible:bg-gray-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50 dark:hover:bg-white/5 dark:focus-visible:bg-white/5">
+        class="flex items-center gap-4 px-5 py-4 transition hover:bg-canvas focus:outline-none focus-visible:bg-canvas focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/50">
         <ng-container [ngTemplateOutlet]="body" />
       </a>
     } @else {

@@ -4,10 +4,10 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { COMPLIANCE_ROUTE } from '../../../domain/models/compliance.models';
-import { RiskListItem, RiskMatrixData } from '../../../domain/models/risk.models';
-import { RiskService } from '../../../domain/services/risk.service';
-import { RiskLevelBadge, riskLevelHeat } from '../risk-level-badge/risk-level-badge';
+import { COMPLIANCE_ROUTE, COMPLIANCE_SERVICE_PARAM } from '@features/compliance/domain/models/compliance.models';
+import { RiskListItem, RiskMatrixData } from '@shared/domain/models/risk.models';
+import { RiskService } from '@shared/domain/services/risk.service';
+import { riskLevelHeat } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 
 interface Cell {
   likelihood: number;
@@ -21,7 +21,7 @@ interface Cell {
 // dio a sus riesgos y las vacías quedan neutras. Los riesgos sin evaluar no están en la matriz: se cuentan aparte. La residual no está: espera los datos de la fórmula (P22, MD-151).
 @Component({
   selector: 'app-risk-heatmap',
-  imports: [TranslatePipe, RouterLink, RiskLevelBadge],
+  imports: [TranslatePipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './risk-heatmap.html',
 })
@@ -78,13 +78,22 @@ export class RiskHeatmap {
     return present.reduce((worst, l) => (order.indexOf(l) > order.indexOf(worst) ? l : worst));
   });
 
+  /** El nombre del nivel y su color suave, para decir el más alto sin una etiqueta de color aparte. */
+  protected levelLabel(level: string): string {
+    return this.legend().find((l) => l.value === level)?.label ?? level;
+  }
+
+  protected heatOf(level: string): string {
+    return riskLevelHeat(level).soft;
+  }
+
   readonly selectedRisks = computed<RiskListItem[]>(() => {
     const p = this.picked();
     return p ? (this.cells().get(`${p.likelihood}-${p.impact}`)?.risks ?? []) : [];
   });
 
-  readonly riskLink = computed(() => ['/services', this.serviceId(), COMPLIANCE_ROUTE, 'riesgos']);
-  readonly riskQuery = (id: string) => ({ abrir: id });
+  readonly riskLink = computed(() => ['/', COMPLIANCE_ROUTE, 'riesgos']);
+  readonly riskQuery = (id: string) => ({ abrir: id, [COMPLIANCE_SERVICE_PARAM]: this.serviceId() });
 
   protected count(l: number, i: number): number {
     return this.cells().get(`${l}-${i}`)?.risks.length ?? 0;

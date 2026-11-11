@@ -1,41 +1,40 @@
 <div class="relative">
   <button type="button" (click)="toggle()" data-testid="help-trigger" aria-haspopup="menu" [attr.aria-expanded]="open()"
     [attr.aria-label]="'SHELL.HELP.OPEN' | translate" [title]="'SHELL.HELP.TITLE' | translate"
-    class="flex h-10 w-10 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 dark:text-gray-400 dark:hover:bg-white/5"
-    [class.bg-gray-100]="open()" [class.dark:bg-white/5]="open()">
+    class="flex h-10 w-10 items-center justify-center rounded-full text-ink-faint transition hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-action/50"
+    [class.bg-canvas]="open()">
     <span class="material-symbols-rounded text-[24px] leading-none" aria-hidden="true">help</span>
   </button>
 
   @if (open()) {
     <div role="menu" data-testid="help-panel"
-      class="absolute right-0 top-full z-[100000] mt-2 w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
-      <p class="px-3 pb-1 pt-2 text-sm font-semibold text-gray-900 dark:text-white">{{ 'SHELL.HELP.TITLE' | translate }}</p>
+      class="absolute right-0 top-full z-[100000] mt-2 w-80 max-w-[calc(100vw-1.5rem)] rounded-card border border-line bg-surface p-2 shadow-float">
+      <p class="px-3 pb-1 pt-2 text-sm font-semibold text-ink">{{ 'SHELL.HELP.TITLE' | translate }}</p>
 
       <div class="px-3 py-2">
-        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ 'SHELL.HELP.SHORTCUTS' | translate }}</p>
+        <p class="text-xs font-semibold uppercase tracking-wide text-ink-faint">{{ 'SHELL.HELP.SHORTCUTS' | translate }}</p>
         <ul class="mt-2 space-y-2" data-testid="help-shortcuts">
-          <li class="flex items-center justify-between gap-3 text-sm text-gray-700 dark:text-gray-200">
+          <li class="flex items-center justify-between gap-3 text-sm text-ink-muted">
             <span>{{ 'SHELL.HELP.SHORTCUT_SEARCH' | translate }}</span>
             <span class="flex shrink-0 items-center gap-1">
-              <kbd class="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-700 dark:bg-white/5 dark:text-gray-300">{{ modifier }}</kbd>
-              <kbd class="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-700 dark:bg-white/5 dark:text-gray-300">K</kbd>
+              <kbd class="rounded-control border border-line bg-canvas px-1.5 py-0.5 text-xs font-medium text-ink-muted">{{ modifier }}</kbd>
+              <kbd class="rounded-control border border-line bg-canvas px-1.5 py-0.5 text-xs font-medium text-ink-muted">K</kbd>
             </span>
           </li>
-          <li class="flex items-center justify-between gap-3 text-sm text-gray-700 dark:text-gray-200">
+          <li class="flex items-center justify-between gap-3 text-sm text-ink-muted">
             <span>{{ 'SHELL.HELP.SHORTCUT_CLOSE' | translate }}</span>
-            <kbd class="shrink-0 rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-700 dark:bg-white/5 dark:text-gray-300">Esc</kbd>
+            <kbd class="shrink-0 rounded-control border border-line bg-canvas px-1.5 py-0.5 text-xs font-medium text-ink-muted">Esc</kbd>
           </li>
         </ul>
       </div>
 
       @if (supportUrl; as url) {
-        <div class="my-1 h-px bg-gray-100 dark:bg-gray-800"></div>
+        <div class="my-1 h-px bg-canvas"></div>
         <a role="menuitem" [href]="url" [attr.target]="supportOpensTab ? '_blank' : null" [attr.rel]="supportOpensTab ? 'noopener noreferrer' : null" (click)="close()" data-testid="help-support"
-          class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5">
-          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">support_agent</span>
+          class="flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-medium text-ink-muted hover:bg-canvas">
           <span class="min-w-0">
             <span class="block">{{ 'SHELL.HELP.CONTACT' | translate }}</span>
-            <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">{{ 'SHELL.HELP.CONTACT_HINT' | translate }}</span>
+            <span class="block text-xs font-normal text-ink-faint">{{ 'SHELL.HELP.CONTACT_HINT' | translate }}</span>
           </span>
         </a>
       }

@@ -8,7 +8,7 @@ import { PasswordField } from './password-field';
   imports: [PasswordField],
   template: `
     <app-password-field [control]="first" inputId="first" label="Primera" autocomplete="new-password" />
-    <app-password-field [control]="second" inputId="second" label="Segunda" leadingIcon="lock" [compact]="true" />
+    <app-password-field [control]="second" inputId="second" label="Segunda" [compact]="true" />
   `,
 })
 class Host {
@@ -78,11 +78,5 @@ describe('PasswordField (campo con su ojito)', () => {
     input('first').value = 'Nueva-Clave-2026!';
     input('first').dispatchEvent(new Event('input'));
     expect(fixture.componentInstance.first.value).toBe('Nueva-Clave-2026!');
-  });
-
-  it('shows a leading icon only when asked', () => {
-    const { el } = setup();
-    expect(el.querySelectorAll('app-password-field')[0].textContent).not.toContain('lock');
-    expect(el.querySelectorAll('app-password-field')[1].textContent).toContain('lock');
   });
 });

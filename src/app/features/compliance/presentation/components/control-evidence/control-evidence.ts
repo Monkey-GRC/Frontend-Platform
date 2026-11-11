@@ -7,13 +7,16 @@ import { map } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { formatBytes } from '@shared/domain/utils/file-validation';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { Tag } from '@shared/presentation/components/tag/tag';
 import { FileUpload } from '@shared/presentation/components/file-upload/file-upload';
 import { Modal } from '@shared/presentation/components/modal/modal';
-import { ControlEvidence as EvidenceSummary } from '../../../domain/models/control.models';
-import { EVIDENCE_FILE_ACCEPT, EVIDENCE_MAX_BYTES, EvidencePerson, EvidenceRequirement, EvidenceSubmission, canPreviewEvidence, suggestedEvidence } from '../../../domain/models/evidence.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { EnumLabelService } from '../../../domain/services/enum-label.service';
-import { EvidenceService } from '../../../domain/services/evidence.service';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { ControlEvidence as EvidenceSummary } from '@features/compliance/domain/models/control.models';
+import { EVIDENCE_FILE_ACCEPT, EVIDENCE_MAX_BYTES, EvidencePerson, EvidenceRequirement, EvidenceSubmission, canPreviewEvidence, evidenceStateTone, suggestedEvidence } from '@features/compliance/domain/models/evidence.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 
 // 'full' = las evidencias del contrato; 'summary' = el resumen que trae el detalle del control, porque el endpoint de evidencias aún no existe en el backend.
 type Stage = 'loading' | 'full' | 'summary' | 'error';
@@ -41,7 +44,7 @@ const TEST_KEY = '__test__';
 // Si el backend aún no tiene el endpoint (MD-126), muestra el resumen del detalle sin la subida, y se enciende solo cuando exista.
 @Component({
   selector: 'app-control-evidence',
-  imports: [TranslatePipe, FileUpload, NgTemplateOutlet, Modal],
+  imports: [TranslatePipe, FileUpload, NgTemplateOutlet, Modal, StatusIndicator, DataTable, TableCell, Tag],
   templateUrl: './control-evidence.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -52,10 +55,17 @@ export class ControlEvidence {
   private readonly view = inject(ComplianceViewService);
   private readonly sanitizer = inject(DomSanitizer);
   readonly labels = inject(EnumLabelService);
+  protected readonly tone = evidenceStateTone;
   protected readonly TEST_KEY = TEST_KEY;
 
   readonly controlId = input.required<string>();
   /** El resumen del detalle del control: lo que se muestra mientras no exista el endpoint de evidencias. */
+  // Cada requisito es una fila de la lista compacta (la tabla única en su variante para paneles): una sola columna con todo lo suyo.
+  readonly summaryColumns: TableColumn<EvidenceSummary>[] = [{ key: 'item', headerKey: 'COMPLIANCE.EVIDENCE.REQUIRED_TITLE' }];
+  readonly itemColumns: TableColumn<EvidenceRequirement>[] = [{ key: 'item', headerKey: 'COMPLIANCE.EVIDENCE.REQUIRED_TITLE' }];
+  readonly summaryKey = (e: EvidenceSummary) => e.requirement_id;
+  readonly requirementKey = (r: EvidenceRequirement) => r.id;
+
   readonly summary = input<EvidenceSummary[]>([]);
   /** ¿Puede este rol subir? Suben el administrador de la empresa, el responsable y el delegado (solo de lo asignado, D102). */
   readonly canUpload = input(false);

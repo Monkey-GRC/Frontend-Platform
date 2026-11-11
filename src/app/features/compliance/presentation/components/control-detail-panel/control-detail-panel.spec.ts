@@ -3,9 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ControlDetail } from '../../../domain/models/control.models';
-import { ControlService } from '../../../domain/services/control.service';
-import { EvidenceService } from '../../../domain/services/evidence.service';
+import { ControlDetail } from '@features/compliance/domain/models/control.models';
+import { ControlService } from '@features/compliance/domain/services/control.service';
+import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlDetailPanel } from './control-detail-panel';
 
 const DETAIL: ControlDetail = {
@@ -73,13 +73,15 @@ describe('ControlDetailPanel', () => {
     expect(panel.pct(4, 5).replace(/\s/g, '')).toBe('80%');
   });
 
-  it('shows the five dimensions in one row, ticked when they apply and crossed when they do not (or the control has no test for them)', () => {
+  it('shows the five dimensions with their word (applies or not), also when the control has no test for them', () => {
     setup('admin_empresa');
     const cells = Array.from(fixture.nativeElement.querySelectorAll('[data-dimension]')) as HTMLElement[];
     expect(cells.map((c) => c.getAttribute('data-dimension'))).toEqual(['policy', 'server', 'database', 'app', 'cloud']);
     expect(cells.map((c) => c.getAttribute('data-applies'))).toEqual(['true', 'false', 'false', 'false', 'false']);
-    expect(cells[0].textContent).toContain('check_circle');
-    expect(cells[2].textContent).toContain('cancel');
+    expect(cells[0].textContent).toContain('COMPLIANCE.DETAIL.APPLIES');
+    expect(cells[0].querySelector('[data-tone="ok"]')).not.toBeNull();
+    expect(cells[2].textContent).toContain('COMPLIANCE.DETAIL.NOT_APPLIES');
+    expect(cells[2].querySelector('[data-tone="neutral"]')).not.toBeNull();
     expect(text()).toContain('COMPLIANCE.DETAIL.REASON_IS');
   });
 

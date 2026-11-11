@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { HomeDashboardService } from '../../../domain/services/dashboard.service';
+import { HomeDashboardService } from '@features/home/domain/services/dashboard.service';
 import { Home } from './home';
 
 // D89 · El onboarding es solo el contexto de la empresa. Declarar servicios y conectar activos ya no son pasos pendientes del onboarding.
@@ -32,7 +32,7 @@ describe('Home (D89)', () => {
     expect(home.pendingCompanyContext()).toBeTrue();
     expect(home.onboarded()).toBeFalse();
     expect(el().querySelector('a[href="/onboarding"]')).not.toBeNull();
-    expect(el().querySelector('[data-welcome]')).toBeNull();
+    expect(el().querySelector('app-page-header')).toBeNull();
   });
 
   it('considers the onboarding finished once the company context is declared, even though the backend still lists the service and technical steps', () => {
@@ -41,7 +41,7 @@ describe('Home (D89)', () => {
       const home = setup(next, ['organizational_context']);
       expect(home.onboarded()).toBeTrue();
       expect(home.pendingCompanyContext()).toBeFalse();
-      expect(el().querySelector('[data-welcome]')).not.toBeNull();
+      expect(el().querySelector('app-page-header')).toBeNull(); // sin saludo: la pantalla arranca en el contenido
       expect(el().querySelector('a[href="/onboarding"]')).toBeNull(); // sin tarjetas de «siguiente paso»
       expect(el().querySelector('a[href="/services/new"]')).toBeNull();
     }

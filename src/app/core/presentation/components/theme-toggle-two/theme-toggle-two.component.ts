@@ -1,24 +1,18 @@
-import { Component } from '@angular/core';
-import { ThemeService } from '../../../domain/services/theme.service';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
+import { ThemeService } from '@core/domain/services/theme.service';
 
+// Theme button of the auth shell (markup canonical, in design-system).
 @Component({
   selector: 'app-theme-toggle-two',
-  imports: [
-    CommonModule,
-  ],
+  imports: [TranslatePipe],
   templateUrl: './theme-toggle-two.component.html',
-  styles: ``
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeToggleTwoComponent {
+  private readonly themeService = inject(ThemeService);
 
-  theme$;
-
-  constructor(private themeService: ThemeService) {
-    this.theme$ = this.themeService.theme$;
-  }
-
-  toggleTheme() {
+  toggleTheme(): void {
     this.themeService.toggleTheme();
   }
 }

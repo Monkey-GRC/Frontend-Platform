@@ -1,7 +1,45 @@
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { SidePanel } from '../side-panel/side-panel';
+import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
 import { ConfirmDialog } from './confirm-dialog';
+
+@Component({
+  imports: [SideDrawer, ConfirmDialog],
+  template: `
+    <app-side-drawer [open]="true" titleKey="TEST.PANEL" (closed)="drawerClosed.set(drawerClosed() + 1)">
+      <p>detail</p>
+    </app-side-drawer>
+    @if (asking()) {
+      <app-confirm-dialog titleKey="TEST.TITLE" (cancelled)="asking.set(false)" />
+    }
+  `,
+})
+class StackedHost {
+  asking = signal(false);
+  drawerClosed = signal(0);
+}
+
+describe('ConfirmDialog over a side drawer', () => {
+  it('the first Esc closes only the dialog and the second one closes the drawer', () => {
+    TestBed.configureTestingModule({ imports: [StackedHost], providers: [provideTranslateService()] });
+    const f = TestBed.createComponent(StackedHost);
+    f.detectChanges();
+    f.componentInstance.asking.set(true); // the dialog opens over a drawer that was already open
+    f.detectChanges();
+    const esc = () => {
+      const e = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+      document.dispatchEvent(e);
+      f.detectChanges();
+      return e;
+    };
+    expect(esc().defaultPrevented).toBeTrue();
+    expect(f.componentInstance.asking()).toBeFalse();
+    expect(f.componentInstance.drawerClosed()).toBe(0);
+    esc();
+    expect(f.componentInstance.drawerClosed()).toBe(1);
+  });
+});
 
 describe('ConfirmDialog', () => {
   let fixture: ComponentFixture<ConfirmDialog>;
@@ -65,7 +103,8 @@ describe('ConfirmDialog', () => {
   });
 
   it('sits above the side panel it is opened from, so its buttons are never hidden behind it', () => {
-    const panel = TestBed.createComponent(SidePanel);
+    const panel = TestBed.createComponent(SideDrawer);
+    panel.componentRef.setInput('open', true);
     panel.componentRef.setInput('titleKey', 'TEST.PANEL');
     panel.detectChanges();
     const topLayer = (root: HTMLElement) =>
@@ -76,6 +115,6 @@ describe('ConfirmDialog', () => {
   it('paints the confirm button red for a dangerous action', () => {
     fixture.componentRef.setInput('tone', 'danger');
     fixture.detectChanges();
-    expect(buttons()[1].className).toContain('bg-error-600');
+    expect(buttons()[1].className).toContain('mk-btn-danger');
   });
 });

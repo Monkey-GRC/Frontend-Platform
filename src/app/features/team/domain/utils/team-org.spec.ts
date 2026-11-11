@@ -1,5 +1,5 @@
-import { Group } from '../models/group.models';
-import { TeamMember, TeamRole, TeamStatus } from '../models/team.models';
+import { Group } from '@features/team/domain/models/group.models';
+import { TeamMember, TeamRole, TeamStatus } from '@shared/domain/models/team.models';
 import { buildOrgChart } from './team-org';
 
 const member = (id: string, role: TeamRole, name: string, over: Partial<TeamMember> = {}): TeamMember => ({

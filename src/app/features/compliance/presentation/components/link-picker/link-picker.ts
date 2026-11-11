@@ -17,11 +17,11 @@ let nextId = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-2">
-      <label class="text-xs font-medium text-gray-700 dark:text-gray-200" [for]="id + '-filter'">{{ labelKey() | translate }}</label>
+      <label class="text-xs font-medium text-ink-muted" [for]="id + '-filter'">{{ labelKey() | translate }}</label>
       <input [id]="id + '-filter'" type="search" [ngModel]="query()" (ngModelChange)="query.set($event)" [placeholder]="'COMPLIANCE.LINK.SEARCH' | translate"
-        class="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        class="h-9 w-full rounded-control border border-line bg-surface px-3 text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
       <select [id]="id + '-select'" [attr.aria-label]="labelKey() | translate" size="5" [ngModel]="selected()" (ngModelChange)="selected.set($event)"
-        class="w-full rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+        class="w-full rounded-control border border-line bg-surface px-2 py-1 text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20">
         @for (item of visible(); track item.id) {
         <option [value]="item.id">{{ item.label }}</option>
         } @empty {
@@ -30,8 +30,8 @@ let nextId = 0;
       </select>
       <div class="flex items-center gap-3">
         <button type="button" (click)="confirm()" [disabled]="!selected() || busy()"
-          class="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">{{ 'COMPLIANCE.LINK.LINK' | translate }}</button>
-        <button type="button" (click)="cancelled.emit()" [disabled]="busy()" class="text-sm font-medium text-gray-700 hover:underline dark:text-gray-200">{{ 'COMMON.CANCEL' | translate }}</button>
+          class="h-9 shadow mk-btn">{{ 'COMPLIANCE.LINK.LINK' | translate }}</button>
+        <button type="button" (click)="cancelled.emit()" [disabled]="busy()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
       </div>
     </div>
   `,

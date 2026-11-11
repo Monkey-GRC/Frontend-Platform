@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree, provideRouter } from '@angular/router';
 import { Observable, firstValueFrom, of } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { AuthService } from '@features/auth/domain/services/auth.service';
+import { AuthService } from '@core/domain/services/auth.service';
 import { authGuard } from './auth.guard';
 
 describe('authGuard', () => {

@@ -4,7 +4,7 @@ import { Observable, map, shareReplay } from 'rxjs';
 import { storedLanguage } from '@core/domain/services/language.service';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { CatalogName, CatalogOption, FrameworkOption, RegulationOption } from '../models/catalog.models';
+import { CatalogName, CatalogOption, FrameworkOption, RegulationOption } from '@shared/domain/models/catalog.models';
 
 // Las opciones de los formularios salen del backend. Cada lista se pide una sola vez por
 // sesión de la app y se reutiliza (no cambian mientras el cliente llena el formulario).

@@ -53,6 +53,22 @@ export interface OrganizationalContextDraft {
   regulation_codes: string[];
 }
 
+// El borrador completo, listo para enviar; `null` si falta alguna respuesta obligatoria.
+export const inputFromDraft = (d: OrganizationalContextDraft): OrganizationalContextInput | null => {
+  if (!d.size || !d.industry || !d.business_model || !d.compliance_maturity) return null;
+  return {
+    description: d.description.trim(),
+    size: d.size,
+    industry: d.industry,
+    business_model: d.business_model,
+    years_in_operation: d.years_in_operation,
+    incorporation_countries: d.incorporation_countries,
+    client_countries: d.client_countries,
+    compliance_maturity: d.compliance_maturity,
+    regulation_codes: d.regulation_codes,
+  };
+};
+
 export const emptyDraft = (): OrganizationalContextDraft => ({
   description: '',
   size: null,

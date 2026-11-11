@@ -19,9 +19,8 @@ export class NewPasswordFields {
   readonly form = input.required<FormGroup>();
   // `stack`: uno bajo el otro (pantallas angostas). `row`: lado a lado desde tablet (formularios anchos).
   readonly layout = input<'stack' | 'row'>('stack');
-  // Las pantallas de acceso usan etiquetas pequeñas y un candado a la izquierda de cada campo.
+  // Las pantallas de acceso usan etiquetas pequeñas.
   readonly compact = input(false);
-  readonly leadingIcon = input<string | null>(null);
   // Un error de la contraseña que devolvió el servidor, para mostrarlo bajo el primer campo.
   readonly passwordError = input<string | null>(null);
 

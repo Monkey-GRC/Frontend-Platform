@@ -1,7 +1,5 @@
 {
   "SETTINGS": {
-    "TITLE": "Ajustes",
-    "INTRO": "La configuración de tu cuenta, por función.",
     "NAV_LABEL": "Secciones de ajustes",
     "SECTIONS": {
       "SECURITY": "Seguridad"

@@ -14,9 +14,9 @@ export function highlightFontSize(text: string): string {
   return `clamp(0.75rem, calc((100cqw - ${HIGHLIGHT_PADDING}) / ${width.toFixed(2)}), 1rem)`;
 }
 
-// Un aviso que la persona debe ver antes de seguir: un icono, un título, un mensaje corto, un dato destacado opcional (un correo, un código), una nota opcional y un botón para
+// Un aviso que la persona debe ver antes de seguir: un título, un mensaje corto, un dato destacado opcional (un correo, un código), una nota opcional y un botón para
 // cerrarlo. No sabe de qué trata; el texto lo pone quien lo usa. Lo importante va en `highlight`, no dentro de una frase larga.
-//   <app-notice-dialog [open]="enviado" icon="mark_email_read" [title]="…" [message]="…" [highlight]="correo" [closeLabel]="…" (closed)="enviado = false" />
+//   <app-notice-dialog [open]="enviado" [title]="…" [message]="…" [highlight]="correo" [closeLabel]="…" (closed)="enviado = false" />
 @Component({
   selector: 'app-notice-dialog',
   imports: [Modal],
@@ -25,7 +25,6 @@ export function highlightFontSize(text: string): string {
 })
 export class NoticeDialog {
   readonly open = input(false);
-  readonly icon = input('info');
   readonly title = input.required<string>();
   readonly message = input.required<string>();
   // El dato que la persona debe ver y reconocer de un vistazo (p. ej. el correo al que se envió algo): va en un recuadro propio.

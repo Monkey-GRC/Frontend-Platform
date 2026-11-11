@@ -1,7 +1,7 @@
 <div class="space-y-8">
   <div>
-    <h1 class="text-3xl font-semibold text-gray-900 dark:text-white">{{ 'SETTINGS.SECURITY.TITLE' | translate }}</h1>
-    <p class="mt-1.5 text-base text-gray-500 dark:text-gray-400">{{ 'SETTINGS.SECURITY.INTRO' | translate }}</p>
+    <h1 class="text-3xl font-semibold text-ink">{{ 'SETTINGS.SECURITY.TITLE' | translate }}</h1>
+    <p class="mt-1.5 text-base text-ink-faint">{{ 'SETTINGS.SECURITY.INTRO' | translate }}</p>
   </div>
 
   <app-settings-group [title]="'SETTINGS.SECURITY.GROUPS.SIGN_IN' | translate">
@@ -10,9 +10,7 @@
 
   <app-settings-group [title]="'SETTINGS.SECURITY.GROUPS.MFA' | translate">
     <app-settings-row [title]="'SETTINGS.SECURITY.ROWS.MFA_APP' | translate" [description]="'SETTINGS.SECURITY.ROWS.MFA_APP_DESC' | translate">
-      <span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300" data-testid="mfa-required">
-        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">check_circle</span>{{ 'SETTINGS.SECURITY.ROWS.MFA_REQUIRED' | translate }}
-      </span>
+      <app-status-indicator tone="ok" labelKey="SETTINGS.SECURITY.ROWS.MFA_REQUIRED" data-testid="mfa-required" />
     </app-settings-row>
     <app-settings-row [title]="'SETTINGS.SECURITY.RECOVERY.TITLE' | translate" [description]="'SETTINGS.SECURITY.ROWS.RECOVERY_DESC' | translate" [link]="recoveryLink" />
   </app-settings-group>

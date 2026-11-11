@@ -17,46 +17,42 @@
             <!-- Header -->
             <div class="flex items-center justify-center mb-4 md:mb-8">
                 <span
-                    class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs md:text-sm font-medium text-primary">
+                    class="inline-flex items-center text-xs md:text-sm font-medium text-ink-muted">
                     {{ 'AUTH.REGISTER.STEP' | translate: { step: step() } }}
                 </span>
             </div>
 
             <!-- Title -->
             <h1
-                class="text-2xl md:text-3xl font-bold text-primary dark:text-white text-center">
+                class="text-2xl md:text-3xl font-bold text-action text-center">
                 {{ 'AUTH.REGISTER.TITLE' | translate }}
             </h1>
 
             @if (step() === 1) {
             <!-- ============ Paso 1: solo el código ============ -->
             <form [formGroup]="codeForm" (ngSubmit)="continue()">
-                <p class="mt-1 md:mt-2 text-xs md:text-sm text-gray-400 text-center">
+                <p class="mt-1 md:mt-2 text-xs md:text-sm text-ink-muted text-center">
                     {{ 'AUTH.REGISTER.CODE_HELP' | translate }}
                 </p>
 
                 <div class="mt-5 md:mt-10 space-y-5">
                     <div class="relative">
-                        <label class="block text-xs font-medium text-gray-400 mb-2">{{ 'AUTH.FIELDS.ACCESS_KEY' | translate }}</label>
-                        <span
-                            class="pointer-events-none absolute left-3 top-9 md:top-10 inline-flex items-center text-gray-500">
-                            <span class="material-symbols-rounded text-[20px] md:text-[22px] leading-none">key</span>
-                        </span>
-                        <input formControlName="code" type="text" autocomplete="off" placeholder="MNK-XXXX-XXXX-XXXX"
-                            class="bg-gray-100 dark:bg-[#162036] dark:text-white focus:bg-white dark:focus:bg-[#0E1525] w-full pl-10 pr-3 h-9 md:pl-12 md:h-12 text-sm md:text-base uppercase tracking-wider rounded-lg border border-gray-300 dark:border-gray-700 focus:border-primary/60 transition" />
+                        <label for="register-code" class="block text-xs font-medium text-ink-muted mb-2">{{ 'AUTH.FIELDS.ACCESS_KEY' | translate }}</label>
+                        <input id="register-code" formControlName="code" type="text" autocomplete="off" placeholder="MNK-XXXX-XXXX-XXXX"
+                            class="mk-input !h-9 md:!h-12 md:text-base uppercase tracking-wider" />
                         @if (hasCodeError('required')) {
-                        <p class="mt-1.5 text-xs text-error-500">{{ 'AUTH.VALIDATION.ACCESS_KEY_REQUIRED' | translate }}</p>
+                        <p class="mt-1.5 text-xs text-bad-ink">{{ 'AUTH.VALIDATION.ACCESS_KEY_REQUIRED' | translate }}</p>
                         }
                     </div>
                 </div>
 
                 @if (errorMessage()) {
-                <p class="mt-4 text-xs text-error-500">{{ errorMessage() }}</p>
+                <p class="mt-4 text-xs text-bad-ink">{{ errorMessage() }}</p>
                 }
 
                 <div class="mt-5 md:mt-10">
                     <button type="submit"
-                        class="group w-full inline-flex items-center justify-center gap-2 shadow-theme-sm h-9 md:h-12 px-5 text-sm md:text-base font-semibold rounded-xl text-white bg-primary hover:bg-brand-600 focus:outline-0 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                        class="w-full h-9 md:h-12 mk-btn"
                         [disabled]="loading() || codeForm.invalid">
                         @if (!loading()) {
                         <span>{{ 'AUTH.REGISTER.CONTINUE' | translate }}</span>
@@ -66,17 +62,13 @@
                             {{ 'AUTH.REGISTER.CHECKING_KEY' | translate }}
                         </span>
                         }
-                        <span
-                            class="material-symbols-rounded text-[18px] md:text-[20px] transition group-hover:translate-x-0.5">
-                            arrow_forward
-                        </span>
                     </button>
                 </div>
             </form>
             } @else {
             <!-- ============ Paso 2: datos fijados por Monkey + contraseña ============ -->
             <form [formGroup]="passwordForm" (ngSubmit)="submit()">
-                <p class="mt-1 md:mt-2 text-xs md:text-sm text-gray-400 text-center">
+                <p class="mt-1 md:mt-2 text-xs md:text-sm text-ink-muted text-center">
                     {{ 'AUTH.REGISTER.FIXED_HELP' | translate }}
                 </p>
 
@@ -85,39 +77,35 @@
                     <!-- Empresa (fija): solo la clave de una empresa dice cuál es -->
                     @if (lookup()?.companyName) {
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-2">{{ 'AUTH.FIELDS.COMPANY' | translate }}</label>
+                        <span class="block text-xs font-medium text-ink-muted mb-2">{{ 'AUTH.FIELDS.COMPANY' | translate }}</span>
                         <div data-testid="company-name"
-                            class="flex items-center gap-3 w-full px-3 h-9 md:h-12 text-sm md:text-base rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0E1525] text-gray-700 dark:text-gray-200">
-                            <span class="material-symbols-rounded text-[20px] md:text-[22px] leading-none text-gray-500">domain</span>
+                            class="flex items-center gap-3 w-full px-3 h-9 md:h-12 text-sm md:text-base rounded-control border border-line bg-canvas text-ink-muted">
                             <span class="flex-1 truncate">{{ lookup()?.companyName }}</span>
-                            <span class="material-symbols-rounded text-[18px] leading-none text-gray-400" [title]="'AUTH.REGISTER.FIXED_BY_MONKEY' | translate">lock</span>
                         </div>
                     </div>
                     }
 
                     <!-- Correo (fijo) -->
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-2">{{ 'AUTH.FIELDS.ADMIN_EMAIL' | translate }}</label>
+                        <span class="block text-xs font-medium text-ink-muted mb-2">{{ 'AUTH.FIELDS.ADMIN_EMAIL' | translate }}</span>
                         <div data-testid="admin-email"
-                            class="flex items-center gap-3 w-full px-3 h-9 md:h-12 text-sm md:text-base rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0E1525] text-gray-700 dark:text-gray-200">
-                            <span class="material-symbols-rounded text-[20px] md:text-[22px] leading-none text-gray-500">mail</span>
+                            class="flex items-center gap-3 w-full px-3 h-9 md:h-12 text-sm md:text-base rounded-control border border-line bg-canvas text-ink-muted">
                             <span class="flex-1 truncate">{{ lookup()?.email }}</span>
-                            <span class="material-symbols-rounded text-[18px] leading-none text-gray-400" [title]="'AUTH.REGISTER.FIXED_BY_MONKEY' | translate">lock</span>
                         </div>
-                        <p class="mt-1.5 text-[11px] text-gray-500">{{ 'AUTH.REGISTER.EMAIL_ALWAYS' | translate }}</p>
+                        <p class="mt-1.5 text-[11px] text-ink-muted">{{ 'AUTH.REGISTER.EMAIL_ALWAYS' | translate }}</p>
                     </div>
 
                     <!-- La contraseña que elige quien activa su cuenta: con su guía; aquí no hay contraseña actual, así que no se compara con ninguna -->
-                    <app-new-password-fields [form]="passwordForm" [compact]="true" leadingIcon="lock" [passwordError]="serverErrors().password ?? null" />
+                    <app-new-password-fields [form]="passwordForm" [compact]="true" [passwordError]="serverErrors().password ?? null" />
                 </div>
 
                 @if (errorMessage()) {
-                <p class="mt-4 text-xs text-error-500">{{ errorMessage() }}</p>
+                <p class="mt-4 text-xs text-bad-ink">{{ errorMessage() }}</p>
                 }
 
                 <div class="mt-5 md:mt-10 space-y-3">
                     <button type="submit"
-                        class="group w-full inline-flex items-center justify-center gap-2 shadow-theme-sm h-9 md:h-12 px-5 text-sm md:text-base font-semibold rounded-xl text-white bg-primary hover:bg-brand-600 focus:outline-0 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                        class="w-full h-9 md:h-12 mk-btn"
                         [disabled]="loading() || passwordForm.invalid">
                         @if (!loading()) {
                         <span>{{ 'AUTH.REGISTER.SUBMIT' | translate }}</span>
@@ -127,13 +115,9 @@
                             {{ 'AUTH.REGISTER.ACTIVATING' | translate }}
                         </span>
                         }
-                        <span
-                            class="material-symbols-rounded text-[18px] md:text-[20px] transition group-hover:translate-x-0.5">
-                            arrow_forward
-                        </span>
                     </button>
                     <button type="button" (click)="changeCode()" [disabled]="loading()"
-                        class="w-full text-xs text-gray-500 underline hover:text-primary disabled:opacity-60">
+                        class="w-full text-xs text-ink-muted underline enabled:hover:text-action disabled:cursor-not-allowed disabled:text-ink-faint">
                         {{ 'AUTH.REGISTER.CHANGE_KEY' | translate }}
                     </button>
                 </div>
@@ -143,14 +127,14 @@
             <!-- Divider -->
             <div class="mt-5 md:mt-10">
                 <div class="flex items-center gap-3">
-                    <span class="h-px w-full bg-gray-200 dark:bg-gray-700"></span>
-                    <span class="text-xs text-gray-500">{{ 'AUTH.LOGIN.INFO' | translate }}</span>
-                    <span class="h-px w-full bg-gray-200 dark:bg-gray-700"></span>
+                    <span class="h-px w-full bg-line"></span>
+                    <span class="text-xs text-ink-muted">{{ 'AUTH.LOGIN.INFO' | translate }}</span>
+                    <span class="h-px w-full bg-line"></span>
                 </div>
 
-                <p class="text-[11px] md:text-xs text-gray-500 mt-4 text-center md:text-left">
+                <p class="text-[11px] md:text-xs text-ink-muted mt-4 text-center md:text-left">
                     {{ 'AUTH.REGISTER.ALREADY_ACTIVATED' | translate }}
-                    <a routerLink="/signin" class="text-primary underline">{{ 'AUTH.LOGIN.TITLE' | translate }}</a>.
+                    <a routerLink="/signin" class="text-action underline">{{ 'AUTH.LOGIN.TITLE' | translate }}</a>.
                 </p>
             </div>
 

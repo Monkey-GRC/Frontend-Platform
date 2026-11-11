@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NavigationHistoryService } from '@core/domain/services/navigation-history.service';
-import { SETTINGS_GROUPS } from '../../../domain/models/settings-section';
+import { SETTINGS_GROUPS } from '@features/settings/domain/models/settings-section';
 import { SettingsShellView } from './settings-shell';
 
 describe('SettingsShellView (pantalla completa de Ajustes)', () => {

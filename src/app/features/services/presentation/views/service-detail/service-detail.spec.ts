@@ -2,13 +2,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { Observable, of, throwError } from 'rxjs';
-import { AuthService } from '@features/auth/domain/services/auth.service';
-import { RiskService } from '@features/compliance/domain/services/risk.service';
-import { RiskReadinessService } from '@features/compliance/domain/services/risk-readiness.service';
-import { RiskProgress } from '@features/compliance/domain/utils/risk-progress';
-import { TechnicalControlService } from '@features/technical-control/domain/services/technical-control.service';
+import { AuthService } from '@core/domain/services/auth.service';
+import { RiskService } from '@shared/domain/services/risk.service';
+import { RiskReadinessService } from '@shared/domain/services/risk-readiness.service';
+import { RiskProgress } from '@shared/domain/utils/risk-progress';
+import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { ServiceService } from '../../../domain/services/service.service';
+import { ServiceService } from '@shared/domain/services/service.service';
 import { ServiceDetailView } from './service-detail';
 
 // D89 · Antes de declarar los activos de un servicio se evalúan sus riesgos: el botón «Nueva conexión» queda cerrado y el aviso lleva a evaluarlos.
@@ -32,7 +32,7 @@ describe('ServiceDetailView — risks before assets (D89)', () => {
         { provide: RiskService, useValue: { listAllRisks: () => of([]), getRisk: () => of(), evaluate: () => of(), matrix: () => of({ min: 1, max: 5, cells: [] }), deactivateRisk: () => of() } },
         { provide: ServiceService, useValue: { get: () => of(SERVICE) } },
         { provide: TechnicalControlService, useValue: { state: () => of({ applicable_capabilities: [] }), listAssets: () => of({ items: [], total: 0 }) } },
-        { provide: CatalogService, useValue: { options: () => of([]) } },
+        { provide: CatalogService, useValue: { options: () => of([]), frameworks: () => of([{ code: 'soc2', name: 'SOC 2', description: '', label: 'SOC 2 (catalog)', availability: 'available' }]) } },
         { provide: AuthService, useValue: { validate: () => of(true) } },
         { provide: RiskReadinessService, useValue: { progress: () => risks } },
       ],
@@ -78,6 +78,11 @@ describe('ServiceDetailView — risks before assets (D89)', () => {
     expect(q('[data-new-connection-blocked]')).toBeNull();
     expect(q('[data-risk-gate]')).toBeNull();
     expect(q('a[href="/services/s1/connections/new"]')).not.toBeNull();
+  });
+
+  it('names the framework from the catalog instead of a fixed text', () => {
+    setup(of(progress(0)));
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-tag')!.textContent).toContain('SOC 2 (catalog)');
   });
 
   it('does not block when it cannot tell how the risks are', () => {

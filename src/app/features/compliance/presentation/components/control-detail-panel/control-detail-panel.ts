@@ -5,11 +5,14 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
-import { SidePanel } from '@shared/presentation/components/side-panel/side-panel';
-import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
-import { ControlDetail, ControlDimension, UpdateControlBody } from '../../../domain/models/control.models';
-import { ComplianceViewService } from '../../../domain/services/compliance-view.service';
-import { ControlService } from '../../../domain/services/control.service';
+import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import type { UserRole } from '@core/domain/models/auth.models';
+import { Tag } from '@shared/presentation/components/tag/tag';
+import { readinessLook } from '@shared/domain/utils/readiness-look';
+import { ControlDetail, ControlDimension, UpdateControlBody } from '@features/compliance/domain/models/control.models';
+import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
+import { ControlService } from '@features/compliance/domain/services/control.service';
 import { ControlEvidence } from '../control-evidence/control-evidence';
 import { DetailCard } from '../detail-card/detail-card';
 import { ControlTests } from '../control-tests/control-tests';
@@ -28,20 +31,21 @@ interface DimensionDraft {
 
 // Quién edita un control (compliance-controls.md → «Quién puede qué», D96): solo el administrador de la empresa, al instante. El responsable, el delegado y el auditor leen.
 // El backend lo vuelve a comprobar.
-const EDITING_ROLES: readonly string[] = ['admin_empresa'];
+const EDITING_ROLES: readonly UserRole[] = ['admin_empresa'];
 const INTERPRETATION_MAX = 4000;
 // Suben la evidencia el administrador de la empresa, el responsable (dueño) y el delegado (ejecutor), cada uno de lo suyo (D102); el auditor solo lee.
-const UPLOADING_ROLES: readonly string[] = ['admin_empresa', 'responsable', 'delegado'];
+const UPLOADING_ROLES: readonly UserRole[] = ['admin_empresa', 'responsable', 'delegado'];
 
 // El detalle de un control (MD-121), en un panel lateral. El administrador edita al instante y puede dar de baja (D96): el cambio se aplica y el avance se
 // recalcula. Los errores 422 se muestran bajo cada campo. El dueño y el ejecutor del control (D102) llegan con MD-202, cuando el Backend los exponga.
 @Component({
   selector: 'app-control-detail-panel',
-  imports: [FormsModule, TranslatePipe, SidePanel, StatusBadge, ConfirmDialog, ControlEvidence, ControlTests, DetailCard],
+  imports: [FormsModule, TranslatePipe, SideDrawer, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlTests, DetailCard],
   templateUrl: './control-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ControlDetailPanel {
+  protected readonly readinessLook = readinessLook;
   private readonly api = inject(ControlService);
   private readonly translate = inject(TranslateService);
   readonly view = inject(ComplianceViewService);
@@ -86,7 +90,7 @@ export class ControlDetailPanel {
 
   readonly canEdit = computed(() => {
     const role = this.view.role();
-    return role !== null && EDITING_ROLES.includes(role);
+    return role !== null && EDITING_ROLES.some((r) => r === role);
   });
 
   /** ¿La subida de evidencia va bajo las pruebas manuales? Solo si el detalle trae las pruebas y alguna es manual; si no, va aparte. */
@@ -97,7 +101,7 @@ export class ControlDetailPanel {
 
   readonly canUploadEvidence = computed(() => {
     const role = this.view.role();
-    return role !== null && UPLOADING_ROLES.includes(role);
+    return role !== null && UPLOADING_ROLES.some((r) => r === role);
   });
 
 

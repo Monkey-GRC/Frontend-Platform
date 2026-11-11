@@ -1,0 +1,77 @@
+<div data-test-members>
+  @if (notice(); as n) {
+  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status" data-test-members-notice><span>{{ n }}</span>
+  </div>
+  }
+  @if (error(); as e) {
+  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-members-error><span>{{ e }}</span>
+  </div>
+  }
+
+  @switch (stage()) {
+  @case ('loading') {
+  <p class="flex items-center gap-2 text-sm text-ink-muted" role="status">
+    <span class="material-symbols-rounded animate-spin text-[20px] text-action" aria-hidden="true">progress_activity</span>{{ 'COMMON.LOADING' | translate }}
+  </p>
+  }
+  @case ('error') {
+  <p class="text-sm text-bad" data-test-members-load-error>
+    {{ 'TEAM.GROUPS.MEMBERS_ERROR' | translate }}
+    <button type="button" (click)="load()" class="ml-2 font-semibold text-action underline">{{ 'COMMON.RETRY' | translate }}</button>
+  </p>
+  }
+  @default {
+  @if (members().length === 0) {
+  <p class="text-sm text-ink-muted" data-test-members-empty>{{ 'TEAM.GROUPS.MEMBERS_EMPTY' | translate }}</p>
+  } @else {
+  <app-data-table captionKey="TEAM.GROUPS.PEOPLE_TITLE" [compact]="true" [hideHeader]="true" [columns]="columns" [rows]="members()" [rowKey]="memberKey">
+    <ng-template appCell="person" let-m>
+      <div class="min-w-0 text-sm" [attr.data-test-person]="m.email">
+        <app-person-cell [name]="personName(m)" [initialsFrom]="personName(m)" [secondary]="personName(m) !== m.email ? m.email : null" />
+        <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pl-12 text-xs text-ink-muted">
+          <span>{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</span>
+          <app-status-indicator [tone]="m.status === 'active' ? 'ok' : m.status === 'pending' ? 'warn' : 'neutral'" [labelKey]="'TEAM.STATUS.' + m.status.toUpperCase()" />
+          @if (isDelegate(m) && m.is_internal !== null && m.is_internal !== undefined) {
+          <span>{{ (m.is_internal ? 'TEAM.INVITE.INTERNAL' : 'TEAM.INVITE.EXTERNAL') | translate }}</span>
+          }
+        </p>
+
+        @if (movingId() === m.id) {
+        <div class="mt-3 flex flex-wrap items-end gap-3">
+          <label class="flex flex-col gap-1 text-xs font-medium text-ink-faint">
+            {{ 'TEAM.GROUPS.MOVE_TO' | translate }}
+            <select data-test-move-target (change)="target.set(targetValue($event))" [disabled]="saving()" class="mk-input min-w-56">
+              <option value="" [selected]="!target()">{{ 'TEAM.GROUPS.MOVE_PICK' | translate }}</option>
+              @for (t of destinations(); track t.id) {
+              <option [value]="t.id" [selected]="target() === t.id">{{ 'TEAM.INVITE.TEAM_OPTION' | translate: { team: t.name, leader: leaderName(t) } }}</option>
+              }
+            </select>
+          </label>
+          <button type="button" (click)="move(m)" [disabled]="!target() || saving()" data-test-move-confirm class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.MOVE_SUBMIT' | translate }}</button>
+          <button type="button" (click)="cancelMove()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+        </div>
+        }
+      </div>
+    </ng-template>
+    <ng-template appCell="actions" let-m>
+      @if (canMove() && isDelegate(m) && m.status !== 'inactive' && movingId() !== m.id) {
+      @if (destinations().length > 0) {
+      <button type="button" (click)="startMove(m)" [disabled]="saving()" data-test-move class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.MOVE' | translate }}</button>
+      } @else {
+      <span class="text-xs text-ink-muted" data-test-no-destination>{{ 'TEAM.GROUPS.NO_DESTINATION' | translate }}</span>
+      }
+      }
+    </ng-template>
+  </app-data-table>
+  @if (hiddenCount() > 0) {
+  <p class="mt-2 text-xs text-ink-muted" data-test-members-more>{{ 'TEAM.GROUPS.MEMBERS_MORE' | translate: { shown: members().length, total: total() } }}</p>
+  }
+  }
+  }
+  }
+</div>
+
+@if (pending(); as p) {
+<app-confirm-dialog titleKey="TEAM.GROUPS.MOVE_CONFIRM_TITLE" [titleParams]="{ name: personName(p.member) }" messageKey="TEAM.GROUPS.MOVE_CONFIRM_BODY" [messageParams]="{ count: p.controls }"
+  tone="danger" confirmLabelKey="TEAM.GROUPS.MOVE_CONFIRM" [busy]="saving()" (confirmed)="confirmMove()" (cancelled)="cancelConfirm()" />
+}

@@ -3,7 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { Page, Responsible } from '../models/risk.models';
+import { unwrapData } from '@shared/domain/utils/unwrap-response';
+import { Page, Responsible } from '@shared/domain/models/risk.models';
 
 // Los cargos responsables de la organización (compliance-responsibles.md, MD-133): quien responde de un tratamiento de riesgo, de una evidencia o de un activo.
 // Es un cargo con el nombre de una persona, no un usuario con cuenta. Los ven todos los roles de la empresa; los gestiona el administrador.
@@ -18,12 +19,12 @@ export class ResponsibleService {
   }
 
   create(type: string, personName: string): Observable<Responsible> {
-    return this.http.post<SuccessResponse<Responsible>>(`${this.base}/responsibles`, { type, person_name: personName }).pipe(map((r) => r.data!));
+    return this.http.post<SuccessResponse<Responsible>>(`${this.base}/responsibles`, { type, person_name: personName }).pipe(unwrapData());
   }
 
   /** Cambia la persona del cargo; todo lo que apuntaba a él sigue apuntándole. El tipo no cambia. */
   rename(id: string, personName: string): Observable<Responsible> {
-    return this.http.patch<SuccessResponse<Responsible>>(`${this.base}/responsibles/${id}`, { person_name: personName }).pipe(map((r) => r.data!));
+    return this.http.patch<SuccessResponse<Responsible>>(`${this.base}/responsibles/${id}`, { person_name: personName }).pipe(unwrapData());
   }
 
   /** Quitar un cargo del que algo depende responde 409: primero se reasigna lo que apunta a él. */

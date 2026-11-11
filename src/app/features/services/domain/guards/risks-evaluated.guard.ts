@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
-import { RiskReadinessService } from '@features/compliance/domain/services/risk-readiness.service';
+import { RiskReadinessService } from '@shared/domain/services/risk-readiness.service';
 
 // D89 · No se declaran los activos de un servicio (conectar su nube, sus servidores…) hasta evaluar sus riesgos: la probabilidad y el impacto cambian de un servicio
 // a otro. Quien llega a una pantalla de conexión con riesgos pendientes (por un enlace guardado) va al detalle del servicio, que abre el asistente para evaluarlos.
