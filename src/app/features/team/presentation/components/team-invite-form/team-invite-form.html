@@ -1,101 +1,85 @@
-<form class="mk-card mt-4 p-4" (submit)="$event.preventDefault(); submit()" [attr.aria-label]="'TEAM.INVITE.TITLE' | translate">
-  <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ 'TEAM.INVITE.TITLE' | translate }}</h2>
-
+<!-- Va dentro del drawer de «Invitar» (el título lo pone el drawer). Una sola acción primaria: enviar. -->
+<form class="flex flex-col gap-4" (submit)="$event.preventDefault(); submit()" [attr.aria-label]="'TEAM.INVITE.TITLE' | translate">
   @if (error(); as e) {
-  <div class="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-error-600 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300" role="alert" data-test-form-error>
-    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">error</span><span>{{ e }}</span>
+  <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-form-error><span>{{ e }}</span>
   </div>
   }
 
-  <div class="mt-3 grid gap-3 md:grid-cols-2">
-    <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200 md:col-span-2">
-      {{ 'TEAM.INVITE.EMAIL' | translate }}
-      <input type="email" data-test-email maxlength="254" autocomplete="off" [value]="email()" (input)="setEmail($any($event.target).value)" [disabled]="saving()"
-        class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
-      @if (existing(); as e) {
-      <span class="text-xs font-normal text-amber-800 dark:text-amber-300" data-test-existing>
-        {{ 'TEAM.INVITE.ALREADY_IN_TEAM' | translate: { who: personName(e), role: ('TEAM.ROLE.' + e.role.toUpperCase() | translate) } }}
-        <button type="button" (click)="fixExisting()" data-test-fix-existing class="ml-1 font-semibold text-primary underline">{{ 'TEAM.INVITE.FIX_NAME' | translate }}</button>
-      </span>
-      } @else if (emailError(); as err) {
-      <span class="text-xs font-normal text-error-600" data-test-email-error>{{ err }}</span>
-      }
-    </label>
-    <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-      {{ 'TEAM.INVITE.NAME' | translate }}
-      <input type="text" data-test-name maxlength="100" autocomplete="off" [value]="name()" (input)="name.set($any($event.target).value)" [disabled]="saving()"
-        class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
-    </label>
-    <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-      {{ 'TEAM.INVITE.LAST_NAME' | translate }}
-      <input type="text" data-test-last-name maxlength="100" autocomplete="off" [value]="lastName()" (input)="lastName.set($any($event.target).value)" [disabled]="saving()"
-        class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
-    </label>
-    <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-      {{ 'TEAM.INVITE.ROLE' | translate }}
-      <select data-test-role (change)="setRole($any($event.target).value)" [disabled]="saving()"
-        class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-        @for (r of roleOptions(); track r) {
-        <option [value]="r" [selected]="role() === r">{{ ('TEAM.ROLE.' + r.toUpperCase()) | translate }}</option>
-        }
-      </select>
-    </label>
-
-    @if (role() === 'delegado') {
-    <fieldset class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-      <legend class="mb-1">{{ 'TEAM.INVITE.AFFILIATION' | translate }}</legend>
-      <div class="flex h-9 items-center gap-4">
-        <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-normal text-gray-800 dark:text-gray-100">
-          <input type="radio" name="affiliation" data-test-internal [checked]="isInternal() === true" (change)="isInternal.set(true)" [disabled]="saving()" class="accent-primary" />{{ 'TEAM.INVITE.INTERNAL' | translate }}
-        </label>
-        <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-normal text-gray-800 dark:text-gray-100">
-          <input type="radio" name="affiliation" data-test-external [checked]="isInternal() === false" (change)="isInternal.set(false)" [disabled]="saving()" class="accent-primary" />{{ 'TEAM.INVITE.EXTERNAL' | translate }}
-        </label>
-      </div>
-    </fieldset>
+  <app-field labelKey="TEAM.INVITE.EMAIL" forId="invite-email">
+    <input id="invite-email" type="email" data-test-email maxlength="254" autocomplete="off" [value]="email()" (input)="setEmail(targetValue($event))" [disabled]="saving()" class="mk-input" />
+    @if (existing(); as e) {
+    <p class="mt-1.5 text-xs text-ink-muted" data-test-existing>
+      {{ 'TEAM.INVITE.ALREADY_IN_TEAM' | translate: { who: personName(e), role: ('TEAM.ROLE.' + e.role.toUpperCase() | translate) } }}
+      <button type="button" (click)="fixExisting()" data-test-fix-existing class="ml-1 font-medium text-action underline">{{ 'TEAM.INVITE.FIX_NAME' | translate }}</button>
+    </p>
+    } @else if (emailError(); as err) {
+    <p class="mt-1.5 text-xs text-bad" data-test-email-error>{{ err }}</p>
     }
+  </app-field>
 
-    @if (showTeamPick()) {
-    <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-      {{ 'TEAM.INVITE.TEAM_LABEL' | translate }}
-      <select data-test-team (change)="groupId.set($any($event.target).value)" [disabled]="saving()"
-        class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-        <option value="" [selected]="!groupId()">{{ 'TEAM.INVITE.TEAM_PICK' | translate }}</option>
-        @for (g of teams(); track g.id) {
-        <option [value]="g.id" [selected]="groupId() === g.id">{{ 'TEAM.INVITE.TEAM_OPTION' | translate: { team: g.name, leader: leaderName(g) } }}</option>
-        }
-      </select>
-    </label>
-    }
-
-    @if (showResponsablesGroup()) {
-    <label class="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-      {{ 'TEAM.INVITE.RESPONSABLES_GROUP' | translate }}
-      <select data-test-responsables-group (change)="groupId.set($any($event.target).value)" [disabled]="saving()"
-        class="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-        <option value="" [selected]="!groupId()">{{ 'TEAM.INVITE.RESPONSABLES_GROUP_DEFAULT' | translate }}</option>
-        @for (g of responsablesGroupOptions(); track g.id) {
-        <option [value]="g.id" [selected]="groupId() === g.id">{{ g.name }}</option>
-        }
-      </select>
-    </label>
-    }
-
-    <div class="flex items-end md:col-start-2">
-      <button type="submit" [disabled]="!canSubmit()" data-test-invite
-        class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50">
-        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">person_add</span>{{ 'TEAM.INVITE.SUBMIT' | translate }}
-      </button>
-    </div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <app-field labelKey="TEAM.INVITE.NAME" forId="invite-name">
+      <input id="invite-name" type="text" data-test-name maxlength="100" autocomplete="off" [value]="name()" (input)="name.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+    </app-field>
+    <app-field labelKey="TEAM.INVITE.LAST_NAME" forId="invite-last-name">
+      <input id="invite-last-name" type="text" data-test-last-name maxlength="100" autocomplete="off" [value]="lastName()" (input)="lastName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+    </app-field>
   </div>
 
-  @if (role() === 'delegado' && noTeam()) {
-  <p class="mt-3 flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300" data-test-no-team>
-    <span class="material-symbols-rounded text-[16px]" aria-hidden="true">info</span>
-    <span>{{ (actor() === 'admin_empresa' ? 'TEAM.INVITE.NO_TEAMS_ADMIN' : 'TEAM.INVITE.NO_TEAM_OWN') | translate }}
-      <button type="button" (click)="manageGroups.emit()" data-test-go-groups class="ml-1 font-semibold text-primary underline">{{ 'TEAM.INVITE.GO_TO_GROUPS' | translate }}</button></span>
+  <app-field labelKey="TEAM.INVITE.ROLE" forId="invite-role">
+    <select id="invite-role" data-test-role (change)="setRole(targetValue($event))" [disabled]="saving()" class="mk-input">
+      @for (r of roleOptions(); track r) {
+      <option [value]="r" [selected]="role() === r">{{ ('TEAM.ROLE.' + r.toUpperCase()) | translate }}</option>
+      }
+    </select>
+  </app-field>
+
+  @if (isDelegateRole()) {
+  <fieldset>
+    <legend class="mb-1.5 text-xs font-medium text-ink-faint">{{ 'TEAM.INVITE.AFFILIATION' | translate }}</legend>
+    <div class="flex items-center gap-6">
+      <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-ink">
+        <input type="radio" name="affiliation" data-test-internal [checked]="isInternal() === true" (change)="isInternal.set(true)" [disabled]="saving()" class="accent-action" />{{ 'TEAM.INVITE.INTERNAL' | translate }}
+      </label>
+      <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-ink">
+        <input type="radio" name="affiliation" data-test-external [checked]="isInternal() === false" (change)="isInternal.set(false)" [disabled]="saving()" class="accent-action" />{{ 'TEAM.INVITE.EXTERNAL' | translate }}
+      </label>
+    </div>
+  </fieldset>
+  }
+
+  @if (showTeamPick()) {
+  <app-field labelKey="TEAM.INVITE.TEAM_LABEL" forId="invite-team">
+    <select id="invite-team" data-test-team (change)="groupId.set(targetValue($event))" [disabled]="saving()" class="mk-input">
+      <option value="" [selected]="!groupId()">{{ 'TEAM.INVITE.TEAM_PICK' | translate }}</option>
+      @for (g of teams(); track g.id) {
+      <option [value]="g.id" [selected]="groupId() === g.id">{{ 'TEAM.INVITE.TEAM_OPTION' | translate: { team: g.name, leader: leaderName(g) } }}</option>
+      }
+    </select>
+  </app-field>
+  }
+
+  @if (showResponsablesGroup()) {
+  <app-field labelKey="TEAM.INVITE.RESPONSABLES_GROUP" forId="invite-responsables-group">
+    <select id="invite-responsables-group" data-test-responsables-group (change)="groupId.set(targetValue($event))" [disabled]="saving()" class="mk-input">
+      <option value="" [selected]="!groupId()">{{ 'TEAM.INVITE.RESPONSABLES_GROUP_DEFAULT' | translate }}</option>
+      @for (g of responsablesGroupOptions(); track g.id) {
+      <option [value]="g.id" [selected]="groupId() === g.id">{{ g.name }}</option>
+      }
+    </select>
+  </app-field>
+  }
+
+  @if (isDelegateRole() && noTeam()) {
+  <p class="flex items-start gap-2 text-xs text-ink-muted" data-test-no-team>
+    <span>{{ (isAdminActor() ? 'TEAM.INVITE.NO_TEAMS_ADMIN' : 'TEAM.INVITE.NO_TEAM_OWN') | translate }}
+      <button type="button" (click)="manageGroups.emit()" data-test-go-groups class="ml-1 font-medium text-action underline">{{ 'TEAM.INVITE.GO_TO_GROUPS' | translate }}</button></span>
   </p>
   } @else {
-  <p class="mt-3 text-xs text-gray-600 dark:text-gray-300" data-test-role-help>{{ ('TEAM.INVITE.HELP_' + role().toUpperCase()) | translate }}</p>
+  <p class="text-xs text-ink-muted" data-test-role-help>{{ ('TEAM.INVITE.HELP_' + role().toUpperCase()) | translate }}</p>
   }
+
+  <div class="flex justify-end border-t border-line pt-4">
+    <button type="submit" [disabled]="!canSubmit()" data-test-invite class="mk-btn">{{ 'TEAM.INVITE.SUBMIT' | translate }}</button>
+  </div>
 </form>

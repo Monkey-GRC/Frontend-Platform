@@ -14,15 +14,15 @@ interface ServiceRef {
   name: string;
 }
 interface OverviewDto {
-  frameworks: Array<{
+  frameworks: {
     framework_code: string;
     name: string;
     readiness: string;
     progress: { done: number; total: number };
     coverage: { measured: number; applicable: number };
-    categories: Array<{ failing_controls: Array<{ control_id: string; code: string; name: string }> }>;
+    categories: { failing_controls: { control_id: string; code: string; name: string }[] }[];
     technical?: { state: string };
-  }>;
+  }[];
 }
 
 // Junta, con los endpoints que ya existen, lo que el Inicio necesita: los servicios de la empresa y, de cada uno, sus activos, riesgos, causas y su resumen de cumplimiento.

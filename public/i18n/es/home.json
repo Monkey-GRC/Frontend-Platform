@@ -5,12 +5,10 @@
       "AUDITOR_BODY": "Revisa el cumplimiento de la empresa en solo lectura: controles, pruebas, evidencias y riesgos.",
       "AUDITOR_CTA": "Ver el cumplimiento"
     },
-    "GREETING": "{{name}}, tu cuenta está activa.",
     "START": "Comenzar",
     "STEP_FIRST": "Primer paso",
     "COMPANY_TITLE": "Contexto organizacional",
     "COMPANY_BODY": "Declara los datos de la organización: sector, tamaño, alcance geográfico y normas aplicables.",
-    "CATALOG_READY": "El catálogo de controles del servicio está generado.",
     "DASHBOARD": {
       "LOAD_ERROR": "No se pudo cargar el resumen de tu empresa.",
       "NO_SERVICES_TITLE": "Aún no has creado ningún servicio",
@@ -21,19 +19,51 @@
       "ASSETS": "Activos",
       "FRAMEWORKS": "Marcos contratados",
       "RISKS_EVALUATED": "{{evaluated}} evaluados",
-      "STATUS_TITLE": "Cómo va cada servicio",
-      "STATUS_INTRO": "El cumplimiento se mide por servicio y por marco: no existe una nota única para toda la empresa.",
-      "SERVICE_COUNTS": "{{assets}} activos · {{controls}} controles · {{risks}} riesgos · {{causes}} causas",
-      "SEE_COMPLIANCE": "Ver cumplimiento",
+      "STATUS_TITLE": "Cumplimiento por servicio",
       "NO_FRAMEWORK": "Este servicio aún no tiene un marco contratado.",
       "PROGRESS": "Avance {{percent}}",
       "COVERAGE": "cobertura {{percent}}",
       "NOT_MEASURED": "Aún sin resultados",
       "ATTENTION_TITLE": "Lo que requiere atención",
       "ATTENTION_EMPTY": "Ningún control incumple por ahora.",
-      "ATTENTION_MORE": "Y {{count}} más en Cumplimiento."
+      "HINT": {
+        "SERVICES": "Tu cumplimiento se mide en cada uno",
+        "SUMMED": "Suma de todos tus servicios",
+        "FRAMEWORKS": "Normas que aplican a tus servicios"
+      },
+      "SEE_DETAILS": "Detalles completos",
+      "ATTENTION_CAPTION": "Controles que no cumplen",
+      "ATTENTION_COL": {
+        "CODE": "Código",
+        "CONTROL": "Control",
+        "SERVICE": "Servicio"
+      }
     },
-    "WELCOME": "Hola, {{name}}",
-    "WELCOME_SUB": "Así va tu empresa hoy."
+    "TEAM": {
+      "TITLE": "Tu equipo",
+      "LOAD_ERROR": "No se pudo cargar tu equipo.",
+      "EMPTY_TITLE": "Aún no hay personas en tu equipo",
+      "EMPTY_BODY": "Cuando invites a alguien, verás aquí cuántas personas hay por rol.",
+      "TOTAL": "Personas",
+      "BAR_LABEL": "Reparto de las personas del equipo por rol",
+      "ACTIVE": "Con cuenta activa",
+      "SEE": "Ver equipo",
+      "PARTIAL": "Resumen parcial: solo se cuentan las primeras {{count}} personas."
+    },
+    "ACCESS": {
+      "TITLE": "Acceso y seguridad de cuentas",
+      "LOAD_ERROR": "No se pudo cargar el estado de las cuentas.",
+      "EMPTY_TITLE": "Sin cuentas que revisar",
+      "EMPTY_BODY": "Cuando haya personas en el equipo, verás aquí el estado de su acceso.",
+      "NO_SECOND_FACTOR": "Sin segundo factor",
+      "ALL_PROTECTED": "Todo al día",
+      "NEEDS_REVIEW": "Requiere revisión",
+      "NO_RECENT_LOGIN": "Sin ingreso reciente",
+      "BLOCKED": "Suspendidas o desactivadas",
+      "NO_ACCESS": "Sin acceso",
+      "ACTIVE_ADMINS": "Administradores activos",
+      "PENDING": "Invitaciones pendientes",
+      "SEE": "Revisar en el equipo"
+    }
   }
 }

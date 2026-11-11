@@ -2,9 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
-import { Group } from '../../../domain/models/group.models';
-import { InvitedMember, TeamMember } from '../../../domain/models/team.models';
-import { TeamService } from '../../../domain/services/team.service';
+import { Group } from '@features/team/domain/models/group.models';
+import { InvitedMember, TeamMember } from '@shared/domain/models/team.models';
+import { TeamService } from '@shared/domain/services/team.service';
 import { InviteActor, TeamInviteForm } from './team-invite-form';
 
 const group = (over: Partial<Group>): Group => ({ id: 'g1', name: 'Grupo', kind: 'team', leader: { id: 'r1', name: 'María', last_name: 'Gómez', role: 'responsable' }, members_count: 0, ...over });

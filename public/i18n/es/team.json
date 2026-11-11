@@ -4,9 +4,8 @@
     "INTRO": "Crea a tu equipo y gestiona quién tiene acceso. A cada persona le llega una invitación por correo para activar su cuenta.",
     "INTRO_OWN": "Aquí ves a tu equipo de delegados y puedes sumar a más personas. A cada una le llega una invitación por correo para activar su cuenta.",
     "YOU": "Tú",
-    "NO_NAME": "Sin nombre: corrígelo para identificarla.",
+    "NO_NAME": "Sin nombre: corrígelo",
     "LOAD_ERROR": "No pudimos cargar el equipo.",
-    "TABS": { "PEOPLE": "Personas", "GROUPS": "Grupos", "GROUPS_OWN": "Mi equipo" },
     "TABLE_CAPTION": "Personas del equipo",
     "EMPTY_TITLE": "Aún no hay personas en el equipo",
     "EMPTY_BODY": "Cuando agregues a alguien, aparecerá aquí.",
@@ -18,7 +17,7 @@
       "STATUS": "Estado",
       "GROUP": "Grupo",
       "LAST_LOGIN": "Último ingreso",
-      "ACTIONS": "Acciones"
+      "AFFILIATION": "Interno o externo"
     },
     "FILTERS": {
       "TITLE": "Filtros del equipo",
@@ -38,10 +37,6 @@
       "INTRO_OWN": "Tu equipo de delegados. Mientras no lo crees, trabajas solo; un delegado necesita un equipo.",
       "KIND_RESPONSABLES": "Grupo de responsables",
       "KIND_TEAM": "Equipo de delegados",
-      "LEADER": "Líder: {{name}}",
-      "MEMBERS": "Personas: {{count}}",
-      "SHOW_MEMBERS": "Ver personas",
-      "HIDE_MEMBERS": "Ocultar personas",
       "RENAME": "Renombrar",
       "NAME_LABEL": "Nombre del grupo",
       "SUBMIT": "Crear grupo",
@@ -76,10 +71,34 @@
       },
       "ERROR": {
         "MOVE_TARGET": "No pudimos mover a la persona: el equipo de destino no existe o su responsable ya no está activo."
+      },
+      "TITLE": "Grupos",
+      "TITLE_OWN": "Mi equipo",
+      "NEW": "Crear grupo",
+      "SEARCH": "Buscar por grupo o líder",
+      "TABLE_CAPTION": "Grupos de la empresa",
+      "EMPTY_FILTERED_TITLE": "Ningún grupo coincide",
+      "DETAIL_TITLE": "Detalle del grupo",
+      "PEOPLE_TITLE": "Personas del grupo",
+      "COLUMNS": {
+        "NAME": "Grupo",
+        "KIND": "Tipo",
+        "LEADER": "Líder",
+        "MEMBERS": "Personas"
       }
     },
-    "ROLE": { "ADMIN_EMPRESA": "Administrador", "RESPONSABLE": "Responsable", "DELEGADO": "Delegado", "AUDITOR": "Auditor" },
-    "STATUS": { "ACTIVE": "Activa", "PENDING": "Invitación pendiente", "INACTIVE": "Desactivada", "SUSPENDED": "Suspendida" },
+    "ROLE": {
+      "ADMIN_EMPRESA": "Administrador",
+      "RESPONSABLE": "Responsable",
+      "DELEGADO": "Delegado",
+      "AUDITOR": "Auditor"
+    },
+    "STATUS": {
+      "ACTIVE": "Activa",
+      "PENDING": "Pendiente",
+      "INACTIVE": "Desactivada",
+      "SUSPENDED": "Suspendida"
+    },
     "INVITE": {
       "TITLE": "Invitar a una persona",
       "EMAIL": "Correo",
@@ -90,6 +109,7 @@
       "FIX_NAME": "Corregir su nombre",
       "ROLE": "Rol",
       "SUBMIT": "Invitar",
+      "OPEN": "Invitar",
       "AFFILIATION": "Vínculo con la compañía",
       "INTERNAL": "Interno",
       "EXTERNAL": "Externo",
@@ -140,6 +160,18 @@
       "USER_LIMIT": "Llegaste al máximo de usuarios contratados. Contacta a Monkey.",
       "USER_LIMIT_COUNTS": "Llegaste al máximo de usuarios contratados ({{count}} de {{max}}). Contacta a Monkey.",
       "NO_TEAM": "Este responsable aún no tiene un equipo de delegados. Primero hay que crear su equipo."
+    },
+    "PEOPLE": {
+      "TITLE": "Personas"
+    },
+    "DETAIL": {
+      "TITLE": "Detalle de la persona",
+      "EMAIL": "Correo",
+      "RESPONSIBLE": "Responsable",
+      "MFA": "Segundo factor",
+      "YES": "Sí",
+      "NO": "No",
+      "CREATED": "Creación"
     }
   }
 }

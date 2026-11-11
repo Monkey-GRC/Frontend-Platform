@@ -2,9 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
-import { Group } from '../../../domain/models/group.models';
-import { TeamMember, TeamPage } from '../../../domain/models/team.models';
-import { TeamService } from '../../../domain/services/team.service';
+import { Group } from '@features/team/domain/models/group.models';
+import { TeamMember, TeamPage } from '@shared/domain/models/team.models';
+import { TeamService } from '@shared/domain/services/team.service';
 import { GroupMembers } from './group-members';
 
 const leader = (id: string, name: string) => ({ id, name, last_name: 'Gómez', role: 'responsable' });
@@ -40,7 +40,7 @@ describe('GroupMembers (MD-198, D102)', () => {
 
   const el = () => fixture.nativeElement as HTMLElement;
   const q = <T extends HTMLElement>(selector: string) => el().querySelector<T>(selector)!;
-  const person = (email: string) => q(`[data-test-person="${email}"]`);
+  const person = (email: string) => q(`[data-test-person="${email}"]`).closest('tr') as HTMLElement;
   const click = (target: string | HTMLElement) => {
     (typeof target === 'string' ? q<HTMLElement>(target) : target).click();
     fixture.detectChanges();

@@ -1,48 +1,60 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { SessionService } from '@core/domain/services/session.service';
-import { PageInfo } from '@shared/domain/utils/pagination';
+import { PageInfo } from '@shared/presentation/components/data-table/table-page';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
+import { TableFilter, TableFilterOption } from '@shared/presentation/components/table-filter/table-filter';
+import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
+import { Field } from '@shared/presentation/components/field/field';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
-import { Group } from '../../../domain/models/group.models';
-import { Invitation, InvitedMember, TeamFilters, TeamMember, TeamRole, TeamStatus } from '../../../domain/models/team.models';
-import { GroupService } from '../../../domain/services/group.service';
-import { TeamService } from '../../../domain/services/team.service';
+import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
+import { Group } from '@features/team/domain/models/group.models';
+import { Invitation, InvitedMember, TeamFilters, TeamMember, TeamRole, TeamStatus } from '@shared/domain/models/team.models';
+import { GroupService } from '@features/team/domain/services/group.service';
+import { TeamService } from '@shared/domain/services/team.service';
 import { InviteActor, TeamInviteForm } from '../../components/team-invite-form/team-invite-form';
-import { TeamGroups } from '../../components/team-groups/team-groups';
+import { isCompanyAdmin } from '@shared/domain/utils/roles';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 type Stage = 'loading' | 'error' | 'ready';
-type Tab = 'people' | 'groups';
-type Pending = { kind: 'deactivate' | 'reset_mfa'; member: TeamMember };
+interface Pending { kind: 'deactivate' | 'reset_mfa'; member: TeamMember }
 type Affiliation = '' | 'internal' | 'external';
 
 // La última invitación mandada: se queda a la vista hasta que se cierra. Si el correo falló (`failed`) la cuenta existe y se ofrece reenviarla. El código nunca llega aquí:
 // el Backend lo manda por correo a la persona (MD-190) y la respuesta solo dice si salió.
-type SentInvitation = { id: string; email: string; status: 'sent' | 'failed'; expiresAt: string };
+interface SentInvitation { id: string; email: string; status: 'sent' | 'failed'; expiresAt: string }
 
 const PAGE_SIZE = 25;
 
 // Los valores de `user_role` y `user_status` (contracts/enums); sus etiquetas salen de i18n. No hay catálogo en la API para estos dos enums. El filtro de estado del Backend
 // hoy acepta `active`, `inactive` y `pending` (no `suspended`).
+const ADMIN_ROLE: TeamRole = 'admin_empresa';
 const ROLE_FILTERS: readonly TeamRole[] = ['admin_empresa', 'responsable', 'delegado', 'auditor'];
 const STATUS_FILTERS: readonly TeamStatus[] = ['active', 'pending', 'inactive'];
 
 // El equipo de la empresa (MD-197, D96, D102, D104). El administrador crea y gestiona a todos (responsables, delegados, auditores y otros administradores); el responsable ve a su equipo y
 // crea delegados para él. La invitación sale por correo (MD-190) y esta pantalla solo informa el resultado. Se retiraron el reparto por servicio y dimensión y las especialidades (MD-206).
-// Los grupos (crear, renombrar, ver sus personas y mover delegados, MD-198) viven en su pestaña, en `TeamGroups`.
+// Personas es una subpágina del grupo Equipo (`/equipo/personas`); los grupos (MD-198) tienen la suya (`/equipo/grupos`, `TeamGroupsView`). La lista es una tabla de filas activables: la fila (o su
+// flecha) abre un panel lateral de solo lectura con los datos que ya trae la lista y las acciones que ya existen (no hay endpoint de detalle de persona).
 // Falta (espera al Backend): la baja con aviso de controles asignados y corregir si un delegado es interno o externo (ambos en MD-191, aún fuera de develop).
 @Component({
-  selector: 'app-team',
-  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DatePipe, DataTable, TableCell, TeamInviteForm, TeamGroups],
-  templateUrl: './team.html',
+  selector: 'app-team-people',
+  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DatePipe, DataTable, TableCell, TeamInviteForm, EmptyState, Field, SideDrawer, StatusIndicator, PersonCell, TableToolbar, TableFilter],
+  templateUrl: './team-people.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TeamView implements OnInit {
+export class TeamPeopleView implements OnInit {
+  protected readonly targetValue = targetValue;
+  private readonly router = inject(Router);
   private readonly api = inject(TeamService);
   private readonly groupApi = inject(GroupService);
   private readonly translate = inject(TranslateService);
@@ -50,14 +62,24 @@ export class TeamView implements OnInit {
   readonly myId = computed(() => this.session.user()?.id);
 
   /** Solo el administrador cambia a las personas del equipo (la API responde 403 al resto); el responsable ve a su equipo y crea delegados. */
-  readonly canManage = computed(() => this.session.user()?.role === 'admin_empresa');
+  readonly canManage = computed(() => isCompanyAdmin(this.session.user()?.role));
   readonly actor = computed<InviteActor>(() => (this.canManage() ? 'admin_empresa' : 'responsable'));
 
-  readonly roleFilters = ROLE_FILTERS;
-  readonly statusFilters = STATUS_FILTERS;
+  readonly roleOptions: TableFilterOption[] = ROLE_FILTERS.map((r) => ({ value: r, labelKey: 'TEAM.ROLE.' + r.toUpperCase() }));
+  readonly statusOptions: TableFilterOption[] = STATUS_FILTERS.map((s) => ({ value: s, labelKey: 'TEAM.STATUS.' + s.toUpperCase() }));
+  readonly affiliationOptions: TableFilterOption[] = [
+    { value: 'internal', labelKey: 'TEAM.INVITE.INTERNAL' },
+    { value: 'external', labelKey: 'TEAM.INVITE.EXTERNAL' },
+  ];
+  readonly groupOptions = computed<TableFilterOption[]>(() => this.groups().map((g) => ({ value: g.id, label: g.name })));
 
   readonly stage = signal<Stage>('loading');
-  readonly tab = signal<Tab>('people');
+  /** El formulario de invitación vive en un drawer que abre «Invitar». */
+  readonly inviteOpen = signal(false);
+  private readonly inviteForm = viewChild(TeamInviteForm);
+  /** Con datos escritos sin enviar, Esc y el fondo no descartan el formulario (el botón de cerrar sí); mientras se envía, nada lo cierra. */
+  readonly inviteDirty = computed(() => this.inviteForm()?.dirty() ?? false);
+  readonly inviteSaving = computed(() => this.inviteForm()?.saving() ?? false);
   readonly loadingPage = signal(false);
   readonly members = signal<TeamMember[]>([]);
   readonly groups = signal<Group[]>([]);
@@ -89,13 +111,18 @@ export class TeamView implements OnInit {
   // Confirmaciones (desactivar, quitar el segundo factor)
   readonly confirming = signal<Pending | null>(null);
 
+  /** La persona cuyo detalle está abierto (por su id: si la lista se vuelve a pedir, el panel muestra los datos nuevos). */
+  readonly detailId = signal<string | null>(null);
+  readonly detail = computed(() => this.members().find((m) => m.id === this.detailId()) ?? null);
+
+  /** «Interno o externo» solo existe para un delegado: la columna aparece si la página trae alguno. */
   readonly columns = computed<TableColumn<TeamMember>[]>(() => [
     { key: 'person', headerKey: 'TEAM.COLUMNS.PERSON' },
     { key: 'role', headerKey: 'TEAM.COLUMNS.ROLE' },
     { key: 'status', headerKey: 'TEAM.COLUMNS.STATUS' },
     { key: 'group', headerKey: 'TEAM.COLUMNS.GROUP' },
+    ...(this.members().some((m) => m.is_internal !== null && m.is_internal !== undefined) ? [{ key: 'affiliation', headerKey: 'TEAM.COLUMNS.AFFILIATION' }] : []),
     { key: 'lastLogin', headerKey: 'TEAM.COLUMNS.LAST_LOGIN' },
-    ...(this.canManage() ? [{ key: 'actions', headerKey: 'TEAM.COLUMNS.ACTIONS', align: 'right' as const, srOnlyHeader: true }] : []),
   ]);
   readonly rowKey = (m: TeamMember) => m.id;
 
@@ -155,6 +182,11 @@ export class TeamView implements OnInit {
     };
   }
 
+  /** An active person with a second factor can have it reset, except the company admin (it is not reset from here). */
+  canResetMfa(m: TeamMember): boolean {
+    return !!m.is_mfa_enabled && m.role !== ADMIN_ROLE;
+  }
+
   isMe(m: TeamMember): boolean {
     return m.id === this.myId();
   }
@@ -189,9 +221,43 @@ export class TeamView implements OnInit {
     this.load();
   }
 
+  /** Tono del estado de una persona: activa (ok), invitación pendiente (aviso), el resto (neutro). */
+  statusTone(status: string): StatusTone {
+    return status === 'active' ? 'ok' : status === 'pending' ? 'warn' : 'neutral';
+  }
+
   // ─── invitar ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  /** El alta ya se hizo: se informa si el correo salió y se vuelve a pedir la lista. */
+  openInvite(): void {
+    this.inviteOpen.set(true);
+  }
+
+  /** El correo ya es de alguien del equipo: se cierra el drawer y se corrige su nombre en el detalle de esa persona. */
+  onFixName(member: TeamMember): void {
+    this.inviteOpen.set(false);
+    this.detailId.set(member.id);
+    this.startNameEdit(member);
+  }
+
+  openDetail(member: TeamMember): void {
+    this.resetMessages();
+    this.nameEditing.set(null);
+    this.detailId.set(member.id);
+  }
+
+  closeDetail(): void {
+    this.detailId.set(null);
+    this.nameEditing.set(null);
+  }
+
+  /** Un delegado necesita un equipo que aún no existe: se cierra el drawer y se va a la página de grupos. */
+  onManageGroups(): void {
+    this.inviteOpen.set(false);
+    void this.router.navigate(['/equipo/grupos']);
+  }
+
+  /** El alta ya se hizo: se cierra el drawer, se informa si el correo salió y se vuelve a pedir la lista. */
   onInvited(created: InvitedMember): void {
+    this.inviteOpen.set(false);
     this.resetMessages();
     this.showInvitation(created.id, created.email, created.invitation);
     this.notice.set(this.translate.instant('TEAM.NOTICE.INVITED'));

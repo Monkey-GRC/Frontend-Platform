@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Field } from '@shared/presentation/components/field/field';
 import { apiErrorCode, apiErrorData, apiErrorMessage } from '@core/domain/utils/api-error';
-import { Group } from '../../../domain/models/group.models';
-import { InviteDto, InvitedMember, TeamActor, TeamMember, TeamRole } from '../../../domain/models/team.models';
-import { TeamService } from '../../../domain/services/team.service';
+import { Group } from '@features/team/domain/models/group.models';
+import { InviteDto, InvitedMember, TeamActor, TeamMember, TeamRole } from '@shared/domain/models/team.models';
+import { TeamService } from '@shared/domain/services/team.service';
+import { isCompanyAdmin } from '@shared/domain/utils/roles';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 export type InviteActor = TeamActor;
 
@@ -18,11 +21,12 @@ const CREATABLE: Record<InviteActor, readonly TeamRole[]> = {
 // aquí solo se avisa si el correo salió. Un delegado necesita un equipo (D104): el administrador elige el de un responsable; el responsable usa el suyo.
 @Component({
   selector: 'app-team-invite-form',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Field],
   templateUrl: './team-invite-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeamInviteForm {
+  protected readonly targetValue = targetValue;
   private readonly api = inject(TeamService);
   private readonly translate = inject(TranslateService);
 
@@ -52,7 +56,13 @@ export class TeamInviteForm {
   readonly emailError = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
+  /** Hay algo escrito o elegido sin enviar: quien aloja el formulario no debe descartarlo con Esc ni con un clic fuera. */
+  readonly dirty = computed(
+    () => !!(this.email().trim() || this.name().trim() || this.lastName().trim() || this.chosenRole() || this.isInternal() !== null || this.groupId()),
+  );
+
   readonly roleOptions = computed(() => CREATABLE[this.actor()]);
+  readonly isAdminActor = computed(() => isCompanyAdmin(this.actor()));
   readonly role = computed<TeamRole>(() => {
     const chosen = this.chosenRole();
     return chosen && this.roleOptions().includes(chosen) ? chosen : this.roleOptions()[0];
@@ -61,10 +71,11 @@ export class TeamInviteForm {
   readonly teams = computed(() => this.groups().filter((g) => g.kind === 'team'));
   private readonly responsablesGroups = computed(() => this.groups().filter((g) => g.kind === 'responsables'));
   /** El grupo de responsables solo se pregunta cuando hay más de uno: con uno solo, el de siempre («Responsables»), no hay nada que elegir. */
-  readonly showResponsablesGroup = computed(() => this.actor() === 'admin_empresa' && this.role() === 'responsable' && this.responsablesGroups().length > 1);
+  readonly showResponsablesGroup = computed(() => isCompanyAdmin(this.actor()) && this.role() === 'responsable' && this.responsablesGroups().length > 1);
   readonly responsablesGroupOptions = this.responsablesGroups;
-  readonly showTeamPick = computed(() => this.actor() === 'admin_empresa' && this.role() === 'delegado' && this.teams().length > 0);
+  readonly showTeamPick = computed(() => isCompanyAdmin(this.actor()) && this.role() === 'delegado' && this.teams().length > 0);
   /** Un delegado no existe sin equipo (D104): sin equipo al que añadirlo, no se puede crear. */
+  readonly isDelegateRole = computed(() => this.role() === 'delegado');
   readonly noTeam = computed(() => this.groupsLoaded() && this.role() === 'delegado' && this.teams().length === 0);
 
   /** El correo identifica a la persona: si ya está en el equipo se avisa antes de intentar crear nada. Si es de otra empresa, lo dice el servidor al enviar (409). */
@@ -109,7 +120,7 @@ export class TeamInviteForm {
     const body: InviteDto = { email: this.email().trim(), name: this.name().trim(), last_name: this.lastName().trim(), role };
     if (role === 'delegado') {
       body.is_internal = this.isInternal() as boolean;
-      if (this.actor() === 'admin_empresa') body.group_id = this.groupId();
+      if (isCompanyAdmin(this.actor())) body.group_id = this.groupId();
     } else if (this.showResponsablesGroup() && this.groupId()) {
       body.group_id = this.groupId();
     }

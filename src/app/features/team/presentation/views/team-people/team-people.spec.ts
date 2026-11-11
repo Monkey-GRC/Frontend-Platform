@@ -1,13 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { Group } from '../../../domain/models/group.models';
-import { InvitedMember, TeamMember, TeamPage } from '../../../domain/models/team.models';
-import { GroupService } from '../../../domain/services/group.service';
-import { TeamService } from '../../../domain/services/team.service';
-import { TeamView } from './team';
+import { Group } from '@features/team/domain/models/group.models';
+import { InvitedMember, TeamMember, TeamPage } from '@shared/domain/models/team.models';
+import { GroupService } from '@features/team/domain/services/group.service';
+import { TeamService } from '@shared/domain/services/team.service';
+import { TeamPeopleView } from './team-people';
 
 const member = (over: Partial<TeamMember>): TeamMember => ({
   id: 'u0', email: 'x@acme.co', name: 'Persona', last_name: 'Prueba', role: 'responsable', status: 'active', is_mfa_enabled: true, last_login_at: null, created_at: '2026-10-28T00:00:00Z', ...over,
@@ -28,10 +29,10 @@ const invited = (over: Partial<InvitedMember> & { delivery?: 'sent' | 'failed' }
   return { ...member({ id: 'new', email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'auditor', status: 'pending' }), invitation: { delivery_status: delivery, expires_at: '2026-11-12T15:04:02Z' }, ...rest };
 };
 
-describe('TeamView (MD-197, D96, D102)', () => {
+describe('TeamPeopleView (MD-197, D96, D102)', () => {
   let api: jasmine.SpyObj<TeamService>;
   let groupApi: jasmine.SpyObj<GroupService>;
-  let fixture: ComponentFixture<TeamView>;
+  let fixture: ComponentFixture<TeamPeopleView>;
 
   function setup(members: TeamMember[] = [ME, OTHER_ADMIN, ANA, DELEGATE, PENDING], role = 'admin_empresa', groups: Group[] = GROUPS, groups$?: Observable<Group[]>): void {
     api = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'invite', 'update', 'resendInvitation', 'resetMfa']);
@@ -39,11 +40,11 @@ describe('TeamView (MD-197, D96, D102)', () => {
     groupApi = jasmine.createSpyObj<GroupService>('GroupService', ['list']);
     groupApi.list.and.returnValue(groups$ ?? of(groups));
     TestBed.configureTestingModule({
-      imports: [TeamView],
-      providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: TeamService, useValue: api }, { provide: GroupService, useValue: groupApi }],
+      imports: [TeamPeopleView],
+      providers: [provideTranslateService({ fallbackLang: 'es' }), provideRouter([]), { provide: TeamService, useValue: api }, { provide: GroupService, useValue: groupApi }],
     });
     TestBed.inject(SessionService).set({ id: role === 'admin_empresa' ? 'me' : 'ana', email: 'admin@acme.co', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
-    fixture = TestBed.createComponent(TeamView);
+    fixture = TestBed.createComponent(TeamPeopleView);
     fixture.detectChanges();
   }
 
@@ -61,6 +62,10 @@ describe('TeamView (MD-197, D96, D102)', () => {
     fixture.detectChanges();
   };
   const lastListCall = () => api.list.calls.mostRecent().args;
+  /** Opens the detail panel of a person from their row. */
+  const open = (email: string) => click(row(email));
+  const inPanel = (selector: string) => q(`[role="dialog"] ${selector}`);
+  const filter = (name: string, value: string) => type(`[data-test-filter-${name}] select`, value);
 
   describe('the list', () => {
     it('lists the team with name, role, state, group and who the delegate answers to, and marks the ones without a name', () => {
@@ -72,17 +77,38 @@ describe('TeamView (MD-197, D96, D102)', () => {
       expect(delegate.textContent).toContain('Equipo de Ana');
       expect(delegate.querySelector('[data-test-responsible]')!.textContent).toContain('TEAM.LIST.RESPONSIBLE');
       expect(delegate.querySelector('[data-test-affiliation]')!.textContent).toContain('TEAM.INVITE.EXTERNAL');
-      expect(row('pen@acme.co').querySelector('[data-test-no-name]')).not.toBeNull();
+      expect(row('pen@acme.co').querySelector('[data-person-secondary]')!.textContent).toContain('TEAM.NO_NAME');
       expect(row('ana@acme.co').textContent).toContain('TEAM.LIST.NEVER'); // nunca ha ingresado
     });
 
-    it('has two tabs, people and groups, and no work split by service and dimension (D102): it only loads the people and the groups', () => {
+    it('has no tab bar (People and Groups are pages of the menu) and no work split by service and dimension (D102): it only loads the people and the groups', () => {
       setup();
-      expect(el().querySelectorAll('[role="tab"]').length).toBe(2);
-      expect(q('[data-test-tab-people]').getAttribute('aria-selected')).toBe('true');
-      expect(el().querySelector('app-team-groups')).toBeNull();
+      expect(el().querySelector('[role="tab"]')).toBeNull();
+      expect(el().querySelector('app-tabs')).toBeNull();
       expect(api.list).toHaveBeenCalledTimes(1);
       expect(groupApi.list).toHaveBeenCalledTimes(1);
+    });
+
+    it('is a table styled like the rest of the product: people with avatar, state with a dot, and an arrow at the end of every row', () => {
+      setup();
+      expect(el().querySelectorAll('tbody tr').length).toBe(5);
+      expect(row('ana@acme.co').querySelector('app-person-cell [data-avatar]')!.textContent!.trim()).toBe('AR');
+      expect(row('ana@acme.co').querySelector('app-status-indicator[data-tone="ok"]')).not.toBeNull();
+      expect(row('ana@acme.co').querySelector('[data-row-chevron]')).not.toBeNull();
+      expect(Array.from(el().querySelectorAll('thead th')).map((th) => th.textContent!.trim())).toContain('TEAM.COLUMNS.AFFILIATION');
+    });
+
+    it('hides the internal-or-external column when nobody on the page is a delegate', () => {
+      setup([ME, ANA]);
+      expect(el().textContent).not.toContain('TEAM.COLUMNS.AFFILIATION');
+    });
+
+    it('puts the filters in the toolbar as selects with no label above them, named by their first option', () => {
+      setup();
+      expect(el().querySelector('app-table-toolbar app-table-filter select[aria-label="TEAM.FILTERS.ROLE"]')).not.toBeNull();
+      expect(el().querySelectorAll('app-table-toolbar app-table-filter').length).toBe(4);
+      expect(el().querySelector('label[for="filter-role"]')).toBeNull();
+      expect(el().querySelector('app-table-toolbar select')!.className).toContain('mk-input');
     });
 
     it('asks for the first page of 25 by default and follows the page the server reports', () => {
@@ -107,8 +133,8 @@ describe('TeamView (MD-197, D96, D102)', () => {
       setup();
       const slow = new Subject<TeamPage>();
       api.list.and.returnValues(slow, of(pageOf([PENDING])));
-      type('[data-test-filter-role]', 'delegado'); // la primera, lenta
-      type('[data-test-filter-status]', 'pending'); // la segunda, más nueva y rápida
+      filter('role', 'delegado'); // la primera, lenta
+      filter('status', 'pending'); // la segunda, más nueva y rápida
       expect(row('pen@acme.co')).not.toBeNull();
       slow.next(pageOf([ANA])); // llega tarde: ya no vale
       slow.complete();
@@ -143,13 +169,13 @@ describe('TeamView (MD-197, D96, D102)', () => {
       expect(Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-filter-status] option')).map((o) => o.value)).toEqual(['', 'active', 'pending', 'inactive']);
       TestBed.resetTestingModule();
       setup();
-      type('[data-test-filter-role]', 'delegado');
+      filter('role', 'delegado');
       expect(lastListCall()[0]).toEqual({ role: 'delegado', status: null, groupId: null, isInternal: null });
-      type('[data-test-filter-status]', 'pending');
-      type('[data-test-filter-group]', 'team-ana');
-      type('[data-test-filter-affiliation]', 'external');
+      filter('status', 'pending');
+      filter('group', 'team-ana');
+      filter('affiliation', 'external');
       expect(lastListCall()).toEqual([{ role: 'delegado', status: 'pending', groupId: 'team-ana', isInternal: false }, 1, 25]);
-      type('[data-test-filter-affiliation]', 'internal');
+      filter('affiliation', 'internal');
       expect(lastListCall()[0]?.isInternal).toBeTrue();
       click('[data-test-clear-filters]');
       expect(lastListCall()[0]).toEqual({ role: null, status: null, groupId: null, isInternal: null });
@@ -159,7 +185,7 @@ describe('TeamView (MD-197, D96, D102)', () => {
     it('goes back to page 1 when a filter changes', () => {
       setup();
       fixture.componentInstance.goTo(4);
-      type('[data-test-filter-role]', 'auditor');
+      filter('role', 'auditor');
       expect(lastListCall()[1]).toBe(1);
     });
 
@@ -170,21 +196,75 @@ describe('TeamView (MD-197, D96, D102)', () => {
     });
   });
 
+  describe('the person detail panel (there is no detail endpoint: it shows what the list brings)', () => {
+    it('opens from the row, with a click and with Enter, and shows the data of the list in read-only', () => {
+      setup();
+      const r = row('del@acme.co');
+      expect(r.getAttribute('tabindex')).toBe('0');
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
+      r.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      fixture.detectChanges();
+      const panel = q('[role="dialog"]');
+      expect(panel.textContent).toContain('Dani Lara');
+      expect(panel.textContent).toContain('del@acme.co');
+      expect(panel.textContent).toContain('TEAM.ROLE.DELEGADO');
+      expect(panel.textContent).toContain('Equipo de Ana');
+      expect(panel.textContent).toContain('Ana Ruiz'); // su responsable
+      expect(panel.textContent).toContain('TEAM.INVITE.EXTERNAL');
+      expect(panel.querySelector('[data-test-detail-mfa]')!.textContent).toContain('TEAM.DETAIL.YES');
+      expect(panel.querySelector('app-status-indicator')).not.toBeNull();
+    });
+
+    it('closes with the close button', () => {
+      setup();
+      open('ana@acme.co');
+      click('button[aria-label="COMMON.CLOSE"]');
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
+    });
+
+    it('opens from the arrow at the end of the row', () => {
+      setup();
+      row('ana@acme.co').querySelector<HTMLElement>('[data-row-chevron]')!.click();
+      fixture.detectChanges();
+      expect(el().querySelector('[role="dialog"]')).not.toBeNull();
+    });
+
+    it('offers the actions that already exist, only the ones that apply to that person, and none to the owner', () => {
+      setup();
+      open('pen@acme.co');
+      expect(inPanel('[data-test-reissue]')).not.toBeNull();
+      expect(el().querySelector('[role="dialog"] [data-test-deactivate]')).toBeNull();
+      click('button[aria-label="COMMON.CLOSE"]');
+      open('ana@acme.co');
+      expect(inPanel('[data-test-reset-mfa]')).not.toBeNull();
+      expect(inPanel('[data-test-deactivate]')).not.toBeNull();
+      click('button[aria-label="COMMON.CLOSE"]');
+      TestBed.resetTestingModule();
+      setup([DELEGATE], 'responsable', [GROUPS[1]]);
+      open('del@acme.co');
+      expect(inPanel('[data-test-detail]')).not.toBeNull();
+      expect(el().querySelector('[role="dialog"] [data-test-deactivate]')).toBeNull();
+      expect(el().querySelector('[role="dialog"] [data-test-edit-name-btn]')).toBeNull();
+    });
+  });
+
   describe('administrator', () => {
     it('gives the other people their actions (name, deactivate) but not the ones that do not apply, and on themselves only the name', () => {
       setup();
-      const other = row('adm2@acme.co');
-      expect(other.querySelector('[data-test-deactivate]')).not.toBeNull();
-      expect(other.querySelector('[data-test-reset-mfa]')).toBeNull(); // el de un administrador lo restablece Monkey
-      const mine = row('admin@acme.co');
-      expect(mine.querySelector('[data-test-edit-name-btn]')).not.toBeNull();
-      expect(mine.querySelector('[data-test-deactivate]')).toBeNull();
+      open('adm2@acme.co');
+      expect(inPanel('[data-test-deactivate]')).not.toBeNull();
+      expect(el().querySelector('[data-test-reset-mfa]')).toBeNull(); // el de un administrador lo restablece Monkey
+      click('button[aria-label="COMMON.CLOSE"]');
+      open('admin@acme.co');
+      expect(inPanel('[data-test-edit-name-btn]')).not.toBeNull();
+      expect(el().querySelector('[data-test-deactivate]')).toBeNull();
     });
 
     it('corrects the name of anybody in the team, including the administrator himself', () => {
       setup();
       api.update.and.returnValue(of({ ...PENDING, name: 'Pedro', last_name: 'Gil' }));
-      click(row('pen@acme.co').querySelector<HTMLElement>('[data-test-edit-name-btn]')!);
+      open('pen@acme.co');
+      click('[data-test-edit-name-btn]');
       type('[data-test-edit-name]', 'Pedro');
       type('[data-test-edit-last-name]', 'Gil');
       click('[data-test-save-name]');
@@ -194,7 +274,8 @@ describe('TeamView (MD-197, D96, D102)', () => {
     it('asks before deactivating and only then closes the account', () => {
       setup();
       api.update.and.returnValue(of({ ...ANA, status: 'inactive' }));
-      click(row('ana@acme.co').querySelector<HTMLElement>('[data-test-deactivate]')!);
+      open('ana@acme.co');
+      click('[data-test-deactivate]');
       expect(api.update).not.toHaveBeenCalled();
       const confirmButton = Array.from(el().querySelectorAll<HTMLButtonElement>('app-confirm-dialog button')).find((b) => b.textContent?.includes('TEAM.ACTIONS.DEACTIVATE'))!;
       confirmButton.click();
@@ -205,7 +286,8 @@ describe('TeamView (MD-197, D96, D102)', () => {
     it('shows the server message when a change is refused (for example the last administrator)', () => {
       setup();
       api.update.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Debe quedar al menos un administrador.', error: { code: 'LAST_ADMIN' } } })));
-      click(row('adm2@acme.co').querySelector<HTMLElement>('[data-test-deactivate]')!);
+      open('adm2@acme.co');
+      click('[data-test-deactivate]');
       const confirmButton = Array.from(el().querySelectorAll<HTMLButtonElement>('app-confirm-dialog button')).find((b) => b.textContent?.includes('TEAM.ACTIONS.DEACTIVATE'))!;
       confirmButton.click();
       fixture.detectChanges();
@@ -214,10 +296,12 @@ describe('TeamView (MD-197, D96, D102)', () => {
 
     it('offers to resend the invitation only to people who have not activated their account', () => {
       setup();
-      expect(row('pen@acme.co').querySelector('[data-test-reissue]')).not.toBeNull();
-      expect(row('ana@acme.co').querySelector('[data-test-reissue]')).toBeNull();
+      open('ana@acme.co');
+      expect(el().querySelector('[data-test-reissue]')).toBeNull();
+      click('button[aria-label="COMMON.CLOSE"]');
+      open('pen@acme.co');
       api.resendInvitation.and.returnValue(of({ delivery_status: 'sent', expires_at: '2026-11-13T10:00:00Z' }));
-      click(row('pen@acme.co').querySelector<HTMLElement>('[data-test-reissue]')!);
+      click('[data-test-reissue]');
       expect(api.resendInvitation).toHaveBeenCalledWith('pen');
       expect(q('[data-test-invitation]').getAttribute('data-status')).toBe('sent');
     });
@@ -225,38 +309,21 @@ describe('TeamView (MD-197, D96, D102)', () => {
     it('reactivates a deactivated account', () => {
       setup([ME, member({ id: 'old', email: 'old@acme.co', status: 'inactive' })]);
       api.update.and.returnValue(of(member({ id: 'old', email: 'old@acme.co' })));
-      click(row('old@acme.co').querySelector<HTMLElement>('[data-test-reactivate]')!);
+      open('old@acme.co');
+      click('[data-test-reactivate]');
       expect(api.update).toHaveBeenCalledWith('old', { status: 'active' });
     });
   });
 
-  describe('groups tab (MD-198)', () => {
-    it('shows the groups instead of the people and goes back, keeping the people loaded', () => {
+  describe('groups (MD-198): their own page, `/equipo/grupos`', () => {
+    it('has no groups tab: the groups are not part of this page', () => {
       setup();
-      click('[data-test-tab-groups]');
-      expect(q('[data-test-tab-groups]').getAttribute('aria-selected')).toBe('true');
-      expect(q('app-team-groups')).not.toBeNull();
-      expect(el().querySelector('app-team-invite-form')).toBeNull();
-      expect(el().querySelector('app-data-table')).toBeNull();
-      expect(q('app-team-groups').textContent).toContain('Equipo de Ana');
-      click('[data-test-tab-people]');
       expect(el().querySelector('app-team-groups')).toBeNull();
-      expect(q('app-team-invite-form')).not.toBeNull();
-      expect(api.list.calls.allArgs().filter(([filters]) => filters?.role === 'responsable').length).toBe(1); // solo lo pidió la pestaña de grupos
+      expect(el().querySelector('app-data-table')).not.toBeNull();
     });
 
-    it('names the tab for the owner as their own team', () => {
-      setup([DELEGATE], 'responsable', [GROUPS[1]]);
-      expect(q('[data-test-tab-groups]').textContent).toContain('TEAM.TABS.GROUPS_OWN');
-      TestBed.resetTestingModule();
+    it('asks again for the groups and the people when a delegate is moved or a group changes', () => {
       setup();
-      expect(q('[data-test-tab-groups]').textContent).toContain('TEAM.TABS.GROUPS');
-      expect(q('[data-test-tab-groups]').textContent).not.toContain('GROUPS_OWN');
-    });
-
-    it('asks again for the groups and the people when something changes in the groups tab', () => {
-      setup();
-      click('[data-test-tab-groups]');
       const groupCalls = groupApi.list.calls.count();
       const peopleCalls = api.list.calls.count();
       fixture.componentInstance.onGroupsChanged();
@@ -264,44 +331,22 @@ describe('TeamView (MD-197, D96, D102)', () => {
       expect(api.list.calls.count()).toBe(peopleCalls + 1);
     });
 
-    it('sends the administrator to the groups tab from the warning that a delegate needs a team', () => {
+    it('sends the administrator to the groups page from the warning that a delegate needs a team', () => {
       setup([ME], 'admin_empresa', [GROUPS[0]]);
+      const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+      click('[data-test-open-invite]');
       type('[data-test-role]', 'delegado');
       click('[data-test-go-groups]');
-      expect(q('app-team-groups')).not.toBeNull();
+      expect(navigate).toHaveBeenCalledWith(['/equipo/grupos']);
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
     });
 
     it('does not say «no team» nor offer to create one while the groups are still arriving (they load apart from the people)', () => {
       const arriving = new Subject<Group[]>();
       setup([ME], 'admin_empresa', [], arriving);
+      click('[data-test-open-invite]');
       type('[data-test-role]', 'delegado');
       expect(el().querySelector('[data-test-no-team]')).toBeNull();
-      click('[data-test-tab-groups]');
-      expect(q('[data-test-groups-loading]')).not.toBeNull();
-      expect(el().querySelector('[data-test-groups-empty]')).toBeNull();
-      arriving.next([]);
-      arriving.complete();
-      fixture.detectChanges();
-      expect(el().querySelector('[data-test-groups-loading]')).toBeNull();
-      expect(q('[data-test-groups-empty]')).not.toBeNull();
-    });
-
-    it('does not offer the owner to create a team that may already exist until the groups arrived', () => {
-      const arriving = new Subject<Group[]>();
-      setup([DELEGATE], 'responsable', [], arriving);
-      click('[data-test-tab-groups]');
-      expect(el().querySelector('[data-test-create-own]')).toBeNull();
-      arriving.next([GROUPS[1]]); // ya tenía equipo
-      arriving.complete();
-      fixture.detectChanges();
-      expect(el().querySelector('[data-test-create-own]')).toBeNull();
-      expect(q('[data-test-group="team-ana"]')).not.toBeNull();
-    });
-
-    it('lets the owner create their team from their tab', () => {
-      setup([], 'responsable', []);
-      click('[data-test-tab-groups]');
-      expect(q('[data-test-create-own]')).not.toBeNull();
     });
   });
 
@@ -309,6 +354,7 @@ describe('TeamView (MD-197, D96, D102)', () => {
     it('after creating someone, says the invitation was sent, without showing any code, and asks the list again', () => {
       setup();
       api.invite.and.returnValue(of(invited()));
+      click('[data-test-open-invite]');
       type('[data-test-role]', 'auditor');
       type('[data-test-email]', 'juan@acme.co');
       type('[data-test-name]', 'Juan');
@@ -340,6 +386,7 @@ describe('TeamView (MD-197, D96, D102)', () => {
 
     it('lets the correction of an existing email jump to the name of that person', () => {
       setup();
+      click('[data-test-open-invite]');
       type('[data-test-role]', 'auditor');
       type('[data-test-email]', 'PEN@acme.co');
       type('[data-test-name]', 'Juan');
@@ -349,12 +396,77 @@ describe('TeamView (MD-197, D96, D102)', () => {
     });
   });
 
+  describe('invite drawer', () => {
+    it('keeps the form out of the page until «Invitar» opens it, and shows one primary action', () => {
+      setup();
+      expect(el().querySelector('app-team-invite-form')).toBeNull();
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
+      click('[data-test-open-invite]');
+      expect(q('[role="dialog"] app-team-invite-form')).not.toBeNull();
+      expect(el().querySelector('[data-test-email]')).not.toBeNull();
+    });
+
+    it('closes with the close button and discards the form', () => {
+      setup();
+      click('[data-test-open-invite]');
+      click('button[aria-label="COMMON.CLOSE"]');
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
+      expect(el().querySelector('app-team-invite-form')).toBeNull();
+    });
+
+    describe('dismissing the drawer with Esc or a click on the background (at the view level, with the real form inside)', () => {
+      const esc = () => {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true, bubbles: true }));
+        fixture.detectChanges();
+      };
+      const drawerOpen = () => el().querySelector('[role="dialog"] app-team-invite-form') !== null;
+
+      it('does not discard a form with something typed: Esc and the background do nothing', () => {
+        setup();
+        click('[data-test-open-invite]');
+        type('[data-test-email]', 'nuevo@acme.co');
+        esc();
+        expect(drawerOpen()).toBeTrue();
+        click('[data-testid="drawer-backdrop"]');
+        expect(drawerOpen()).toBeTrue();
+        expect(q<HTMLInputElement>('[data-test-email]').value).toBe('nuevo@acme.co');
+      });
+
+      it('still closes with the close button even when the form is dirty', () => {
+        setup();
+        click('[data-test-open-invite]');
+        type('[data-test-email]', 'nuevo@acme.co');
+        click('button[aria-label="COMMON.CLOSE"]');
+        expect(el().querySelector('[role="dialog"]')).toBeNull();
+      });
+
+      it('closes with Esc and with the background while the form is still untouched', () => {
+        setup();
+        click('[data-test-open-invite]');
+        esc();
+        expect(el().querySelector('[role="dialog"]')).toBeNull();
+        click('[data-test-open-invite]');
+        click('[data-testid="drawer-backdrop"]');
+        expect(el().querySelector('[role="dialog"]')).toBeNull();
+      });
+    });
+
+    it('shows «Tú» as plain muted text, with no pill, and the status as a dot with its label', () => {
+      setup();
+      const me = row('admin@acme.co');
+      expect(me.textContent).toContain('TEAM.YOU');
+      expect(me.querySelector('.rounded-full:not([aria-hidden])')).toBeNull();
+      expect(row('pen@acme.co').querySelector('app-status-indicator')!.getAttribute('data-tone')).toBe('warn');
+    });
+  });
+
   describe('owner', () => {
     it('sees only their team, can create delegates but has no actions over people (the API answers 403 to them)', () => {
       setup([DELEGATE], 'responsable', [GROUPS[1]]);
       expect(row('del@acme.co').textContent).toContain('Dani Lara');
       expect(el().querySelector('[data-test-edit-name-btn]')).toBeNull();
       expect(el().querySelector('[data-test-deactivate]')).toBeNull();
+      click('[data-test-open-invite]');
       expect(Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-role] option')).map((o) => o.value)).toEqual(['delegado']);
     });
 

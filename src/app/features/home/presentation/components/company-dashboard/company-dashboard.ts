@@ -1,12 +1,20 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink, UrlTree } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LanguageService } from '@core/domain/services/language.service';
 import { SessionService } from '@core/domain/services/session.service';
-import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
-import { StatusBadge } from '@shared/presentation/components/status-badge/status-badge';
-import { Dashboard, DashboardAttention, DashboardFramework, DashboardServiceSummary } from '../../../domain/models/dashboard.models';
-import { HomeDashboardService } from '../../../domain/services/dashboard.service';
+import { canReachPath } from '@core/presentation/components/app-sidebar/sidebar-groups';
+import { NAV_ITEMS } from '@config/navigation.config';
+import { Card } from '@shared/presentation/components/card/card';
+import { DonutColor } from '@shared/presentation/components/donut/donut';
+import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { PageInfo } from '@shared/presentation/components/data-table/table-page';
+import { Tag } from '@shared/presentation/components/tag/tag';
+import { Dashboard, DashboardAttention, DashboardFramework, DashboardServiceSummary } from '@features/home/domain/models/dashboard.models';
+import { HomeDashboardService } from '@features/home/domain/services/dashboard.service';
+import { isCompanyAdmin } from '@shared/domain/utils/roles';
+import { ServiceCard } from '../service-card/service-card';
+import { TeamBlocks } from '../team-blocks/team-blocks';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -15,27 +23,29 @@ interface Attention extends DashboardAttention {
   serviceName: string;
 }
 
-const MAX_ATTENTION = 5;
+const PAGE_SIZES = [10, 25, 50];
 
 // El resumen de la empresa en el Inicio (el dashboard de las cuatro preguntas, philosophy.md): ¿estamos bien?, ¿qué es urgente? Cuenta lo que la empresa tiene (servicios, activos,
 // marcos, controles, riesgos, causas) y dice cómo va cada servicio en cada marco: estado, avance y cobertura juntos, nunca un porcentaje solo (D80). No hay un número de toda la
 // empresa: el cumplimiento se mide por servicio × marco. Hoy solo el administrador de la empresa lee los servicios (B1), así que solo a él se le muestra.
 @Component({
   selector: 'app-company-dashboard',
-  imports: [TranslatePipe, RouterLink, StatusBadge],
+  imports: [TranslatePipe, RouterLink, Card, Tag, EmptyState, DataTable, TableCell, ServiceCard, TeamBlocks],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './company-dashboard.html',
 })
 export class CompanyDashboard {
   private readonly api = inject(HomeDashboardService);
-  private readonly language = inject(LanguageService);
+  private readonly router = inject(Router);
   private readonly session = inject(SessionService);
 
   readonly stage = signal<Stage>('loading');
   readonly data = signal<Dashboard>({ services: [] });
 
   /** Solo el administrador de la empresa lee los servicios; para el resto el panel no se muestra. */
-  readonly allowed = computed(() => this.session.user()?.role === 'admin_empresa');
+  readonly allowed = computed(() => isCompanyAdmin(this.session.user()?.role));
+  /** Quien ya puede ver el equipo (lo que dice el menú: el administrador y el responsable, su equipo): solo a ellos se les piden las personas, así no hay llamadas que acaben en 403. */
+  readonly canSeeTeam = computed(() => canReachPath(NAV_ITEMS, this.session.user()?.role, '/equipo/personas'));
   readonly services = computed(() => this.data().services);
 
   readonly totals = computed(() => {
@@ -50,6 +60,25 @@ export class CompanyDashboard {
       risksEvaluated: s.reduce((n, x) => n + x.risksEvaluated, 0),
       causes: s.reduce((n, x) => n + x.causes, 0),
     };
+  });
+
+  /** Las seis cifras de «Tu empresa»: etiqueta, número y una línea de apoyo. Ninguna lleva enlace: hoy ninguna navega a otra pantalla. */
+  readonly kpis = computed(() => {
+    const t = this.totals();
+    return [
+      { id: 'services', value: t.services, labelKey: 'HOME.DASHBOARD.SERVICES', hintKey: 'HOME.DASHBOARD.HINT.SERVICES', hintParams: {} },
+      { id: 'assets', value: t.assets, labelKey: 'HOME.DASHBOARD.ASSETS', hintKey: 'HOME.DASHBOARD.HINT.SUMMED', hintParams: {} },
+      { id: 'frameworks', value: t.frameworks, labelKey: 'HOME.DASHBOARD.FRAMEWORKS', hintKey: 'HOME.DASHBOARD.HINT.FRAMEWORKS', hintParams: {} },
+      { id: 'controls', value: t.controls, labelKey: 'COMPLIANCE.GLOSSARY.CONTROLS', hintKey: 'HOME.DASHBOARD.HINT.SUMMED', hintParams: {} },
+      { id: 'risks', value: t.risks, labelKey: 'COMPLIANCE.GLOSSARY.RISKS', hintKey: 'HOME.DASHBOARD.RISKS_EVALUATED', hintParams: { evaluated: t.risksEvaluated } },
+      { id: 'causes', value: t.causes, labelKey: 'COMPLIANCE.GLOSSARY.CAUSES', hintKey: 'HOME.DASHBOARD.HINT.SUMMED', hintParams: {} },
+    ];
+  });
+
+  /** El color de datos de cada marco por código, estable entre cards: los marcos, ordenados por código, reciben de la paleta de cinco en cinco. */
+  readonly palette = computed<Record<string, DonutColor>>(() => {
+    const codes = [...new Set(this.services().flatMap((s) => s.frameworks.map((f) => f.code)))].sort();
+    return Object.fromEntries(codes.map((c, i) => [c, ((i % 5) + 1) as DonutColor]));
   });
 
   /**
@@ -71,9 +100,23 @@ export class CompanyDashboard {
   readonly attention = computed<Attention[]>(() => {
     const list: Attention[] = [];
     for (const s of this.ordered()) for (const f of s.failing) list.push({ ...f, serviceId: s.id, serviceName: s.name });
-    return list.slice(0, MAX_ATTENTION);
+    return list;
   });
-  readonly attentionTotal = computed(() => this.services().reduce((n, s) => n + s.failing.length, 0));
+
+  /** La tabla de atención se pagina aquí, sobre la lista que ya llegó: no se pide nada más al servidor. */
+  readonly attentionPageSizes = PAGE_SIZES;
+  readonly attentionPageSize = signal(PAGE_SIZES[0]);
+  private readonly attentionPageRequested = signal(1);
+  readonly attentionPageInfo = computed<PageInfo>(() => {
+    const total = this.attention().length;
+    const pageSize = this.attentionPageSize();
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    return { page: Math.min(this.attentionPageRequested(), totalPages), pageSize, total, totalPages };
+  });
+  readonly attentionPage = computed<Attention[]>(() => {
+    const { page, pageSize } = this.attentionPageInfo();
+    return this.attention().slice((page - 1) * pageSize, page * pageSize);
+  });
 
   constructor() {
     if (this.allowed()) this.load();
@@ -91,51 +134,33 @@ export class CompanyDashboard {
     });
   }
 
-  pct(part: number, total: number): string {
-    return formatPercent(percentOf(part, total), this.language.current());
-  }
-
-  /** Un marco sin nada decidido no muestra porcentaje: «Sin medir» no es un cero. */
+  /** Un marco sin nada decidido no se cuenta como medido: «Sin medir» no es un cero. */
   measured(f: DashboardFramework): boolean {
     return f.readiness !== 'not_measured';
   }
 
-  /** La franja de una tarjeta de servicio lleva el color del estado más delicado de sus marcos (rojo, ámbar, verde); sin resultados, gris. */
-  strip(s: DashboardServiceSummary): string {
-    const fws = s.frameworks;
-    if (fws.some((f) => f.readiness === 'needs_work' || (this.measured(f) && f.verdict === 'non_compliant'))) return 'border-t-red-700';
-    if (fws.some((f) => f.readiness === 'almost_ready')) return 'border-t-amber-500';
-    if (fws.length > 0 && fws.every((f) => f.readiness === 'ready')) return 'border-t-green-600';
-    return 'border-t-gray-300 dark:border-t-gray-600';
+  // Cumplimiento no lleva el id en la ruta: el servicio se manda en `?servicio=` y el encabezado de Cumplimiento lo deja como activo.
+  link(s: DashboardServiceSummary): UrlTree {
+    return this.router.createUrlTree(['/cumplimiento', 'resumen'], { queryParams: { servicio: s.id } });
   }
 
-  /** El veredicto del motor, con su color lleno: rojo no cumple, verde cumple, ámbar en evaluación. */
-  verdictClass(f: DashboardFramework): string {
-    return f.verdict === 'non_compliant' ? 'bg-red-700 text-white' : f.verdict === 'compliant' ? 'bg-green-700 text-white' : 'bg-amber-400 text-amber-950';
+  readonly attentionColumns: TableColumn<Attention>[] = [
+    { key: 'code', headerKey: 'HOME.DASHBOARD.ATTENTION_COL.CODE', class: 'w-28' },
+    { key: 'name', headerKey: 'HOME.DASHBOARD.ATTENTION_COL.CONTROL' },
+    { key: 'service', headerKey: 'HOME.DASHBOARD.ATTENTION_COL.SERVICE' },
+  ];
+  readonly attentionKey = (a: Attention): string => a.controlId;
+
+  goToAttentionPage(page: number): void {
+    this.attentionPageRequested.set(page);
   }
 
-  bar(f: DashboardFramework): string {
-    return f.readiness === 'ready' ? 'bg-green-600' : f.readiness === 'almost_ready' ? 'bg-amber-500' : 'bg-red-700';
+  resizeAttention(size: number): void {
+    this.attentionPageSize.set(size);
+    this.attentionPageRequested.set(1);
   }
 
-  progressValue(f: DashboardFramework): number {
-    return percentOf(f.progress.done, f.progress.total) ?? 0;
-  }
-
-  link(s: DashboardServiceSummary): string[] {
-    return ['/services', s.id, 'cumplimiento', 'resumen'];
-  }
-
-  controlsLink(serviceId: string): string[] {
-    return ['/services', serviceId, 'cumplimiento', 'controles'];
-  }
-
-  verdictKey(f: DashboardFramework): string | null {
-    const states: Record<string, string> = {
-      compliant: 'COMPLIANCE.OVERVIEW.VERDICT.COMPLIANT',
-      non_compliant: 'COMPLIANCE.OVERVIEW.VERDICT.NON_COMPLIANT',
-      evaluating: 'COMPLIANCE.OVERVIEW.VERDICT.EVALUATING',
-    };
-    return this.measured(f) && f.verdict ? (states[f.verdict] ?? null) : null;
+  openControls(a: Attention): void {
+    void this.router.navigate(['/cumplimiento', 'controles'], { queryParams: { servicio: a.serviceId } });
   }
 }

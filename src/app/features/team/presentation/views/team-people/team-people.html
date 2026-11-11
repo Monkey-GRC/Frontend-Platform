@@ -1,0 +1,198 @@
+<section class="w-full pb-10">
+  <app-page-header [title]="'TEAM.PEOPLE.TITLE' | translate" [description]="(canManage() ? 'TEAM.INTRO' : 'TEAM.INTRO_OWN') | translate">
+    @if (stage() === 'ready') {
+    <button actions type="button" (click)="openInvite()" data-test-open-invite class="mk-btn">{{ 'TEAM.INVITE.OPEN' | translate }}</button>
+    }
+  </app-page-header>
+
+  @if (notice(); as n) {
+  @if (!detail()) {
+  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status"><span>{{ n }}</span>
+  </div>
+  }
+  }
+  @if (error(); as e) {
+  @if (!detail()) {
+  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert"><span>{{ e }}</span>
+  </div>
+  }
+  }
+
+  <!-- La invitación sale por correo (MD-190): aquí solo se dice si salió. El código nunca se muestra. Si falló, la cuenta existe y se puede reenviar. -->
+  @if (invitation(); as inv) {
+  <div class="mb-3 rounded-control border border-line px-4 py-3" [attr.role]="inv.status === 'sent' ? 'status' : 'alert'" data-test-invitation [attr.data-status]="inv.status">
+    <app-status-indicator class="font-medium" [tone]="inv.status === 'sent' ? 'ok' : 'warn'"
+      [labelKey]="inv.status === 'sent' ? 'TEAM.INVITATION.SENT_TITLE' : 'TEAM.INVITATION.FAILED_TITLE'" [labelParams]="{ email: inv.email }" />
+    <p class="mt-1 text-sm text-ink-muted">
+      {{ (inv.status === 'sent' ? 'TEAM.INVITATION.SENT_BODY' : 'TEAM.INVITATION.FAILED_BODY') | translate: { date: (inv.expiresAt | date: 'mediumDate') } }}
+    </p>
+    <div class="mt-2 flex flex-wrap items-center gap-4">
+      @if (inv.status === 'failed' && canManage()) {
+      <button type="button" (click)="resend(inv.id, inv.email)" [disabled]="saving()" data-test-resend class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.INVITATION.RESEND' | translate }}</button>
+      }
+      <button type="button" (click)="dismissInvitation()" data-test-invitation-dismiss class="text-sm font-medium text-ink-muted hover:underline">{{ 'TEAM.INVITATION.DISMISS' | translate }}</button>
+    </div>
+  </div>
+  }
+
+  @switch (stage()) {
+  @case ('loading') {
+  <app-loading-spinner />
+  }
+  @case ('error') {
+  <app-empty-state icon="" titleKey="TEAM.LOAD_ERROR" descriptionKey="COMMON.CHECK_CONNECTION">
+    <button action type="button" (click)="load(true)" data-test-retry class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  }
+  @default {
+
+  <app-table-toolbar ariaLabelKey="TEAM.FILTERS.TITLE">
+    <app-table-filter filters data-test-filter-role labelKey="TEAM.FILTERS.ROLE" [options]="roleOptions" [value]="roleFilter()" (valueChange)="setFilter('role', $event)" />
+    <app-table-filter filters data-test-filter-status labelKey="TEAM.FILTERS.STATUS" [options]="statusOptions" [value]="statusFilter()" (valueChange)="setFilter('status', $event)" />
+    <app-table-filter filters data-test-filter-group labelKey="TEAM.FILTERS.GROUP" [options]="groupOptions()" [value]="groupFilter()" (valueChange)="setFilter('group', $event)" />
+    <app-table-filter filters data-test-filter-affiliation labelKey="TEAM.FILTERS.AFFILIATION" [options]="affiliationOptions" [value]="affiliationFilter()" (valueChange)="setFilter('affiliation', $event)" />
+    @if (hasFilters()) {
+    <button filters type="button" (click)="clearFilters()" data-test-clear-filters class="h-10 text-sm font-medium text-action hover:underline">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
+    }
+  </app-table-toolbar>
+
+  <app-data-table captionKey="TEAM.TABLE_CAPTION" [columns]="columns()" [rows]="members()" [rowKey]="rowKey" [page]="page()" [loading]="loadingPage()" [clickable]="true" emptyIcon="" emptyTitleKey="TEAM.EMPTY_TITLE" emptyDescriptionKey="TEAM.EMPTY_BODY"
+    (rowClick)="openDetail($event)" (pageChange)="goTo($event)" (pageSizeChange)="resize($event)">
+
+    <ng-template appCell="person" let-m>
+      <app-person-cell [attr.data-test-member]="m.email" [name]="personName(m)" [initialsFrom]="personName(m)" [hint]="isMe(m) ? ('TEAM.YOU' | translate) : null"
+        [secondary]="personName(m) !== m.email ? m.email : ('TEAM.NO_NAME' | translate)" />
+    </ng-template>
+
+    <ng-template appCell="role" let-m>
+      <span class="text-sm text-ink">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</span>
+    </ng-template>
+
+    <ng-template appCell="status" let-m>
+      <app-status-indicator [tone]="statusTone(m.status)" [labelKey]="'TEAM.STATUS.' + m.status.toUpperCase()" />
+    </ng-template>
+
+    <ng-template appCell="group" let-m>
+      @if (m.group) {
+      <p class="text-sm text-ink" data-test-group>{{ m.group.name }}</p>
+      @if (m.responsible) {<p class="text-xs text-ink-muted" data-test-responsible>{{ 'TEAM.LIST.RESPONSIBLE' | translate: { name: personName({ email: '', name: m.responsible.name, last_name: m.responsible.last_name }) } }}</p>}
+      } @else {
+      <span class="text-ink-faint">—</span>
+      }
+    </ng-template>
+
+    <ng-template appCell="affiliation" let-m>
+      @if (m.is_internal !== null && m.is_internal !== undefined) {
+      <span class="text-sm text-ink" data-test-affiliation>{{ (m.is_internal ? 'TEAM.INVITE.INTERNAL' : 'TEAM.INVITE.EXTERNAL') | translate }}</span>
+      } @else {
+      <span class="text-ink-faint">—</span>
+      }
+    </ng-template>
+
+    <ng-template appCell="lastLogin" let-m>
+      <span class="text-sm text-ink-muted">{{ m.last_login_at ? (m.last_login_at | date: 'mediumDate') : ('TEAM.LIST.NEVER' | translate) }}</span>
+    </ng-template>
+
+    @if (hasFilters()) {
+    <app-empty-state tableEmpty icon="" titleKey="TEAM.EMPTY_FILTERED_TITLE" descriptionKey="TEAM.EMPTY_FILTERED_BODY">
+      <button action type="button" (click)="clearFilters()" class="text-sm font-medium text-action hover:underline">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
+    </app-empty-state>
+    }
+  </app-data-table>
+
+  }
+  }
+</section>
+
+<!-- La invitación vive en un drawer que abre «Invitar»; el formulario se crea al abrirlo y se descarta al cerrar. -->
+<app-side-drawer [open]="inviteOpen()" titleKey="TEAM.INVITE.TITLE" [dismissible]="!inviteSaving()" [guarded]="inviteDirty()" (closed)="inviteOpen.set(false)">
+  @if (inviteOpen()) {
+  <app-team-invite-form [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" [members]="members()" (invited)="onInvited($event)" (fixName)="onFixName($event)" (manageGroups)="onManageGroups()" />
+  }
+</app-side-drawer>
+
+<!-- El detalle de una persona: solo lectura, con los datos que ya trae la lista (no hay endpoint de detalle) y las acciones que ya existen. -->
+<app-side-drawer [open]="!!detail()" titleKey="TEAM.DETAIL.TITLE" (closed)="closeDetail()">
+  @if (detail(); as m) {
+  <div data-test-detail [attr.data-test-detail-email]="m.email">
+    <app-person-cell [name]="personName(m)" [initialsFrom]="personName(m)" [hint]="isMe(m) ? ('TEAM.YOU' | translate) : null"
+      [secondary]="personName(m) !== m.email ? m.email : ('TEAM.NO_NAME' | translate)" />
+
+    @if (notice(); as n) {
+    <div class="mt-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status"><span>{{ n }}</span>
+    </div>
+    }
+    @if (error(); as e) {
+    <div class="mt-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert"><span>{{ e }}</span>
+    </div>
+    }
+
+    <dl class="mt-6 grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-6 gap-y-3">
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.DETAIL.EMAIL' | translate }}</dt>
+      <dd class="break-all text-ink">{{ m.email }}</dd>
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.ROLE' | translate }}</dt>
+      <dd class="text-ink">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</dd>
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.STATUS' | translate }}</dt>
+      <dd><app-status-indicator [tone]="statusTone(m.status)" [labelKey]="'TEAM.STATUS.' + m.status.toUpperCase()" /></dd>
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.GROUP' | translate }}</dt>
+      <dd class="text-ink">{{ m.group ? m.group.name : '—' }}</dd>
+      @if (m.responsible) {
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.DETAIL.RESPONSIBLE' | translate }}</dt>
+      <dd class="text-ink">{{ personName({ email: '', name: m.responsible.name, last_name: m.responsible.last_name }) }}</dd>
+      }
+      @if (m.is_internal !== null && m.is_internal !== undefined) {
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.AFFILIATION' | translate }}</dt>
+      <dd class="text-ink">{{ (m.is_internal ? 'TEAM.INVITE.INTERNAL' : 'TEAM.INVITE.EXTERNAL') | translate }}</dd>
+      }
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.DETAIL.MFA' | translate }}</dt>
+      <dd class="text-ink" data-test-detail-mfa>{{ (m.is_mfa_enabled ? 'TEAM.DETAIL.YES' : 'TEAM.DETAIL.NO') | translate }}</dd>
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.LAST_LOGIN' | translate }}</dt>
+      <dd class="text-ink">{{ m.last_login_at ? (m.last_login_at | date: 'mediumDate') : ('TEAM.LIST.NEVER' | translate) }}</dd>
+      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.DETAIL.CREATED' | translate }}</dt>
+      <dd class="text-ink">{{ m.created_at | date: 'mediumDate' }}</dd>
+    </dl>
+
+    @if (nameEditing() === m.id) {
+    <form class="mt-6 flex flex-col gap-3 border-t border-line pt-4" (submit)="$event.preventDefault(); saveName()">
+      <app-field labelKey="TEAM.INVITE.NAME" forId="edit-name">
+        <input id="edit-name" type="text" data-test-edit-name maxlength="100" [value]="nameDraft()" (input)="nameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+      </app-field>
+      <app-field labelKey="TEAM.INVITE.LAST_NAME" forId="edit-last-name">
+        <input id="edit-last-name" type="text" data-test-edit-last-name maxlength="100" [value]="lastNameDraft()" (input)="lastNameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+      </app-field>
+      <div class="flex items-center gap-4">
+        <button type="submit" [disabled]="!canSaveName()" data-test-save-name class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.SAVE' | translate }}</button>
+        <button type="button" (click)="nameEditing.set(null)" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+      </div>
+    </form>
+    }
+  </div>
+  }
+  @if (canManage() && detail(); as m) {
+  <div actions class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+    @if (nameEditing() !== m.id) {
+    <button type="button" (click)="startNameEdit(m)" [disabled]="saving()" data-test-edit-name-btn class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ACTIONS.EDIT_NAME' | translate }}</button>
+    }
+    @if (!isMe(m)) {
+    @if (m.status === 'pending') {
+    <button type="button" (click)="resend(m.id, m.email)" [disabled]="saving()" data-test-reissue class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ACTIONS.RESEND_INVITATION' | translate }}</button>
+    }
+    @if (m.status === 'active') {
+    @if (canResetMfa(m)) {
+    <button type="button" (click)="ask('reset_mfa', m)" [disabled]="saving()" data-test-reset-mfa class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ACTIONS.RESET_MFA' | translate }}</button>
+    }
+    <button type="button" (click)="ask('deactivate', m)" [disabled]="saving()" data-test-deactivate class="text-sm font-medium text-bad enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ACTIONS.DEACTIVATE' | translate }}</button>
+    }
+    @if (m.status === 'inactive') {
+    <button type="button" (click)="reactivate(m)" [disabled]="saving()" data-test-reactivate class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ACTIONS.REACTIVATE' | translate }}</button>
+    }
+    }
+  </div>
+  }
+</app-side-drawer>
+
+@if (confirming(); as c) {
+<app-confirm-dialog [titleKey]="c.kind === 'deactivate' ? 'TEAM.CONFIRM.DEACTIVATE_TITLE' : 'TEAM.CONFIRM.RESET_MFA_TITLE'" [titleParams]="{ email: c.member.email }"
+  [messageKey]="c.kind === 'deactivate' ? 'TEAM.CONFIRM.DEACTIVATE_BODY' : 'TEAM.CONFIRM.RESET_MFA_BODY'" tone="danger"
+  [confirmLabelKey]="c.kind === 'deactivate' ? 'TEAM.ACTIONS.DEACTIVATE' : 'TEAM.ACTIONS.RESET_MFA'" [busy]="saving()" (confirmed)="confirm()" (cancelled)="confirming.set(null)" />
+}

@@ -2,27 +2,40 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, ou
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorCode, apiErrorData, apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
-import { Group } from '../../../domain/models/group.models';
-import { TeamMember, UpdateMemberDto } from '../../../domain/models/team.models';
-import { TeamService } from '../../../domain/services/team.service';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { Group } from '@features/team/domain/models/group.models';
+import { TeamMember, TeamRole, UpdateMemberDto } from '@shared/domain/models/team.models';
+import { TeamService } from '@shared/domain/services/team.service';
+import { targetValue } from '@shared/presentation/utils/event-target';
 
 type Stage = 'loading' | 'error' | 'ready';
 // Quien ejecuta controles no se mueve sin confirmar: se guarda aquí hasta que el administrador diga que sí (USER_HAS_ASSIGNMENTS trae cuántos).
-type PendingMove = { member: TeamMember; controls: number };
+interface PendingMove { member: TeamMember; controls: number }
 
 const PAGE_SIZE = 100;
+const DELEGATE_ROLE: TeamRole = 'delegado';
 
 // Las personas de un grupo y, para el administrador, mover a un delegado al equipo de otro responsable (MD-198, contracts/gestion-usuarios.md → «PATCH /v1/users/{id}»).
 // Mover cambia solo su equipo: si ejecuta controles, esos quedan sin ejecutor y siguen con su dueño (D102), y por eso se pide confirmar antes.
 @Component({
   selector: 'app-group-members',
-  imports: [TranslatePipe, ConfirmDialog],
+  imports: [TranslatePipe, ConfirmDialog, PersonCell, StatusIndicator, DataTable, TableCell],
   templateUrl: './group-members.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GroupMembers implements OnInit {
+  protected readonly targetValue = targetValue;
   private readonly api = inject(TeamService);
   private readonly translate = inject(TranslateService);
+
+  // Las personas del grupo en la lista compacta (la tabla única en su variante para paneles): la persona a un lado y «Mover» al otro.
+  readonly columns: TableColumn<TeamMember>[] = [
+    { key: 'person', headerKey: 'TEAM.GROUPS.PEOPLE_TITLE' },
+    { key: 'actions', headerKey: 'COMMON.TABLE.ACTIONS', align: 'right', srOnlyHeader: true },
+  ];
+  readonly memberKey = (m: TeamMember) => m.id;
 
   readonly group = input.required<Group>();
   /** Todos los equipos de delegados de la empresa: los destinos posibles de un delegado. */
@@ -70,6 +83,11 @@ export class GroupMembers implements OnInit {
 
   leaderName(g: Group): string {
     return this.personName({ email: '', name: g.leader.name, last_name: g.leader.last_name });
+  }
+
+  /** Only a delegate can be moved to another team. */
+  isDelegate(m: TeamMember): boolean {
+    return m.role === DELEGATE_ROLE;
   }
 
   startMove(m: TeamMember): void {

@@ -1,0 +1,51 @@
+<app-card class="block" [attr.data-service]="service().id">
+<div class="flex h-full flex-col">
+  <div class="flex items-start justify-between gap-3">
+    <h3 class="min-w-0 truncate text-base font-semibold text-ink">{{ service().name }}</h3>
+    @let overallLook = readinessLook(overall());
+    <app-status-indicator class="shrink-0" [tone]="overallLook.tone" [labelKey]="overallLook.labelKey" [hintKey]="overallLook.hintKey" [attr.data-status]="overallLook.level" data-overall />
+  </div>
+
+  <div class="my-4 flex flex-1 flex-wrap items-center justify-center gap-4">
+    <!-- Izquierda: un bloque por marco (unidad servicio x marco), sin porcentaje combinado -->
+    <div class="min-w-0">
+      @if (service().frameworks.length === 0) {
+      <p class="text-sm text-ink-muted">{{ 'HOME.DASHBOARD.NO_FRAMEWORK' | translate }}</p>
+      } @else {
+      <ul class="flex flex-col gap-5">
+        @for (f of service().frameworks; track f.code) {
+        <li class="flex w-36 flex-col items-center gap-2 text-center" [attr.data-framework]="f.code">
+          <app-donut [value]="measured(f) ? progressValue(f) : null" [text]="measured(f) ? pct(f.progress.done, f.progress.total) : ''" [color]="colorOf(f)" [size]="128" [large]="true" [ariaLabel]="donutLabel(f)" data-progress />
+          <span class="text-sm font-semibold text-ink">{{ f.name }}</span>
+          <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            @let look = readinessLook(f.readiness);
+            <app-status-indicator [tone]="look.tone" [labelKey]="look.labelKey" [hintKey]="look.hintKey" [attr.data-status]="look.level" />
+            @if (verdictKey(f); as v) {
+            <app-status-indicator [tone]="verdictTone(f)" [labelKey]="v" data-verdict />
+            }
+          </div>
+          @if (measured(f)) {
+          <p class="text-xs text-ink-muted" data-coverage>{{ 'HOME.DASHBOARD.COVERAGE' | translate: { percent: pct(f.coverage.measured, f.coverage.applicable) } }}</p>
+          } @else {
+          <p class="text-xs text-ink-muted" data-not-measured>{{ 'HOME.DASHBOARD.NOT_MEASURED' | translate }}</p>
+          }
+        </li>
+        }
+      </ul>
+      }
+    </div>
+
+    <!-- Derecha: lo que tiene el servicio, en cuatro cuadros casi cuadrados -->
+    <dl class="grid w-[11rem] shrink-0 grid-cols-2 gap-2">
+      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl font-semibold text-action">{{ service().assets }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'HOME.DASHBOARD.ASSETS' | translate }}</dt></div>
+      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl font-semibold text-action">{{ service().controls }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'COMPLIANCE.GLOSSARY.CONTROLS' | translate }}</dt></div>
+      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl font-semibold text-action">{{ service().risks }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'COMPLIANCE.GLOSSARY.RISKS' | translate }}</dt></div>
+      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl font-semibold text-action">{{ service().causes }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'COMPLIANCE.GLOSSARY.CAUSES' | translate }}</dt></div>
+    </dl>
+  </div>
+
+  <div class="mt-auto border-t border-line pt-3">
+    <a [routerLink]="link()" class="rounded-control text-sm font-medium text-action transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40">{{ 'HOME.DASHBOARD.SEE_DETAILS' | translate }}</a>
+  </div>
+</div>
+</app-card>

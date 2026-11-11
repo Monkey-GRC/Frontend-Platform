@@ -5,12 +5,10 @@
       "AUDITOR_BODY": "Review the company's compliance read-only: controls, tests, evidence and risks.",
       "AUDITOR_CTA": "See compliance"
     },
-    "GREETING": "{{name}}, your account is active.",
     "START": "Start",
     "STEP_FIRST": "First step",
     "COMPANY_TITLE": "Organizational context",
     "COMPANY_BODY": "Declare the organization's details: industry, size, geographic reach and applicable regulations.",
-    "CATALOG_READY": "The service's control catalog has been generated.",
     "DASHBOARD": {
       "LOAD_ERROR": "Your company summary could not be loaded.",
       "NO_SERVICES_TITLE": "You have not created any service yet",
@@ -21,19 +19,51 @@
       "ASSETS": "Assets",
       "FRAMEWORKS": "Contracted frameworks",
       "RISKS_EVALUATED": "{{evaluated}} evaluated",
-      "STATUS_TITLE": "How each service is doing",
-      "STATUS_INTRO": "Compliance is measured per service and per framework: there is no single score for the whole company.",
-      "SERVICE_COUNTS": "{{assets}} assets · {{controls}} controls · {{risks}} risks · {{causes}} causes",
-      "SEE_COMPLIANCE": "See compliance",
+      "STATUS_TITLE": "Compliance by service",
       "NO_FRAMEWORK": "This service has no framework yet.",
       "PROGRESS": "Progress {{percent}}",
       "COVERAGE": "coverage {{percent}}",
       "NOT_MEASURED": "No results yet",
       "ATTENTION_TITLE": "What needs attention",
       "ATTENTION_EMPTY": "No control is failing for now.",
-      "ATTENTION_MORE": "And {{count}} more in Compliance."
+      "HINT": {
+        "SERVICES": "Compliance is measured on each one",
+        "SUMMED": "Added up across your services",
+        "FRAMEWORKS": "Standards that apply to your services"
+      },
+      "SEE_DETAILS": "Full details",
+      "ATTENTION_CAPTION": "Controls that are failing",
+      "ATTENTION_COL": {
+        "CODE": "Code",
+        "CONTROL": "Control",
+        "SERVICE": "Service"
+      }
     },
-    "WELCOME": "Hello, {{name}}",
-    "WELCOME_SUB": "Here is how your company is doing today."
+    "TEAM": {
+      "TITLE": "Your team",
+      "LOAD_ERROR": "We could not load your team.",
+      "EMPTY_TITLE": "There is nobody on your team yet",
+      "EMPTY_BODY": "When you invite someone, you will see here how many people there are by role.",
+      "TOTAL": "People",
+      "BAR_LABEL": "Team members by role",
+      "ACTIVE": "With active account",
+      "SEE": "View team",
+      "PARTIAL": "Partial summary: only the first {{count}} people are counted."
+    },
+    "ACCESS": {
+      "TITLE": "Account access and security",
+      "LOAD_ERROR": "We could not load the state of the accounts.",
+      "EMPTY_TITLE": "No accounts to review",
+      "EMPTY_BODY": "Once there are people on the team, you will see the state of their access here.",
+      "NO_SECOND_FACTOR": "No second factor",
+      "ALL_PROTECTED": "All up to date",
+      "NEEDS_REVIEW": "Needs review",
+      "NO_RECENT_LOGIN": "No recent sign-in",
+      "BLOCKED": "Suspended or deactivated",
+      "NO_ACCESS": "No access",
+      "ACTIVE_ADMINS": "Active administrators",
+      "PENDING": "Pending invitations",
+      "SEE": "Review in the team"
+    }
   }
 }

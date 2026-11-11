@@ -4,9 +4,8 @@
     "INTRO": "Build your team and manage who has access. Each person gets an invitation by email to activate their account.",
     "INTRO_OWN": "Here you see your team of delegates and can add more people. Each one gets an invitation by email to activate their account.",
     "YOU": "You",
-    "NO_NAME": "No name: fix it to identify them.",
+    "NO_NAME": "No name: fix it",
     "LOAD_ERROR": "We could not load the team.",
-    "TABS": { "PEOPLE": "People", "GROUPS": "Groups", "GROUPS_OWN": "My team" },
     "TABLE_CAPTION": "Team members",
     "EMPTY_TITLE": "There is nobody on the team yet",
     "EMPTY_BODY": "When you add someone, they will show up here.",
@@ -18,7 +17,7 @@
       "STATUS": "Status",
       "GROUP": "Group",
       "LAST_LOGIN": "Last sign-in",
-      "ACTIONS": "Actions"
+      "AFFILIATION": "Internal or external"
     },
     "FILTERS": {
       "TITLE": "Team filters",
@@ -38,10 +37,6 @@
       "INTRO_OWN": "Your team of delegates. Until you create it, you work alone; a delegate needs a team.",
       "KIND_RESPONSABLES": "Owners group",
       "KIND_TEAM": "Team of delegates",
-      "LEADER": "Leader: {{name}}",
-      "MEMBERS": "People: {{count}}",
-      "SHOW_MEMBERS": "See people",
-      "HIDE_MEMBERS": "Hide people",
       "RENAME": "Rename",
       "NAME_LABEL": "Group name",
       "SUBMIT": "Create group",
@@ -76,10 +71,34 @@
       },
       "ERROR": {
         "MOVE_TARGET": "We could not move the person: the destination team does not exist or its owner is no longer active."
+      },
+      "TITLE": "Groups",
+      "TITLE_OWN": "My team",
+      "NEW": "Create group",
+      "SEARCH": "Search by group or leader",
+      "TABLE_CAPTION": "Company groups",
+      "EMPTY_FILTERED_TITLE": "No group matches",
+      "DETAIL_TITLE": "Group details",
+      "PEOPLE_TITLE": "People in the group",
+      "COLUMNS": {
+        "NAME": "Group",
+        "KIND": "Type",
+        "LEADER": "Leader",
+        "MEMBERS": "People"
       }
     },
-    "ROLE": { "ADMIN_EMPRESA": "Administrator", "RESPONSABLE": "Owner", "DELEGADO": "Delegate", "AUDITOR": "Auditor" },
-    "STATUS": { "ACTIVE": "Active", "PENDING": "Invitation pending", "INACTIVE": "Deactivated", "SUSPENDED": "Suspended" },
+    "ROLE": {
+      "ADMIN_EMPRESA": "Administrator",
+      "RESPONSABLE": "Owner",
+      "DELEGADO": "Delegate",
+      "AUDITOR": "Auditor"
+    },
+    "STATUS": {
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "INACTIVE": "Deactivated",
+      "SUSPENDED": "Suspended"
+    },
     "INVITE": {
       "TITLE": "Invite a person",
       "EMAIL": "Email",
@@ -90,6 +109,7 @@
       "FIX_NAME": "Fix their name",
       "ROLE": "Role",
       "SUBMIT": "Invite",
+      "OPEN": "Invite",
       "AFFILIATION": "Relationship with the company",
       "INTERNAL": "Internal",
       "EXTERNAL": "External",
@@ -140,6 +160,18 @@
       "USER_LIMIT": "You reached the maximum number of contracted users. Contact Monkey.",
       "USER_LIMIT_COUNTS": "You reached the maximum number of contracted users ({{count}} of {{max}}). Contact Monkey.",
       "NO_TEAM": "This owner does not have a team of delegates yet. Their team has to be created first."
+    },
+    "PEOPLE": {
+      "TITLE": "People"
+    },
+    "DETAIL": {
+      "TITLE": "Person details",
+      "EMAIL": "Email",
+      "RESPONSIBLE": "Responsible",
+      "MFA": "Second factor",
+      "YES": "Yes",
+      "NO": "No",
+      "CREATED": "Created"
     }
   }
 }
