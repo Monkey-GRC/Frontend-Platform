@@ -67,8 +67,11 @@
       {{ (asset().provisioning.connection_status === 'failed' ? 'TECHNICAL_CONTROL.CARD.CHECK_AGAIN' : 'TECHNICAL_CONTROL.CARD.CHECK_CONNECTION') | translate }}
     </button>
     @if (busy()) {
-    <span class="text-sm text-ink-faint" aria-live="polite">{{ narration() }}</span>
+    <span class="sr-only" aria-live="polite">{{ narration() }}</span>
     }
   </div>
+  @if (busy()) {
+  <app-connection-progress />
+  }
 </section>
 }

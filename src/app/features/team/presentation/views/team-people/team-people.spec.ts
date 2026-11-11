@@ -35,8 +35,9 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
   let fixture: ComponentFixture<TeamPeopleView>;
 
   function setup(members: TeamMember[] = [ME, OTHER_ADMIN, ANA, DELEGATE, PENDING], role = 'admin_empresa', groups: Group[] = GROUPS, groups$?: Observable<Group[]>): void {
-    api = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'invite', 'update', 'resendInvitation', 'resetMfa']);
+    api = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'listAll', 'invite', 'update', 'resendInvitation', 'resetMfa']);
     api.list.and.returnValue(of(pageOf(members)));
+    api.listAll.and.returnValue(of(members));
     groupApi = jasmine.createSpyObj<GroupService>('GroupService', ['list']);
     groupApi.list.and.returnValue(groups$ ?? of(groups));
     TestBed.configureTestingModule({
@@ -331,25 +332,45 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       expect(api.list.calls.count()).toBe(peopleCalls + 1);
     });
 
-    it('sends the administrator to the groups page from the warning that a delegate needs a team', () => {
+    it('sends the administrator to the org chart from the warning that a delegate needs a team', () => {
       setup([ME], 'admin_empresa', [GROUPS[0]]);
       const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
       click('[data-test-open-invite]');
       type('[data-test-role]', 'delegado');
       click('[data-test-go-groups]');
-      expect(navigate).toHaveBeenCalledWith(['/equipo/grupos']);
+      expect(navigate).toHaveBeenCalledWith(['/equipo/organigrama']);
       expect(el().querySelector('[role="dialog"]')).toBeNull();
     });
 
-    it('does not say «no team» nor offer to create one while the groups are still arriving (they load apart from the people)', () => {
+    it('does not say «no team» while the groups are still arriving (they load apart from the people)', () => {
       const arriving = new Subject<Group[]>();
       setup([ME], 'admin_empresa', [], arriving);
       click('[data-test-open-invite]');
       type('[data-test-role]', 'delegado');
       expect(el().querySelector('[data-test-no-team]')).toBeNull();
+      arriving.next([]);
+      arriving.complete();
+      fixture.detectChanges();
+      expect(q('[data-test-no-team]')).not.toBeNull();
+    });
+
+    it('when a responsible was created but their team was not, says it and asks the groups again', () => {
+      setup();
+      const before = groupApi.list.calls.count();
+      fixture.componentInstance.onTeamFailed('Ese nombre ya existe.');
+      fixture.detectChanges();
+      expect(q('[role="alert"]').textContent).toContain('TEAM.ERROR.TEAM_NOT_CREATED');
+      expect(q('[role="alert"]').textContent).toContain('Ese nombre ya existe.');
+      expect(groupApi.list.calls.count()).toBe(before + 1);
+    });
+
+    it('when the team of the new responsible exists, asks the groups again so the groups page sees it', () => {
+      setup();
+      const before = groupApi.list.calls.count();
+      fixture.componentInstance.onTeamCreated();
+      expect(groupApi.list.calls.count()).toBe(before + 1);
     });
   });
-
   describe('the invitation goes out by email (MD-190)', () => {
     it('after creating someone, says the invitation was sent, without showing any code, and asks the list again', () => {
       setup();

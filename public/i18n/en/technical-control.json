@@ -20,6 +20,14 @@
       "SCHEDULED": "Scheduled",
       "FAILED": "We couldn't connect"
     },
+    "CONNECT_PROGRESS": {
+      "TITLE": "Connecting to your account",
+      "STAGE_ACCESS": "Checking access to your account…",
+      "STAGE_READ": "Reading your servers and their configuration…",
+      "STAGE_REGIONS": "Reviewing each region of your account…",
+      "STAGE_LIST": "Building the list of assets…",
+      "TYPICAL": "It can take about 6 minutes. You can leave this screen: the connection keeps going."
+    },
     "PROGRESS": {
       "TITLE_QUEUED": "Your assessment is queued",
       "TITLE_RUNNING": "Assessing your account",

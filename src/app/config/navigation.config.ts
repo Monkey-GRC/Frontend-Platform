@@ -51,12 +51,13 @@ export const NAV_ITEMS: NavItem[] = [
     },
     // La asignación de controles es una sola pantalla: el administrador asigna el dueño; el responsable, el ejecutor entre sus delegados (MD-199, MD-200).
     { icon: 'assignment_turned_in', name: 'Asignar ejecutor', labelKey: 'SHELL.NAV.ASSIGN_EXECUTOR', path: '/asignacion', section: 'Menu', roles: ['responsable'] },
-    // The owner's team: a group as well, so that «Grupos» (where they create their team) is reachable. `/equipo` redirects to the first child.
+    // The owner's team: a group as well, so that «Grupos» (where they create their team) and «Organigrama» are reachable. `/equipo` redirects to the first child.
     {
         icon: 'groups', name: 'Mi equipo', labelKey: 'SHELL.NAV.MY_TEAM', section: 'Menu', roles: ['responsable'],
         subItems: [
             { name: 'Personas', labelKey: 'SHELL.NAV.TEAM_PEOPLE', path: '/equipo/personas', section: 'Menu', roles: ['responsable'] },
             { name: 'Grupos', labelKey: 'SHELL.NAV.TEAM_GROUPS', path: '/equipo/grupos', section: 'Menu', roles: ['responsable'] },
+            { name: 'Organigrama', labelKey: 'SHELL.NAV.TEAM_ORG', path: '/equipo/organigrama', section: 'Menu', roles: ['responsable'] },
         ],
     },
     // The auditor reads «Cargos responsables» but has no team: for them it stays a simple item. The administrator reaches it under «Equipo».
@@ -66,6 +67,7 @@ export const NAV_ITEMS: NavItem[] = [
         subItems: [
             { name: 'Personas', labelKey: 'SHELL.NAV.TEAM_PEOPLE', path: '/equipo/personas', section: 'Menu', roles: ['admin_empresa'] },
             { name: 'Grupos', labelKey: 'SHELL.NAV.TEAM_GROUPS', path: '/equipo/grupos', section: 'Menu', roles: ['admin_empresa'] },
+            { name: 'Organigrama', labelKey: 'SHELL.NAV.TEAM_ORG', path: '/equipo/organigrama', section: 'Menu', roles: ['admin_empresa'] },
             { name: 'Cargos responsables', labelKey: 'SHELL.NAV.RESPONSIBLES', path: '/responsables', section: 'Menu', roles: ['admin_empresa'] },
         ],
     },

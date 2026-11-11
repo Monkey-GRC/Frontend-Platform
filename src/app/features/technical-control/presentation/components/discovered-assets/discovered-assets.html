@@ -53,7 +53,7 @@
 
   <!-- Una sola tabla: los activos del servicio arriba y, bajo un encabezado «Fuera del servicio», los demás. La casilla de cada fila es lo que el cliente marca. -->
   <app-data-table captionKey="TECHNICAL_CONTROL.ASSETS.TABLE" [columns]="columns" [rows]="visible()" [rowKey]="assetKey" [rowLabel]="assetLabel"
-    [selectable]="true" [selected]="selected()" (selectionChange)="onSelection($event)" [groupBy]="groupFn()" [groupLabel]="groupLabel" emptyIcon="" emptyTitleKey="TECHNICAL_CONTROL.ASSETS.NO_MATCH">
+    stackBelow="2xl" [selectable]="true" [selected]="selected()" (selectionChange)="onSelection($event)" [groupBy]="groupFn()" [groupLabel]="groupLabel" emptyIcon="" emptyTitleKey="TECHNICAL_CONTROL.ASSETS.NO_MATCH">
     <ng-template appCell="name" let-a>
       <button type="button" (click)="detail.set(a)" class="block max-w-full truncate text-left font-medium text-action hover:underline" [title]="a.name ?? ''">{{ a.name ?? a.code }}</button>
       <span class="text-xs text-ink-muted">{{ a.code }}</span>
@@ -81,6 +81,15 @@
     <div class="flex items-center gap-2">
       @if (dirty()) {
       <button type="button" (click)="discard()" [disabled]="saving()" class="mk-btn-secondary">{{ 'TECHNICAL_CONTROL.ASSETS.DISCARD' | translate }}</button>
+      }
+      @if (canEvaluate()) {
+      <!-- «Evaluar ahora» junto a «Guardar selección»: se evalúa lo que se acaba de elegir. Con una selección sin guardar espera, para no evaluar con datos viejos. -->
+      <button type="button" (click)="evaluate.emit()" [disabled]="dirty() || saving() || evaluating()" data-evaluate-now
+        [attr.title]="(dirty() ? 'TECHNICAL_CONTROL.EDIT.EVALUATE_SAVE_FIRST' : 'TECHNICAL_CONTROL.CARD.EVALUATE_NOW') | translate"
+        class="mk-btn-secondary">
+        @if (evaluating()) {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}
+        {{ 'TECHNICAL_CONTROL.CARD.EVALUATE_NOW' | translate }}
+      </button>
       }
       <button type="button" (click)="save()" [disabled]="!dirty() || saving()" class="mk-btn">
         @if (saving()) {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}

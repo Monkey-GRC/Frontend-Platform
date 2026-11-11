@@ -59,14 +59,10 @@
   </app-field>
   }
 
-  @if (showResponsablesGroup()) {
-  <app-field labelKey="TEAM.INVITE.RESPONSABLES_GROUP" forId="invite-responsables-group">
-    <select id="invite-responsables-group" data-test-responsables-group (change)="groupId.set(targetValue($event))" [disabled]="saving()" class="mk-input">
-      <option value="" [selected]="!groupId()">{{ 'TEAM.INVITE.RESPONSABLES_GROUP_DEFAULT' | translate }}</option>
-      @for (g of responsablesGroupOptions(); track g.id) {
-      <option [value]="g.id" [selected]="groupId() === g.id">{{ g.name }}</option>
-      }
-    </select>
+  @if (showTeamName()) {
+  <app-field labelKey="TEAM.INVITE.TEAM_NAME" forId="invite-team-name">
+    <input id="invite-team-name" type="text" data-test-team-name maxlength="100" autocomplete="off" [value]="teamName()" (input)="teamName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+    <p class="mt-1.5 text-xs text-ink-muted">{{ 'TEAM.INVITE.TEAM_NAME_HELP' | translate }}</p>
   </app-field>
   }
 

@@ -141,10 +141,12 @@ describe('OverviewView', () => {
 
     it('with the period defined, the admin changes it from the banner (no bar here, no cutoff date, D105): the summary hands the banner the action', () => {
       setup('admin_empresa', [framework({ evaluation: { ...DEFINED, cutoff_frozen: true } })]);
+      const context = TestBed.inject(ComplianceContextService);
       expect(q('[data-not-defined]')).toBeNull();
       expect(q('[data-cutoff]')).toBeNull();
       expect(q('[data-period-bar]')).toBeNull();
-      const context = TestBed.inject(ComplianceContextService);
+      expect(context.evaluationText()).toContain('COMPLIANCE.OVERVIEW.EVALUATION');
+      expect(q('app-evaluation-period-form')).toBeNull();
       expect(context.editPeriod()).not.toBeNull();
       context.editPeriod()!();
       fixture.detectChanges();

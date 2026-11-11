@@ -137,13 +137,13 @@ describe('AppSidebarComponent · groups', () => {
     const fixture = await render('admin_empresa', '/');
     const hrefs = (id: string) => Array.from(panel(fixture.nativeElement, id).querySelectorAll('a')).map((a) => a.getAttribute('href'));
     expect(hrefs('nav-group-mi-empresa')).toEqual(['/onboarding', '/services']);
-    expect(hrefs('nav-group-equipo')).toEqual(['/equipo/personas', '/equipo/grupos', '/responsables']);
+    expect(hrefs('nav-group-equipo')).toEqual(['/equipo/personas', '/equipo/grupos', '/equipo/organigrama', '/responsables']);
   });
 
-  it('gives the owner «Mi equipo» as a group with People and Groups, and no «Cargos responsables» (the administrator reaches it under Team)', async () => {
+  it('gives the owner «Mi equipo» as a group with People, Groups and Org chart, and no «Cargos responsables» (the administrator reaches it under Team)', async () => {
     const fixture = await render('responsable', '/');
     const hrefs = (id: string) => Array.from(panel(fixture.nativeElement, id).querySelectorAll('a')).map((a) => a.getAttribute('href'));
-    expect(hrefs('nav-group-mi-equipo')).toEqual(['/equipo/personas', '/equipo/grupos']);
+    expect(hrefs('nav-group-mi-equipo')).toEqual(['/equipo/personas', '/equipo/grupos', '/equipo/organigrama']);
     expect(fixture.nativeElement.querySelector('#nav-group-equipo')).toBeNull();
   });
 

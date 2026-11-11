@@ -9,6 +9,7 @@ import { Asset, Execution, ProbeMode } from '@shared/domain/models/technical-con
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { AssetEditForm } from '../asset-edit-form/asset-edit-form';
 import { CloudConnectionPanel } from '../cloud-connection-panel/cloud-connection-panel';
+import { ConnectionProgress } from '../connection-progress/connection-progress';
 import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
 import { ExecutionProgress } from '../execution-progress/execution-progress';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
@@ -28,7 +29,7 @@ type Busy = 'validate' | 'schedule';
 // conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
-  imports: [AssetEditForm, CloudConnectionPanel, DiscoveredAssets, ExecutionProgress, ProviderLogo, StatusIndicator, TranslatePipe],
+  imports: [AssetEditForm, CloudConnectionPanel, ConnectionProgress, DiscoveredAssets, ExecutionProgress, ProviderLogo, StatusIndicator, TranslatePipe],
   templateUrl: './asset-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

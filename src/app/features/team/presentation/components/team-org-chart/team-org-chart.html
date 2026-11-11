@@ -1,0 +1,191 @@
+<!-- Una persona: avatar con iniciales, nombre, correo y, debajo, rol, estado si no está activa y vínculo. Si el Backend entrega su carga, también sus controles y avance (juntos, nunca un porcentaje solo). -->
+<ng-template #person let-m>
+  <div class="min-w-0" data-org-person>
+    <app-person-cell [name]="personName(m)" [initialsFrom]="personName(m)" [secondary]="m.email" />
+    <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pl-12 text-xs text-ink-muted">
+      <span>{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</span>
+      @if (m.status !== 'active') {
+      <app-status-indicator data-org-status [tone]="m.status === 'pending' ? 'warn' : 'neutral'" [labelKey]="'TEAM.STATUS.' + m.status.toUpperCase()" />
+      }
+      @if (m.role === 'delegado' && m.is_internal !== null && m.is_internal !== undefined) {
+      <span>{{ (m.is_internal ? 'TEAM.INVITE.INTERNAL' : 'TEAM.INVITE.EXTERNAL') | translate }}</span>
+      }
+    </p>
+    @if (workload()[m.id]; as w) {
+    <p class="mt-1 pl-12 text-xs text-ink-muted" data-org-workload>
+      {{ 'TEAM.ORG.WORKLOAD' | translate: { count: w.controls } }}@if (progressOf(m.id) !== null) { · {{ 'TEAM.ORG.PROGRESS' | translate: { percent: progressOf(m.id) } }}}
+    </p>
+    }
+  </div>
+</ng-template>
+
+<section [attr.aria-label]="'TEAM.ORG.TITLE' | translate">
+  @if (chart().hiddenInactive > 0 || showInactive()) {
+  <label class="mb-4 inline-flex cursor-pointer items-center gap-2 text-sm text-ink">
+    <input type="checkbox" class="mk-checkbox" data-org-show-inactive [checked]="showInactive()" (change)="showInactive.set(targetChecked($event))" />
+    {{ 'TEAM.ORG.SHOW_INACTIVE' | translate }}@if (chart().hiddenInactive > 0) { ({{ chart().hiddenInactive }}) }
+  </label>
+  }
+
+  @if (notice(); as n) {
+  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status" data-org-notice><span>{{ n }}</span></div>
+  }
+  @if (error(); as e) {
+  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-org-error><span>{{ e }}</span></div>
+  }
+
+  @switch (stage()) {
+  @case ('loading') {
+  <app-loading-spinner />
+  }
+  @case ('error') {
+  <app-empty-state icon="" titleKey="TEAM.LOAD_ERROR" descriptionKey="COMMON.CHECK_CONNECTION">
+    <button action type="button" (click)="load()" data-org-retry class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  }
+  @default {
+
+  @if (isEmpty()) {
+  <app-empty-state icon="" titleKey="TEAM.ORG.EMPTY" data-org-empty />
+  }
+
+  <!-- Arriba: quien administra la empresa. Los administradores no dependen de nadie. -->
+  @if (chart().admins.length) {
+  <section class="mb-8" aria-labelledby="org-admins-title">
+    <h2 id="org-admins-title" class="mb-4 border-b border-line pb-2 text-base font-semibold text-ink">{{ 'TEAM.ORG.ADMINS' | translate }}</h2>
+    <ul class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-org-admins>
+      @for (a of chart().admins; track a.id) {
+      <li class="min-w-0"><ng-container [ngTemplateOutlet]="person" [ngTemplateOutletContext]="{ $implicit: a }" /></li>
+      }
+    </ul>
+  </section>
+  }
+
+  <!-- Debajo de la administración: cada responsable con su equipo de delegados. -->
+  @if (chart().responsibles.length) {
+  <section class="mb-8" aria-labelledby="org-responsibles-title">
+    <h2 id="org-responsibles-title" class="mb-4 border-b border-line pb-2 text-base font-semibold text-ink">{{ 'TEAM.ORG.RESPONSIBLES' | translate }}</h2>
+    <ul class="grid gap-4 lg:grid-cols-2" data-org-responsibles>
+      @for (r of chart().responsibles; track r.id) {
+      <li class="mk-surface min-w-0 p-4" [attr.data-responsible]="r.id">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          @if (r.member; as rm) {
+          <ng-container [ngTemplateOutlet]="person" [ngTemplateOutletContext]="{ $implicit: rm }" />
+          } @else {
+          <app-person-cell data-org-person [name]="r.name" [initialsFrom]="r.name" />
+          }
+          <button type="button" (click)="toggle(r.id)" [attr.aria-expanded]="isOpen(r.id)" [attr.aria-controls]="'org-delegates-' + r.id" data-org-toggle
+            class="text-sm font-medium text-action hover:underline">
+            {{ 'TEAM.ORG.DELEGATES_COUNT' | translate: { count: r.delegates.length } }}
+            <span class="sr-only">{{ (isOpen(r.id) ? 'TEAM.ORG.HIDE' : 'TEAM.ORG.SHOW') | translate }}</span>
+          </button>
+        </div>
+
+        <!-- Su equipo: tiene nombre (el que se quiera) y, si aún no existe, se crea aquí. -->
+        <div class="mt-3 border-t border-line pt-3 text-sm text-ink-muted">
+          @if (r.team; as t) {
+          @if (renamingId() === t.id) {
+          <form class="flex flex-wrap items-center gap-3" (submit)="$event.preventDefault(); saveRename()">
+            <label class="sr-only" [for]="'rename-' + t.id">{{ 'TEAM.ORG.TEAM_NAME' | translate }}</label>
+            <input [id]="'rename-' + t.id" type="text" maxlength="100" data-org-rename-input [value]="renameDraft()" (input)="renameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input min-w-0 flex-1" />
+            <button type="submit" [disabled]="!canRename()" data-org-rename-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.SAVE' | translate }}</button>
+            <button type="button" (click)="cancelRename()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+          </form>
+          } @else {
+          <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{{ 'TEAM.ORG.TEAM_OF' | translate }} <span class="font-medium text-ink" data-org-team-name>{{ t.name }}</span></span>
+            @if (isAdmin()) {
+            <button type="button" (click)="startRename(t)" data-org-rename class="text-sm font-medium text-action hover:underline">{{ 'TEAM.ORG.RENAME' | translate }}</button>
+            }
+          </p>
+          }
+          } @else if (canCreateTeamFor(r)) {
+          @if (creatingFor() === r.id) {
+          <form class="flex flex-wrap items-center gap-3" (submit)="$event.preventDefault(); createTeam(r)">
+            <label class="sr-only" [for]="'create-' + r.id">{{ 'TEAM.ORG.TEAM_NAME' | translate }}</label>
+            <input [id]="'create-' + r.id" type="text" maxlength="100" data-org-create-input [value]="teamNameDraft()" (input)="teamNameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input min-w-0 flex-1" />
+            <button type="submit" [disabled]="!canCreateTeam()" data-org-create-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ORG.CREATE_TEAM_SAVE' | translate }}</button>
+            <button type="button" (click)="cancelCreate()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+          </form>
+          } @else {
+          <p class="flex flex-wrap items-center gap-x-3 gap-y-1" data-org-no-team>
+            <span>{{ (isAdmin() ? 'TEAM.ORG.NO_TEAM_ADMIN' : 'TEAM.ORG.NO_TEAM_OWN') | translate }}</span>
+            <button type="button" (click)="startCreate(r)" data-org-create class="text-sm font-medium text-action hover:underline">{{ (isAdmin() ? 'TEAM.ORG.CREATE_TEAM' : 'TEAM.ORG.CREATE_OWN_TEAM') | translate }}</button>
+          </p>
+          }
+          }
+        </div>
+
+        <!-- Sus delegados, con una línea que los ata a él. -->
+        @if (isOpen(r.id) && r.delegates.length) {
+        <ul class="mt-3 flex flex-col gap-4 border-l border-line pl-4" [id]="'org-delegates-' + r.id" data-org-delegates>
+          @for (d of r.delegates; track d.id) {
+          <li class="min-w-0" [attr.data-delegate]="d.id">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <ng-container [ngTemplateOutlet]="person" [ngTemplateOutletContext]="{ $implicit: d }" />
+              @if (isAdmin() && d.status !== 'inactive' && movingId() !== d.id) {
+              <button type="button" (click)="startMove(d)" data-org-move class="text-sm font-medium text-action hover:underline">{{ 'TEAM.ORG.MOVE' | translate }}</button>
+              }
+            </div>
+            @if (movingId() === d.id) {
+            <div class="mt-3 flex flex-wrap items-center gap-3" data-org-move-form>
+              @if (destinations(d); as options) {
+              @if (options.length) {
+              <label class="sr-only" [for]="'move-' + d.id">{{ 'TEAM.ORG.MOVE_TO' | translate }}</label>
+              <select [id]="'move-' + d.id" data-org-move-target (change)="target.set(targetValue($event))" [disabled]="saving()" class="mk-input min-w-0 flex-1">
+                <option value="" [selected]="!target()">{{ 'TEAM.ORG.MOVE_PICK' | translate }}</option>
+                @for (o of options; track o.id) {<option [value]="o.id" [selected]="target() === o.id">{{ o.label }}</option>}
+              </select>
+              <button type="button" (click)="move(d)" [disabled]="!target() || saving()" data-org-move-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ORG.MOVE_SUBMIT' | translate }}</button>
+              } @else {
+              <span class="text-sm text-ink-muted">{{ 'TEAM.ORG.NO_DESTINATION' | translate }}</span>
+              }
+              }
+              <button type="button" (click)="cancelMove()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+            </div>
+            }
+          </li>
+          }
+        </ul>
+        } @else if (isOpen(r.id) && r.team) {
+        <p class="mt-3 text-sm text-ink-muted" data-org-no-delegates>{{ 'TEAM.ORG.NO_DELEGATES' | translate }}</p>
+        }
+      </li>
+      }
+    </ul>
+  </section>
+  }
+
+  @if (chart().orphans.length) {
+  <section class="mb-8" aria-labelledby="org-orphans-title" data-org-orphans>
+    <h2 id="org-orphans-title" class="mb-1 border-b border-line pb-2 text-base font-semibold text-ink">{{ 'TEAM.ORG.ORPHANS' | translate }}</h2>
+    <p class="mb-4 mt-2 text-sm text-ink-muted">{{ 'TEAM.ORG.ORPHANS_HELP' | translate }}</p>
+    <ul class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      @for (d of chart().orphans; track d.id) {
+      <li class="min-w-0"><ng-container [ngTemplateOutlet]="person" [ngTemplateOutletContext]="{ $implicit: d }" /></li>
+      }
+    </ul>
+  </section>
+  }
+
+  <!-- Aparte: el auditor no es de la cadena (no recibe controles ni tiene equipo); lee todo, solo lectura. -->
+  @if (chart().auditors.length) {
+  <section aria-labelledby="org-auditors-title">
+    <h2 id="org-auditors-title" class="mb-1 border-b border-line pb-2 text-base font-semibold text-ink">{{ 'TEAM.ORG.AUDITORS' | translate }}</h2>
+    <p class="mb-4 mt-2 text-sm text-ink-muted">{{ 'TEAM.ORG.AUDITORS_HELP' | translate }}</p>
+    <ul class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-org-auditors>
+      @for (a of chart().auditors; track a.id) {
+      <li class="min-w-0"><ng-container [ngTemplateOutlet]="person" [ngTemplateOutletContext]="{ $implicit: a }" /></li>
+      }
+    </ul>
+  </section>
+  }
+
+  }
+  }
+
+  @if (pending(); as p) {
+  <app-confirm-dialog titleKey="TEAM.ORG.MOVE_CONFIRM_TITLE" [titleParams]="{ name: personName(p.member) }" messageKey="TEAM.ORG.MOVE_CONFIRM_BODY" [messageParams]="{ count: p.controls }"
+    tone="danger" confirmLabelKey="TEAM.ORG.MOVE_CONFIRM" [busy]="saving()" (confirmed)="confirmMove()" (cancelled)="cancelConfirm()" />
+  }
+</section>

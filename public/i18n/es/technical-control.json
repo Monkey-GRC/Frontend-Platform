@@ -20,6 +20,14 @@
       "SCHEDULED": "Programada",
       "FAILED": "No pudimos conectar"
     },
+    "CONNECT_PROGRESS": {
+      "TITLE": "Conectando con tu cuenta",
+      "STAGE_ACCESS": "Comprobando el acceso a tu cuenta…",
+      "STAGE_READ": "Leyendo tus servidores y su configuración…",
+      "STAGE_REGIONS": "Revisando cada región de tu cuenta…",
+      "STAGE_LIST": "Armando la lista de activos…",
+      "TYPICAL": "Puede tardar unos 6 minutos. Puedes salir de esta pantalla: la conexión sigue."
+    },
     "PROGRESS": {
       "TITLE_QUEUED": "Tu evaluación está en cola",
       "TITLE_RUNNING": "Evaluando tu cuenta",

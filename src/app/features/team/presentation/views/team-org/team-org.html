@@ -1,0 +1,4 @@
+<section class="w-full pb-10" data-test-org>
+  <app-page-header [title]="'TEAM.ORG.TITLE' | translate" [description]="(isAdmin() ? 'TEAM.ORG.INTRO_ADMIN' : 'TEAM.ORG.INTRO_OWN') | translate" />
+  <app-team-org-chart [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" (changed)="onGroupsChanged()" />
+</section>

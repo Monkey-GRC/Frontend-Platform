@@ -591,6 +591,33 @@ textarea::placeholder {
   }
 }
 
+/* Tablas que se apilan en tarjetas: cada celda con `data-label` lleva su rotulo encima. `data-table` lo hace por debajo de lg (o de 2xl con `stackBelow="2xl"`, que pone `stack-2xl`). */
+@media (max-width: 1023.98px) {
+  td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+}
+
+@media (max-width: 1535.98px) {
+  .stack-2xl td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+}
+
 /* app-specific:start */
 /* Layout: the top bar stays above the page content (side panels and modals use z-99999 and are drawn after it). */
 :root {

@@ -4,7 +4,7 @@
     "INTRO": "Crea a tu equipo y gestiona quién tiene acceso. A cada persona le llega una invitación por correo para activar su cuenta.",
     "INTRO_OWN": "Aquí ves a tu equipo de delegados y puedes sumar a más personas. A cada una le llega una invitación por correo para activar su cuenta.",
     "YOU": "Tú",
-    "NO_NAME": "Sin nombre: corrígelo",
+    "NO_NAME": "Sin nombre: corrígelo para identificarla.",
     "LOAD_ERROR": "No pudimos cargar el equipo.",
     "TABLE_CAPTION": "Personas del equipo",
     "EMPTY_TITLE": "Aún no hay personas en el equipo",
@@ -95,7 +95,7 @@
     },
     "STATUS": {
       "ACTIVE": "Activa",
-      "PENDING": "Pendiente",
+      "PENDING": "Invitación pendiente",
       "INACTIVE": "Desactivada",
       "SUSPENDED": "Suspendida"
     },
@@ -113,18 +113,20 @@
       "AFFILIATION": "Vínculo con la compañía",
       "INTERNAL": "Interno",
       "EXTERNAL": "Externo",
-      "TEAM_LABEL": "Equipo",
-      "TEAM_PICK": "Elige un equipo",
-      "TEAM_OPTION": "{{team}} · {{leader}}",
+      "TEAM_LABEL": "Trabaja con (responsable)",
+      "TEAM_PICK": "Elige un responsable",
+      "TEAM_OPTION": "{{leader}} · {{team}}",
       "RESPONSABLES_GROUP": "Grupo de responsables",
       "RESPONSABLES_GROUP_DEFAULT": "Por omisión",
-      "NO_TEAMS_ADMIN": "Ningún responsable tiene equipo todavía. Un delegado necesita un equipo: primero hay que crear el equipo de un responsable.",
-      "NO_TEAM_OWN": "Aún no tienes un equipo de delegados. Un delegado necesita un equipo: primero hay que crear el tuyo.",
-      "GO_TO_GROUPS": "Ir a Grupos",
+      "NO_TEAMS_ADMIN": "Ningún responsable tiene equipo todavía. Un delegado necesita un responsable con equipo: crea primero el equipo de uno desde el organigrama.",
+      "NO_TEAM_OWN": "Aún no tienes equipo. Un delegado necesita un equipo: créalo primero desde tu organigrama.",
+      "GO_TO_GROUPS": "Ir al organigrama",
       "HELP_ADMIN_EMPRESA": "Un administrador gestiona el equipo, asigna el dueño de cada control y valida lo que se sube, como tú.",
       "HELP_RESPONSABLE": "Un responsable es dueño de controles, revisa lo que sube su equipo y reparte la ejecución entre sus delegados.",
       "HELP_DELEGADO": "Un delegado ejecuta los controles que su responsable le asigna y sube la evidencia. Elige si es de tu compañía o externo.",
-      "HELP_AUDITOR": "Un auditor revisa todo lo de tu empresa en solo lectura y deja observaciones."
+      "HELP_AUDITOR": "Un auditor revisa todo lo de tu empresa en solo lectura y deja observaciones.",
+      "TEAM_NAME": "Nombre del equipo (opcional)",
+      "TEAM_NAME_HELP": "Si lo dejas vacío, se llamará «Equipo de» y su nombre."
     },
     "INVITATION": {
       "SENT_TITLE": "Enviamos la invitación a {{email}}",
@@ -159,7 +161,8 @@
       "SAVE": "No pudimos guardar el cambio. Intenta de nuevo.",
       "USER_LIMIT": "Llegaste al máximo de usuarios contratados. Contacta a Monkey.",
       "USER_LIMIT_COUNTS": "Llegaste al máximo de usuarios contratados ({{count}} de {{max}}). Contacta a Monkey.",
-      "NO_TEAM": "Este responsable aún no tiene un equipo de delegados. Primero hay que crear su equipo."
+      "NO_TEAM": "Este responsable aún no tiene un equipo de delegados. Primero hay que crear su equipo.",
+      "TEAM_NOT_CREATED": "La persona se creó, pero no pudimos crear su equipo. Créalo desde el organigrama."
     },
     "PEOPLE": {
       "TITLE": "Personas"
@@ -172,6 +175,51 @@
       "YES": "Sí",
       "NO": "No",
       "CREATED": "Creación"
+    },
+    "ORG": {
+      "TITLE": "Organigrama",
+      "INTRO_ADMIN": "Quién depende de quién: los administradores arriba, bajo cada responsable su equipo de delegados, y los auditores aparte. Cada responsable tiene un equipo con el nombre que quieras.",
+      "INTRO_OWN": "Tu equipo: tú como responsable y los delegados que trabajan contigo.",
+      "SHOW_INACTIVE": "Mostrar desactivados",
+      "EMPTY": "Aún no hay personas en el equipo. Invita a la primera desde «Personas».",
+      "ADMINS": "Administración",
+      "RESPONSIBLES": "Responsables y sus equipos",
+      "AUDITORS": "Auditores",
+      "AUDITORS_HELP": "Fuera de la cadena: leen todo en solo lectura y no reciben controles.",
+      "ORPHANS": "Delegados sin responsable a la vista",
+      "ORPHANS_HELP": "Su responsable está desactivado. Muévelos a otro responsable desde «Personas» cuando lo necesites.",
+      "DELEGATES_COUNT": "Delegados: {{count}}",
+      "TEAM_OF": "Equipo:",
+      "TEAM_NAME": "Nombre del equipo",
+      "RENAME": "Renombrar",
+      "DEFAULT_TEAM_NAME": "Equipo de {{name}}",
+      "NO_TEAM_ADMIN": "Aún no tiene equipo; sin él no se le pueden asignar delegados.",
+      "NO_TEAM_OWN": "Aún no tienes equipo. Un delegado necesita un equipo: créalo primero desde tu organigrama.",
+      "CREATE_TEAM": "Crear su equipo",
+      "CREATE_OWN_TEAM": "Crear mi equipo",
+      "CREATE_TEAM_SAVE": "Crear equipo",
+      "NO_DELEGATES": "Todavía no tiene delegados.",
+      "MOVE": "Cambiar de responsable",
+      "MOVE_TO": "Nuevo responsable",
+      "MOVE_PICK": "Elige un responsable",
+      "MOVE_SUBMIT": "Mover",
+      "NO_DESTINATION": "No hay otro responsable con equipo al que moverlo.",
+      "DESTINATION": "{{leader}} · {{team}}",
+      "MOVE_CONFIRM_TITLE": "¿Cambiar a {{name}} de responsable?",
+      "MOVE_CONFIRM_BODY": "Ejecuta {{count}} controles. Si lo cambias, esos controles quedarán sin ejecutor y seguirán con su responsable actual.",
+      "MOVE_CONFIRM": "Cambiar igualmente",
+      "WORKLOAD": "Controles: {{count}}",
+      "PROGRESS": "Avance: {{percent}} %",
+      "NOTICE": {
+        "CREATED": "Listo, creamos el equipo «{{name}}».",
+        "RENAMED": "Listo, el equipo ahora se llama «{{name}}».",
+        "MOVED": "Listo, cambiamos a {{name}} de responsable."
+      },
+      "ERROR": {
+        "MOVE_TARGET": "No pudimos mover a la persona: el equipo de destino no existe o su responsable ya no está activo."
+      },
+      "HIDE": "Ocultar su equipo",
+      "SHOW": "Mostrar su equipo"
     }
   }
 }

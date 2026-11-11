@@ -21,7 +21,7 @@ describe('DiscoveredAssets', () => {
   let api: jasmine.SpyObj<TechnicalControlService>;
   const el = () => fixture.nativeElement as HTMLElement;
 
-  function setup(items: DiscoveredAsset[]): DiscoveredAssets {
+  function setup(items: DiscoveredAsset[], inputs: { canEvaluate?: boolean; evaluating?: boolean } = {}): DiscoveredAssets {
     api = jasmine.createSpyObj<TechnicalControlService>('TechnicalControlService', ['listDiscovered', 'setServiceAssets']);
     api.listDiscovered.and.returnValue(of(page(items)));
     api.setServiceAssets.and.returnValue(of({ included: 2, added: 1, removed: 0 }));
@@ -36,6 +36,7 @@ describe('DiscoveredAssets', () => {
     fixture = TestBed.createComponent(DiscoveredAssets);
     fixture.componentRef.setInput('asset', { id: 'c1', provisioning: { last_validated_at: null } } as unknown as Asset);
     fixture.componentRef.setInput('serviceId', 's1');
+    for (const [k, v] of Object.entries(inputs)) fixture.componentRef.setInput(k, v);
     fixture.detectChanges();
     return fixture.componentInstance;
   }
@@ -80,5 +81,37 @@ describe('DiscoveredAssets', () => {
     el().querySelector<HTMLButtonElement>('tbody button')!.click();
     fixture.detectChanges();
     expect(el().querySelector('[role="dialog"]')).not.toBeNull();
+  });
+
+  describe('evaluate now, next to save', () => {
+    const button = () => el().querySelector('[data-evaluate-now]') as HTMLButtonElement | null;
+    const two = () => [asset('a1', 'web-01', true), asset('a2', 'web-02', false)];
+
+    it('is not offered until the account is connected', () => {
+      setup(two(), { canEvaluate: false });
+      expect(button()).toBeNull();
+    });
+
+    it('is offered and asks to evaluate when pressed', () => {
+      const view = setup(two(), { canEvaluate: true });
+      let asked = 0;
+      view.evaluate.subscribe(() => asked++);
+      expect(button()!.disabled).toBeFalse();
+      button()!.click();
+      expect(asked).toBe(1);
+    });
+
+    it('waits while an evaluation is already queued or running', () => {
+      setup(two(), { canEvaluate: true, evaluating: true });
+      expect(button()!.disabled).toBeTrue();
+    });
+
+    it('waits while the selection has unsaved changes, so it never evaluates with old choices', () => {
+      const view = setup(two(), { canEvaluate: true });
+      view.toggle('a2');
+      fixture.detectChanges();
+      expect(button()!.disabled).toBeTrue();
+      expect(button()!.getAttribute('title')).toContain('EVALUATE_SAVE_FIRST');
+    });
   });
 });

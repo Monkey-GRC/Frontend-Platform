@@ -65,6 +65,12 @@ export class DiscoveredAssets {
   readonly serviceId = input.required<string>();
   // Volver a mirar la cuenta (vuelve a comprobar la conexión). Quien lo hace es la tarjeta de la conexión.
   readonly refreshing = input(false);
+  /** ¿Se puede lanzar una evaluación desde aquí? Solo con la cuenta ya conectada. */
+  readonly canEvaluate = input(false);
+  /** Hay una evaluación en cola o en curso: el botón espera. */
+  readonly evaluating = input(false);
+  /** Pide evaluar ahora; la tarjeta del activo hace la llamada. */
+  readonly evaluate = output<void>();
   // En modo demostración la conexión se «comprueba» sin tocar la cuenta: no hay descubrimiento, y se dice (no se deja creer que falta algo).
   readonly probeMode = input<string>('unavailable');
   readonly refreshRequested = output<void>();

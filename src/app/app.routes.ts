@@ -96,7 +96,7 @@ export const routes: Routes = [
         title: 'PAGE_TITLE.COMPLIANCE',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
       },
-      // El equipo de la empresa (D96, D102): lo gestiona el administrador; el responsable ve a su equipo de delegados y crea delegados para él. Personas y Grupos son dos
+      // El equipo de la empresa (D96, D102): lo gestiona el administrador; el responsable ve a su equipo de delegados y crea delegados para él. Personas, Grupos y Organigrama son tres
       // subítems del grupo Equipo del menú; `/equipo` redirige a Personas. El guard es del padre y vale para las dos.
       {
         path: 'equipo',
@@ -112,6 +112,11 @@ export const routes: Routes = [
             path: 'grupos',
             title: 'PAGE_TITLE.TEAM_GROUPS',
             loadComponent: () => import('@features/team/presentation/views/team-groups/team-groups').then(m => m.TeamGroupsView),
+          },
+          {
+            path: 'organigrama',
+            title: 'PAGE_TITLE.TEAM_ORG',
+            loadComponent: () => import('@features/team/presentation/views/team-org/team-org').then(m => m.TeamOrgView),
           },
         ],
       },

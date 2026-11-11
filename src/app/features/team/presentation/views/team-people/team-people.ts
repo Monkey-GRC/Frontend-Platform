@@ -144,7 +144,7 @@ export class TeamPeopleView implements OnInit {
     });
   }
 
-  /** Se creó o renombró un grupo, o se movió a un delegado: los grupos (y quién está en cada uno) cambiaron. */
+  /** Se creó o renombró un equipo, o se movió a un delegado: los grupos (y quién está en cada uno) cambiaron. */
   onGroupsChanged(): void {
     this.reloadGroups();
     this.refresh();
@@ -252,7 +252,7 @@ export class TeamPeopleView implements OnInit {
   /** Un delegado necesita un equipo que aún no existe: se cierra el drawer y se va a la página de grupos. */
   onManageGroups(): void {
     this.inviteOpen.set(false);
-    void this.router.navigate(['/equipo/grupos']);
+    void this.router.navigate(['/equipo/organigrama']);
   }
 
   /** El alta ya se hizo: se cierra el drawer, se informa si el correo salió y se vuelve a pedir la lista. */
@@ -262,6 +262,17 @@ export class TeamPeopleView implements OnInit {
     this.showInvitation(created.id, created.email, created.invitation);
     this.notice.set(this.translate.instant('TEAM.NOTICE.INVITED'));
     this.refresh();
+  }
+
+  /** El responsable recién creado ya tiene su equipo: los grupos cambiaron. */
+  onTeamCreated(): void {
+    this.reloadGroups();
+  }
+
+  /** La persona se creó pero su equipo no: se dice y se deja crearlo desde Grupos. `reason` es lo que dijo el servidor (ya traducido), si dijo algo. */
+  onTeamFailed(reason: string | null): void {
+    this.error.set([this.translate.instant('TEAM.ERROR.TEAM_NOT_CREATED'), reason].filter(Boolean).join(' '));
+    this.reloadGroups();
   }
 
   /** Reenvía la invitación (código nuevo por correo; el anterior deja de servir). Sirve para una cuenta `pending`, también cuando el primer envío falló. */

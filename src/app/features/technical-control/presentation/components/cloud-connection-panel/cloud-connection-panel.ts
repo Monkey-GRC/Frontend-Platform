@@ -4,6 +4,7 @@ import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/util
 import { Asset } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { ConnectionProgress } from '../connection-progress/connection-progress';
 
 type Phase = 'idle' | 'saving' | 'checking';
 
@@ -11,7 +12,7 @@ type Phase = 'idle' | 'saving' | 'checking';
 // Aquí no hay credenciales: el cliente comparte un rol que él controla y puede borrar cuando quiera. Los pasos vienen del backend (ya en su idioma).
 @Component({
   selector: 'app-cloud-connection-panel',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, ConnectionProgress],
   templateUrl: './cloud-connection-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -124,6 +124,56 @@ describe('DatePicker', () => {
     expect(day('2026-12-23').getAttribute('tabindex')).toBe('0');
   });
 
+  it('the title leads to the years, then the months, then the days: any year in three taps', () => {
+    open();
+    q<HTMLButtonElement>('[data-date-month]')!.click();
+    fixture.detectChanges();
+    expect(q('[data-date-years]')).not.toBeNull();
+    expect(q('[data-date-month]')!.textContent).toContain('2021'); // la página de 12 años alrededor de 2026
+    q<HTMLButtonElement>('[data-year="2031"]')!.click();
+    fixture.detectChanges();
+    expect(q('[data-date-months]')).not.toBeNull();
+    expect(q('[data-date-month]')!.textContent).toContain('2031');
+    q<HTMLButtonElement>('[data-month="2"]')!.click(); // marzo
+    fixture.detectChanges();
+    expect(q('[data-date-popover] [data-day]')).not.toBeNull();
+    expect(day('2031-03-15')).not.toBeNull();
+    day('2031-03-15').click();
+    fixture.detectChanges();
+    expect(host.value()).toBe('2031-03-15');
+  });
+
+  it('the arrows move a month, a year or a page of twelve years, depending on what is shown', () => {
+    open();
+    q<HTMLButtonElement>('[data-date-month]')!.click(); // años
+    q<HTMLButtonElement>('[data-date-next]')!.click();
+    fixture.detectChanges();
+    expect(q('[data-date-month]')!.textContent).toContain('2033');
+    q<HTMLButtonElement>('[data-date-prev]')!.click();
+    fixture.detectChanges();
+    q<HTMLButtonElement>('[data-year="2024"]')!.click(); // meses de 2024
+    fixture.detectChanges();
+    q<HTMLButtonElement>('[data-date-next]')!.click();
+    fixture.detectChanges();
+    expect(q('[data-date-month]')!.textContent).toContain('2025');
+  });
+
+  it('years and months outside min and max cannot be chosen', () => {
+    host.min.set('2025-06-01');
+    host.max.set('2027-03-31');
+    fixture.detectChanges();
+    open();
+    q<HTMLButtonElement>('[data-date-month]')!.click();
+    fixture.detectChanges();
+    expect(q<HTMLButtonElement>('[data-year="2024"]')!.disabled).toBeTrue();
+    expect(q<HTMLButtonElement>('[data-year="2026"]')!.disabled).toBeFalse();
+    expect(q<HTMLButtonElement>('[data-year="2028"]')!.disabled).toBeTrue();
+    q<HTMLButtonElement>('[data-year="2027"]')!.click();
+    fixture.detectChanges();
+    expect(q<HTMLButtonElement>('[data-month="3"]')!.disabled).toBeTrue(); // mayo de 2027 queda fuera
+    expect(q<HTMLButtonElement>('[data-month="2"]')!.disabled).toBeFalse(); // marzo, no
+  });
+
   it('does not open when disabled', () => {
     host.disabled.set(true);
     fixture.detectChanges();

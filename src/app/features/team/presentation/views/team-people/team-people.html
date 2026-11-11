@@ -107,7 +107,7 @@
 <!-- La invitación vive en un drawer que abre «Invitar»; el formulario se crea al abrirlo y se descarta al cerrar. -->
 <app-side-drawer [open]="inviteOpen()" titleKey="TEAM.INVITE.TITLE" [dismissible]="!inviteSaving()" [guarded]="inviteDirty()" (closed)="inviteOpen.set(false)">
   @if (inviteOpen()) {
-  <app-team-invite-form [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" [members]="members()" (invited)="onInvited($event)" (fixName)="onFixName($event)" (manageGroups)="onManageGroups()" />
+  <app-team-invite-form [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" [members]="members()" (invited)="onInvited($event)" (fixName)="onFixName($event)" (manageGroups)="onManageGroups()" (teamCreated)="onTeamCreated()" (teamFailed)="onTeamFailed($event)" />
   }
 </app-side-drawer>
 

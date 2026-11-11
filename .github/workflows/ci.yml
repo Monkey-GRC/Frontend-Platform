@@ -1,0 +1,46 @@
+name: CI (frontend-platform)
+
+# Valida cada PR antes de fusionarlo: instala, lint (0 avisos), compila en producción y corre las pruebas unitarias en
+# Chrome sin interfaz. Es independiente de deploy-dev.yml, que despliega al hacer push a `develop` (es decir, al fusionar
+# el PR). Al fusionar no se repite: las mismas pruebas ya corrieron en el PR y ahí solo se despliega. En `main` sí corre
+# en cada push. Para que bloquee el merge hay que marcar el job `verificar` como "required" en la protección de la rama
+# (Settings → Branches); no se puede desde el workflow.
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint (sin avisos)
+        run: npx ng lint --max-warnings=0
+
+      - name: Compilar
+        run: npx ng build
+
+      # El runner de GitHub trae Google Chrome; el launcher de Karma lo encuentra solo.
+      - name: Pruebas unitarias
+        run: npx ng test --watch=false --browsers=ChromeHeadless
