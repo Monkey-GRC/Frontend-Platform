@@ -143,8 +143,9 @@ export class AuthService {
   }
 
   /**
-   * ¿Hay sesión? Consulta /auth/me; si el access token (15 min) venció, intenta renovarlo. La
-   * sesión vive hasta 30 min sin actividad y 8 h en total: pasado eso, hay que volver a entrar.
+   * ¿Hay sesión? Consulta /auth/me; si el access token (15 min) venció, intenta renovarlo y vuelve a consultar,
+   * sin mirar el resultado de la renovación: si falló, otra pestaña pudo haberla hecho y las cookies ya son válidas.
+   * La sesión vive hasta 30 min sin actividad y 8 h en total: pasado eso, /me vuelve a fallar y se limpia.
    */
   validate(): Observable<boolean> {
     // Sin sesión abierta en este navegador no se pregunta al servidor (evita un 401 en cada visita al inicio de sesión).
@@ -152,7 +153,7 @@ export class AuthService {
     return this.me().pipe(
       catchError((error: HttpErrorResponse) =>
         error.status === 401
-          ? this.refresh().pipe(switchMap((ok) => (ok ? this.me() : of(false))))
+          ? this.refresh().pipe(switchMap(() => this.me()))
           : of(false),
       ),
       catchError(() => of(false)),
@@ -162,15 +163,12 @@ export class AuthService {
     );
   }
 
-  /** Renueva la sesión (cookie → cookie). false si ya no se puede renovar. */
+  /** Renueva la sesión (cookie → cookie). false si falló; no toca la sesión local: quien llama decide tras reintentar. */
   refresh(): Observable<boolean> {
     if (!this.refreshInFlight$) {
       this.refreshInFlight$ = this.http.post(`${this.baseUrl}/refresh`, {}).pipe(
         map(() => true),
-        catchError(() => {
-          this.session.clear();
-          return of(false);
-        }),
+        catchError(() => of(false)),
         finalize(() => (this.refreshInFlight$ = null)),
         shareReplay(1),
       );

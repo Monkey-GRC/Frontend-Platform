@@ -25,7 +25,7 @@
   }
 
   <app-table-toolbar>
-    <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[filter()]" [ariaLabel]="'COMPLIANCE.EVIDENCE_INBOX.FILTER' | translate" (picked)="pick($event)" />
+    <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[filter()]" labelKey="COMPLIANCE.EVIDENCE_INBOX.FILTER" (picked)="pick($event)" />
   </app-table-toolbar>
 
   <app-data-table captionKey="COMPLIANCE.EVIDENCE_INBOX.TABLE_CAPTION" [columns]="columns" [rows]="visible()" [rowKey]="rowKey" [clickable]="true"

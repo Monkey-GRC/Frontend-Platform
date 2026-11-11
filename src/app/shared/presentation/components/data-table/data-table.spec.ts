@@ -240,6 +240,15 @@ describe('DataTable', () => {
     expect(headers[0].querySelector('[data-group-toggle]')).toBeNull();
   });
 
+  it('the group header is a full-width cell, not a row, so its colspan applies', () => {
+    host.groupBy.set(() => 'a');
+    fixture.detectChanges();
+    const th = el().querySelector('[data-group-header] th[scope="rowgroup"]')!;
+    expect(th.getAttribute('colspan')).toBe(String(el().querySelectorAll('thead th[scope="col"]').length));
+    expect(th.className).not.toContain('table-row');
+    expect(th.className).toContain('table-cell');
+  });
+
   it('a collapsible group folds its rows from a button that says whether it is open', () => {
     host.groupBy.set(() => 'a');
     host.collapsible.set(true);

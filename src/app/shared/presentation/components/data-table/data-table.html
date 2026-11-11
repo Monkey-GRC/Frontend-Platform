@@ -69,24 +69,24 @@
           @if (groupBy()) {
             @for (group of groups(); track group.key) {
               <tr data-group-header [attr.data-group]="group.key" class="border-b border-line bg-tint" [class]="s().group">
-                <th scope="rowgroup" [attr.colspan]="columnCount()" class="px-4 py-2.5 text-left text-sm font-semibold text-ink" [class]="s().group">
-                  <div class="flex items-center gap-3">
+                <th scope="rowgroup" [attr.colspan]="columnCount()" class="bg-tint px-4 py-2.5 text-left text-sm font-normal" [class]="s().cell">
+                  <div class="flex items-center justify-between gap-3">
                     @if (collapsible()) {
                       <button
                         type="button"
                         data-group-toggle
-                        class="inline-flex min-w-0 items-center gap-1.5 rounded-control text-left font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action"
+                        class="inline-flex min-w-0 items-center gap-1.5 rounded-control text-left font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action"
                         [attr.aria-expanded]="!isCollapsed(group.key)"
                         [attr.aria-label]="(isCollapsed(group.key) ? 'COMMON.TABLE.GROUP_EXPAND' : 'COMMON.TABLE.GROUP_COLLAPSE') | translate: { name: group.label }"
                         (click)="toggleGroup(group.key)"
                       >
                         <span class="material-symbols-rounded text-[20px] text-ink-faint" aria-hidden="true">{{ isCollapsed(group.key) ? 'chevron_right' : 'expand_more' }}</span>
-                        <span class="truncate">{{ group.label }}</span>
+                        <span class="font-semibold text-ink">{{ group.label }}</span>
                       </button>
                     } @else {
-                      <span class="truncate">{{ group.label }}</span>
+                      <span class="font-semibold text-ink">{{ group.label }}</span>
                     }
-                    <span class="ml-auto shrink-0 text-xs font-medium text-ink-muted" data-group-count>{{ 'COMMON.TABLE.GROUP_COUNT' | translate: { count: group.rows.length } }}</span>
+                    <span class="ml-auto shrink-0 text-xs text-ink-muted" data-group-count>{{ 'COMMON.TABLE.GROUP_COUNT' | translate: { count: group.rows.length } }}</span>
                   </div>
                 </th>
               </tr>

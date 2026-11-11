@@ -14,9 +14,9 @@
 <div class="flex flex-col gap-4">
   <!-- Los temas agrupan la lista: elegir uno la vuelve a pedir con ese filtro. -->
   <app-table-toolbar ariaLabelKey="COMPLIANCE.CONTROLS.FILTER_TOPIC">
-    <app-option-chips filters [compact]="true" [options]="topicChips()" [selected]="[trust() ?? 'all']" [ariaLabel]="'COMPLIANCE.CONTROLS.FILTER_TOPIC' | translate"
+    <app-option-chips filters [compact]="true" [options]="topicChips()" [selected]="[trust() ?? 'all']" labelKey="COMPLIANCE.CONTROLS.FILTER_TOPIC"
       (picked)="pickTopic($event)" />
-    <app-option-chips filters [compact]="true" [options]="readinessChips()" [selected]="[readiness() ?? 'all']" [ariaLabel]="'COMPLIANCE.CONTROLS.FILTER_STATUS' | translate"
+    <app-option-chips filters [compact]="true" [options]="readinessChips()" [selected]="[readiness() ?? 'all']" labelKey="COMPLIANCE.CONTROLS.FILTER_STATUS"
       (picked)="pickReadiness($event)" />
   </app-table-toolbar>
 

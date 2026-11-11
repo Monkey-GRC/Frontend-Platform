@@ -36,21 +36,37 @@ describe('credentialsInterceptor', () => {
   });
 
   it('on a 401 renews the session once and retries the request', () => {
+    const navigateA = spyOn(router, 'navigate').and.resolveTo(true);
     let body: unknown;
     http.get(`${api}/companies`).subscribe((b) => (body = b));
     backend.expectOne(`${api}/companies`).flush({}, { status: 401, statusText: 'Unauthorized' });
     backend.expectOne(`${api}/auth/refresh`).flush({});
     backend.expectOne(`${api}/companies`).flush({ ok: true });
     expect(body).toEqual({ ok: true });
+    expect(navigateA).not.toHaveBeenCalled();
     expect(session.isAuthenticated()).toBeTrue();
   });
 
-  it('when the session cannot be renewed it clears it and goes to the sign-in', () => {
+  it('when the renewal fails but the retry works (another tab renewed) it resolves without leaving', () => {
     const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    let body: unknown;
+    http.get(`${api}/companies`).subscribe((b) => (body = b));
+    backend.expectOne(`${api}/companies`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    backend.expectOne(`${api}/auth/refresh`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    backend.expectOne(`${api}/companies`).flush({ ok: true });
+    expect(body).toEqual({ ok: true });
+    expect(navigate).not.toHaveBeenCalled();
+    expect(session.isAuthenticated()).toBeTrue();
+  });
+
+  it('when the retry is also a 401 it clears the session and goes to the sign-in, with no second retry', () => {
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    
     let failed = false;
     http.get(`${api}/companies`).subscribe({ error: () => (failed = true) });
     backend.expectOne(`${api}/companies`).flush({}, { status: 401, statusText: 'Unauthorized' });
     backend.expectOne(`${api}/auth/refresh`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    backend.expectOne(`${api}/companies`).flush({}, { status: 401, statusText: 'Unauthorized' });
     expect(failed).toBeTrue();
     expect(session.isAuthenticated()).toBeFalse();
     expect(navigate).toHaveBeenCalledWith(['/signin']);

@@ -27,14 +27,18 @@ export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => sanitizeHttpError(error, translate.instant('COMMON.AUTH_PROBLEM')));
       }
 
-      // El access token dura 15 min: ante un 401 se renueva una vez y se reintenta. Si la sesión
-      // ya no se puede renovar (30 min sin actividad u 8 h), se vuelve al inicio de sesión.
+      // El access token dura 15 min: ante un 401 se intenta renovar y se reintenta UNA vez, pase lo que pase con la
+      // renovación: si falló, otra pestaña pudo rotar el refresh token y el navegador ya tiene cookies nuevas. Solo si
+      // el reintento también responde 401 la sesión se da por perdida (30 min sin actividad u 8 h): se limpia y se
+      // vuelve al inicio de sesión. Cualquier otro error del reintento se propaga tal cual.
       return authService.refresh().pipe(
-        switchMap((ok) => {
-          if (ok) return next(authReq);
-          session.clear();
-          router.navigate(['/signin']);
-          return throwError(() => sanitizeHttpError(error, translate.instant('COMMON.AUTH_PROBLEM')));
+        switchMap(() => next(authReq)),
+        catchError((retryError: HttpErrorResponse) => {
+          if (retryError.status === 401) {
+            session.clear();
+            router.navigate(['/signin']);
+          }
+          return throwError(() => sanitizeHttpError(retryError, translate.instant('COMMON.AUTH_PROBLEM')));
         }),
       );
     }),

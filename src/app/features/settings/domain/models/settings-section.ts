@@ -3,6 +3,7 @@
 export interface SettingsSection {
   name: string; // identificador estable (no se muestra)
   labelKey: string;
+  icon: string; // Google Symbols
   path: string; // relativo a /ajustes
 }
 
@@ -16,6 +17,6 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
   {
     name: 'account',
     labelKey: 'SETTINGS.GROUPS.ACCOUNT',
-    sections: [{ name: 'security', labelKey: 'SETTINGS.SECTIONS.SECURITY', path: 'seguridad' }],
+    sections: [{ name: 'security', labelKey: 'SETTINGS.SECTIONS.SECURITY', icon: 'shield_lock', path: 'seguridad' }],
   },
 ];
