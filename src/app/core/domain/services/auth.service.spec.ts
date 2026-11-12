@@ -141,12 +141,24 @@ describe('AuthService · sin sesión no se consulta al servidor', () => {
     expect(result).toBe(false);
   });
 
+  it('con la marca, si me da 401 y el refresh falla pero me responde bien (otra pestaña renovó), la sesión sigue', () => {
+    localStorage.setItem('mk_session', '1');
+    let result: boolean | undefined;
+    service.validate().subscribe((ok) => (result = ok));
+    http.expectOne(`${api}/me`).flush({ message: 'x' }, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne(`${api}/refresh`).flush({ message: 'x' }, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne(`${api}/me`).flush({ data: { user: { id: 'u', email: 'a@x.co', name: null, last_name: null, role: 'admin_empresa' }, company: { id: 'c', name: 'ACME' } } });
+    expect(result).toBe(true);
+    expect(localStorage.getItem('mk_session')).toBe('1');
+  });
+
   it('con la marca sí pregunta al servidor, y si ya no hay sesión la borra', () => {
     localStorage.setItem('mk_session', '1');
     let result: boolean | undefined;
     service.validate().subscribe((ok) => (result = ok));
     http.expectOne(`${api}/me`).flush({ message: 'x' }, { status: 401, statusText: 'Unauthorized' });
     http.expectOne(`${api}/refresh`).flush({ message: 'x' }, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne(`${api}/me`).flush({ message: 'x' }, { status: 401, statusText: 'Unauthorized' });
     expect(result).toBe(false);
     expect(localStorage.getItem('mk_session')).toBeNull();
   });

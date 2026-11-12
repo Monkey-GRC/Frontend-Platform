@@ -352,7 +352,7 @@
       "TABLE": "Exclusions of the service",
       "COL_TEST": "Test and asset",
       "COL_STATUS": "Status",
-      "FILTER": "Filter by status",
+      "FILTER": "Status",
       "ALL": "All",
       "EMPTY": "This service has no exclusions.",
       "EMPTY_FILTER": "There are no exclusions with that status.",

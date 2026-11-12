@@ -13,7 +13,8 @@
         <p class="hidden px-3 pb-1 pt-4 text-sm font-semibold text-ink-faint lg:block">{{ group.labelKey | translate }}</p>
         @for (section of group.sections; track section.name) {
           <a [routerLink]="section.path" routerLinkActive="bg-canvas text-ink" [attr.data-testid]="'settings-nav-' + section.name"
-            class="flex items-center gap-2.5 rounded-control px-3 py-2.5 text-base font-medium text-ink-muted transition hover:bg-canvas lg:mb-0.5">
+            class="flex shrink-0 items-center gap-2.5 rounded-control px-3 py-2.5 text-base font-medium text-ink-muted transition hover:bg-canvas lg:mb-0.5">
+            <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ section.icon }}</span>
             <span>{{ section.labelKey | translate }}</span>
           </a>
         }

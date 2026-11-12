@@ -14,7 +14,7 @@
 <div class="flex flex-col gap-4">
   <app-table-toolbar searchPlaceholderKey="COMPLIANCE.RISKS.SEARCH" [query]="query()" (queryChange)="query.set($event)" ariaLabelKey="COMPLIANCE.RISKS.SEARCH">
     @if (chips().length > 2) {
-    <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[group() ?? 'all']" [ariaLabel]="(section() === 'risks' ? 'COMPLIANCE.RISKS.FILTER_CRITERION' : 'COMPLIANCE.RISKS.FILTER_CATEGORY') | translate"
+    <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[group() ?? 'all']" [labelKey]="section() === 'risks' ? 'COMPLIANCE.RISKS.FILTER_CRITERION' : 'COMPLIANCE.RISKS.FILTER_CATEGORY'"
       (picked)="pickGroup($event)" />
     }
     @if (view.canManage()) {

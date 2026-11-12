@@ -17,7 +17,7 @@
 @default {
 <div class="flex flex-col gap-4">
   <app-table-toolbar>
-    <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[filter() ?? 'all']" [ariaLabel]="'COMPLIANCE.EXCLUSIONS.FILTER' | translate" (picked)="pick($event)" />
+    <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[filter() ?? 'all']" labelKey="COMPLIANCE.EXCLUSIONS.FILTER" (picked)="pick($event)" />
   </app-table-toolbar>
 
   <div data-test-list>

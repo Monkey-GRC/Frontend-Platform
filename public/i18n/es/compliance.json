@@ -352,7 +352,7 @@
       "TABLE": "Exclusiones del servicio",
       "COL_TEST": "Prueba y activo",
       "COL_STATUS": "Estado",
-      "FILTER": "Filtrar por estado",
+      "FILTER": "Estado",
       "ALL": "Todas",
       "EMPTY": "Este servicio no tiene exclusiones.",
       "EMPTY_FILTER": "No hay exclusiones con ese estado.",
