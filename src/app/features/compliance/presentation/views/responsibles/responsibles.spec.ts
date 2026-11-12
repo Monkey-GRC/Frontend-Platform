@@ -42,13 +42,13 @@ describe('ResponsiblesView', () => {
 
   const openDrawer = () => click('[data-test-open-add]');
 
-  it('keeps the form out of the page until "add" is pressed, and opens it in a drawer', () => {
+  it('keeps the form out of the page until "add" is pressed, and opens it in a modal', () => {
     setup('admin_empresa');
     expect(el().querySelector('[data-test-type]')).toBeNull();
     expect(el().querySelectorAll('.mk-btn').length).toBe(1); // one primary action per view
     openDrawer();
-    expect(el().querySelector('app-side-drawer [role="dialog"]')).not.toBeNull();
-    expect(el().querySelector('app-side-drawer [data-test-type]')).not.toBeNull();
+    expect(el().querySelector('app-form-modal [role="dialog"]')).not.toBeNull();
+    expect(el().querySelector('app-form-modal [data-test-type]')).not.toBeNull();
   });
 
   it('shows the list in a data table, with "in use" as a status and no pills', () => {
@@ -99,7 +99,7 @@ describe('ResponsiblesView', () => {
     expect(api.create).toHaveBeenCalledOnceWith('coo', 'Luisa Mejía');
     expect(api.list).toHaveBeenCalledTimes(2);
     expect(text()).toContain('COMPLIANCE.RESPONSIBLES.CREATED');
-    expect(el().querySelector('app-side-drawer [role="dialog"]')).toBeNull(); // the drawer closes once saved
+    expect(el().querySelector('app-form-modal [role="dialog"]')).toBeNull(); // the modal closes once saved
   });
 
   it('shows the message of the server when the role already exists', () => {
@@ -110,7 +110,7 @@ describe('ResponsiblesView', () => {
     type('[data-test-name]', 'Marta Ruiz');
     click('[data-test-add]');
     expect(text()).toContain('Ya existe ese cargo con esa persona.');
-    expect(el().querySelector('app-side-drawer [role="dialog"]')).not.toBeNull(); // stays open so the person can fix it
+    expect(el().querySelector('app-form-modal [role="dialog"]')).not.toBeNull(); // stays open so the person can fix it
   });
 
   it('changes only the person of a role', () => {

@@ -219,7 +219,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
     it('closes with the close button', () => {
       setup();
       open('ana@acme.co');
-      click('button[aria-label="COMMON.CLOSE"]');
+      click('[data-cancel]');
       expect(el().querySelector('[role="dialog"]')).toBeNull();
     });
 
@@ -235,11 +235,11 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       open('pen@acme.co');
       expect(inPanel('[data-test-reissue]')).not.toBeNull();
       expect(el().querySelector('[role="dialog"] [data-test-deactivate]')).toBeNull();
-      click('button[aria-label="COMMON.CLOSE"]');
+      click('[data-cancel]');
       open('ana@acme.co');
       expect(inPanel('[data-test-reset-mfa]')).not.toBeNull();
       expect(inPanel('[data-test-deactivate]')).not.toBeNull();
-      click('button[aria-label="COMMON.CLOSE"]');
+      click('[data-cancel]');
       TestBed.resetTestingModule();
       setup([DELEGATE], 'responsable', [GROUPS[1]]);
       open('del@acme.co');
@@ -255,7 +255,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       open('adm2@acme.co');
       expect(inPanel('[data-test-deactivate]')).not.toBeNull();
       expect(el().querySelector('[data-test-reset-mfa]')).toBeNull(); // el de un administrador lo restablece Monkey
-      click('button[aria-label="COMMON.CLOSE"]');
+      click('[data-cancel]');
       open('admin@acme.co');
       expect(inPanel('[data-test-edit-name-btn]')).not.toBeNull();
       expect(el().querySelector('[data-test-deactivate]')).toBeNull();
@@ -299,7 +299,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       setup();
       open('ana@acme.co');
       expect(el().querySelector('[data-test-reissue]')).toBeNull();
-      click('button[aria-label="COMMON.CLOSE"]');
+      click('[data-cancel]');
       open('pen@acme.co');
       api.resendInvitation.and.returnValue(of({ delivery_status: 'sent', expires_at: '2026-11-13T10:00:00Z' }));
       click('[data-test-reissue]');
@@ -417,7 +417,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
     });
   });
 
-  describe('invite drawer', () => {
+  describe('invite modal', () => {
     it('keeps the form out of the page until «Invitar» opens it, and shows one primary action', () => {
       setup();
       expect(el().querySelector('app-team-invite-form')).toBeNull();
@@ -430,26 +430,32 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
     it('closes with the close button and discards the form', () => {
       setup();
       click('[data-test-open-invite]');
-      click('button[aria-label="COMMON.CLOSE"]');
+      click('[data-cancel]');
       expect(el().querySelector('[role="dialog"]')).toBeNull();
       expect(el().querySelector('app-team-invite-form')).toBeNull();
     });
 
-    describe('dismissing the drawer with Esc or a click on the background (at the view level, with the real form inside)', () => {
+    // El fondo de `app-modal` se cierra con el botón del ratón al bajar sobre él.
+    const backdrop = (id: string) => {
+      q(`[data-testid="${id}-backdrop"]`).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      fixture.detectChanges();
+    };
+
+    describe('dismissing the modal with Esc or a click on the background (at the view level, with the real form inside)', () => {
       const esc = () => {
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true, bubbles: true }));
         fixture.detectChanges();
       };
-      const drawerOpen = () => el().querySelector('[role="dialog"] app-team-invite-form') !== null;
+      const modalOpen = () => el().querySelector('[role="dialog"] app-team-invite-form') !== null;
 
       it('does not discard a form with something typed: Esc and the background do nothing', () => {
         setup();
         click('[data-test-open-invite]');
         type('[data-test-email]', 'nuevo@acme.co');
         esc();
-        expect(drawerOpen()).toBeTrue();
-        click('[data-testid="drawer-backdrop"]');
-        expect(drawerOpen()).toBeTrue();
+        expect(modalOpen()).toBeTrue();
+        backdrop('invite');
+        expect(modalOpen()).toBeTrue();
         expect(q<HTMLInputElement>('[data-test-email]').value).toBe('nuevo@acme.co');
       });
 
@@ -457,7 +463,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
         setup();
         click('[data-test-open-invite]');
         type('[data-test-email]', 'nuevo@acme.co');
-        click('button[aria-label="COMMON.CLOSE"]');
+        click('[data-cancel]');
         expect(el().querySelector('[role="dialog"]')).toBeNull();
       });
 
@@ -467,7 +473,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
         esc();
         expect(el().querySelector('[role="dialog"]')).toBeNull();
         click('[data-test-open-invite]');
-        click('[data-testid="drawer-backdrop"]');
+        backdrop('invite');
         expect(el().querySelector('[role="dialog"]')).toBeNull();
       });
     });

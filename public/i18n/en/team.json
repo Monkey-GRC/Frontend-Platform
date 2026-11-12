@@ -85,7 +85,9 @@
         "KIND": "Type",
         "LEADER": "Leader",
         "MEMBERS": "People"
-      }
+      },
+      "NEW_SUBTITLE": "Create a group of responsible people or the team of one of them.",
+      "DETAIL_SUBTITLE": "Who leads the group and the people in it."
     },
     "ROLE": {
       "ADMIN_EMPRESA": "Administrator",
@@ -126,7 +128,8 @@
       "HELP_DELEGADO": "A delegate carries out the controls their owner assigns and uploads the evidence. Choose whether they are from your company or external.",
       "HELP_AUDITOR": "An auditor reviews everything in your company read-only and leaves observations.",
       "TEAM_NAME": "Team name (optional)",
-      "TEAM_NAME_HELP": "If you leave it empty it will be called «Team of» plus their name."
+      "TEAM_NAME_HELP": "If you leave it empty it will be called «Team of» plus their name.",
+      "SUBTITLE": "They will get an email to activate their account."
     },
     "INVITATION": {
       "SENT_TITLE": "We sent the invitation to {{email}}",
@@ -174,7 +177,8 @@
       "MFA": "Second factor",
       "YES": "Yes",
       "NO": "No",
-      "CREATED": "Created"
+      "CREATED": "Created",
+      "SUBTITLE": "Account details and available actions."
     },
     "ORG": {
       "TITLE": "Org chart",

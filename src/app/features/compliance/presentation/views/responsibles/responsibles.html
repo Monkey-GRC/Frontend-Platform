@@ -77,27 +77,26 @@
 </section>
 
 <!-- El alta vive en un drawer que abre «Agregar responsable»; el formulario se crea al abrirlo y se descarta al cerrar. -->
-<app-side-drawer [open]="addOpen()" titleKey="COMPLIANCE.RESPONSIBLES.ADD" subtitleKey="COMPLIANCE.RESPONSIBLES.ADD_HINT" [dismissible]="!saving()" (closed)="closeAdd()">
+<app-form-modal [open]="addOpen()" titleKey="COMPLIANCE.RESPONSIBLES.ADD" descriptionKey="COMPLIANCE.RESPONSIBLES.ADD_HINT" [dismissible]="!saving()" testId="responsible-add" (closed)="closeAdd()">
   @if (addOpen()) {
-  <form id="responsible-add-form" class="space-y-4" (submit)="$event.preventDefault(); add()" [attr.aria-label]="'COMPLIANCE.RESPONSIBLES.ADD' | translate">
+  <form id="responsible-add-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); add()" [attr.aria-label]="'COMPLIANCE.RESPONSIBLES.ADD' | translate">
     @if (error(); as e) {
     <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert"><span>{{ e }}</span>
     </div>
     }
-    <app-field labelKey="COMPLIANCE.RESPONSIBLES.TYPE" forId="responsible-type">
+    <app-field labelKey="COMPLIANCE.RESPONSIBLES.TYPE" forId="responsible-type" hintKey="COMPLIANCE.RESPONSIBLES.TYPE_HINT">
       <select id="responsible-type" data-test-type (change)="newType.set(targetValue($event))" [disabled]="saving()" class="mk-input">
         <option value="" [selected]="!newType()">{{ 'COMPLIANCE.RESPONSIBLES.SELECT' | translate }}</option>
         @for (t of types(); track t.value) {<option [value]="t.value" [selected]="newType() === t.value">{{ t.label }}</option>}
       </select>
     </app-field>
-    <app-field labelKey="COMPLIANCE.RESPONSIBLES.PERSON" forId="responsible-person">
+    <app-field labelKey="COMPLIANCE.RESPONSIBLES.PERSON" forId="responsible-person" hintKey="COMPLIANCE.RESPONSIBLES.PERSON_HINT">
       <input id="responsible-person" type="text" data-test-name maxlength="200" [value]="newName()" (input)="newName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
     </app-field>
   </form>
   }
-  <button actions type="button" (click)="closeAdd()" [disabled]="saving()" class="mk-btn-secondary">{{ 'COMMON.CANCEL' | translate }}</button>
   <button actions type="submit" form="responsible-add-form" [disabled]="!canAdd()" data-test-add class="mk-btn">{{ 'COMPLIANCE.RESPONSIBLES.ADD' | translate }}</button>
-</app-side-drawer>
+</app-form-modal>
 
 @if (removing(); as r) {
 <app-confirm-dialog titleKey="COMPLIANCE.RESPONSIBLES.REMOVE_CONFIRM_TITLE" [titleParams]="{ name: r.person_name ?? '' }" messageKey="COMPLIANCE.RESPONSIBLES.REMOVE_CONFIRM_BODY" tone="danger"

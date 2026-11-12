@@ -98,7 +98,7 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
       expect(el().querySelector('[data-test-filter-kind]')).toBeNull();
     });
 
-    it('opens the people of a group in a side panel, asking the server only for that group, from the row and from the keyboard', () => {
+    it('opens the people of a group in a modal, asking the server only for that group, from the row and from the keyboard', () => {
       setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
       expect(el().querySelector('app-group-members')).toBeNull();
       expect(row('team-maria').getAttribute('tabindex')).toBe('0');
@@ -107,7 +107,7 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
       expect(q('[role="dialog"] app-group-members')).not.toBeNull();
       expect(q('[role="dialog"]').textContent).toContain('Equipo de María');
       expect(teamApi.list).toHaveBeenCalledWith({ groupId: 'team-maria' }, 1, 100);
-      click('button[aria-label="COMMON.CLOSE"]');
+      click('[data-cancel]');
       expect(el().querySelector('app-group-members')).toBeNull();
     });
   });

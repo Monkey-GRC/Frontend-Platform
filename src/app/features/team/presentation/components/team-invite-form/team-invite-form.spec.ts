@@ -54,7 +54,12 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     type('[data-test-name]', 'Juan');
     type('[data-test-last-name]', 'Pérez');
   };
-  const submitDisabled = () => q<HTMLButtonElement>('[data-test-invite]').disabled;
+  // El botón de enviar vive en el pie del modal (la vista lo une a este formulario por su id): aquí se envía el formulario y se pregunta a `canSubmit`.
+  const submitDisabled = () => !fixture.componentInstance.canSubmit();
+  const submitForm = () => {
+    q<HTMLFormElement>('#invite-form').requestSubmit();
+    fixture.detectChanges();
+  };
   const roleValues = () => Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-role] option')).map((o) => o.value);
 
   describe('who can create whom (D102 punto 2)', () => {
@@ -76,11 +81,11 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(submitDisabled()).toBeTrue();
       fillPerson();
       expect(submitDisabled()).toBeFalse();
-      click('[data-test-invite]');
+      submitForm();
       expect(api.invite).toHaveBeenCalledWith({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'auditor' });
       type('[data-test-role]', 'admin_empresa');
       fillPerson('otra@acme.co');
-      click('[data-test-invite]');
+      submitForm();
       expect(api.invite).toHaveBeenCalledWith({ email: 'otra@acme.co', name: 'Juan', last_name: 'Pérez', role: 'admin_empresa' });
     });
 
@@ -90,7 +95,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       component.teamCreated.subscribe(teamCreated);
       fillPerson();
       expect(el().querySelector('[data-test-responsables-group]')).toBeNull();
-      click('[data-test-invite]');
+      submitForm();
       expect(api.invite).toHaveBeenCalledWith({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'responsable' });
       // el equipo lo crea el administrador por él: sale con el responsable recién creado como líder
       expect(groupApi.create).toHaveBeenCalledOnceWith({ name: jasmine.stringContaining('DEFAULT_TEAM_NAME'), leader_id: 'new' });
@@ -102,7 +107,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(q<HTMLInputElement>('[data-test-team-name]').value).toBe('');
       fillPerson();
       type('[data-test-team-name]', '  Seguridad Cloud ');
-      click('[data-test-invite]');
+      submitForm();
       expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Seguridad Cloud', leader_id: 'new' });
       expect(q<HTMLInputElement>('[data-test-team-name]').value).toBe(''); // el formulario queda limpio
     });
@@ -115,7 +120,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       }
       type('[data-test-role]', 'auditor');
       fillPerson();
-      click('[data-test-invite]');
+      submitForm();
       expect(groupApi.create).not.toHaveBeenCalled();
     });
 
@@ -124,7 +129,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(el().querySelector('[data-test-team-name]')).toBeNull();
       fillPerson();
       click('[data-test-internal]');
-      click('[data-test-invite]');
+      submitForm();
       expect(groupApi.create).not.toHaveBeenCalled();
     });
 
@@ -133,7 +138,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       const taken = new HttpErrorResponse({ status: 409, error: { message: 'Ese nombre ya existe.', error: { code: 'GROUP_NAME_TAKEN' } } });
       groupApi.create.and.returnValues(throwError(() => taken), of(TEAM_MARIA));
       fillPerson();
-      click('[data-test-invite]');
+      submitForm();
       expect(groupApi.create).toHaveBeenCalledTimes(2);
       expect(groupApi.create.calls.argsFor(1)[0].name).toContain('(new@acme.co)'.replace('new', 'juan'));
     });
@@ -147,7 +152,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       groupApi.create.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Ese nombre ya existe.', error: { code: 'GROUP_NAME_TAKEN' } } })));
       fillPerson();
       type('[data-test-team-name]', 'Seguridad'); // un nombre escrito a mano no se cambia solo
-      click('[data-test-invite]');
+      submitForm();
       expect(invited).toHaveBeenCalledTimes(1);
       expect(groupApi.create).toHaveBeenCalledTimes(1);
       expect(failed).toHaveBeenCalledOnceWith('Ese nombre ya existe.');
@@ -162,7 +167,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-team] option')).map((o) => o.value)).toEqual(['', 'team-maria', 'team-pedro']);
       type('[data-test-team]', 'team-pedro');
       expect(submitDisabled()).toBeFalse();
-      click('[data-test-invite]');
+      submitForm();
       expect(api.invite).toHaveBeenCalledWith({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'delegado', is_internal: true, group_id: 'team-pedro' });
     });
 
@@ -172,7 +177,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       fillPerson();
       click('[data-test-external]');
       type('[data-test-team]', 'team-maria');
-      click('[data-test-invite]');
+      submitForm();
       expect(api.invite).toHaveBeenCalledWith(jasmine.objectContaining({ role: 'delegado', is_internal: false, group_id: 'team-maria' }));
     });
 
@@ -195,7 +200,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(submitDisabled()).toBeTrue();
       click('[data-test-internal]');
       expect(submitDisabled()).toBeFalse();
-      click('[data-test-invite]');
+      submitForm();
       expect(api.invite).toHaveBeenCalledWith({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'delegado', is_internal: true });
     });
 
@@ -215,7 +220,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       component.invited.subscribe((m) => (emitted = m));
       type('[data-test-role]', 'auditor');
       fillPerson();
-      click('[data-test-invite]');
+      submitForm();
       expect((emitted as InvitedMember | null)?.invitation.delivery_status).toBe('sent');
       expect(q<HTMLInputElement>('[data-test-email]').value).toBe('');
       expect(q<HTMLInputElement>('[data-test-name]').value).toBe('');
@@ -226,7 +231,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       api.invite.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Ya existe una cuenta con ese correo.', error: { code: 'EMAIL_TAKEN' } } })));
       type('[data-test-role]', 'auditor');
       fillPerson('otra@empresa.co');
-      click('[data-test-invite]');
+      submitForm();
       expect(q('[data-test-email-error]').textContent).toContain('Ya existe una cuenta con ese correo.');
       expect(el().querySelector('[data-test-form-error]')).toBeNull();
     });
@@ -236,10 +241,10 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       type('[data-test-role]', 'auditor');
       fillPerson();
       api.invite.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { error: { code: 'USER_LIMIT_REACHED', max_users: 10, users_count: 10 } } })));
-      click('[data-test-invite]');
+      submitForm();
       expect(q('[data-test-form-error]').textContent).toContain('TEAM.ERROR.USER_LIMIT_COUNTS');
       api.invite.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { error: { code: 'USER_LIMIT_REACHED' } } })));
-      click('[data-test-invite]');
+      submitForm();
       expect(q('[data-test-form-error]').textContent).toContain('TEAM.ERROR.USER_LIMIT');
       expect(q('[data-test-form-error]').textContent).not.toContain('USER_LIMIT_COUNTS');
     });
@@ -251,7 +256,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       fillPerson();
       click('[data-test-internal]');
       type('[data-test-team]', 'team-maria');
-      click('[data-test-invite]');
+      submitForm();
       expect(q('[data-test-form-error]').textContent).toContain('TEAM.ERROR.NO_TEAM');
     });
 
@@ -260,7 +265,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       api.invite.and.returnValue(throwError(() => new HttpErrorResponse({ status: 422, error: { message: 'Revisa los datos.', error: { code: 'VALIDATION_FAILED' } } })));
       type('[data-test-role]', 'auditor');
       fillPerson();
-      click('[data-test-invite]');
+      submitForm();
       expect(q('[data-test-form-error]').textContent).toContain('Revisa los datos.');
     });
   });
