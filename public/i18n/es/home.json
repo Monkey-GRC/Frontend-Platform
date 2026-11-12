@@ -64,6 +64,7 @@
       "ACTIVE_ADMINS": "Administradores activos",
       "PENDING": "Invitaciones pendientes",
       "SEE": "Revisar en el equipo"
-    }
+    },
+    "COMPANY_BODY_OTHER": "El administrador de tu empresa declara sus datos: sector, tamaño, alcance geográfico y normas aplicables."
   }
 }

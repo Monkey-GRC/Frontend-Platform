@@ -236,7 +236,9 @@
       "UPLOAD_RETRY": "Please try again or use a link.",
       "NAME_TAKEN": "You already have a service with that name. Choose another one to tell them apart.",
       "FRAMEWORK_NOT_CONTRACTED": "Your company doesn't have that framework contracted yet. Contact us and we'll enable it.",
-      "SAVE_ERROR": "We couldn't save your service. Please try again."
+      "SAVE_ERROR": "We couldn't save your service. Please try again.",
+      "NEEDS_COMPANY_OTHER_TITLE": "The organizational context is missing",
+      "NEEDS_COMPANY_OTHER_BODY": "A service belongs to an organization. Your company's administrator must declare that context; then you can come back here."
     }
   }
 }

@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { apiErrorCode, apiErrorMessage } from '@core/domain/utils/api-error';
 import { AuthPayload, MfaSetupStart } from '@core/domain/models/auth.models';
 import { AuthService } from '@core/domain/services/auth.service';
+import { postLoginPath } from '@core/domain/utils/post-login-path';
 import { CodeInput } from '@shared/presentation/components/code-input/code-input';
 import { Stepper, StepperItem } from '@shared/presentation/components/stepper/stepper';
 import { QrCode } from '@shared/presentation/components/qr-code/qr-code';
@@ -174,7 +175,7 @@ export class MfaForm {
 
   private navigateIn(payload: AuthPayload): void {
     // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
-    this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/', { replaceUrl: true });
+    this.router.navigateByUrl(postLoginPath(payload.user.role, payload.onboarding), { replaceUrl: true });
   }
 
   private run<T>(request: Observable<T>,onSuccess: (value: T) => void): void {

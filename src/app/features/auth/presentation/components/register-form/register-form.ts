@@ -7,6 +7,7 @@ import { CodeLookup } from '@core/domain/models/auth.models';
 import { passwordsMatch, STRONG_PASSWORD } from '@shared/domain/utils/password-rules';
 import { NewPasswordFields } from '@shared/presentation/components/new-password-fields/new-password-fields';
 import { AuthService } from '@core/domain/services/auth.service';
+import { postLoginPath } from '@core/domain/utils/post-login-path';
 
 type FieldName = 'code' | 'password' | 'password_confirmation';
 
@@ -109,7 +110,7 @@ export class RegisterForm {
           }
           const payload = outcome.payload;
           // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
-          this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/', { replaceUrl: true });
+          this.router.navigateByUrl(postLoginPath(payload.user.role, payload.onboarding), { replaceUrl: true });
         },
         error: (error) => {
           this.loading.set(false);

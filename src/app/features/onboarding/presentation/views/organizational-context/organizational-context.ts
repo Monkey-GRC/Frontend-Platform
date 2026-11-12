@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
-import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { forkJoin } from 'rxjs';
@@ -45,13 +46,13 @@ const REVIEW_STEP = STEPS.length;
 const DESCRIPTION_MAX = 2000;
 const NONE = 'none';
 
-type Stage = 'loading' | 'error' | 'form' | 'saving';
+type Stage = 'loading' | 'error' | 'forbidden' | 'form' | 'saving';
 type MultiKey = 'incorporation_countries' | 'client_countries' | 'regulation_codes';
 type SingleKey = 'size' | 'years_in_operation' | 'industry' | 'business_model' | 'compliance_maturity';
 
 @Component({
   selector: 'app-organizational-context',
-  imports: [OptionChips, TranslatePipe, EmptyState],
+  imports: [OptionChips, RouterLink, TranslatePipe, EmptyState],
   templateUrl: './organizational-context.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -166,7 +167,7 @@ export class OrganizationalContextView implements OnInit {
         }
         this.stage.set('form');
       },
-      error: () => this.stage.set('error'),
+      error: (error: unknown) => this.stage.set(error instanceof HttpErrorResponse && error.status === 403 ? 'forbidden' : 'error'),
     });
   }
 

@@ -23,6 +23,13 @@
   </app-empty-state>
   }
 
+  <!-- ===================== Sin permiso: el contexto lo declara el administrador ===================== -->
+  @case ('forbidden') {
+  <app-empty-state icon="" titleKey="ONBOARDING.FORBIDDEN_TITLE" descriptionKey="ONBOARDING.FORBIDDEN_BODY">
+    <a action routerLink="/" class="mk-btn">{{ 'ONBOARDING.FORBIDDEN_CTA' | translate }}</a>
+  </app-empty-state>
+  }
+
   <!-- ===================== Asistente ===================== -->
   @default {
   @if (catalogs(); as cat) {

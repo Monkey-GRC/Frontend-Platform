@@ -3,11 +3,15 @@
   <app-card>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
+        @if (isCompanyAdmin()) {
         <p class="text-xs font-medium text-ink-faint">{{ 'HOME.STEP_FIRST' | translate }}</p>
+        }
         <h2 class="mt-1 text-base font-semibold text-ink">{{ 'HOME.COMPANY_TITLE' | translate }}</h2>
-        <p class="mt-1 text-sm text-ink-muted">{{ 'HOME.COMPANY_BODY' | translate }}</p>
+        <p class="mt-1 text-sm text-ink-muted">{{ (isCompanyAdmin() ? 'HOME.COMPANY_BODY' : 'HOME.COMPANY_BODY_OTHER') | translate }}</p>
       </div>
+      @if (isCompanyAdmin()) {
       <a routerLink="/onboarding" class="mk-btn shrink-0">{{ 'HOME.START' | translate }}</a>
+      }
     </div>
   </app-card>
   }

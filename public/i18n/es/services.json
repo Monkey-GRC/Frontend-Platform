@@ -236,7 +236,9 @@
       "UPLOAD_RETRY": "Inténtalo de nuevo o usa un enlace.",
       "NAME_TAKEN": "Ya tienes un servicio con ese nombre. Elige otro para distinguirlos.",
       "FRAMEWORK_NOT_CONTRACTED": "Tu empresa aún no tiene contratado ese marco. Escríbenos y lo habilitamos.",
-      "SAVE_ERROR": "No pudimos guardar tu servicio. Inténtalo de nuevo."
+      "SAVE_ERROR": "No pudimos guardar tu servicio. Inténtalo de nuevo.",
+      "NEEDS_COMPANY_OTHER_TITLE": "Falta el contexto organizacional",
+      "NEEDS_COMPANY_OTHER_BODY": "Un servicio pertenece a una organización. El administrador de tu empresa debe declarar ese contexto; después podrás volver aquí."
     }
   }
 }

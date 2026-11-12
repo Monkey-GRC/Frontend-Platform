@@ -5,6 +5,7 @@
   @if (needsCompany()) {
   <!-- ===================== Primero la empresa ===================== -->
   <div class="py-12 text-center">
+    @if (isCompanyAdmin()) {
     <h1 class="mt-4 text-xl font-semibold text-ink">{{ 'SERVICES.FORM.NEEDS_COMPANY_TITLE' | translate }}</h1>
     <p class="mx-auto mt-2 max-w-md text-sm text-ink-faint">
       {{ 'SERVICES.FORM.NEEDS_COMPANY_BODY' | translate }}
@@ -13,6 +14,12 @@
       class="mt-4 mk-btn">
       {{ 'SERVICES.FORM.NEEDS_COMPANY_CTA' | translate }}
     </a>
+    } @else {
+    <h1 class="mt-4 text-xl font-semibold text-ink">{{ 'SERVICES.FORM.NEEDS_COMPANY_OTHER_TITLE' | translate }}</h1>
+    <p class="mx-auto mt-2 max-w-md text-sm text-ink-faint">
+      {{ 'SERVICES.FORM.NEEDS_COMPANY_OTHER_BODY' | translate }}
+    </p>
+    }
   </div>
   } @else {
 

@@ -62,6 +62,9 @@
     "REVIEW_TITLE": "Review",
     "REVIEW_BODY": "Check the details and save them. You can edit them later.",
     "SAVE_AND_CONTINUE": "Save and continue",
-    "SAVE_ERROR": "We couldn't save your information. Please try again."
+    "SAVE_ERROR": "We couldn't save your information. Please try again.",
+    "FORBIDDEN_TITLE": "The administrator completes this",
+    "FORBIDDEN_BODY": "Your company's context is declared by your company's administrator. Once they do, you'll see here what they described.",
+    "FORBIDDEN_CTA": "Back to home"
   }
 }
