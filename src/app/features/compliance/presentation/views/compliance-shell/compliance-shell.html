@@ -6,12 +6,7 @@
     @if (canSwitch()) {
     <div actions class="flex items-center gap-2">
       <label for="service-switch" class="text-xs font-medium">{{ 'COMPLIANCE.SHELL.SERVICE' | translate }}</label>
-      <select id="service-switch" (change)="switchTo(targetValue($event))" class="mk-input h-9 max-w-[16rem]">
-        <option [value]="GENERAL">{{ 'COMPLIANCE.SHELL.GENERAL' | translate }}</option>
-        @for (s of others(); track s.id) {
-        <option [value]="s.id" [selected]="s.id === serviceId()">{{ s.name }}</option>
-        }
-      </select>
+      <app-select inputId="service-switch" size="sm" class="w-64 max-w-full" [options]="serviceOptions()" [value]="serviceId() ?? GENERAL" (valueChange)="switchTo($event)" />
     </div>
     }
   </app-compliance-banner>

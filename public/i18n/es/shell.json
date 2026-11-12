@@ -15,10 +15,13 @@
       "MY_TEAM": "Mi equipo",
       "LABEL": "Navegación principal",
       "TOGGLE_SIDEBAR": "Mostrar u ocultar el menú lateral",
+      "PIN": "Fijar menú",
+      "UNPIN": "Soltar menú",
       "TEAM_PEOPLE": "Personas",
       "TEAM_GROUPS": "Grupos",
       "TEAM_ORG": "Organigrama",
-      "LOGO_ALT": "Logotipo de Monkey"
+      "LOGO_ALT": "Logotipo de Monkey",
+      "INTEGRATIONS": "Integraciones"
     },
     "COMING_SOON": "Sección en construcción.",
     "HEADER": {

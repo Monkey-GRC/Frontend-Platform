@@ -48,10 +48,10 @@
       <p class="text-xs text-warn-ink">{{ 'TECHNICAL_CONTROL.EDIT.KEYS_HELP' | translate }}</p>
       <input type="text" autocomplete="off" spellcheck="false" [attr.aria-label]="'TECHNICAL_CONTROL.EDIT.KEY_ID_ARIA' | translate" [placeholder]="'TECHNICAL_CONTROL.EDIT.KEY_ID_PLACEHOLDER' | translate" [value]="accessKeyId()"
         (input)="accessKeyId.set(targetValue($event))"
-        class="h-12 w-full rounded-control border border-line bg-surface px-4 font-mono text-xs" />
+        class="h-12 w-full rounded-control border border-line bg-surface px-4 font-mono text-xs text-ink placeholder:text-ink-faint" />
       <input type="password" autocomplete="new-password" [attr.aria-label]="'TECHNICAL_CONTROL.EDIT.SECRET' | translate" [placeholder]="'TECHNICAL_CONTROL.EDIT.SECRET' | translate" [value]="secretAccessKey()"
         (input)="secretAccessKey.set(targetValue($event))"
-        class="h-12 w-full rounded-control border border-line bg-surface px-4 font-mono text-xs" />
+        class="h-12 w-full rounded-control border border-line bg-surface px-4 font-mono text-xs text-ink placeholder:text-ink-faint" />
       @if (fieldError('credentials'); as e) { <p class="text-xs text-bad-ink">{{ e }}</p> }
     </div>
     }

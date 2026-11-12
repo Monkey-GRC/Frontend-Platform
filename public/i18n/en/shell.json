@@ -15,10 +15,13 @@
       "MY_TEAM": "My team",
       "LABEL": "Main navigation",
       "TOGGLE_SIDEBAR": "Show or hide the side menu",
+      "PIN": "Pin menu",
+      "UNPIN": "Unpin menu",
       "TEAM_PEOPLE": "People",
       "TEAM_GROUPS": "Groups",
       "TEAM_ORG": "Org chart",
-      "LOGO_ALT": "Monkey logo"
+      "LOGO_ALT": "Monkey logo",
+      "INTEGRATIONS": "Integrations"
     },
     "COMING_SOON": "This section is under construction.",
     "HEADER": {

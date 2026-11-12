@@ -1,3 +1,5 @@
+import { storedLanguage } from '@core/domain/services/language.service';
+
 // Validación de un archivo antes de subirlo: tipo (por extensión) y tamaño. Es pura y no conoce textos: devuelve la clave de
 // traducción del problema y sus variables, y quien la muestra la pasa por `translate`.
 export interface FileRules {
@@ -11,7 +13,8 @@ export interface FileProblem {
   params: Record<string, string>;
 }
 
-export function formatBytes(bytes: number): string {
+// El separador decimal sigue el idioma de la app (el activo por defecto).
+export function formatBytes(bytes: number, language: string = storedLanguage()): string {
   if (bytes < 1024) return `${bytes} B`;
   const units = ['KB', 'MB', 'GB'];
   let value = bytes / 1024;
@@ -21,7 +24,7 @@ export function formatBytes(bytes: number): string {
     unit++;
   }
   const rounded = value >= 10 || Number.isInteger(value) ? Math.round(value) : Math.round(value * 10) / 10;
-  return `${rounded} ${units[unit]}`;
+  return `${new Intl.NumberFormat(language).format(rounded)} ${units[unit]}`;
 }
 
 export function acceptedTypesLabel(accept: readonly string[]): string {

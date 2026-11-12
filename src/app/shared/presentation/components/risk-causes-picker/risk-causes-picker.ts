@@ -1,3 +1,4 @@
+import { storedLanguage } from '@core/domain/services/language.service';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
@@ -8,6 +9,7 @@ import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { RiskForm } from '../risk-form/risk-form';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { SearchField } from '@shared/presentation/components/search-field/search-field';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -15,7 +17,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // se guarda en el momento (vincular o desvincular), así que no hay un «guardar» que olvidar. Es opcional: quien no marca ninguna sigue y puede hacerlo después en Cumplimiento.
 @Component({
   selector: 'app-risk-causes-picker',
-  imports: [TranslatePipe, LoadingSpinner, RiskForm],
+  imports: [TranslatePipe, LoadingSpinner, RiskForm, SearchField],
   templateUrl: './risk-causes-picker.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -58,7 +60,7 @@ export class RiskCausesPicker {
     this.stage.set('loading');
     forkJoin({ causes: this.api.listAllCauses(this.serviceId()), risk: this.api.getRisk(this.riskId()) }).subscribe({
       next: ({ causes, risk }) => {
-        this.causes.set(causes.filter((c) => c.is_active).sort((a, b) => a.code.localeCompare(b.code, 'es', { numeric: true })));
+        this.causes.set(causes.filter((c) => c.is_active).sort((a, b) => a.code.localeCompare(b.code, storedLanguage(), { numeric: true })));
         this.linked.set(new Set(risk.causes.map((c) => c.id)));
         this.stage.set('ready');
       },
@@ -93,7 +95,7 @@ export class RiskCausesPicker {
     this.error.set(null);
     this.api.getCause(causeId).subscribe({
       next: (cause) => {
-        this.causes.update((list) => [...list, cause].sort((a, b) => a.code.localeCompare(b.code, 'es', { numeric: true })));
+        this.causes.update((list) => [...list, cause].sort((a, b) => a.code.localeCompare(b.code, storedLanguage(), { numeric: true })));
         this.toggle(cause);
       },
       error: (e) => this.error.set(apiErrorMessage(e, this.translate.instant('COMPLIANCE.RISK_WIZARD.CAUSES_ERROR'))),

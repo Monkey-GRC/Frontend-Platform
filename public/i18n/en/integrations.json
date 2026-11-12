@@ -1,0 +1,152 @@
+{
+  "INTEGRATIONS": {
+    "LIST": {
+      "HEADING": "Integrations",
+      "INTRO": "The platforms your company connected to Monkey and the state of each connection.",
+      "ADD": "Add integration",
+      "LOAD_ERROR_TITLE": "We could not load the integrations",
+      "EMPTY_TITLE": "No integrations connected yet",
+      "EMPTY_BODY_ADMIN": "Connect a platform so Monkey can assess its configuration automatically.",
+      "EMPTY_BODY_AUDITOR": "When your company connects a platform, it will appear here.",
+      "SEARCH_PLACEHOLDER": "Search by name",
+      "FILTER_STATUS": "Status",
+      "TABLE_CAPTION": "Connected integrations",
+      "COL_NAME": "Integration",
+      "COL_PURPOSE": "Purpose",
+      "COL_RESOURCES": "Resources",
+      "COL_STATUS": "Status",
+      "CONNECTIONS_ONE": "{{count}} connection",
+      "CONNECTIONS_MANY": "{{count}} connections",
+      "LAST_VALIDATED": "Last validated {{date}}",
+      "NEVER_VALIDATED": "Not validated yet",
+      "NO_MATCH": "No integration matches your search."
+    },
+    "ATTENTION": {
+      "TITLE_ONE": "{{count}} integration needs attention",
+      "TITLE_MANY": "{{count}} integrations need attention",
+      "BODY": "This is a connection problem: until it is solved, the automatic assessment does not run for that connection. It does not mean any control is failing.",
+      "REVIEW": "Review connection"
+    },
+    "STATUS": {
+      "ACTIVE": "Active",
+      "PENDING": "Pending activation",
+      "NEEDS_ATTENTION": "Needs attention"
+    },
+    "PURPOSE": {
+      "MEASUREMENT": "Measurement and compliance",
+      "WORKFLOW": "Management and workflow"
+    },
+    "OPERATIONAL": {
+      "OPERATIONAL": "Operational",
+      "WARNING": "With warnings",
+      "ERROR": "With error",
+      "NOT_MONITORED": "Not monitored"
+    },
+    "ADD": {
+      "HEADING": "Add integration",
+      "INTRO": "Choose the platform you want to connect to Monkey.",
+      "BACK": "Integrations",
+      "SEARCH_PLACEHOLDER": "Search by name or description",
+      "LOAD_ERROR_TITLE": "We could not load the catalog",
+      "EMPTY_TITLE": "No integrations available",
+      "NO_MATCH": "No integration matches your search.",
+      "PURPOSE_HINT_MEASUREMENT": "They assess the platform configuration and feed the tests.",
+      "PURPOSE_HINT_WORKFLOW": "They help manage the compliance work.",
+      "CONNECT": "Connect",
+      "CONNECT_ARIA": "Connect {{name}}",
+      "CONNECTED": "Connected",
+      "COMING_SOON": "Coming soon",
+      "CONNECT_ANOTHER": "Connect another account",
+      "CONNECT_ANOTHER_ARIA": "Connect another {{name}} account"
+    },
+    "PICK": {
+      "TITLE": "Connect {{name}}",
+      "DESCRIPTION": "Choose the service this connection belongs to.",
+      "NO_SERVICES": "You have no services yet. Declare one to connect a platform.",
+      "GO_SERVICES": "Go to My services",
+      "LOAD_ERROR": "We could not load your services. Try again."
+    },
+    "DETAIL": {
+      "BACK_LIST": "Integrations",
+      "BACK_ADD": "Add integration",
+      "LOAD_ERROR_TITLE": "We could not load the integration",
+      "NOT_FOUND_TITLE": "This integration does not exist or is not available for your role",
+      "NOT_FOUND_LINK": "Go to Integrations",
+      "TABS_ARIA": "Integration sections",
+      "TABS": {
+        "OVERVIEW": "Overview",
+        "CONNECTIONS": "Connections",
+        "PERMISSIONS": "Permissions",
+        "EVALUATES": "What it evaluates",
+        "SECURITY": "Security"
+      },
+      "FEATURES_TITLE": "What you can do",
+      "PREREQUISITES_TITLE": "Before you connect",
+      "SOON_TITLE": "We will publish this when the integration is available"
+    },
+    "CONNECTIONS": {
+      "TITLE": "Connections of this integration ({{count}})",
+      "OPERATIONAL": "Operational status:",
+      "SERVICES": "Services:"
+    },
+    "PERMISSIONS": {
+      "TITLE": "Permissions Monkey asks for ({{count}})",
+      "READ_ONLY": "Monkey only asks for read permissions: it cannot change anything in your platform.",
+      "EMPTY_TITLE": "This integration asks for no permissions"
+    },
+    "ACCESS": {
+      "READ": "Read",
+      "WRITE": "Write"
+    },
+    "EVALUATES": {
+      "RESOURCES_TITLE": "Resource types",
+      "COVERAGE_TITLE": "Tests and controls",
+      "SUMMARY": "Feeds {{tests}} and {{controls}} in {{frameworks}}.",
+      "TESTS_TITLE": "Automatic tests",
+      "FRAMEWORKS_TITLE": "Frameworks",
+      "NOTE": "The integration feeds these tests; whether a control is met depends on all of its tests and evidence.",
+      "EMPTY_TITLE": "This integration does not feed any tests yet"
+    },
+    "COUNT": {
+      "TESTS_ONE": "{{count}} automatic test",
+      "TESTS_MANY": "{{count}} automatic tests",
+      "CONTROLS_ONE": "{{count}} control",
+      "CONTROLS_MANY": "{{count}} controls",
+      "FRAMEWORKS_ONE": "{{count}} framework",
+      "FRAMEWORKS_MANY": "{{count}} frameworks"
+    },
+    "RESOURCE_KIND": {
+      "SERVER": "Server",
+      "DATABASE": "Database",
+      "STORAGE": "Storage",
+      "FUNCTION": "Function",
+      "OTHER": "Other"
+    },
+    "SECURITY": {
+      "TITLE": "How Monkey protects the connection",
+      "EMPTY_TITLE": "There are no security measures to show yet"
+    },
+    "SECURITY_TOPIC": {
+      "READ_ONLY": "Read-only",
+      "TEMPORARY_CREDENTIALS": "Temporary credentials",
+      "EXTERNAL_ID": "External ID",
+      "ISOLATED_EXECUTION": "Isolated execution",
+      "TENANT_ISOLATION": "Isolation between companies",
+      "ENCRYPTED_KEYS": "Encrypted keys"
+    },
+    "SIDE": {
+      "FEEDS": "Feeds {{tests}}",
+      "CONTROLS_IN": "{{controls}} in {{frameworks}}",
+      "BUILT_BY": "Built by",
+      "BUILT_BY_VALUE": "Monkey",
+      "PURPOSE": "Purpose",
+      "CAPABILITIES": "Capabilities",
+      "WORKS_WITH": "Works with",
+      "AVAILABILITY": "Availability"
+    },
+    "AVAILABILITY": {
+      "AVAILABLE": "Available",
+      "COMING_SOON": "Coming soon"
+    }
+  }
+}

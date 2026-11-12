@@ -2,6 +2,10 @@
   "COMMON": {
     "BREADCRUMB": "Breadcrumb",
     "LOADING": "Loading",
+    "LANGUAGE_SWITCHING": "Switching language…",
+    "ERRORS": {
+      "MISSING_DATA": "The server response has no data"
+    },
     "CHECK_CONNECTION": "Check your connection and try again.",
     "RETRY": "Retry",
     "DELETE": "Delete",
@@ -54,6 +58,11 @@
       "GROUP_COUNT": "Items: {{count}}",
       "GROUP_COLLAPSE": "Collapse group {{name}}",
       "GROUP_EXPAND": "Expand group {{name}}"
+    },
+    "SELECT": {
+      "COUNT": "{{count}} selected",
+      "NO_OPTIONS": "No options",
+      "NONE": "Not chosen"
     },
     "FILE": {
       "DROP_OR_CLICK": "Drag a file here or click to choose one",
@@ -157,6 +166,9 @@
     "FORGOT_PASSWORD": "Recover password",
     "RESET_PASSWORD": "Create new password",
     "SETTINGS_PASSWORD": "Settings · Password",
-    "SETTINGS_RECOVERY": "Settings · Recovery codes"
+    "SETTINGS_RECOVERY": "Settings · Recovery codes",
+    "INTEGRATIONS": "Integrations",
+    "INTEGRATION_ADD": "Add integration",
+    "INTEGRATION_DETAIL": "Integration detail"
   }
 }

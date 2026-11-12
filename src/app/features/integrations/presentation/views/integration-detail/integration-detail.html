@@ -1,0 +1,118 @@
+<section class="w-full pb-10">
+  @switch (stage()) {
+
+  @case ('loading') {
+  <app-loading-spinner />
+  }
+
+  @case ('error') {
+  <app-empty-state icon="" titleKey="INTEGRATIONS.DETAIL.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
+    <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  }
+
+  @case ('not_found') {
+  <app-empty-state icon="" titleKey="INTEGRATIONS.DETAIL.NOT_FOUND_TITLE" data-test-not-found>
+    <a action routerLink="/integraciones" class="mk-btn-secondary">{{ 'INTEGRATIONS.DETAIL.NOT_FOUND_LINK' | translate }}</a>
+  </app-empty-state>
+  }
+
+  @default {
+  @if (detail(); as d) {
+  <header class="flex flex-col gap-4 pb-4" data-test-header>
+    <a [routerLink]="backLink()" [attr.aria-label]="backLabelKey() | translate" data-test-back
+      class="inline-flex items-center gap-1 self-start rounded-control text-sm text-ink-muted transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40">
+      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">arrow_back</span>
+      <span>{{ backLabelKey() | translate }}</span>
+    </a>
+    <div class="flex items-center gap-4">
+      <app-provider-logo [logoKey]="d.logo_key" size="lg" />
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <h1 class="text-2xl font-semibold text-ink">{{ d.name }}</h1>
+          @if (d.status; as status) {
+          <app-status-indicator data-test-status [tone]="tone(status)" [label]="labels.of('INTEGRATIONS.STATUS', status)" />
+          }
+        </div>
+        <p class="mt-1 text-sm text-ink-muted">{{ d.description }}</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <aside class="min-w-0 lg:col-start-3 lg:row-start-1 lg:sticky lg:top-6 lg:self-start" data-test-side>
+      <app-integration-side-panel [detail]="d" [isAdmin]="isAdmin()" (connect)="connecting.set(true)" />
+    </aside>
+
+    <div class="min-w-0 space-y-6 lg:col-span-2 lg:col-start-1 lg:row-start-1">
+      <app-tabs [items]="tabs()" [active]="tab()" ariaLabelKey="INTEGRATIONS.DETAIL.TABS_ARIA" (activeChange)="selectTab($event)" />
+
+      @switch (tab()) {
+
+      @case ('connections') {
+      <app-integration-connections [connections]="d.connections" [isAdmin]="isAdmin()" />
+      }
+
+      @case ('permissions') {
+      @if (comingSoon()) {
+      <ng-container *ngTemplateOutlet="soon" />
+      } @else {
+      <app-integration-permissions [permissions]="d.permissions" />
+      }
+      }
+
+      @case ('evaluates') {
+      @if (comingSoon()) {
+      <ng-container *ngTemplateOutlet="soon" />
+      } @else {
+      <app-integration-coverage [detail]="d" />
+      }
+      }
+
+      @case ('security') {
+      @if (comingSoon()) {
+      <ng-container *ngTemplateOutlet="soon" />
+      } @else {
+      <app-integration-security [items]="d.security" />
+      }
+      }
+
+      @default {
+      <div class="space-y-4" data-test-overview>
+        <p class="text-sm text-ink">{{ d.overview }}</p>
+        @if (d.features.length) {
+        <app-section titleKey="INTEGRATIONS.DETAIL.FEATURES_TITLE" data-test-features>
+          <ul class="space-y-2 text-sm text-ink">
+            @for (f of d.features; track f) {
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-rounded text-[20px] text-action" aria-hidden="true">check</span>
+              <span class="min-w-0">{{ f }}</span>
+            </li>
+            }
+          </ul>
+        </app-section>
+        }
+        @if (d.prerequisites.length) {
+        <app-section titleKey="INTEGRATIONS.DETAIL.PREREQUISITES_TITLE" data-test-prerequisites>
+          <ul class="list-disc space-y-1.5 pl-5 text-sm text-ink">
+            @for (p of d.prerequisites; track p) {
+            <li>{{ p }}</li>
+            }
+          </ul>
+        </app-section>
+        }
+      </div>
+      }
+      }
+    </div>
+  </div>
+
+  <ng-template #soon>
+    <app-empty-state icon="schedule" titleKey="INTEGRATIONS.DETAIL.SOON_TITLE" data-test-soon />
+  </ng-template>
+
+  <app-integration-connect-modal [target]="connecting() ? d : null" (closed)="connecting.set(false)" />
+  }
+  }
+  }
+</section>

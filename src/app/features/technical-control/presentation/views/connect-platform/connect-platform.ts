@@ -12,7 +12,7 @@ import { Asset, Capability, Platform } from '@shared/domain/models/technical-con
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { ConnectAssetForm } from '../../components/connect-asset-form/connect-asset-form';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
-import { ProviderLogo } from '../../components/provider-logo/provider-logo';
+import { ProviderLogo } from '@shared/presentation/components/provider-logo/provider-logo';
 
 type Stage = 'loading' | 'error' | 'ready';
 

@@ -229,6 +229,7 @@
       "IMPACT": "Reduces the impact"
     },
     "LINK": {
+      "PLACEHOLDER": "Choose…",
       "SEARCH": "Filter the list",
       "NOTHING_TO_LINK": "There is nothing else to link",
       "LINK": "Link"

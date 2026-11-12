@@ -1,3 +1,4 @@
+import { storedLanguage } from '@core/domain/services/language.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, UrlTree } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -93,7 +94,7 @@ export class CompanyDashboard {
       if (fws.length === 0 || fws.every((f) => f.readiness === 'not_measured')) return 2;
       return fws.every((f) => f.readiness === 'ready') ? 4 : 3;
     };
-    return [...this.services()].sort((a, b) => urgency(a) - urgency(b) || a.name.localeCompare(b.name, 'es'));
+    return [...this.services()].sort((a, b) => urgency(a) - urgency(b) || a.name.localeCompare(b.name, storedLanguage()));
   });
 
   /** Lo más urgente de todos los servicios: los controles que no cumplen, empezando por el servicio más urgente. */

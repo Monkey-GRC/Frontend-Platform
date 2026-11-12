@@ -46,6 +46,7 @@ export interface AuthUser {
   role: UserRole;
   status: 'active' | 'inactive' | 'suspended' | 'pending';
   is_mfa_enabled: boolean;
+  preferred_language?: 'es' | 'en';
   last_login_at: string | null;
   created_at: string;
 }

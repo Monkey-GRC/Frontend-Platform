@@ -8,6 +8,7 @@ import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { isCompanyAdmin } from '@shared/domain/utils/roles';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Select, SelectOption } from '@shared/presentation/components/select/select';
 
 export type InviteActor = TeamActor;
 
@@ -23,7 +24,7 @@ const CREATABLE: Record<InviteActor, readonly TeamRole[]> = {
 // Al crear a un responsable se crea también su equipo (D104: lo crea el administrador por él), con el nombre que se escriba o «Equipo de <nombre>»: así nadie tiene que crear grupos aparte.
 @Component({
   selector: 'app-team-invite-form',
-  imports: [TranslatePipe, Field],
+  imports: [TranslatePipe, Field, Select],
   templateUrl: './team-invite-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -78,6 +79,8 @@ export class TeamInviteForm {
   });
 
   readonly teams = computed(() => this.groups().filter((g) => g.kind === 'team'));
+  readonly roleSelectOptions = computed<SelectOption[]>(() => this.roleOptions().map((r) => ({ value: r, labelKey: 'TEAM.ROLE.' + r.toUpperCase() })));
+  readonly teamSelectOptions = computed<SelectOption[]>(() => this.teams().map((g) => ({ value: g.id, labelKey: 'TEAM.INVITE.TEAM_OPTION', labelParams: { team: g.name, leader: this.leaderName(g) } })));
   /** Para pedir el nombre del equipo: el administrador, al crear a un responsable. */
   readonly showTeamName = computed(() => isCompanyAdmin(this.actor()) && this.role() === 'responsable');
   readonly showTeamPick = computed(() => isCompanyAdmin(this.actor()) && this.role() === 'delegado' && this.teams().length > 0);

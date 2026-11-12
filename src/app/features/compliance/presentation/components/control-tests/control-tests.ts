@@ -1,3 +1,4 @@
+import { storedLanguage } from '@core/domain/services/language.service';
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, TemplateRef, computed, inject, input, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -134,7 +135,7 @@ export class ControlTests {
     if (!list) return null;
     const typeOf = new Map(this.dimensions().map((d) => [d.dimension, d.type]));
     return [...list]
-      .sort((a, b) => a.dimension.localeCompare(b.dimension) || a.test_code.localeCompare(b.test_code, 'es', { numeric: true }))
+      .sort((a, b) => a.dimension.localeCompare(b.dimension, storedLanguage()) || a.test_code.localeCompare(b.test_code, storedLanguage(), { numeric: true }))
       .map((t) => ({ ...t, kind: this.labels.of('COMPLIANCE.CONTROL_TYPE', typeOf.get(t.dimension) ?? null), tone: TONES[t.state] ?? 'neutral' }));
   });
 }

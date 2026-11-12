@@ -1,10 +1,21 @@
 import { OperatorFunction, map } from 'rxjs';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 
+export const MISSING_DATA_KEY = 'COMMON.ERRORS.MISSING_DATA';
+
+// El mensaje es una clave i18n; se traduce al leerlo, con el idioma activo en ese momento (el traductor lo registra el LanguageService al arrancar).
+let translateKey: (key: string) => string = (key) => key;
+export function setMissingDataTranslator(translator: (key: string) => string): void {
+  translateKey = translator;
+}
+
 export class MissingResponseDataError extends Error {
+  readonly translationKey = MISSING_DATA_KEY;
+
   constructor() {
-    super('La respuesta del servidor no trae datos');
+    super(MISSING_DATA_KEY);
     this.name = 'MissingResponseDataError';
+    Object.defineProperty(this, 'message', { get: () => translateKey(MISSING_DATA_KEY), configurable: true });
     Object.setPrototypeOf(this, MissingResponseDataError.prototype);
   }
 }

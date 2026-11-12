@@ -9,7 +9,7 @@ import { Capability, ConnectionMethod, Platform } from '@shared/domain/models/te
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
-import { ProviderLogo } from '../../components/provider-logo/provider-logo';
+import { ProviderLogo } from '@shared/presentation/components/provider-logo/provider-logo';
 import { categoryLabel } from '@shared/domain/utils/category-label';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 

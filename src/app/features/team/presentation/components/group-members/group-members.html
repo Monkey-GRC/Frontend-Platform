@@ -38,15 +38,10 @@
 
         @if (movingId() === m.id) {
         <div class="mt-3 flex flex-wrap items-end gap-3">
-          <label class="flex flex-col gap-1 text-xs font-medium text-ink-faint">
-            {{ 'TEAM.GROUPS.MOVE_TO' | translate }}
-            <select data-test-move-target (change)="target.set(targetValue($event))" [disabled]="saving()" class="mk-input min-w-56">
-              <option value="" [selected]="!target()">{{ 'TEAM.GROUPS.MOVE_PICK' | translate }}</option>
-              @for (t of destinations(); track t.id) {
-              <option [value]="t.id" [selected]="target() === t.id">{{ 'TEAM.INVITE.TEAM_OPTION' | translate: { team: t.name, leader: leaderName(t) } }}</option>
-              }
-            </select>
-          </label>
+          <div class="flex flex-col gap-1 text-xs font-medium text-ink-faint">
+            <label for="member-move-target">{{ 'TEAM.GROUPS.MOVE_TO' | translate }}</label>
+            <app-select inputId="member-move-target" data-test-move-target class="min-w-64" [options]="destinationOptions()" [value]="target()" [disabled]="saving()" placeholderKey="TEAM.GROUPS.MOVE_PICK" (valueChange)="target.set($event)" />
+          </div>
           <button type="button" (click)="move(m)" [disabled]="!target() || saving()" data-test-move-confirm class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.MOVE_SUBMIT' | translate }}</button>
           <button type="button" (click)="cancelMove()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
         </div>

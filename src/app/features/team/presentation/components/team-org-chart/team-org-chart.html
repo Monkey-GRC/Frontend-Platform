@@ -132,10 +132,7 @@
               @if (destinations(d); as options) {
               @if (options.length) {
               <label class="sr-only" [for]="'move-' + d.id">{{ 'TEAM.ORG.MOVE_TO' | translate }}</label>
-              <select [id]="'move-' + d.id" data-org-move-target (change)="target.set(targetValue($event))" [disabled]="saving()" class="mk-input min-w-0 flex-1">
-                <option value="" [selected]="!target()">{{ 'TEAM.ORG.MOVE_PICK' | translate }}</option>
-                @for (o of options; track o.id) {<option [value]="o.id" [selected]="target() === o.id">{{ o.label }}</option>}
-              </select>
+              <app-select [inputId]="'move-' + d.id" data-org-move-target class="min-w-0 flex-1" [options]="options" [value]="target()" [disabled]="saving()" placeholderKey="TEAM.ORG.MOVE_PICK" (valueChange)="target.set($event)" />
               <button type="button" (click)="move(d)" [disabled]="!target() || saving()" data-org-move-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ORG.MOVE_SUBMIT' | translate }}</button>
               } @else {
               <span class="text-sm text-ink-muted">{{ 'TEAM.ORG.NO_DESTINATION' | translate }}</span>

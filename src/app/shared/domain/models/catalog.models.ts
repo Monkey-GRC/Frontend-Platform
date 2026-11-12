@@ -65,5 +65,8 @@ export type CatalogName =
   | 'catalog_origin'
   | 'loss_type'
   | 'risk_scale'
+  // Integraciones (D110): el orden de las secciones y de los filtros es el del catálogo
+  | 'integration_status'
+  | 'integration_purpose'
   // Las regiones de una plataforma (`aws_region`…) salen de la base (D67): una plataforma nueva con regiones no exige cambiar esta lista.
   | `${string}_region`;

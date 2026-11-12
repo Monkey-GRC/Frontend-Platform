@@ -1,0 +1,152 @@
+{
+  "INTEGRATIONS": {
+    "LIST": {
+      "HEADING": "Integraciones",
+      "INTRO": "Las plataformas que tu empresa conectó con Monkey y el estado de cada conexión.",
+      "ADD": "Agregar integración",
+      "LOAD_ERROR_TITLE": "No pudimos cargar las integraciones",
+      "EMPTY_TITLE": "Aún no hay integraciones conectadas",
+      "EMPTY_BODY_ADMIN": "Conecta una plataforma para que Monkey evalúe su configuración de forma automática.",
+      "EMPTY_BODY_AUDITOR": "Cuando tu empresa conecte una plataforma, aparecerá aquí.",
+      "SEARCH_PLACEHOLDER": "Buscar por nombre",
+      "FILTER_STATUS": "Estado",
+      "TABLE_CAPTION": "Integraciones conectadas",
+      "COL_NAME": "Integración",
+      "COL_PURPOSE": "Propósito",
+      "COL_RESOURCES": "Recursos",
+      "COL_STATUS": "Estado",
+      "CONNECTIONS_ONE": "{{count}} conexión",
+      "CONNECTIONS_MANY": "{{count}} conexiones",
+      "LAST_VALIDATED": "Última validación {{date}}",
+      "NEVER_VALIDATED": "Sin validar todavía",
+      "NO_MATCH": "Ninguna integración coincide con tu búsqueda."
+    },
+    "ATTENTION": {
+      "TITLE_ONE": "{{count}} integración necesita atención",
+      "TITLE_MANY": "{{count}} integraciones necesitan atención",
+      "BODY": "Es un problema de conexión: mientras no se resuelva, la evaluación automática no corre para esa conexión. No significa que algún control incumpla.",
+      "REVIEW": "Revisar conexión"
+    },
+    "STATUS": {
+      "ACTIVE": "Activa",
+      "PENDING": "Pendiente de activar",
+      "NEEDS_ATTENTION": "Necesita atención"
+    },
+    "PURPOSE": {
+      "MEASUREMENT": "Medición y cumplimiento",
+      "WORKFLOW": "Gestión y flujo de trabajo"
+    },
+    "OPERATIONAL": {
+      "OPERATIONAL": "Operativo",
+      "WARNING": "Con advertencias",
+      "ERROR": "Con error",
+      "NOT_MONITORED": "Sin monitoreo"
+    },
+    "ADD": {
+      "HEADING": "Agregar integración",
+      "INTRO": "Elige la plataforma que quieres conectar con Monkey.",
+      "BACK": "Integraciones",
+      "SEARCH_PLACEHOLDER": "Buscar por nombre o descripción",
+      "LOAD_ERROR_TITLE": "No pudimos cargar el catálogo",
+      "EMPTY_TITLE": "No hay integraciones disponibles",
+      "NO_MATCH": "Ninguna integración coincide con tu búsqueda.",
+      "PURPOSE_HINT_MEASUREMENT": "Evalúan la configuración de la plataforma y alimentan las pruebas.",
+      "PURPOSE_HINT_WORKFLOW": "Ayudan a gestionar el trabajo de cumplimiento.",
+      "CONNECT": "Conectar",
+      "CONNECT_ARIA": "Conectar {{name}}",
+      "CONNECTED": "Conectada",
+      "COMING_SOON": "Próximamente",
+      "CONNECT_ANOTHER": "Conectar otra cuenta",
+      "CONNECT_ANOTHER_ARIA": "Conectar otra cuenta de {{name}}"
+    },
+    "PICK": {
+      "TITLE": "Conectar {{name}}",
+      "DESCRIPTION": "Elige el servicio al que pertenece esta conexión.",
+      "NO_SERVICES": "Aún no tienes servicios. Declara uno para poder conectar una plataforma.",
+      "GO_SERVICES": "Ir a Mis servicios",
+      "LOAD_ERROR": "No pudimos cargar tus servicios. Inténtalo de nuevo."
+    },
+    "DETAIL": {
+      "BACK_LIST": "Integraciones",
+      "BACK_ADD": "Agregar integración",
+      "LOAD_ERROR_TITLE": "No pudimos cargar la integración",
+      "NOT_FOUND_TITLE": "Esta integración no existe o no está disponible para tu rol",
+      "NOT_FOUND_LINK": "Ir a Integraciones",
+      "TABS_ARIA": "Secciones de la integración",
+      "TABS": {
+        "OVERVIEW": "Resumen",
+        "CONNECTIONS": "Conexiones",
+        "PERMISSIONS": "Permisos",
+        "EVALUATES": "Qué evalúa",
+        "SECURITY": "Seguridad"
+      },
+      "FEATURES_TITLE": "Qué puedes hacer",
+      "PREREQUISITES_TITLE": "Antes de conectar",
+      "SOON_TITLE": "Lo publicaremos cuando la integración esté disponible"
+    },
+    "CONNECTIONS": {
+      "TITLE": "Conexiones de esta integración ({{count}})",
+      "OPERATIONAL": "Estado operativo:",
+      "SERVICES": "Servicios:"
+    },
+    "PERMISSIONS": {
+      "TITLE": "Permisos que pide Monkey ({{count}})",
+      "READ_ONLY": "Monkey solo pide permisos de lectura: no puede cambiar nada en tu plataforma.",
+      "EMPTY_TITLE": "Esta integración no pide permisos"
+    },
+    "ACCESS": {
+      "READ": "Lectura",
+      "WRITE": "Escritura"
+    },
+    "EVALUATES": {
+      "RESOURCES_TITLE": "Tipos de recurso",
+      "COVERAGE_TITLE": "Pruebas y controles",
+      "SUMMARY": "Alimenta {{tests}} y {{controls}} en {{frameworks}}.",
+      "TESTS_TITLE": "Pruebas automáticas",
+      "FRAMEWORKS_TITLE": "Marcos",
+      "NOTE": "La integración alimenta estas pruebas; que un control cumpla depende de todas sus pruebas y evidencias.",
+      "EMPTY_TITLE": "Esta integración todavía no alimenta pruebas"
+    },
+    "COUNT": {
+      "TESTS_ONE": "{{count}} prueba automática",
+      "TESTS_MANY": "{{count}} pruebas automáticas",
+      "CONTROLS_ONE": "{{count}} control",
+      "CONTROLS_MANY": "{{count}} controles",
+      "FRAMEWORKS_ONE": "{{count}} marco",
+      "FRAMEWORKS_MANY": "{{count}} marcos"
+    },
+    "RESOURCE_KIND": {
+      "SERVER": "Servidor",
+      "DATABASE": "Base de datos",
+      "STORAGE": "Almacenamiento",
+      "FUNCTION": "Función",
+      "OTHER": "Otro"
+    },
+    "SECURITY": {
+      "TITLE": "Cómo protege Monkey la conexión",
+      "EMPTY_TITLE": "Todavía no hay medidas de seguridad que mostrar"
+    },
+    "SECURITY_TOPIC": {
+      "READ_ONLY": "Solo lectura",
+      "TEMPORARY_CREDENTIALS": "Credenciales temporales",
+      "EXTERNAL_ID": "Identificador externo",
+      "ISOLATED_EXECUTION": "Ejecución aislada",
+      "TENANT_ISOLATION": "Aislamiento entre empresas",
+      "ENCRYPTED_KEYS": "Llaves cifradas"
+    },
+    "SIDE": {
+      "FEEDS": "Alimenta {{tests}}",
+      "CONTROLS_IN": "{{controls}} en {{frameworks}}",
+      "BUILT_BY": "Construida por",
+      "BUILT_BY_VALUE": "Monkey",
+      "PURPOSE": "Propósito",
+      "CAPABILITIES": "Capacidades",
+      "WORKS_WITH": "Funciona con",
+      "AVAILABILITY": "Disponibilidad"
+    },
+    "AVAILABILITY": {
+      "AVAILABLE": "Disponible",
+      "COMING_SOON": "Próximamente"
+    }
+  }
+}

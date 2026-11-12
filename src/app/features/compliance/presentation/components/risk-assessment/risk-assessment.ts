@@ -12,13 +12,14 @@ import { DetailCard } from '../detail-card/detail-card';
 import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 import { MatrixCell, MatrixPosition, RiskMatrix } from '@shared/presentation/components/risk-matrix/risk-matrix';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Select, SelectOption } from '@shared/presentation/components/select/select';
 
 // La evaluación 5×5 de un riesgo y su tratamiento (MD-123). Cada evaluación y cada decisión se AGREGA (nunca pisa la anterior) y el servidor calcula el valor y el
 // nivel: aquí solo se eligen probabilidad e impacto de 1 a 5. Evalúa y trata el administrador de la empresa; los demás roles leen. El historial se pide al abrirlo,
 // porque no todos los roles pueden leerlo.
 @Component({
   selector: 'app-risk-assessment',
-  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix, DetailCard],
+  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix, DetailCard, Select],
   templateUrl: './risk-assessment.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -71,6 +72,9 @@ export class RiskAssessment {
   readonly responsibleId = signal('');
   readonly dueDate = signal('');
   readonly responsibles = signal<Responsible[] | null>(null);
+  readonly responsibleOptions = computed<SelectOption[]>(() =>
+    (this.responsibles() ?? []).map((r) => ({ value: r.id, label: this.labels.of('COMPLIANCE.RESPONSIBLE_TYPE', r.type) + (r.person_name ? ' · ' + r.person_name : '') })),
+  );
 
   readonly canSaveEvaluation = computed(() => this.likelihood() !== null && this.impact() !== null && !this.saving());
   readonly canSaveTreatment = computed(() => !!this.decision() && !!this.responsibleId() && !!this.dueDate() && !this.saving());

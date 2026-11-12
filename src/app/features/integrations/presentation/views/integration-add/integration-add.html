@@ -1,0 +1,40 @@
+<section class="w-full pb-10">
+  <app-page-header [title]="'INTEGRATIONS.ADD.HEADING' | translate" [description]="'INTEGRATIONS.ADD.INTRO' | translate" backLink="/integraciones" [backLabel]="'INTEGRATIONS.ADD.BACK' | translate" />
+
+  @switch (stage()) {
+
+  @case ('loading') {
+  <app-loading-spinner />
+  }
+
+  @case ('error') {
+  <app-empty-state icon="" titleKey="INTEGRATIONS.ADD.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
+    <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  }
+
+  @default {
+  <app-table-toolbar searchPlaceholderKey="INTEGRATIONS.ADD.SEARCH_PLACEHOLDER" [query]="query()" (queryChange)="query.set($event)" />
+
+  @if (sections().length === 0) {
+  <app-empty-state icon="" [titleKey]="query() ? 'INTEGRATIONS.ADD.NO_MATCH' : 'INTEGRATIONS.ADD.EMPTY_TITLE'" />
+  } @else {
+  <div class="space-y-6">
+    @for (s of sections(); track s.purpose) {
+    <section [attr.aria-labelledby]="'purpose-' + s.purpose" [attr.data-purpose]="s.purpose">
+      <h2 [id]="'purpose-' + s.purpose" class="text-lg font-semibold text-ink">{{ s.title }}</h2>
+      <p class="mt-1 text-sm text-ink-muted">{{ 'INTEGRATIONS.ADD.PURPOSE_HINT_' + s.purpose.toUpperCase() | translate }}</p>
+      <ul class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        @for (i of s.items; track i.code) {
+        <li><app-integration-card [item]="i" (connect)="connect($event)" /></li>
+        }
+      </ul>
+    </section>
+    }
+  </div>
+  }
+  }
+  }
+
+  <app-integration-connect-modal [target]="picking()" (closed)="picking.set(null)" />
+</section>

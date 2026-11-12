@@ -12,5 +12,5 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 export class ProviderLogo {
   readonly logoKey = input.required<string>();
   // `card` es la baldosa de la tarjeta del marketplace, pequeña y al lado del nombre (como en un catálogo de integraciones).
-  readonly size = input<'card' | 'md' | 'sm'>('md');
+  readonly size = input<'lg' | 'card' | 'md' | 'sm'>('md');
 }
