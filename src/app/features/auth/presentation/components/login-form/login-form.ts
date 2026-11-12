@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { AuthService } from '@core/domain/services/auth.service';
+import { postLoginPath } from '@core/domain/utils/post-login-path';
 import { PasswordToggle } from '@shared/presentation/components/password-toggle/password-toggle';
 
 @Component({
@@ -54,7 +55,7 @@ export class LoginForm {
         const payload = outcome.payload;
         // `replaceUrl`: el inicio de sesión no queda en el historial, así «atrás» no vuelve a él.
         // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
-        this.router.navigateByUrl(payload.onboarding?.next_step === 'organizational_context' ? '/onboarding' : '/', { replaceUrl: true });
+        this.router.navigateByUrl(postLoginPath(payload.user.role, payload.onboarding), { replaceUrl: true });
       },
       error: (error) => {
         this.loading.set(false);

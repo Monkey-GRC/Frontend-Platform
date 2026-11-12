@@ -62,6 +62,9 @@
     "REVIEW_TITLE": "Revisión",
     "REVIEW_BODY": "Verifica los datos y guárdalos. Podrás editarlos después.",
     "SAVE_AND_CONTINUE": "Guardar y continuar",
-    "SAVE_ERROR": "No pudimos guardar tu información. Inténtalo de nuevo."
+    "SAVE_ERROR": "No pudimos guardar tu información. Inténtalo de nuevo.",
+    "FORBIDDEN_TITLE": "Esto lo completa el administrador",
+    "FORBIDDEN_BODY": "El contexto de la empresa lo declara el administrador de tu empresa. Cuando lo haga, verás aquí lo que contó.",
+    "FORBIDDEN_CTA": "Volver al inicio"
   }
 }

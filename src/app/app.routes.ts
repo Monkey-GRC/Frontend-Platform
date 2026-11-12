@@ -9,6 +9,7 @@ import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layo
 import { authGuard } from '@core/domain/guards/auth.guard';
 import { guestGuard } from '@core/domain/guards/guest.guard';
 import { roleGuard } from '@core/domain/guards/role.guard';
+import { ONBOARDING_ROLE } from '@shared/domain/utils/roles';
 import { workLandingGuard } from '@core/domain/guards/work-landing.guard';
 import { legacyComplianceRedirectGuard } from '@features/compliance/domain/guards/legacy-compliance-redirect.guard';
 import { risksEvaluatedGuard } from '@features/services/domain/guards/risks-evaluated.guard';
@@ -48,6 +49,7 @@ export const routes: Routes = [
       {
         path: 'onboarding',
         title: 'PAGE_TITLE.ONBOARDING',
+        canActivate: [roleGuard(ONBOARDING_ROLE)],
         loadComponent: () => import('@features/onboarding/presentation/views/organizational-context/organizational-context').then(m => m.OrganizationalContextView),
       },
       // Los servicios de la empresa (antes, Componente 2 del onboarding; desde D89 se declaran cuando el cliente quiera). `new` va antes que `:id`.

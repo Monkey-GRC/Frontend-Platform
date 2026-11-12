@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { Observable, catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
+import { canDeclareCompanyContext } from '@shared/domain/utils/roles';
 import { SessionService } from '@core/domain/services/session.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { AuthService } from '@core/domain/services/auth.service';
@@ -130,6 +131,8 @@ export class ServiceFormView implements OnInit {
   readonly showHints = signal(false);
   readonly saveError = signal<string | null>(null);
   readonly needsCompany = signal(false);
+  /** El contexto de la empresa lo declara solo el administrador: a los demás roles no se les manda al formulario. */
+  readonly isCompanyAdmin = computed(() => canDeclareCompanyContext(this.session.user()?.role));
 
   private userId: string | null = null;
   // El servicio se guardó pero el archivo no se pudo subir (para decir qué falló).

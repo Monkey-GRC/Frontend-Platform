@@ -1,3 +1,4 @@
+import { ONBOARDING_ROLE } from '@shared/domain/utils/roles';
 // src/app/core/config/navigation.config.ts
 
 export interface NavSubItem {
@@ -32,7 +33,7 @@ export const NAV_ITEMS: NavItem[] = [
     {
         icon: 'apartment', name: 'Mi empresa', labelKey: 'SHELL.NAV.MY_COMPANY', section: 'Menu', roles: ['admin_empresa'],
         subItems: [
-            { name: 'Contexto de la empresa', labelKey: 'SHELL.NAV.COMPANY_CONTEXT', path: '/onboarding', section: 'Menu', roles: ['admin_empresa'] },
+            { name: 'Contexto de la empresa', labelKey: 'SHELL.NAV.COMPANY_CONTEXT', path: '/onboarding', section: 'Menu', roles: [ONBOARDING_ROLE] },
             { name: 'Mis servicios', labelKey: 'SHELL.NAV.MY_SERVICES', path: '/services', section: 'Menu', roles: ['admin_empresa'] },
         ],
     },

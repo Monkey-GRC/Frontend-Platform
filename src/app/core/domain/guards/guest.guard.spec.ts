@@ -6,13 +6,13 @@ import { AuthService } from '@core/domain/services/auth.service';
 import { guestGuard } from './guest.guard';
 
 describe('guestGuard', () => {
-  async function run(hasSession: boolean, nextStep: string | null = null): Promise<boolean | string> {
+  async function run(hasSession: boolean, nextStep: string | null = null, role = 'admin_empresa'): Promise<boolean | string> {
     TestBed.configureTestingModule({
       providers: [provideRouter([]), { provide: AuthService, useValue: { validate: () => of(hasSession) } }],
     });
     if (hasSession) {
       TestBed.inject(SessionService).set(
-        { id: 'u1', email: 'a@x.com', name: null, last_name: null, role: 'admin_empresa' },
+        { id: 'u1', email: 'a@x.com', name: null, last_name: null, role },
         { id: 'c1', name: 'ACME' },
         { next_step: nextStep, completed_steps: [] },
       );
@@ -31,5 +31,12 @@ describe('guestGuard', () => {
 
   it('sends someone who has not told us about their company yet to the onboarding', async () => {
     expect(await run(true, 'organizational_context')).toBe('/onboarding');
+  });
+
+  it('sends the other roles to the home even with the company context pending', async () => {
+    for (const role of ['responsable', 'delegado', 'auditor']) {
+      TestBed.resetTestingModule();
+      expect(await run(true, 'organizational_context', role)).toBe('/');
+    }
   });
 });

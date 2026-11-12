@@ -64,6 +64,7 @@
       "ACTIVE_ADMINS": "Active administrators",
       "PENDING": "Pending invitations",
       "SEE": "Review in the team"
-    }
+    },
+    "COMPANY_BODY_OTHER": "Your company's administrator declares its details: industry, size, geographic reach and applicable regulations."
   }
 }

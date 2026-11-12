@@ -35,6 +35,12 @@ describe('Home (D89)', () => {
     expect(el().querySelector('app-page-header')).toBeNull();
   });
 
+  it('does not push a non-admin to the onboarding form: the notice says the admin completes it', () => {
+    setup('organizational_context', [], 'auditor');
+    expect(el().querySelector('a[href="/onboarding"]')).toBeNull();
+    expect(el().querySelector('app-card')).not.toBeNull();
+  });
+
   it('considers the onboarding finished once the company context is declared, even though the backend still lists the service and technical steps', () => {
     for (const next of ['service_context', 'technical_control', null]) {
       TestBed.resetTestingModule();

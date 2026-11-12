@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
+import { canDeclareCompanyContext } from '@shared/domain/utils/roles';
 import { Card } from '@shared/presentation/components/card/card';
 import { CompanyDashboard } from '../../components/company-dashboard/company-dashboard';
 
@@ -23,6 +24,7 @@ export class Home {
   /** Con el contexto de la empresa declarado ya no se le dice que «su cuenta está activa»: se le da la bienvenida a su resumen. */
   /** El auditor no administra la empresa: su inicio lo lleva directo a Cumplimiento, donde está lo suyo (D98). El responsable y el delegado ni llegan aquí: entran por «Mi trabajo» (D102). */
   readonly role = computed(() => this.session.user()?.role ?? null);
+  readonly isCompanyAdmin = computed(() => canDeclareCompanyContext(this.role()));
   readonly isAuditor = computed(() => this.role() === 'auditor');
   readonly onboarded = computed(() => this.session.onboarding() !== null && !this.pendingCompanyContext());
 }

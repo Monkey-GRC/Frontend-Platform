@@ -9,6 +9,9 @@ export const COMPANY_ADMIN_ROLE: UserRole = 'admin_empresa';
 // `TECHNICAL_ROLES` del backend (`view-access.ts`), que responde 403 a `?view=technical` para cualquier otro rol.
 export const TECHNICAL_VIEW_ROLES: readonly UserRole[] = ['auditor', 'admin_empresa'];
 
+/** Quien declara el contexto de la empresa (el backend responde 403 al resto). */
+export const ONBOARDING_ROLE: UserRole = COMPANY_ADMIN_ROLE;
+
 const ASSIGNED_ROLES: readonly UserRole[] = ['responsable', 'delegado'];
 
 type RoleLike = string | null | undefined;
@@ -21,4 +24,9 @@ export function isCompanyAdmin(role: RoleLike): boolean {
 /** Responsable o delegado: ven solo lo que se les asignó (D102). */
 export function isAssignedRole(role: RoleLike): boolean {
   return role != null && ASSIGNED_ROLES.some((r) => r === role);
+}
+
+/** ¿Puede este rol declarar el contexto de la empresa (onboarding)? */
+export function canDeclareCompanyContext(role: RoleLike): boolean {
+  return role === ONBOARDING_ROLE;
 }
