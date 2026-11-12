@@ -251,7 +251,13 @@
       "REQUIRED": "This field is required.",
       "SAVE": "Save",
       "SAVING": "Saving…",
-      "SAVE_ERROR": "Could not save. Please try again."
+      "SAVE_ERROR": "Could not save. Please try again.",
+      "SUBTITLE_RISK": "A risk is what could go wrong and affect the company. Monkey assigns the code.",
+      "SUBTITLE_CAUSE": "A cause is why the risk can happen. Monkey assigns the code.",
+      "NAME_HINT": "A short phrase that stands on its own.",
+      "DESCRIPTION_HINT": "What happens and in which situation.",
+      "CRITERION_HINT": "Used to group the risk in the list.",
+      "CATEGORY_HINT": "Used to group the cause in the list."
     },
     "RISK_DETAIL": {
       "LOAD_ERROR_TITLE": "The risk could not be loaded",
@@ -341,7 +347,9 @@
       "UPDATED": "Person updated.",
       "REMOVED": "Responsible removed.",
       "REMOVE_CONFIRM_TITLE": "Remove \"{{name}}\" from the responsibles?",
-      "REMOVE_CONFIRM_BODY": "Only the role is removed. If something depends on it, it cannot be removed until reassigned."
+      "REMOVE_CONFIRM_BODY": "Only the role is removed. If something depends on it, it cannot be removed until reassigned.",
+      "TYPE_HINT": "The role that answers in the organization.",
+      "PERSON_HINT": "Name of the person who holds the role."
     },
     "EXCLUSION_STATUS": {
       "PENDING": "Pending",
@@ -434,8 +442,7 @@
     },
     "PERIOD": {
       "TITLE": "Evaluation period",
-      "SUBTITLE": "{{name}}",
-      "INTRO": "Tell Monkey which dates the evaluation covers. Without a period compliance cannot be measured and everything shows as “Not measured”.",
+      "SUBTITLE": "{{name}}: the dates the evaluation covers. Without them everything shows as “Not measured”.",
       "START": "Period start",
       "END": "Period end",
       "SINGLE_DAY_HINT": "If the evaluation is for a single date (SOC 2 Type I), use the same day for the start and the end.",

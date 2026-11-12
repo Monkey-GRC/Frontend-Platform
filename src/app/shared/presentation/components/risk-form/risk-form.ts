@@ -4,7 +4,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { Cause, RiskDetail } from '@shared/domain/models/risk.models';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { targetValue, targetChecked } from '@shared/presentation/utils/event-target';
@@ -16,7 +16,7 @@ export type RiskFormKind = 'risk' | 'cause';
 // cada campo. Solo lo puede abrir el administrador de la empresa.
 @Component({
   selector: 'app-risk-form',
-  imports: [TranslatePipe, SideDrawer],
+  imports: [TranslatePipe, FormModal],
   templateUrl: './risk-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

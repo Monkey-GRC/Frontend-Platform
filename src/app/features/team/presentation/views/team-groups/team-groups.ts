@@ -9,7 +9,7 @@ import { Field } from '@shared/presentation/components/field/field';
 import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
-import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { TableFilter, TableFilterOption } from '@shared/presentation/components/table-filter/table-filter';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { CreateGroupDto, Group, GroupKind } from '@features/team/domain/models/group.models';
@@ -28,7 +28,7 @@ const MAX_NAME = 100;
 // datos, el renombrado (administrador) y sus personas (con el movimiento de delegados).
 @Component({
   selector: 'app-team-groups',
-  imports: [TranslatePipe, GroupMembers, PageHeader, DataTable, TableCell, TableToolbar, TableFilter, SideDrawer, Field, EmptyState, LoadingSpinner, PersonCell],
+  imports: [TranslatePipe, GroupMembers, PageHeader, DataTable, TableCell, TableToolbar, TableFilter, FormModal, Field, EmptyState, LoadingSpinner, PersonCell],
   templateUrl: './team-groups.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

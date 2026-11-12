@@ -251,7 +251,13 @@
       "REQUIRED": "Este campo es obligatorio.",
       "SAVE": "Guardar",
       "SAVING": "Guardando…",
-      "SAVE_ERROR": "No se pudo guardar. Inténtalo de nuevo."
+      "SAVE_ERROR": "No se pudo guardar. Inténtalo de nuevo.",
+      "SUBTITLE_RISK": "Un riesgo es lo que podría salir mal y afectar a la empresa. El código lo asigna Monkey.",
+      "SUBTITLE_CAUSE": "Una causa es por qué el riesgo puede ocurrir. El código lo asigna Monkey.",
+      "NAME_HINT": "Una frase corta que se entienda sola.",
+      "DESCRIPTION_HINT": "Qué ocurre y en qué situación.",
+      "CRITERION_HINT": "Sirve para agrupar el riesgo en la lista.",
+      "CATEGORY_HINT": "Sirve para agrupar la causa en la lista."
     },
     "RISK_DETAIL": {
       "LOAD_ERROR_TITLE": "No se pudo cargar el riesgo",
@@ -341,7 +347,9 @@
       "UPDATED": "Persona actualizada.",
       "REMOVED": "Responsable quitado.",
       "REMOVE_CONFIRM_TITLE": "¿Quitar a «{{name}}» de los responsables?",
-      "REMOVE_CONFIRM_BODY": "Solo se quita el cargo. Si algo depende de él, no se podrá quitar hasta reasignarlo."
+      "REMOVE_CONFIRM_BODY": "Solo se quita el cargo. Si algo depende de él, no se podrá quitar hasta reasignarlo.",
+      "TYPE_HINT": "El cargo que responde en la organización.",
+      "PERSON_HINT": "Nombre de quien ocupa el cargo."
     },
     "EXCLUSION_STATUS": {
       "PENDING": "Pendiente",
@@ -434,8 +442,7 @@
     },
     "PERIOD": {
       "TITLE": "Período de la evaluación",
-      "SUBTITLE": "{{name}}",
-      "INTRO": "Dile a Monkey de qué fechas es la evaluación. Sin período no se puede medir el cumplimiento y todo aparece «Sin medir».",
+      "SUBTITLE": "{{name}}: las fechas que cubre la evaluación. Sin ellas todo sale «Sin medir».",
       "START": "Inicio del período",
       "END": "Fin del período",
       "SINGLE_DAY_HINT": "Si la evaluación es de una sola fecha (SOC 2 Tipo I), pon el mismo día en el inicio y en el fin.",

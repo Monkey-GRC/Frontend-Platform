@@ -85,7 +85,9 @@
         "KIND": "Tipo",
         "LEADER": "Líder",
         "MEMBERS": "Personas"
-      }
+      },
+      "NEW_SUBTITLE": "Crea un grupo de responsables o el equipo de uno de ellos.",
+      "DETAIL_SUBTITLE": "Quién lidera el grupo y las personas que lo forman."
     },
     "ROLE": {
       "ADMIN_EMPRESA": "Administrador",
@@ -126,7 +128,8 @@
       "HELP_DELEGADO": "Un delegado ejecuta los controles que su responsable le asigna y sube la evidencia. Elige si es de tu compañía o externo.",
       "HELP_AUDITOR": "Un auditor revisa todo lo de tu empresa en solo lectura y deja observaciones.",
       "TEAM_NAME": "Nombre del equipo (opcional)",
-      "TEAM_NAME_HELP": "Si lo dejas vacío, se llamará «Equipo de» y su nombre."
+      "TEAM_NAME_HELP": "Si lo dejas vacío, se llamará «Equipo de» y su nombre.",
+      "SUBTITLE": "Le llegará un correo para activar su cuenta."
     },
     "INVITATION": {
       "SENT_TITLE": "Enviamos la invitación a {{email}}",
@@ -174,7 +177,8 @@
       "MFA": "Segundo factor",
       "YES": "Sí",
       "NO": "No",
-      "CREATED": "Creación"
+      "CREATED": "Creación",
+      "SUBTITLE": "Datos de su cuenta y acciones disponibles."
     },
     "ORG": {
       "TITLE": "Organigrama",

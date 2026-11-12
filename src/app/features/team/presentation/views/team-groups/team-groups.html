@@ -49,24 +49,24 @@
   }
 </section>
 
-<!-- Crear: el administrador un grupo de responsables o el equipo de un responsable; el responsable, el suyo (una sola vez, D104) -->
-<app-side-drawer [open]="createOpen()" [titleKey]="isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE'" (closed)="createOpen.set(false)">
+<!-- Crear: el administrador un grupo de responsables o el equipo de un responsable; el responsable, el suyo (una sola vez, D104). Cada sección lleva su propia acción; el pie solo cierra. -->
+<app-form-modal [open]="createOpen()" [titleKey]="isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE'" [descriptionKey]="isAdmin() ? 'TEAM.GROUPS.NEW_SUBTITLE' : 'TEAM.GROUPS.CREATE_OWN_HELP'" [dismissible]="!saving()" testId="group-create" (closed)="createOpen.set(false)">
   @if (createOpen()) {
   @if (error(); as e) {
   <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
   </div>
   }
   @if (isAdmin()) {
-  <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); createResponsablesGroup()" [attr.aria-label]="'TEAM.GROUPS.CREATE_RESPONSABLES_TITLE' | translate">
-    <h3 class="text-sm font-semibold text-ink">{{ 'TEAM.GROUPS.CREATE_RESPONSABLES_TITLE' | translate }}</h3>
+  <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); createResponsablesGroup()" [attr.aria-labelledby]="'create-responsables-title'">
+    <h3 id="create-responsables-title" class="text-sm font-semibold text-ink">{{ 'TEAM.GROUPS.CREATE_RESPONSABLES_TITLE' | translate }}</h3>
     <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="responsables-name" hintKey="TEAM.GROUPS.CREATE_RESPONSABLES_HELP">
       <input id="responsables-name" type="text" data-test-responsables-name [attr.maxlength]="maxName" autocomplete="off" [value]="responsablesGroupName()" (input)="responsablesGroupName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
     </app-field>
-    <div><button type="submit" [disabled]="!canCreateResponsablesGroup()" data-test-create-responsables class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
+    <div class="flex justify-end"><button type="submit" [disabled]="!canCreateResponsablesGroup()" data-test-create-responsables class="mk-btn-secondary">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
   </form>
 
-  <form class="mt-6 flex flex-col gap-3 border-t border-line pt-6" (submit)="$event.preventDefault(); createTeam()" [attr.aria-label]="'TEAM.GROUPS.CREATE_TEAM_TITLE' | translate">
-    <h3 class="text-sm font-semibold text-ink">{{ 'TEAM.GROUPS.CREATE_TEAM_TITLE' | translate }}</h3>
+  <form class="mt-6 flex flex-col gap-3 border-t border-line pt-6" (submit)="$event.preventDefault(); createTeam()" [attr.aria-labelledby]="'create-team-title'">
+    <h3 id="create-team-title" class="text-sm font-semibold text-ink">{{ 'TEAM.GROUPS.CREATE_TEAM_TITLE' | translate }}</h3>
     <p class="text-xs text-ink-muted">{{ 'TEAM.GROUPS.CREATE_TEAM_HELP' | translate }}</p>
     @if (eligibleLeaders().length === 0) {
     <p class="text-sm text-ink-muted" data-test-no-eligible>{{ 'TEAM.GROUPS.NO_ELIGIBLE' | translate }}</p>
@@ -80,23 +80,24 @@
     <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="team-name">
       <input id="team-name" type="text" data-test-team-name [attr.maxlength]="maxName" autocomplete="off" [value]="teamName()" (input)="teamName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
     </app-field>
-    <div><button type="submit" [disabled]="!canCreateTeam()" data-test-create-team class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
+    <div class="flex justify-end"><button type="submit" [disabled]="!canCreateTeam()" data-test-create-team class="mk-btn-secondary">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
     }
   </form>
   } @else {
-  <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); createOwnTeam()" [attr.aria-label]="'TEAM.GROUPS.CREATE_OWN_TITLE' | translate" data-test-create-own>
-    <p class="text-sm text-ink-muted">{{ 'TEAM.GROUPS.CREATE_OWN_HELP' | translate }}</p>
+  <form id="group-own-form" class="flex flex-col gap-3" (submit)="$event.preventDefault(); createOwnTeam()" [attr.aria-label]="'TEAM.GROUPS.CREATE_OWN_TITLE' | translate" data-test-create-own>
     <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="own-name">
       <input id="own-name" type="text" data-test-own-name [attr.maxlength]="maxName" autocomplete="off" [value]="ownTeamName()" (input)="ownTeamName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
     </app-field>
-    <div><button type="submit" [disabled]="!canCreateOwnTeam()" data-test-create-own-submit class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
   </form>
   }
   }
-</app-side-drawer>
+  @if (createOpen() && !isAdmin()) {
+  <button actions type="submit" form="group-own-form" [disabled]="!canCreateOwnTeam()" data-test-create-own-submit class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button>
+  }
+</app-form-modal>
 
-<!-- El detalle de un grupo: sus datos, renombrarlo (administrador) y sus personas -->
-<app-side-drawer [open]="!!detail()" titleKey="TEAM.GROUPS.DETAIL_TITLE" size="lg" (closed)="closeDetail()">
+<!-- El detalle de un grupo: sus datos y sus personas; renombrarlo (administrador) es una acción del pie. -->
+<app-form-modal [open]="!!detail()" titleKey="TEAM.GROUPS.DETAIL_TITLE" descriptionKey="TEAM.GROUPS.DETAIL_SUBTITLE" cancelLabelKey="COMMON.CLOSE" size="wide" testId="group-detail" (closed)="closeDetail()">
   @if (detail(); as g) {
   <div [attr.data-test-group-detail]="g.id">
     @if (notice(); as n) {
@@ -113,21 +114,16 @@
       <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="rename-name">
         <input id="rename-name" type="text" data-test-rename-input [attr.maxlength]="maxName" autocomplete="off" [value]="renameDraft()" (input)="renameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
       </app-field>
-      <div class="flex items-center gap-4">
-        <button type="submit" [disabled]="!canRename()" data-test-rename-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.SAVE' | translate }}</button>
-        <button type="button" (click)="cancelRename()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+      <div class="flex items-center justify-end gap-3">
+        <button type="button" (click)="cancelRename()" [disabled]="saving()" class="mk-btn-secondary">{{ 'COMMON.CANCEL' | translate }}</button>
+        <button type="submit" [disabled]="!canRename()" data-test-rename-save class="mk-btn">{{ 'COMMON.SAVE' | translate }}</button>
       </div>
     </form>
     } @else {
-    <div class="flex flex-wrap items-start justify-between gap-3">
-      <h3 class="min-w-0 text-lg font-semibold text-ink">{{ g.name }}</h3>
-      @if (isAdmin()) {
-      <button type="button" (click)="startRename(g)" [disabled]="saving()" data-test-rename class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.RENAME' | translate }}</button>
-      }
-    </div>
+    <h3 class="min-w-0 break-words text-lg font-semibold text-ink">{{ g.name }}</h3>
     }
 
-    <dl class="mt-4 grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-6 gap-y-3">
+    <dl class="mt-3 grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-6 gap-y-3">
       <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.GROUPS.COLUMNS.KIND' | translate }}</dt>
       <dd class="text-ink">{{ (g.kind === 'team' ? 'TEAM.GROUPS.KIND_TEAM' : 'TEAM.GROUPS.KIND_RESPONSABLES') | translate }}</dd>
       <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.GROUPS.COLUMNS.LEADER' | translate }}</dt>
@@ -140,4 +136,11 @@
     <div class="mt-3"><app-group-members [group]="g" [teams]="teams()" [canMove]="isAdmin()" (moved)="onMoved()" /></div>
   </div>
   }
-</app-side-drawer>
+  @if (isAdmin() && detail(); as g) {
+  <div actions class="contents">
+    @if (renamingId() !== g.id) {
+    <button type="button" (click)="startRename(g)" [disabled]="saving()" data-test-rename class="mk-btn-secondary">{{ 'TEAM.GROUPS.RENAME' | translate }}</button>
+    }
+  </div>
+  }
+</app-form-modal>

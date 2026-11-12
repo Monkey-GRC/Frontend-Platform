@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { DatePicker } from '@shared/presentation/components/date-picker/date-picker';
-import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { OverviewFramework } from '@features/compliance/domain/models/overview.models';
 import { OverviewService } from '@features/compliance/domain/services/overview.service';
 
@@ -11,7 +11,7 @@ import { OverviewService } from '@features/compliance/domain/services/overview.s
 // valida (orden, dentro del período, no futura) se avisa aquí para no hacer esperar a quien se equivoca, pero manda el servidor.
 @Component({
   selector: 'app-evaluation-period-form',
-  imports: [TranslatePipe, SideDrawer, DatePicker],
+  imports: [TranslatePipe, FormModal, DatePicker],
   templateUrl: './evaluation-period-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

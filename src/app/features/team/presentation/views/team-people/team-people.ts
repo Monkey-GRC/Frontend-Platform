@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
@@ -13,9 +12,10 @@ import { EmptyState } from '@shared/presentation/components/empty-state/empty-st
 import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
 import { TableFilter, TableFilterOption } from '@shared/presentation/components/table-filter/table-filter';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
+import { LocalDatePipe } from '@shared/presentation/pipes/local-date.pipe';
 import { Field } from '@shared/presentation/components/field/field';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
-import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Group } from '@features/team/domain/models/group.models';
 import { Invitation, InvitedMember, TeamFilters, TeamMember, TeamRole, TeamStatus } from '@shared/domain/models/team.models';
@@ -48,7 +48,7 @@ const STATUS_FILTERS: readonly TeamStatus[] = ['active', 'pending', 'inactive'];
 // Falta (espera al Backend): la baja con aviso de controles asignados y corregir si un delegado es interno o externo (ambos en MD-191, aún fuera de develop).
 @Component({
   selector: 'app-team-people',
-  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DatePipe, DataTable, TableCell, TeamInviteForm, EmptyState, Field, SideDrawer, StatusIndicator, PersonCell, TableToolbar, TableFilter],
+  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, LocalDatePipe, DataTable, TableCell, TeamInviteForm, EmptyState, Field, FormModal, StatusIndicator, PersonCell, TableToolbar, TableFilter],
   templateUrl: './team-people.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -77,9 +77,10 @@ export class TeamPeopleView implements OnInit {
   /** El formulario de invitación vive en un drawer que abre «Invitar». */
   readonly inviteOpen = signal(false);
   private readonly inviteForm = viewChild(TeamInviteForm);
-  /** Con datos escritos sin enviar, Esc y el fondo no descartan el formulario (el botón de cerrar sí); mientras se envía, nada lo cierra. */
+  /** Con datos escritos sin enviar, Esc y el fondo no descartan el formulario (Cancelar sí); mientras se envía, nada lo cierra. */
   readonly inviteDirty = computed(() => this.inviteForm()?.dirty() ?? false);
   readonly inviteSaving = computed(() => this.inviteForm()?.saving() ?? false);
+  readonly inviteCanSubmit = computed(() => this.inviteForm()?.canSubmit() ?? false);
   readonly loadingPage = signal(false);
   readonly members = signal<TeamMember[]>([]);
   readonly groups = signal<Group[]>([]);
