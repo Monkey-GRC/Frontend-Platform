@@ -9,6 +9,7 @@ import { InvitedMember, TeamMember, TeamPage } from '@shared/domain/models/team.
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { TeamPeopleView } from './team-people';
+import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const member = (over: Partial<TeamMember>): TeamMember => ({
   id: 'u0', email: 'x@acme.co', name: 'Persona', last_name: 'Prueba', role: 'responsable', status: 'active', is_mfa_enabled: true, last_login_at: null, created_at: '2026-10-28T00:00:00Z', ...over,
@@ -53,9 +54,10 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
   const q = <T extends HTMLElement>(selector: string) => el().querySelector<T>(selector)!;
   const row = (email: string) => q(`[data-test-member="${email}"]`).closest('tr') as HTMLElement;
   const type = (selector: string, value: string) => {
-    const input = q<HTMLInputElement | HTMLSelectElement>(selector);
+    if (isSelect(el(), selector)) return pickOption(el(), selector, value, () => fixture.detectChanges());
+    const input = q<HTMLInputElement>(selector);
     input.value = value;
-    input.dispatchEvent(new Event(input instanceof HTMLSelectElement ? 'change' : 'input'));
+    input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   };
   const click = (selector: string | HTMLElement) => {
@@ -66,7 +68,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
   /** Opens the detail panel of a person from their row. */
   const open = (email: string) => click(row(email));
   const inPanel = (selector: string) => q(`[role="dialog"] ${selector}`);
-  const filter = (name: string, value: string) => type(`[data-test-filter-${name}] select`, value);
+  const filter = (name: string, value: string) => type(`[data-test-filter-${name}]`, value);
 
   describe('the list', () => {
     it('lists the team with name, role, state, group and who the delegate answers to, and marks the ones without a name', () => {
@@ -106,10 +108,11 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
 
     it('puts the filters in the toolbar as selects with no label above them, named by their first option', () => {
       setup();
-      expect(el().querySelector('app-table-toolbar app-table-filter select[aria-label="TEAM.FILTERS.ROLE"]')).not.toBeNull();
+      expect(el().querySelector('app-table-toolbar app-table-filter [data-select-trigger][aria-label="TEAM.FILTERS.ROLE"]')).not.toBeNull();
       expect(el().querySelectorAll('app-table-toolbar app-table-filter').length).toBe(4);
       expect(el().querySelector('label[for="filter-role"]')).toBeNull();
-      expect(el().querySelector('app-table-toolbar select')!.className).toContain('mk-input');
+      expect(el().querySelector('app-table-toolbar app-select')).not.toBeNull();
+      expect(el().querySelector('app-table-toolbar select')).toBeNull();
     });
 
     it('asks for the first page of 25 by default and follows the page the server reports', () => {
@@ -167,7 +170,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
   describe('filters (asked to the server, so they apply to every page)', () => {
     it('filters by role, state, group and internal or external, always from the first page, and clears them (the state filter only offers what the Backend accepts)', () => {
       setup();
-      expect(Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-filter-status] option')).map((o) => o.value)).toEqual(['', 'active', 'pending', 'inactive']);
+      expect(optionValues(el(), '[data-test-filter-status]', () => fixture.detectChanges())).toEqual(['', 'active', 'pending', 'inactive']);
       TestBed.resetTestingModule();
       setup();
       filter('role', 'delegado');
@@ -192,7 +195,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
 
     it('offers the groups the server gave as the group filter', () => {
       setup();
-      const options = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-filter-group] option')).map((o) => o.value);
+      const options = optionValues(el(), '[data-test-filter-group]', () => fixture.detectChanges());
       expect(options).toEqual(['', 'resp', 'team-ana']);
     });
   });
@@ -478,6 +481,50 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       });
     });
 
+    describe('with the role select open (its panel lives in <body>, outside the dialog)', () => {
+      const trigger = () => q<HTMLButtonElement>('[data-test-role] [data-select-trigger]');
+      const panel = () => document.body.querySelector<HTMLElement>('[data-select-panel]');
+      const esc = () => {
+        trigger().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true, bubbles: true }));
+        fixture.detectChanges();
+      };
+      const dialogOpen = () => el().querySelector('[role="dialog"] app-team-invite-form') !== null;
+
+      it('choosing an option does not close the modal', () => {
+        setup();
+        click('[data-test-open-invite]');
+        click('[data-test-role] [data-select-trigger]');
+        expect(panel()).not.toBeNull();
+        panel()!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        (panel()!.querySelector('[data-value="auditor"]') as HTMLElement).click();
+        fixture.detectChanges();
+        expect(panel()).toBeNull();
+        expect(dialogOpen()).toBeTrue();
+      });
+
+      it('Esc closes only the select, and the following Esc closes the (untouched) modal', () => {
+        setup();
+        click('[data-test-open-invite]');
+        click('[data-test-role] [data-select-trigger]');
+        esc();
+        expect(panel()).toBeNull();
+        expect(dialogOpen()).toBeTrue();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true, bubbles: true }));
+        fixture.detectChanges();
+        expect(dialogOpen()).toBeFalse();
+      });
+
+      it('a click on the modal outside the select closes only the select', () => {
+        setup();
+        click('[data-test-open-invite]');
+        click('[data-test-role] [data-select-trigger]');
+        q('[data-test-email]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        fixture.detectChanges();
+        expect(panel()).toBeNull();
+        expect(dialogOpen()).toBeTrue();
+      });
+    });
+
     it('shows «Tú» as plain muted text, with no pill, and the status as a dot with its label', () => {
       setup();
       const me = row('admin@acme.co');
@@ -494,7 +541,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       expect(el().querySelector('[data-test-edit-name-btn]')).toBeNull();
       expect(el().querySelector('[data-test-deactivate]')).toBeNull();
       click('[data-test-open-invite]');
-      expect(Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-role] option')).map((o) => o.value)).toEqual(['delegado']);
+      expect(optionValues(el(), '[data-test-role]', () => fixture.detectChanges())).toEqual(['delegado']);
     });
 
     it('does not offer to resend a failed invitation (only the administrator can)', () => {

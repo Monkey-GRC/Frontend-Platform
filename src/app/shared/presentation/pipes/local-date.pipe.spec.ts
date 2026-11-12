@@ -36,6 +36,13 @@ describe('LocalDatePipe', () => {
     expect(pipe.transform(date.toISOString(), 'long')).toBe('November 9, 2026');
   });
 
+  it('con withTime añade la hora en el formato del idioma', () => {
+    language.current.set('en');
+    expect(pipe.transform(date, 'medium', true)).toMatch(/^Nov 9, 2026.*12:00\s?PM$/);
+    language.current.set('es');
+    expect(pipe.transform(date, 'medium', true)).toMatch(/^9 nov 2026.*12:00$/);
+  });
+
   it('devuelve cadena vacía con null, undefined, vacío o fecha inválida', () => {
     expect(pipe.transform(null)).toBe('');
     expect(pipe.transform(undefined)).toBe('');

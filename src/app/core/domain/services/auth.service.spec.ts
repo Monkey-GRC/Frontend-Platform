@@ -1,8 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
+import { LanguageService, RELOAD_PAGE } from '@core/domain/services/language.service';
 import { environment } from '@environments/environment';
 import { AuthPayload, CodeLookup, LoginOutcome } from '../models/auth.models';
 import { AuthService } from './auth.service';
@@ -232,5 +233,133 @@ describe('AuthService · cierre de sesión y errores del login', () => {
     http.expectOne(`${api}/login`).flush({ status: 200, message: 'ok' });
     expect(name).toBe('MissingResponseDataError');
     expect(session.user()).toBeNull();
+  });
+});
+
+describe('AuthService · idioma de la persona (D111)', () => {
+  let service: AuthService;
+  let http: HttpTestingController;
+  let reload: jasmine.Spy;
+  let session: SessionService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    reload = jasmine.createSpy('reload');
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslateService({ fallbackLang: 'es' }), { provide: RELOAD_PAGE, useValue: reload }],
+    });
+    service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+    session = TestBed.inject(SessionService);
+  });
+  afterEach(() => {
+    http.verify();
+    localStorage.clear();
+  });
+
+  const loginWith = (preferred: 'es' | 'en') => {
+    service.login({ email: 'ana@empresa.com', password: 'x' }).subscribe();
+    http
+      .expectOne(`${api}/login`)
+      .flush({ status: 200, message: 'ok', data: { ...payload, user: { ...payload.user, preferred_language: preferred } } });
+  };
+
+  it('(b) a language chosen in this browser that differs from the account: sends the browser language, no reload', fakeAsync(() => {
+    localStorage.setItem('lang', 'en');
+    TestBed.inject(LanguageService).current.set('en');
+    loginWith('es');
+    const req = http.expectOne(`${api}/me/language`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ language: 'en' });
+    req.flush(null, { status: 204, statusText: 'No Content' });
+    tick(1000);
+    expect(reload).not.toHaveBeenCalled();
+  }));
+
+  it('(a) no chosen language: the account wins, it is saved as chosen and the app reloads once, with no PATCH', fakeAsync(() => {
+    loginWith('en');
+    http.expectNone(`${api}/me/language`);
+    expect(localStorage.getItem('lang')).toBe('en');
+    tick(1000);
+    expect(reload).toHaveBeenCalledTimes(1);
+  }));
+
+  it('(a) no chosen language and the account matches what is shown: saves it as chosen without reloading', fakeAsync(() => {
+    loginWith('es');
+    expect(localStorage.getItem('lang')).toBe('es');
+    tick(1000);
+    expect(reload).not.toHaveBeenCalled();
+  }));
+
+  it('no reload loop: after adopting the account language, a new login with the same values does nothing', fakeAsync(() => {
+    loginWith('en');
+    tick(1000);
+    expect(reload).toHaveBeenCalledTimes(1);
+    // Tras la recarga la app arranca con lo guardado: el servicio nuevo ya muestra "en" y el navegador tiene idioma elegido.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslateService({ fallbackLang: 'es' }), { provide: RELOAD_PAGE, useValue: reload }],
+    });
+    service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+    loginWith('en');
+    http.expectNone(`${api}/me/language`);
+    tick(1000);
+    expect(reload).toHaveBeenCalledTimes(1);
+  }));
+
+  it('a failed sync does not break the login', () => {
+    localStorage.setItem('lang', 'en');
+    TestBed.inject(LanguageService).current.set('en');
+    loginWith('es');
+    http.expectOne(`${api}/me/language`).flush({}, { status: 500, statusText: 'Error' });
+    expect(session.user()?.email).toBe('ana@empresa.com');
+  });
+
+  describe('restaurar la sesión con /auth/me', () => {
+    const restore = (preferred?: string) => {
+      localStorage.setItem('mk_session', '1');
+      let ok: boolean | undefined;
+      service.validate().subscribe((v) => (ok = v));
+      http
+        .expectOne(`${api}/me`)
+        .flush({ status: 200, message: 'ok', data: { ...payload, user: { ...payload.user, preferred_language: preferred } } });
+      return () => ok;
+    };
+
+    it('(a) navegador sin idioma elegido: gana la cuenta, se guarda y recarga una sola vez, sin PATCH', fakeAsync(() => {
+      const ok = restore('en');
+      http.expectNone(`${api}/me/language`);
+      expect(ok()).toBeTrue();
+      expect(localStorage.getItem('lang')).toBe('en');
+      tick(1000);
+      expect(reload).toHaveBeenCalledTimes(1);
+    }));
+
+    it('(b) navegador con idioma elegido distinto: PATCH con el del navegador y sin recargar', fakeAsync(() => {
+      localStorage.setItem('lang', 'en');
+      TestBed.inject(LanguageService).current.set('en');
+      restore('es');
+      const req = http.expectOne(`${api}/me/language`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ language: 'en' });
+      req.flush(null, { status: 204, statusText: 'No Content' });
+      tick(1000);
+      expect(reload).not.toHaveBeenCalled();
+    }));
+
+    it('(c) /auth/me responde 401: no toca el idioma', fakeAsync(() => {
+      localStorage.setItem('mk_session', '1');
+      let ok: boolean | undefined;
+      service.validate().subscribe((v) => (ok = v));
+      http.expectOne(`${api}/me`).flush({}, { status: 401, statusText: 'Unauthorized' });
+      http.expectOne(`${api}/refresh`).flush({}, { status: 401, statusText: 'Unauthorized' });
+      http.expectOne(`${api}/me`).flush({}, { status: 401, statusText: 'Unauthorized' });
+      tick(1000);
+      expect(ok).toBeFalse();
+      http.expectNone(`${api}/me/language`);
+      expect(localStorage.getItem('lang')).toBeNull();
+      expect(reload).not.toHaveBeenCalled();
+    }));
   });
 });

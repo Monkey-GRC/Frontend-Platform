@@ -8,6 +8,7 @@ import { HomeTeamLoad, HomeTeamMember } from '@features/home/domain/models/team.
 import { HomeDashboardService } from '@features/home/domain/services/dashboard.service';
 import { HomeTeamService } from '@features/home/domain/services/team-overview.service';
 import { CompanyDashboard } from './company-dashboard';
+import { pickOption } from '@shared/presentation/components/select/select.testing';
 
 const framework = (patch: Partial<DashboardFramework> = {}): DashboardFramework => ({
   code: 'soc2', name: 'SOC 2', readiness: 'needs_work', verdict: 'non_compliant', progress: { done: 20, total: 50 }, coverage: { measured: 40, applicable: 50 }, ...patch,
@@ -157,10 +158,7 @@ describe('CompanyDashboard', () => {
     it('changes the page size and goes back to the first page', () => {
       el().querySelectorAll<HTMLButtonElement>('[data-attention] [data-page-number]')[1].click();
       fixture.detectChanges();
-      const select = el().querySelector('[data-attention] select') as HTMLSelectElement;
-      select.value = '25';
-      select.dispatchEvent(new Event('change'));
-      fixture.detectChanges();
+      pickOption(el(), '[data-attention] app-pagination app-select', '25', () => fixture.detectChanges());
       expect(rows()).toBe(25);
       expect(el().querySelector('[data-attention] [aria-current="page"]')!.textContent!.trim()).toBe('1');
     });

@@ -7,6 +7,7 @@ import { SessionService } from '@core/domain/services/session.service';
 import { Responsible } from '@shared/domain/models/risk.models';
 import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
 import { ResponsiblesView } from './responsibles';
+import { isSelect, optionValues, optionsText, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const CISO: Responsible = { id: 'p1', type: 'ciso', person_name: 'Marta Ruiz', is_in_use: true };
 const IT: Responsible = { id: 'p2', type: 'it', person_name: 'Andrés Pardo', is_in_use: false };
@@ -30,9 +31,10 @@ describe('ResponsiblesView', () => {
   const el = () => fixture.nativeElement as HTMLElement;
   const text = () => el().textContent ?? '';
   const type = (selector: string, value: string) => {
-    const input = el().querySelector<HTMLInputElement | HTMLSelectElement>(selector)!;
+    if (isSelect(el(), selector)) return pickOption(el(), selector, value, () => fixture.detectChanges());
+    const input = el().querySelector<HTMLInputElement>(selector)!;
     input.value = value;
-    input.dispatchEvent(new Event(input instanceof HTMLSelectElement ? 'change' : 'input'));
+    input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   };
   const click = (selector: string) => {
@@ -61,9 +63,8 @@ describe('ResponsiblesView', () => {
   it('offers the types of role that the backend serves, not a list written in the screen', () => {
     setup('admin_empresa');
     openDrawer();
-    const options = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-type] option')).map((o) => o.value).filter(Boolean);
-    expect(options).toEqual(COMPLIANCE_OPTIONS['responsible_type'].map((o) => o.value));
-    expect(el().querySelector('[data-test-type]')!.textContent).toContain('Propietario del activo');
+    expect(optionValues(el(), '[data-test-type]', () => fixture.detectChanges())).toEqual(COMPLIANCE_OPTIONS['responsible_type'].map((o) => o.value));
+    expect(optionsText(el(), '[data-test-type]', () => fixture.detectChanges())).toContain('Propietario del activo');
   });
 
   it('lists every role with its person and marks the ones something depends on', () => {

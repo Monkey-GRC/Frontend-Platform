@@ -7,6 +7,7 @@ import { InvitedMember, TeamMember } from '@shared/domain/models/team.models';
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { InviteActor, TeamInviteForm } from './team-invite-form';
+import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const group = (over: Partial<Group>): Group => ({ id: 'g1', name: 'Grupo', kind: 'team', leader: { id: 'r1', name: 'María', last_name: 'Gómez', role: 'responsable' }, members_count: 0, ...over });
 const TEAM_MARIA = group({ id: 'team-maria', name: 'Equipo de María' });
@@ -40,9 +41,10 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
   const el = () => fixture.nativeElement as HTMLElement;
   const q = <T extends HTMLElement>(selector: string) => el().querySelector<T>(selector)!;
   const type = (selector: string, value: string) => {
-    const input = q<HTMLInputElement | HTMLSelectElement>(selector);
+    if (isSelect(el(), selector)) return pickOption(el(), selector, value, () => fixture.detectChanges());
+    const input = q<HTMLInputElement>(selector);
     input.value = value;
-    input.dispatchEvent(new Event(input instanceof HTMLSelectElement ? 'change' : 'input'));
+    input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   };
   const click = (selector: string) => {
@@ -60,7 +62,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     q<HTMLFormElement>('#invite-form').requestSubmit();
     fixture.detectChanges();
   };
-  const roleValues = () => Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-role] option')).map((o) => o.value);
+  const roleValues = () => optionValues(el(), '[data-test-role]', () => fixture.detectChanges());
 
   describe('who can create whom (D102 punto 2)', () => {
     it('lets the administrator create every role', () => {
@@ -164,7 +166,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(submitDisabled()).toBeTrue();
       click('[data-test-internal]');
       expect(submitDisabled()).toBeTrue(); // falta el equipo
-      expect(Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-team] option')).map((o) => o.value)).toEqual(['', 'team-maria', 'team-pedro']);
+      expect(optionValues(el(), '[data-test-team]', () => fixture.detectChanges())).toEqual(['team-maria', 'team-pedro']);
       type('[data-test-team]', 'team-pedro');
       expect(submitDisabled()).toBeFalse();
       submitForm();

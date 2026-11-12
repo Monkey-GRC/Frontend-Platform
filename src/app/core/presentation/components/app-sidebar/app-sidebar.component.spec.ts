@@ -15,7 +15,7 @@ describe('AppSidebarComponent · menú por rol', () => {
   }
 
   it('shows the administrator everything, including the team and the control assignment', () => {
-    expect(menuFor('admin_empresa')).toEqual(['Inicio', 'Mi empresa', 'Cumplimiento', 'Equipo', 'Asignación']);
+    expect(menuFor('admin_empresa')).toEqual(['Inicio', 'Mi empresa', 'Cumplimiento', 'Equipo', 'Asignación', 'Integraciones']);
   });
 
   it('gives the owner «Mi trabajo», Cumplimiento, the executor assignment and their team, and nothing of the company', () => {
@@ -26,8 +26,8 @@ describe('AppSidebarComponent · menú por rol', () => {
     expect(menuFor('delegado')).toEqual(['Mi trabajo', 'Cumplimiento']);
   });
 
-  it('hides from the auditor what the backend refuses them (company, services, team, assignment)', () => {
-    expect(menuFor('auditor')).toEqual(['Inicio', 'Cumplimiento', 'Responsables']);
+  it('gives the auditor Integraciones (read only) and hides what the backend refuses them (company, services, team, assignment)', () => {
+    expect(menuFor('auditor')).toEqual(['Inicio', 'Cumplimiento', 'Responsables', 'Integraciones']);
   });
 });
 
@@ -58,6 +58,85 @@ describe('AppSidebarComponent · groups', () => {
   function panel(root: HTMLElement, id: string): HTMLElement {
     return root.querySelector(`#${id}`) as HTMLElement;
   }
+
+  // Sections are separated by one line between them (no titles): never before the first, never after the last, never two in a row.
+  describe('section dividers', () => {
+    const separators = (root: HTMLElement) => Array.from(root.querySelectorAll<HTMLElement>('[data-nav-separator]'));
+
+    it('draws two lines for the administrator: Start | Work | Connect', async () => {
+      const fixture = await render('admin_empresa', '/');
+      const root = fixture.nativeElement as HTMLElement;
+      expect(separators(root).length).toBe(2);
+      const nav = root.querySelector('nav > div') as HTMLElement;
+      const kinds = Array.from(nav.children).map((c) => ((c as HTMLElement).hasAttribute('data-nav-separator') ? '|' : 'S'));
+      expect(kinds.join('')).toBe('S|S|S');
+      expect(separators(root)[0].className).toContain('border-line');
+      expect(separators(root)[0].className).toContain('my-3');
+      expect(root.querySelector('h2')).toBeNull();
+    });
+
+    it('draws a line that can be seen: 2 px in the stronger line token, with 12 px of air on each side', async () => {
+      const fixture = await render('admin_empresa', '/');
+      const sep = (fixture.nativeElement as HTMLElement).querySelector('[data-nav-separator]') as HTMLElement;
+      expect(sep.className).toContain('border-t-2');
+      expect(sep.className).toContain('border-line-strong');
+      document.body.appendChild(fixture.nativeElement);
+      const style = getComputedStyle(sep);
+      expect(style.borderTopWidth).toBe('2px');
+      expect(style.marginTop).toBe('12px');
+      expect(style.marginBottom).toBe('12px');
+      expect(style.borderTopColor).not.toBe(getComputedStyle(document.body).backgroundColor);
+      expect(style.borderTopColor).not.toBe('rgba(0, 0, 0, 0)');
+      (fixture.nativeElement as HTMLElement).remove();
+    });
+
+    it('leaves 16 px between the logo block and the first item, in both widths (the logo block has the same margin)', async () => {
+      const fixture = await render('admin_empresa', '/');
+      const logo = (fixture.nativeElement as HTMLElement).querySelector('aside > div') as HTMLElement;
+      expect(logo.className).toContain('mb-4');
+    });
+
+    it('puts the integrations after the last line, and Home before the first', async () => {
+      const fixture = await render('auditor', '/');
+      const root = fixture.nativeElement as HTMLElement;
+      const nav = root.querySelector('nav > div') as HTMLElement;
+      const children = Array.from(nav.children) as HTMLElement[];
+      expect(children[0].textContent).toContain('SHELL.NAV.HOME');
+      expect(children[children.length - 1].textContent).toContain('SHELL.NAV.INTEGRATIONS');
+      expect(children[0].hasAttribute('data-nav-separator')).toBeFalse();
+      expect(children[children.length - 1].hasAttribute('data-nav-separator')).toBeFalse();
+    });
+
+    it('draws one line only when a role has two sections (the delegate: Start | Work), never double or trailing', async () => {
+      const fixture = await render('delegado', '/');
+      const root = fixture.nativeElement as HTMLElement;
+      expect(separators(root).length).toBe(1);
+      const nav = root.querySelector('nav > div') as HTMLElement;
+      const last = nav.lastElementChild as HTMLElement;
+      expect(last.hasAttribute('data-nav-separator')).toBeFalse();
+      const children = Array.from(nav.children) as HTMLElement[];
+      expect(children.some((c, i) => c.hasAttribute('data-nav-separator') && children[i + 1]?.hasAttribute('data-nav-separator'))).toBeFalse();
+    });
+  });
+
+  it('animates a group: the panel is always in the DOM, goes from closed to open by its state, and the chevron turns with it', async () => {
+    const fixture = await render('admin_empresa', '/');
+    const root = fixture.nativeElement as HTMLElement;
+    const group = panel(root, 'nav-group-equipo');
+    const chevron = title(root, 'nav-group-equipo').querySelector('.menu-chevron-icon') as HTMLElement;
+    expect(group.className).toContain('menu-group-panel');
+    expect(group.getAttribute('data-open')).toBe('false');
+    expect(chevron.getAttribute('data-open')).toBe('false');
+    title(root, 'nav-group-equipo').click();
+    fixture.detectChanges();
+    expect(panel(root, 'nav-group-equipo')).toBe(group); // the same node: it was never destroyed, so the transition runs
+    expect(group.getAttribute('data-open')).toBe('true');
+    expect(chevron.getAttribute('data-open')).toBe('true');
+    const list = group.querySelector('[data-nav-children]') as HTMLElement;
+    expect(list.className).toContain('border-l');
+    expect(list.className).toContain('ml-6');
+    expect(group.querySelector('a.menu-child')!.className).toContain('menu-child');
+  });
 
   it('starts closed and opens by clicking the title, without leaving the page', async () => {
     const fixture = await render('admin_empresa', '/');
@@ -193,17 +272,17 @@ describe('AppSidebarComponent · groups', () => {
       fixture.nativeElement.remove();
     });
 
-    it('has a computed transition of 280 ms on height and opacity (and the chevron turns at the same pace), unless the system asks for reduced motion', async () => {
+    it('has a computed transition of 200 ms on height and opacity (and the chevron turns at the same pace), unless the system asks for reduced motion', async () => {
       if (reduced()) return pending('the system asks for reduced motion');
       const fixture = await attached();
       const root = fixture.nativeElement as HTMLElement;
       const style = getComputedStyle(panel(root, 'nav-group-equipo'));
       expect(style.transitionProperty).toContain('grid-template-rows');
       expect(style.transitionProperty).toContain('opacity');
-      expect(style.transitionDuration.split(', ').slice(0, 2)).toEqual(['0.28s', '0.28s']);
-      expect(style.transitionTimingFunction).toContain('cubic-bezier(0.4, 0, 0.2, 1)');
+      expect(style.transitionDuration.split(', ').slice(0, 2)).toEqual(['0.2s', '0.16s']);
+      expect(style.transitionTimingFunction).toContain('cubic-bezier(0, 0, 0.2, 1)');
       const chevron = getComputedStyle(title(root, 'nav-group-equipo').querySelector('.menu-chevron-icon')!);
-      expect(chevron.transitionDuration).toBe('0.28s');
+      expect(chevron.transitionDuration).toBe('0.2s');
       expect(chevron.transitionProperty).toBe('transform');
       root.remove();
     });
@@ -226,14 +305,14 @@ describe('AppSidebarComponent · groups', () => {
       root.remove();
     });
 
-    it('paints each child as a whole box (full width, at least 44 px high), not only the letters', async () => {
+    it('paints each child as a whole box (full width, at least 40 px high), not only the letters', async () => {
       const fixture = await attached('/cumplimiento/riesgos');
       const root = fixture.nativeElement as HTMLElement;
       const links = Array.from(panel(root, 'nav-group-cumplimiento').querySelectorAll<HTMLElement>('a.menu-child'));
       expect(links.length).toBe(6);
-      const width = panel(root, 'nav-group-cumplimiento').getBoundingClientRect().width;
+      const width = panel(root, 'nav-group-cumplimiento').querySelector('[data-nav-children]')!.getBoundingClientRect().width - 1; // minus the 1 px guide
       for (const a of links) {
-        expect(a.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+        expect(a.getBoundingClientRect().height).toBeGreaterThanOrEqual(40);
         expect(a.getBoundingClientRect().width).toBeCloseTo(width, 0);
       }
       const active = panel(root, 'nav-group-cumplimiento').querySelector('a[aria-current="page"]')!;

@@ -6,6 +6,7 @@ import { Cause, RiskDetail } from '@shared/domain/models/risk.models';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { provideCatalogStub } from '@shared/testing/catalog-options';
 import { RiskForm, RiskFormKind } from './risk-form';
+import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const RISK: RiskDetail = {
   id: 'r9', service_id: 's1', code: 'R050', name: 'Pérdida de un portátil', description: 'Se extravía.', trust_criterion: 'confidentiality', potential_impact: ['reputational'],
@@ -32,9 +33,12 @@ describe('RiskForm', () => {
 
   const el = () => fixture.nativeElement as HTMLElement;
   const type = async (field: string, value: string) => {
-    const input = el().querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[data-field="${field}"]`)!;
-    input.value = value;
-    input.dispatchEvent(new Event(input instanceof HTMLSelectElement ? 'change' : 'input'));
+    if (isSelect(el(), `[data-field="${field}"]`)) pickOption(el(), `[data-field="${field}"]`, value, () => fixture.detectChanges());
+    else {
+      const input = el().querySelector<HTMLInputElement | HTMLTextAreaElement>(`[data-field="${field}"]`)!;
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+    }
     fixture.detectChanges();
     await fixture.whenStable();
   };
@@ -52,8 +56,8 @@ describe('RiskForm', () => {
 
   it('offers the criteria and the loss types that the backend serves', () => {
     setup('risk');
-    const values = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-field="group"] option')).map((o) => o.value);
-    expect(values).toEqual(['', 'confidentiality', 'integrity', 'security']);
+    const values = optionValues(el(), '[data-field="group"]', () => fixture.detectChanges());
+    expect(values).toEqual(['confidentiality', 'integrity', 'security']);
     expect(el().querySelector('[data-impact="financial_loss"]')).not.toBeNull();
   });
 
