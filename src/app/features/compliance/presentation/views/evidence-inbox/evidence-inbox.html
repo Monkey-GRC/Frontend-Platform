@@ -3,9 +3,6 @@
 @case ('loading') {
 <div class="flex flex-col items-center gap-3 py-8" role="status">
   <app-loading-spinner />
-  @if (progress().total > 0) {
-  <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.EVIDENCE_INBOX.LOADING' | translate: { done: progress().done, total: progress().total } }}</p>
-  }
 </div>
 }
 
@@ -17,13 +14,6 @@
 
 @default {
 <div class="flex flex-col gap-4">
-  @if (failed() > 0) {
-  <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-warn text-ink" role="alert">
-    <span>{{ 'COMPLIANCE.EVIDENCE_INBOX.PARTIAL' | translate: { count: failed() } }}</span>
-    <button type="button" (click)="load()" class="ml-auto font-medium underline">{{ 'COMMON.RETRY' | translate }}</button>
-  </div>
-  }
-
   <app-table-toolbar>
     <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[filter()]" labelKey="COMPLIANCE.EVIDENCE_INBOX.FILTER" (picked)="pick($event)" />
   </app-table-toolbar>

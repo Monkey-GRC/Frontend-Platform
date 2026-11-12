@@ -45,6 +45,11 @@ export interface EvidenceRequirement {
   control?: { id: string; code: string };
 }
 
+/** Un ítem de la evidencia de un servicio: el mismo requerimiento del control, más el control al que pertenece. */
+export interface ServiceEvidenceRequirement extends EvidenceRequirement {
+  control_id: string;
+}
+
 /**
  * Lo que se entregó PARA una prueba documental EN SU CONTROL (D88). Un documento que el catálogo sugiere sin decir a qué prueba sirve (`test` nulo) no cuenta para
  * ninguna prueba: el servidor tampoco lo tiene en cuenta. El estado de la prueba lo calcula el servidor; aquí solo se decide qué se muestra bajo cada una.

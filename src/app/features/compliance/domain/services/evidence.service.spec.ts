@@ -28,6 +28,19 @@ describe('EvidenceService', () => {
     http.expectOne((r) => r.url.endsWith('/controls/c1/evidence') && r.params.get('view') === 'technical').flush({ statusCode: 200, message: '', data: { items: [] } });
   });
 
+  it('asks for the evidence of the whole service in one request, with the technical view only when asked', () => {
+    let items: unknown[] = [];
+    service.listByService('s1').subscribe((r) => (items = r));
+    const req = http.expectOne((r) => r.url.endsWith('/services/s1/evidence'));
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.has('view')).toBeFalse();
+    req.flush({ statusCode: 200, message: '', data: { items: [{ id: 'e1', control_id: 'c1' }] } });
+    expect(items).toEqual([{ id: 'e1', control_id: 'c1' }]);
+
+    service.listByService('s1', 'technical').subscribe();
+    http.expectOne((r) => r.url.endsWith('/services/s1/evidence') && r.params.get('view') === 'technical').flush({ statusCode: 200, message: '', data: { items: [] } });
+  });
+
   it('uploads the file as multipart in the "file" field of the requirement', () => {
     const file = new File(['contenido'], 'politica.pdf', { type: 'application/pdf' });
     service.upload('e1', file).subscribe();
