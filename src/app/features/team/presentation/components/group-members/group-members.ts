@@ -9,6 +9,7 @@ import { Group } from '@features/team/domain/models/group.models';
 import { TeamMember, TeamRole, UpdateMemberDto } from '@shared/domain/models/team.models';
 import { TeamService } from '@shared/domain/services/team.service';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Select, SelectOption } from '@shared/presentation/components/select/select';
 
 type Stage = 'loading' | 'error' | 'ready';
 // Quien ejecuta controles no se mueve sin confirmar: se guarda aquí hasta que el administrador diga que sí (USER_HAS_ASSIGNMENTS trae cuántos).
@@ -21,7 +22,7 @@ const DELEGATE_ROLE: TeamRole = 'delegado';
 // Mover cambia solo su equipo: si ejecuta controles, esos quedan sin ejecutor y siguen con su dueño (D102), y por eso se pide confirmar antes.
 @Component({
   selector: 'app-group-members',
-  imports: [TranslatePipe, ConfirmDialog, PersonCell, StatusIndicator, DataTable, TableCell],
+  imports: [TranslatePipe, ConfirmDialog, PersonCell, StatusIndicator, DataTable, TableCell, Select],
   templateUrl: './group-members.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -59,6 +60,7 @@ export class GroupMembers implements OnInit {
 
   /** Los equipos a los que se puede mover: todos menos el actual. */
   readonly destinations = computed(() => this.teams().filter((t) => t.id !== this.group().id));
+  readonly destinationOptions = computed<SelectOption[]>(() => this.destinations().map((t) => ({ value: t.id, labelKey: 'TEAM.INVITE.TEAM_OPTION', labelParams: { team: t.name, leader: this.leaderName(t) } })));
   readonly hiddenCount = computed(() => Math.max(0, this.total() - this.members().length));
 
   ngOnInit(): void {

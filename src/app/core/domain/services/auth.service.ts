@@ -14,6 +14,7 @@ import {
 } from 'rxjs';
 import { environment } from '@environments/environment';
 import { apiErrorCode } from '@core/domain/utils/api-error';
+import { LanguageService, hasChosenLanguage } from '@core/domain/services/language.service';
 import { SessionService } from '@core/domain/services/session.service';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
@@ -40,6 +41,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly session = inject(SessionService);
   private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
   private readonly baseUrl = `${environment.apiUrl}/auth`;
   // Un solo refresh en vuelo aunque varias peticiones reciban 401 a la vez.
   private refreshInFlight$: Observable<boolean> | null = null;
@@ -183,12 +185,30 @@ export class AuthService {
     );
   }
 
+  /** Guarda el idioma de la persona en el servidor (para sus correos). Requiere sesión (D111). */
+  saveLanguage(language: 'es' | 'en'): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/me/language`, { language }).pipe(map(() => void 0));
+  }
+
+  // Con un idioma elegido en este navegador manda el navegador (se avisa al servidor, sin recargar); sin elegir, manda la cuenta (cambia y recarga una sola vez).
+  private syncLanguage(user: AuthPayload['user']): void {
+    const account = user.preferred_language;
+    if (!account) return;
+    if (hasChosenLanguage()) {
+      const shown = this.language.current();
+      if (account !== shown) this.saveLanguage(shown).subscribe({ error: () => undefined });
+    } else {
+      this.language.adoptAccountLanguage(account);
+    }
+  }
+
   private me(): Observable<boolean> {
     return this.http.get<SuccessResponse<AuthPayload>>(`${this.baseUrl}/me`).pipe(
       map((res) => {
         const payload = res.data;
         if (!payload || payload.user.role === PLATFORM_EXCLUDED_ROLE) return false;
         this.session.set(payload.user, payload.company, payload.onboarding ?? null);
+        this.syncLanguage(payload.user);
         return true;
       }),
     );
@@ -207,6 +227,7 @@ export class AuthService {
       return this.logout().pipe(switchMap(() => throwError(() => new Error(this.translate.instant(ADMIN_NOT_ALLOWED_MESSAGE)))));
     }
     this.session.set(payload.user, payload.company, payload.onboarding ?? null);
+    this.syncLanguage(payload.user);
     return of(payload);
   }
 }

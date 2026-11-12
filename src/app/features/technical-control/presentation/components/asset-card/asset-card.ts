@@ -13,7 +13,7 @@ import { ConnectionProgress } from '../connection-progress/connection-progress';
 import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
 import { ExecutionProgress } from '../execution-progress/execution-progress';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
-import { ProviderLogo } from '../provider-logo/provider-logo';
+import { ProviderLogo } from '@shared/presentation/components/provider-logo/provider-logo';
 
 const STATUS: Record<string, { label: string; tone: StatusTone }> = {
   pending: { label: 'TECHNICAL_CONTROL.STATUS.PENDING', tone: 'neutral' },

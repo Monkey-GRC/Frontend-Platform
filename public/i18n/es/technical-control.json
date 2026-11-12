@@ -235,7 +235,7 @@
         "MULTI_AZ": "Varias zonas",
         "ENCRYPTED": "Cifrada",
         "ENDPOINT": "Dirección",
-        "RUNTIME": "Runtime",
+        "RUNTIME": "Entorno de ejecución",
         "LAST_MODIFIED": "Última modificación",
         "CREATED_AT": "Creado"
       },

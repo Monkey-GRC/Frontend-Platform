@@ -48,7 +48,7 @@ describe('RiskCausesPicker (D93)', () => {
   });
 
   it('filters by what is typed', () => {
-    const search = el().querySelector<HTMLInputElement>('[data-causes-search]')!;
+    const search = el().querySelector<HTMLInputElement>('[data-causes-search] input')!;
     search.value = 'respaldo';
     search.dispatchEvent(new Event('input'));
     fixture.detectChanges();

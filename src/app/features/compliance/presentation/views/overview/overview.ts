@@ -1,3 +1,4 @@
+import { storedLanguage } from '@core/domain/services/language.service';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -146,7 +147,7 @@ export class OverviewView {
         rows.set(f.control_id, this.toRow(f, category));
       }
     }
-    return [...rows.values()].sort((a, b) => a.code.localeCompare(b.code, 'es', { numeric: true }));
+    return [...rows.values()].sort((a, b) => a.code.localeCompare(b.code, storedLanguage(), { numeric: true }));
   });
 
   /** La tabla se pagina aquí, sobre la lista que ya llegó: no se pide nada más al servidor. */

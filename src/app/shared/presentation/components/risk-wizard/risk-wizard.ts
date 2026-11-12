@@ -1,3 +1,4 @@
+import { storedLanguage } from '@core/domain/services/language.service';
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -35,7 +36,7 @@ const SCALE_TONE = {
   selected: 'border-action bg-tint ring-2 ring-action',
 };
 
-const byCode = (a: RiskListItem, b: RiskListItem) => a.code.localeCompare(b.code, 'es', { numeric: true });
+const byCode = (a: RiskListItem, b: RiskListItem) => a.code.localeCompare(b.code, storedLanguage(), { numeric: true });
 
 // D89 · El paso entre declarar un servicio y declarar sus activos. La persona evalúa los riesgos de su servicio uno a uno, con dos preguntas de 1 a 5 —qué tan probable
 // es que ocurra y qué tan grave sería— en lenguaje claro y con las escalas del comité (hoja «Riesgos»). El servidor calcula el valor y el nivel. Se puede retomar donde se dejó:

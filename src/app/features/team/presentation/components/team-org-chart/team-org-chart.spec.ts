@@ -9,6 +9,7 @@ import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { OrgWorkload } from '@features/team/domain/utils/team-org';
 import { TeamOrgChart } from './team-org-chart';
+import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const member = (id: string, role: TeamRole, name: string, over: Partial<TeamMember> = {}): TeamMember => ({
   id, email: `${id}@acme.co`, name, last_name: 'Pérez', role, status: 'active', is_mfa_enabled: true, last_login_at: null, created_at: '2026-10-01T00:00:00Z', ...over,
@@ -44,7 +45,13 @@ describe('TeamOrgChart', () => {
   const el = () => fixture.nativeElement as HTMLElement;
   const q = <T extends HTMLElement>(s: string) => el().querySelector<T>(s);
   const click = (s: string | HTMLElement) => { (typeof s === 'string' ? q(s)! : s).click(); fixture.detectChanges(); };
-  const type = (s: string, value: string) => { const i = q<HTMLInputElement | HTMLSelectElement>(s)!; i.value = value; i.dispatchEvent(new Event(i instanceof HTMLSelectElement ? 'change' : 'input')); fixture.detectChanges(); };
+  const type = (s: string, value: string) => {
+    if (isSelect(el(), s)) return pickOption(el(), s, value, () => fixture.detectChanges());
+    const i = q<HTMLInputElement>(s)!;
+    i.value = value;
+    i.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  };
   const names = (s: string) => Array.from(el().querySelectorAll(`${s} [data-person-name]`)).map((n) => n.textContent!.trim());
 
   it('asks once for the whole team and draws the administrators on top, each responsible with their own delegates, and the auditors apart', () => {
@@ -140,8 +147,8 @@ describe('TeamOrgChart', () => {
     setup([MARIA, ANDRES, JUAN], [T_MARIA, T_ANDRES]);
     teamApi.update.and.returnValue(of(JUAN));
     click('[data-org-move]');
-    const options = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-org-move-target] option')).map((o) => o.value);
-    expect(options).toEqual(['', 'g2']); // el equipo actual no es destino
+    const options = optionValues(el(), '[data-org-move-target]', () => fixture.detectChanges());
+    expect(options).toEqual(['g2']); // el equipo actual no es destino
     expect(q<HTMLButtonElement>('[data-org-move-save]')!.disabled).toBeTrue();
     type('[data-org-move-target]', 'g2');
     click('[data-org-move-save]');

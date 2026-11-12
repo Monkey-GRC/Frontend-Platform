@@ -31,7 +31,11 @@ describe('validateFile', () => {
   it('formats sizes for people', () => {
     expect(formatBytes(512)).toBe('512 B');
     expect(formatBytes(2048)).toBe('2 KB');
-    expect(formatBytes(1536 * 1024)).toBe('1.5 MB');
+    expect(formatBytes(1536 * 1024, 'en')).toBe('1.5 MB');
+    expect(formatBytes(1536 * 1024, 'es')).toBe('1,5 MB');
+    localStorage.setItem('lang', 'es');
+    expect(formatBytes(1536 * 1024)).toBe('1,5 MB');
+    localStorage.removeItem('lang');
     expect(acceptedTypesLabel(['.pdf', '.docx'])).toBe('PDF, DOCX');
   });
 });

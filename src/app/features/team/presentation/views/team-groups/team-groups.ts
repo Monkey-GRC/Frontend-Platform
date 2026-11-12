@@ -18,6 +18,7 @@ import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { GroupMembers } from '../../components/group-members/group-members';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Select, SelectOption } from '@shared/presentation/components/select/select';
 
 const MAX_NAME = 100;
 
@@ -28,7 +29,7 @@ const MAX_NAME = 100;
 // datos, el renombrado (administrador) y sus personas (con el movimiento de delegados).
 @Component({
   selector: 'app-team-groups',
-  imports: [TranslatePipe, GroupMembers, PageHeader, DataTable, TableCell, TableToolbar, TableFilter, FormModal, Field, EmptyState, LoadingSpinner, PersonCell],
+  imports: [TranslatePipe, GroupMembers, PageHeader, DataTable, TableCell, TableToolbar, TableFilter, FormModal, Field, EmptyState, LoadingSpinner, PersonCell, Select],
   templateUrl: './team-groups.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -100,6 +101,7 @@ export class TeamGroupsView implements OnInit {
     return this.responsables().filter((m) => (m.status === 'active' || m.status === 'pending') && !leading.has(m.id));
   });
 
+  readonly leaderOptions = computed<SelectOption[]>(() => this.eligibleLeaders().map((m) => ({ value: m.id, label: this.personName(m) })));
   readonly canCreateResponsablesGroup = computed(() => !!this.responsablesGroupName().trim() && !this.saving());
   readonly canCreateTeam = computed(() => !!this.teamName().trim() && !!this.teamLeaderId() && !this.saving());
   readonly canCreateOwnTeam = computed(() => !!this.ownTeamName().trim() && !this.saving());

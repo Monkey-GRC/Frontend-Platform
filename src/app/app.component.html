@@ -1,3 +1,6 @@
 <app-navigation-progress />
 <router-outlet></router-outlet>
 <app-toast-container />
+@if (language.switchingMessage(); as message) {
+  <app-language-switching [message]="message" />
+}

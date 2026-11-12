@@ -8,6 +8,7 @@ import { FormModal } from '@shared/presentation/components/form-modal/form-modal
 import { Cause, RiskDetail } from '@shared/domain/models/risk.models';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { targetValue, targetChecked } from '@shared/presentation/utils/event-target';
+import { Select } from '@shared/presentation/components/select/select';
 
 export type RiskFormKind = 'risk' | 'cause';
 
@@ -16,7 +17,7 @@ export type RiskFormKind = 'risk' | 'cause';
 // cada campo. Solo lo puede abrir el administrador de la empresa.
 @Component({
   selector: 'app-risk-form',
-  imports: [TranslatePipe, FormModal],
+  imports: [TranslatePipe, FormModal, Select],
   templateUrl: './risk-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

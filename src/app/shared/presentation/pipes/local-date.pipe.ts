@@ -6,10 +6,10 @@ import { LanguageService } from '@core/domain/services/language.service';
 export class LocalDatePipe implements PipeTransform {
   private readonly language = inject(LanguageService);
 
-  transform(value: string | number | Date | null | undefined, dateStyle: 'short' | 'medium' | 'long' | 'full' = 'medium'): string {
+  transform(value: string | number | Date | null | undefined, dateStyle: 'short' | 'medium' | 'long' | 'full' = 'medium', withTime = false): string {
     if (value === null || value === undefined || value === '') return '';
     const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) return '';
-    return new Intl.DateTimeFormat(this.language.current(), { dateStyle }).format(date);
+    return new Intl.DateTimeFormat(this.language.current(), withTime ? { dateStyle, timeStyle: 'short' } : { dateStyle }).format(date);
   }
 }

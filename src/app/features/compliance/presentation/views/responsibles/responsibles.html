@@ -85,10 +85,7 @@
     </div>
     }
     <app-field labelKey="COMPLIANCE.RESPONSIBLES.TYPE" forId="responsible-type" hintKey="COMPLIANCE.RESPONSIBLES.TYPE_HINT">
-      <select id="responsible-type" data-test-type (change)="newType.set(targetValue($event))" [disabled]="saving()" class="mk-input">
-        <option value="" [selected]="!newType()">{{ 'COMPLIANCE.RESPONSIBLES.SELECT' | translate }}</option>
-        @for (t of types(); track t.value) {<option [value]="t.value" [selected]="newType() === t.value">{{ t.label }}</option>}
-      </select>
+      <app-select inputId="responsible-type" data-test-type [options]="types()" [value]="newType()" [disabled]="saving()" placeholderKey="COMPLIANCE.RESPONSIBLES.SELECT" (valueChange)="newType.set($event)" />
     </app-field>
     <app-field labelKey="COMPLIANCE.RESPONSIBLES.PERSON" forId="responsible-person" hintKey="COMPLIANCE.RESPONSIBLES.PERSON_HINT">
       <input id="responsible-person" type="text" data-test-name maxlength="200" [value]="newName()" (input)="newName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />

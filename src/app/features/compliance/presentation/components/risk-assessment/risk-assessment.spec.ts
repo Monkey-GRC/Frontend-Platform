@@ -7,6 +7,7 @@ import { Responsible, RiskDetail, RiskEvaluationEntry, RiskTreatmentRecord } fro
 import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { RiskAssessment } from './risk-assessment';
+import { optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const RISK: RiskDetail = {
   id: 'r1', service_id: 's1', code: 'R001', name: 'Acceso no autorizado', description: '', trust_criterion: 'confidentiality', potential_impact: [], origin: 'catalog', is_active: true,
@@ -52,10 +53,7 @@ describe('RiskAssessment', () => {
   const el = () => fixture.nativeElement as HTMLElement;
   const text = () => el().textContent ?? '';
   const pick = (selector: string, value: string) => {
-    const select = el().querySelector<HTMLSelectElement>(selector)!;
-    select.value = value;
-    select.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
+    pickOption(el(), selector, value, () => fixture.detectChanges());
   };
   const click = (selector: string) => {
     el().querySelector<HTMLButtonElement>(selector)!.click();
@@ -124,7 +122,7 @@ describe('RiskAssessment', () => {
   it('offers the treatment decisions that the backend serves', () => {
     setup(EVALUATED);
     click('[data-test-start-treatment]');
-    const options = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-decision] option')).map((o) => o.value).filter(Boolean);
+    const options = optionValues(el(), '[data-test-decision]', () => fixture.detectChanges());
     expect(options).toEqual(COMPLIANCE_OPTIONS['risk_treatment_decision'].map((o) => o.value));
   });
 

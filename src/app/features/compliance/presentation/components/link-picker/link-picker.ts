@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
+import { SearchField } from '@shared/presentation/components/search-field/search-field';
+import { Select, SelectOption } from '@shared/presentation/components/select/select';
 
 export interface PickerItem {
   id: string;
@@ -13,21 +14,13 @@ let nextId = 0;
 // ya están vinculadas); el campo de texto acota la lista cuando es larga. No decide nada: avisa qué se eligió y quien lo usa llama a la API.
 @Component({
   selector: 'app-link-picker',
-  imports: [FormsModule, TranslatePipe],
+  imports: [TranslatePipe, SearchField, Select],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-2">
       <label class="text-xs font-medium text-ink-muted" [for]="id + '-filter'">{{ labelKey() | translate }}</label>
-      <input [id]="id + '-filter'" type="search" [ngModel]="query()" (ngModelChange)="query.set($event)" [placeholder]="'COMPLIANCE.LINK.SEARCH' | translate"
-        class="h-9 w-full rounded-control border border-line bg-surface px-3 text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
-      <select [id]="id + '-select'" [attr.aria-label]="labelKey() | translate" size="5" [ngModel]="selected()" (ngModelChange)="selected.set($event)"
-        class="w-full rounded-control border border-line bg-surface px-2 py-1 text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20">
-        @for (item of visible(); track item.id) {
-        <option [value]="item.id">{{ item.label }}</option>
-        } @empty {
-        <option disabled>{{ 'COMPLIANCE.LINK.NOTHING_TO_LINK' | translate }}</option>
-        }
-      </select>
+      <app-search-field [inputId]="id + '-filter'" placeholderKey="COMPLIANCE.LINK.SEARCH" [ariaLabelKey]="labelKey()" [value]="query()" (valueChange)="query.set($event)" />
+      <app-select [inputId]="id + '-select'" [ariaLabelKey]="labelKey()" [options]="options()" [value]="selected() ?? ''" [disabled]="options().length === 0" [placeholderKey]="options().length ? 'COMPLIANCE.LINK.PLACEHOLDER' : 'COMPLIANCE.LINK.NOTHING_TO_LINK'" (valueChange)="selected.set($event || null)" />
       <div class="flex items-center gap-3">
         <button type="button" (click)="confirm()" [disabled]="!selected() || busy()"
           class="h-9 shadow mk-btn">{{ 'COMPLIANCE.LINK.LINK' | translate }}</button>
@@ -52,6 +45,9 @@ export class LinkPicker {
     const q = this.query().trim().toLowerCase();
     return q ? this.items().filter((i) => i.label.toLowerCase().includes(q)) : this.items();
   });
+
+  // Sin opciones, un texto en lugar de la lista (antes, una opción deshabilitada).
+  protected readonly options = computed<SelectOption[]>(() => this.visible().map((i) => ({ value: i.id, label: i.label })));
 
   protected confirm(): void {
     const id = this.selected();

@@ -20,9 +20,7 @@
   }
   @default {
   <div class="flex flex-wrap items-center gap-3">
-    <input type="search" [value]="query()" (input)="query.set(targetValue($event))" data-causes-search
-      [attr.aria-label]="'COMPLIANCE.RISK_WIZARD.CAUSES_SEARCH' | translate" [placeholder]="'COMPLIANCE.RISK_WIZARD.CAUSES_SEARCH' | translate"
-      class="h-9 w-full max-w-sm rounded-control border border-line bg-surface px-3 text-sm text-ink placeholder:text-ink-faint focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
+    <app-search-field data-causes-search class="w-full max-w-sm" placeholderKey="COMPLIANCE.RISK_WIZARD.CAUSES_SEARCH" [value]="query()" (valueChange)="query.set($event)" />
     <p class="text-sm font-medium text-ink-muted" data-causes-count>{{ 'COMPLIANCE.RISK_WIZARD.CAUSES_SELECTED' | translate: { count: count() } }}</p>
   </div>
 

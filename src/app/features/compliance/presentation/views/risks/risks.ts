@@ -1,3 +1,4 @@
+import { storedLanguage } from '@core/domain/services/language.service';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -82,7 +83,7 @@ export class RisksView {
   /** Los grupos que existen en los datos, con su texto, ordenados por texto. */
   private readonly groupKeys = computed(() => {
     const keys = [...new Set(this.current().map((i) => this.groupOf(i)))];
-    return keys.sort((a, b) => this.labels.of(this.groupPrefix(), a).localeCompare(this.labels.of(this.groupPrefix(), b), 'es'));
+    return keys.sort((a, b) => this.labels.of(this.groupPrefix(), a).localeCompare(this.labels.of(this.groupPrefix(), b), storedLanguage()));
   });
 
   readonly chips = computed(() => [
@@ -245,7 +246,7 @@ export class RisksView {
       by.set(k, [...(by.get(k) ?? []), i]);
     }
     return [...by.entries()]
-      .map(([key, list]) => ({ key, label: this.labels.of(prefix, key), items: list.sort((a, b) => a.code.localeCompare(b.code, 'es', { numeric: true })) }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'es'));
+      .map(([key, list]) => ({ key, label: this.labels.of(prefix, key), items: list.sort((a, b) => a.code.localeCompare(b.code, storedLanguage(), { numeric: true })) }))
+      .sort((a, b) => a.label.localeCompare(b.label, storedLanguage()));
   }
 }

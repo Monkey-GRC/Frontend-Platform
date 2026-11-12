@@ -8,6 +8,7 @@ import { TeamActor, TeamMember, TeamPage } from '@shared/domain/models/team.mode
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { TeamGroupsView } from './team-groups';
+import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const leader = (id: string, name: string, role = 'responsable') => ({ id, name, last_name: 'Gómez', role });
 const RESPONSABLES: Group = { id: 'resp', name: 'Responsables', kind: 'responsables', leader: leader('a1', 'Ada', 'admin_empresa'), members_count: 3 };
@@ -51,9 +52,10 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
   const reloads = () => groupApi.list.calls.count() - 1;
   const openCreate = () => click('[data-test-open-create]');
   const type = (selector: string, value: string) => {
-    const input = q<HTMLInputElement | HTMLSelectElement>(selector);
+    if (isSelect(el(), selector)) return pickOption(el(), selector, value, () => fixture.detectChanges());
+    const input = q<HTMLInputElement>(selector);
     input.value = value;
-    input.dispatchEvent(new Event(input instanceof HTMLSelectElement ? 'change' : 'input'));
+    input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   };
   const click = (target: string | HTMLElement) => {
@@ -88,7 +90,7 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
       type('input[type="search"]', 'zzz');
       expect(el().textContent).toContain('TEAM.GROUPS.EMPTY_FILTERED_TITLE');
       type('input[type="search"]', '');
-      type('[data-test-filter-kind] select', 'team');
+      type('[data-test-filter-kind]', 'team');
       expect(el().querySelectorAll('tbody tr').length).toBe(1);
       expect(row('team-maria')).not.toBeNull();
     });
@@ -129,8 +131,8 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
     it('offers to create a team only for the owners who are active or pending and do not lead one yet (D104)', () => {
       setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
       openCreate();
-      const options = Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-team-leader] option')).map((o) => o.value);
-      expect(options).toEqual(['', 'r2', 'r3']); // sin María (ya lidera) ni Óscar (inactivo)
+      const options = optionValues(el(), '[data-test-team-leader]', () => fixture.detectChanges());
+      expect(options).toEqual(['r2', 'r3']); // sin María (ya lidera) ni Óscar (inactivo)
       expect(teamApi.list).toHaveBeenCalledWith({ role: 'responsable' }, 1, 100);
     });
 

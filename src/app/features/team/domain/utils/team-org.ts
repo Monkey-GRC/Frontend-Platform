@@ -1,3 +1,4 @@
+import { storedLanguage } from '@core/domain/services/language.service';
 import { Group } from '@features/team/domain/models/group.models';
 import { TeamMember } from '@shared/domain/models/team.models';
 
@@ -27,8 +28,8 @@ export interface OrgChart {
 }
 
 const fullName = (p: { name: string | null; last_name: string | null; email?: string }): string => [p.name, p.last_name].filter(Boolean).join(' ') || p.email || '';
-const byName = (a: { name: string }, b: { name: string }): number => a.name.localeCompare(b.name, 'es');
-const memberSort = (a: TeamMember, b: TeamMember): number => fullName(a).localeCompare(fullName(b), 'es');
+const byName = (a: { name: string }, b: { name: string }): number => a.name.localeCompare(b.name, storedLanguage());
+const memberSort = (a: TeamMember, b: TeamMember): number => fullName(a).localeCompare(fullName(b), storedLanguage());
 
 /** Quien mira, si es responsable: su nodo se dibuja aunque la lista no lo traiga (un responsable ve solo su equipo, y aún puede no tener equipo). */
 export interface OrgSelf {

@@ -11,6 +11,7 @@ import { ComplianceContextService } from '@features/compliance/domain/services/c
 import { ComplianceServicesService } from '@features/compliance/domain/services/compliance-services.service';
 import { ComplianceBanner, BannerFramework } from '../../components/compliance-banner/compliance-banner';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Select, SelectOption } from '@shared/presentation/components/select/select';
 
 // El marco de Cumplimiento: de qué servicio y de qué marco se habla y la sección abierta (MD-119). Cada sección es una página del menú (`/cumplimiento/<sección>`, sin id);
 // el servicio activo se elige con el selector de este encabezado y se recuerda entre secciones (`ActiveComplianceService`). Un enlace puede fijarlo con `?servicio=<id>`.
@@ -18,7 +19,7 @@ import { targetValue } from '@shared/presentation/utils/event-target';
 // si la empresa tiene varios, deja cambiar de uno a otro sin salir de la sección. Nunca hay un total de la empresa.
 @Component({
   selector: 'app-compliance-shell',
-  imports: [RouterOutlet, TranslatePipe, ComplianceBanner],
+  imports: [RouterOutlet, TranslatePipe, ComplianceBanner, Select],
   templateUrl: './compliance-shell.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -51,6 +52,7 @@ export class ComplianceShellView implements OnInit {
   readonly bannerFrameworks = computed<BannerFramework[]>(() => (this.current()?.frameworks ?? []).map((f) => ({ code: f.code, label: this.frameworkLabel(f.code) })));
   readonly others = computed(() => this.services() ?? []);
   protected readonly GENERAL = 'general';
+  protected readonly serviceOptions = computed<SelectOption[]>(() => [{ value: this.GENERAL, labelKey: 'COMPLIANCE.SHELL.GENERAL' }, ...this.others().map((s) => ({ value: s.id, label: s.name }))]);
   readonly canSwitch = computed(() => (this.services()?.length ?? 0) > 1);
 
   constructor() {

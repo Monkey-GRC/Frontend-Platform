@@ -6,6 +6,7 @@ import { Group } from '@features/team/domain/models/group.models';
 import { TeamMember, TeamPage } from '@shared/domain/models/team.models';
 import { TeamService } from '@shared/domain/services/team.service';
 import { GroupMembers } from './group-members';
+import { optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const leader = (id: string, name: string) => ({ id, name, last_name: 'Gómez', role: 'responsable' });
 const TEAM_MARIA: Group = { id: 'team-maria', name: 'Equipo de María', kind: 'team', leader: leader('r1', 'María'), members_count: 2 };
@@ -46,10 +47,7 @@ describe('GroupMembers (MD-198, D102)', () => {
     fixture.detectChanges();
   };
   const pick = (value: string) => {
-    const select = q<HTMLSelectElement>('[data-test-move-target]');
-    select.value = value;
-    select.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
+    pickOption(el(), '[data-test-move-target]', value, () => fixture.detectChanges());
   };
 
   it('asks the server for the people of this group and shows them with their role, state and whether they are internal or external', () => {
@@ -101,7 +99,7 @@ describe('GroupMembers (MD-198, D102)', () => {
       setup();
       api.update.and.returnValue(of(DANI));
       click(person('dani@acme.co').querySelector<HTMLElement>('[data-test-move]')!);
-      expect(Array.from(el().querySelectorAll<HTMLOptionElement>('[data-test-move-target] option')).map((o) => o.value)).toEqual(['', 'team-pedro']);
+      expect(optionValues(el(), '[data-test-move-target]', () => fixture.detectChanges())).toEqual(['team-pedro']);
       expect(q<HTMLButtonElement>('[data-test-move-confirm]').disabled).toBeTrue();
       pick('team-pedro');
       click('[data-test-move-confirm]');

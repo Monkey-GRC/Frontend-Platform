@@ -8,8 +8,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { filter } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { SidebarService } from '@core/domain/services/sidebar.service';
-import { NavItem, NAV_ITEMS, NavSubItem, SECTION_LABEL_KEYS, NavigationHelper } from '@config/navigation.config';
-import { filterNavByRole, groupDomId, groupHasActiveRoute, openActiveGroups, toggleGroup } from './sidebar-groups';
+import { NavItem, NAV_ITEMS, NavSubItem, NavigationHelper } from '@config/navigation.config';
+import { filterNavByRole, groupDomId, groupHasActiveRoute, isRenderable, navSections, openActiveGroups, toggleGroup } from './sidebar-groups';
 
 interface Flyout {
   name: string;
@@ -59,15 +59,11 @@ export class AppSidebarComponent {
   }
 
   get sections(): string[] {
-    return NavigationHelper.getSections(this.navItems);
+    return navSections(this.navItems);
   }
 
   getItemsBySection(section: string): NavItem[] {
-    return NavigationHelper.getItemsBySection(this.navItems, section);
-  }
-
-  sectionLabelKey(section: string): string {
-    return SECTION_LABEL_KEYS[section] ?? section;
+    return NavigationHelper.getItemsBySection(this.navItems, section).filter(isRenderable);
   }
 
   labelOf(entry: NavItem | NavSubItem): string {

@@ -106,22 +106,14 @@
       <button type="button" (click)="cancelTreatment()" class="mt-3 text-sm font-medium text-ink-muted hover:underline">{{ 'COMMON.CANCEL' | translate }}</button>
       } @else {
       <div class="grid gap-3 sm:grid-cols-3">
-        <label class="flex flex-col gap-1 text-xs font-medium text-ink-muted">
-          {{ 'COMPLIANCE.RISK_ASSESSMENT.DECISION' | translate }}
-          <select data-test-decision (change)="decision.set(targetValue($event))" [disabled]="saving()"
-            class="h-9 rounded-control border border-line bg-surface px-2 text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20 disabled:cursor-not-allowed disabled:text-ink-faint disabled:bg-tint">
-            <option value="" [selected]="!decision()">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
-            @for (d of decisions(); track d.value) {<option [value]="d.value" [selected]="decision() === d.value">{{ d.label }}</option>}
-          </select>
-        </label>
-        <label class="flex flex-col gap-1 text-xs font-medium text-ink-muted">
-          {{ 'COMPLIANCE.RISK_ASSESSMENT.RESPONSIBLE' | translate }}
-          <select data-test-responsible (change)="responsibleId.set(targetValue($event))" [disabled]="saving()"
-            class="h-9 rounded-control border border-line bg-surface px-2 text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20 disabled:cursor-not-allowed disabled:text-ink-faint disabled:bg-tint">
-            <option value="" [selected]="!responsibleId()">{{ 'COMPLIANCE.RISK_ASSESSMENT.SELECT' | translate }}</option>
-            @for (r of responsibles(); track r.id) {<option [value]="r.id" [selected]="responsibleId() === r.id">{{ labels.of('COMPLIANCE.RESPONSIBLE_TYPE', r.type) }}@if (r.person_name) { · {{ r.person_name }} }</option>}
-          </select>
-        </label>
+        <div class="flex flex-col gap-1 text-xs font-medium text-ink-muted">
+          <label for="treatment-decision">{{ 'COMPLIANCE.RISK_ASSESSMENT.DECISION' | translate }}</label>
+          <app-select inputId="treatment-decision" data-test-decision size="sm" class="font-normal" [options]="decisions()" [value]="decision()" [disabled]="saving()" placeholderKey="COMPLIANCE.RISK_ASSESSMENT.SELECT" (valueChange)="decision.set($event)" />
+        </div>
+        <div class="flex flex-col gap-1 text-xs font-medium text-ink-muted">
+          <label for="treatment-responsible">{{ 'COMPLIANCE.RISK_ASSESSMENT.RESPONSIBLE' | translate }}</label>
+          <app-select inputId="treatment-responsible" data-test-responsible size="sm" class="font-normal" [options]="responsibleOptions()" [value]="responsibleId()" [disabled]="saving()" placeholderKey="COMPLIANCE.RISK_ASSESSMENT.SELECT" (valueChange)="responsibleId.set($event)" />
+        </div>
         <label class="flex flex-col gap-1 text-xs font-medium text-ink-muted">
           {{ 'COMPLIANCE.RISK_ASSESSMENT.DUE_DATE' | translate }}
           <input type="date" data-test-due-date [min]="today" [value]="dueDate()" (input)="dueDate.set(targetValue($event))" [disabled]="saving()"

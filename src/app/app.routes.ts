@@ -98,6 +98,26 @@ export const routes: Routes = [
         title: 'PAGE_TITLE.COMPLIANCE',
         loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
       },
+      // Integraciones (D110, MD-211): la lista la ven el administrador y el auditor; agregar es solo del administrador. `agregar` es la ruta fija.
+      {
+        path: 'integraciones',
+        title: 'PAGE_TITLE.INTEGRATIONS',
+        pathMatch: 'full',
+        canActivate: [roleGuard('admin_empresa', 'auditor')],
+        loadComponent: () => import('@features/integrations/presentation/views/integrations-list/integrations-list').then(m => m.IntegrationsListView),
+      },
+      {
+        path: 'integraciones/agregar',
+        title: 'PAGE_TITLE.INTEGRATION_ADD',
+        canActivate: [roleGuard('admin_empresa')],
+        loadComponent: () => import('@features/integrations/presentation/views/integration-add/integration-add').then(m => m.IntegrationAddView),
+      },
+      {
+        path: 'integraciones/:code',
+        title: 'PAGE_TITLE.INTEGRATION_DETAIL',
+        canActivate: [roleGuard('admin_empresa', 'auditor')],
+        loadComponent: () => import('@features/integrations/presentation/views/integration-detail/integration-detail').then(m => m.IntegrationDetailView),
+      },
       // El equipo de la empresa (D96, D102): lo gestiona el administrador; el responsable ve a su equipo de delegados y crea delegados para él. Personas, Grupos y Organigrama son tres
       // subítems del grupo Equipo del menú; `/equipo` redirige a Personas. El guard es del padre y vale para las dos.
       {

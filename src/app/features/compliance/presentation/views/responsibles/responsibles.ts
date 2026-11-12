@@ -17,6 +17,7 @@ import { Field } from '@shared/presentation/components/field/field';
 import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Select } from '@shared/presentation/components/select/select';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -25,7 +26,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // El administrador de la empresa crea, cambia la persona y quita; el resto de roles solo lee. Un cargo del que algo depende no se puede quitar (409).
 @Component({
   selector: 'app-responsibles',
-  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DataTable, TableCell, EmptyState, Field, FormModal, StatusIndicator],
+  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DataTable, TableCell, EmptyState, Field, FormModal, StatusIndicator, Select],
   templateUrl: './responsibles.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

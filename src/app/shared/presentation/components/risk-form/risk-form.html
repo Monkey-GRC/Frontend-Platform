@@ -22,16 +22,12 @@
       @if (errors()['description']; as e) {<span class="text-xs font-normal text-bad-ink" data-error="description">{{ e }}</span>}
     </label>
 
-    <label class="flex flex-col gap-1.5 text-sm font-medium text-ink">
-      {{ (kind() === 'risk' ? 'COMPLIANCE.RISK_FORM.CRITERION' : 'COMPLIANCE.RISK_FORM.CATEGORY') | translate }}
-      <select name="group" data-field="group" (change)="group.set(targetValue($event))"
-        class="mk-input font-normal">
-        <option value="" [selected]="!group()">{{ 'COMPLIANCE.RISK_FORM.CHOOSE' | translate }}</option>
-        @for (o of groups(); track o.value) { <option [value]="o.value" [selected]="group() === o.value">{{ o.label }}</option> }
-      </select>
+    <div class="flex flex-col gap-1.5 text-sm font-medium text-ink">
+      <label for="risk-form-group">{{ (kind() === 'risk' ? 'COMPLIANCE.RISK_FORM.CRITERION' : 'COMPLIANCE.RISK_FORM.CATEGORY') | translate }}</label>
+      <app-select inputId="risk-form-group" data-field="group" class="font-normal" [options]="groups()" [value]="group()" [invalid]="!!errors()[groupField()]" placeholderKey="COMPLIANCE.RISK_FORM.CHOOSE" (valueChange)="group.set($event)" />
       <span class="text-xs font-normal text-ink-muted">{{ (kind() === 'risk' ? 'COMPLIANCE.RISK_FORM.CRITERION_HINT' : 'COMPLIANCE.RISK_FORM.CATEGORY_HINT') | translate }}</span>
       @if (errors()[groupField()]; as e) {<span class="text-xs font-normal text-bad-ink" data-error="group">{{ e }}</span>}
-    </label>
+    </div>
 
     @if (kind() === 'risk') {
     <fieldset class="flex flex-col gap-2 border-t border-line pt-4">

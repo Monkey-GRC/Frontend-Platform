@@ -1,5 +1,5 @@
 <!-- Un icono cuadrado de la marca, del mismo tamaño para todas las plataformas. Dos archivos: el del tema claro y el del oscuro (los colores muy oscuros se aclaran). -->
-<span class="inline-flex shrink-0 items-center justify-center" [class]="size() === 'sm' ? 'h-9 w-9' : size() === 'card' ? 'h-10 w-10' : 'h-12 w-12'">
+<span class="inline-flex shrink-0 items-center justify-center" [class]="size() === 'lg' ? 'h-16 w-16' : size() === 'sm' ? 'h-9 w-9' : size() === 'card' ? 'h-10 w-10' : 'h-12 w-12'">
   <img [src]="'/providers/' + logoKey() + '.svg'" alt="" width="40" height="40" decoding="async" loading="lazy" class="h-full w-full object-contain dark:hidden" />
   <img [src]="'/providers/' + logoKey() + '-dark.svg'" alt="" width="40" height="40" decoding="async" loading="lazy" class="hidden h-full w-full object-contain dark:block" />
 </span>

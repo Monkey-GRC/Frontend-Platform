@@ -27,11 +27,7 @@
   </div>
 
   <app-field labelKey="TEAM.INVITE.ROLE" forId="invite-role">
-    <select id="invite-role" data-test-role (change)="setRole(targetValue($event))" [disabled]="saving()" class="mk-input">
-      @for (r of roleOptions(); track r) {
-      <option [value]="r" [selected]="role() === r">{{ ('TEAM.ROLE.' + r.toUpperCase()) | translate }}</option>
-      }
-    </select>
+    <app-select inputId="invite-role" data-test-role [options]="roleSelectOptions()" [value]="role()" [disabled]="saving()" (valueChange)="setRole($event)" />
   </app-field>
 
   @if (isDelegateRole()) {
@@ -50,12 +46,7 @@
 
   @if (showTeamPick()) {
   <app-field labelKey="TEAM.INVITE.TEAM_LABEL" forId="invite-team">
-    <select id="invite-team" data-test-team (change)="groupId.set(targetValue($event))" [disabled]="saving()" class="mk-input">
-      <option value="" [selected]="!groupId()">{{ 'TEAM.INVITE.TEAM_PICK' | translate }}</option>
-      @for (g of teams(); track g.id) {
-      <option [value]="g.id" [selected]="groupId() === g.id">{{ 'TEAM.INVITE.TEAM_OPTION' | translate: { team: g.name, leader: leaderName(g) } }}</option>
-      }
-    </select>
+    <app-select inputId="invite-team" data-test-team [options]="teamSelectOptions()" [value]="groupId()" [disabled]="saving()" placeholderKey="TEAM.INVITE.TEAM_PICK" (valueChange)="groupId.set($event)" />
   </app-field>
   }
 

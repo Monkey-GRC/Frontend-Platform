@@ -2,6 +2,10 @@
   "COMMON": {
     "BREADCRUMB": "Ruta de navegación",
     "LOADING": "Cargando",
+    "LANGUAGE_SWITCHING": "Cambiando el idioma…",
+    "ERRORS": {
+      "MISSING_DATA": "La respuesta del servidor no trae datos"
+    },
     "CHECK_CONNECTION": "Revisa tu conexión e inténtalo de nuevo.",
     "RETRY": "Reintentar",
     "DELETE": "Eliminar",
@@ -54,6 +58,11 @@
       "GROUP_COUNT": "Elementos: {{count}}",
       "GROUP_COLLAPSE": "Contraer grupo {{name}}",
       "GROUP_EXPAND": "Desplegar grupo {{name}}"
+    },
+    "SELECT": {
+      "COUNT": "{{count}} seleccionados",
+      "NO_OPTIONS": "No hay opciones",
+      "NONE": "Sin elegir"
     },
     "FILE": {
       "DROP_OR_CLICK": "Arrastra un archivo aquí o haz clic para elegirlo",
@@ -157,6 +166,9 @@
     "FORGOT_PASSWORD": "Recuperar contraseña",
     "RESET_PASSWORD": "Crear contraseña nueva",
     "SETTINGS_PASSWORD": "Ajustes · Contraseña",
-    "SETTINGS_RECOVERY": "Ajustes · Códigos de recuperación"
+    "SETTINGS_RECOVERY": "Ajustes · Códigos de recuperación",
+    "INTEGRATIONS": "Integraciones",
+    "INTEGRATION_ADD": "Agregar integración",
+    "INTEGRATION_DETAIL": "Detalle de la integración"
   }
 }

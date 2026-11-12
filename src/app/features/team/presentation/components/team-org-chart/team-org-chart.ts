@@ -16,6 +16,7 @@ import { TeamActor, TeamMember, UpdateMemberDto } from '@shared/domain/models/te
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { OrgResponsible, OrgWorkload, buildOrgChart } from '@features/team/domain/utils/team-org';
+import { Select, SelectOption } from '@shared/presentation/components/select/select';
 
 type Stage = 'loading' | 'error' | 'ready';
 // Quien ejecuta controles no se mueve sin confirmar (USER_HAS_ASSIGNMENTS trae cuántos).
@@ -30,7 +31,7 @@ const OPEN_BY_DEFAULT_UP_TO = 4;
 // Cuando el Backend entregue la carga por persona (MD-195), `workload` mostrará controles y avance; mientras no, no se pinta nada de eso.
 @Component({
   selector: 'app-team-org-chart',
-  imports: [TranslatePipe, ConfirmDialog, NgTemplateOutlet, PersonCell, StatusIndicator, EmptyState, LoadingSpinner],
+  imports: [TranslatePipe, ConfirmDialog, NgTemplateOutlet, PersonCell, StatusIndicator, EmptyState, LoadingSpinner, Select],
   templateUrl: './team-org-chart.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -146,10 +147,10 @@ export class TeamOrgChart implements OnInit {
   }
 
   /** Los demás equipos a los que se puede mover un delegado: el nombre del responsable primero, que es lo que la persona reconoce. */
-  destinations(current: TeamMember): { id: string; label: string }[] {
+  destinations(current: TeamMember): SelectOption[] {
     return this.teams()
       .filter((t) => t.id !== current.group?.id)
-      .map((t) => ({ id: t.id, label: this.translate.instant('TEAM.ORG.DESTINATION', { leader: this.personName(t.leader), team: t.name }) }));
+      .map((t) => ({ value: t.id, label: this.translate.instant('TEAM.ORG.DESTINATION', { leader: this.personName(t.leader), team: t.name }) }));
   }
 
   // ─── crear el equipo ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
