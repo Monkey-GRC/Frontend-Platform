@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
-import { EvidenceDisposition, EvidenceDownload, EvidenceRequirement, EvidenceSubmission, EvidenceTestList } from '../models/evidence.models';
+import { EvidenceDisposition, EvidenceDownload, EvidenceRequirement, EvidenceSubmission, EvidenceTestList, ServiceEvidenceRequirement } from '../models/evidence.models';
 
 // Evidencias de un control. Los endpoints son los del contrato (MD-126, MD-127); mientras el backend no los tenga, `list` falla con 404 y quien lo usa
 // cae al resumen que ya trae el detalle del control.
@@ -18,6 +18,14 @@ export class EvidenceService {
     const params = view ? new HttpParams().set('view', view) : undefined;
     return this.http
       .get<SuccessResponse<{ items: EvidenceRequirement[] }>>(`${this.base}/controls/${controlId}/evidence`, { params })
+      .pipe(map((r) => r.data?.items ?? []));
+  }
+
+  /** La evidencia de todos los controles del servicio en una sola petición (sin paginar). */
+  listByService(serviceId: string, view?: 'technical'): Observable<ServiceEvidenceRequirement[]> {
+    const params = view ? new HttpParams().set('view', view) : undefined;
+    return this.http
+      .get<SuccessResponse<{ items: ServiceEvidenceRequirement[] }>>(`${this.base}/services/${serviceId}/evidence`, { params })
       .pipe(map((r) => r.data?.items ?? []));
   }
 

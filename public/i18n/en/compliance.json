@@ -462,8 +462,6 @@
       "NOT_DELIVERED": "Not delivered",
       "LAST_DELIVERY": "v{{version}} · {{date}}",
       "OPEN": "Open the control to upload or download",
-      "LOADING": "Checking the evidence of the controls… {{done}} of {{total}}",
-      "PARTIAL": "The evidence of {{count}} controls could not be loaded; the list may be incomplete.",
       "LOAD_ERROR_TITLE": "The evidence could not be loaded",
       "EMPTY_TITLE": "No control in this service asks for evidence",
       "EMPTY_BODY": "When a control requires evidence, it will show up here.",

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { catchError, from, map, mergeMap, of, switchMap, tap, toArray } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
@@ -28,10 +28,6 @@ import { ControlDetailPanel } from '../../components/control-detail-panel/contro
 
 type Stage = 'loading' | 'error' | 'ready';
 
-// Cuántos controles se consultan a la vez. El backend no tiene un endpoint de evidencias por servicio (se pidió en PEDIDO-A-HECTOR.md): se pide la
-// lista de controles y, por cada uno, `GET /controls/{id}/evidence`. Con ~90 controles son ~90 peticiones pequeñas, de a pocas.
-const CONCURRENCY = 6;
-
 // La pestaña «Evidencias» de un servicio (MD-129): todo lo que los controles piden que se aporte, con su responsable y el estado de la última entrega,
 // para ver de un vistazo qué falta. Subir y descargar se hace en el panel del control (se abre con un clic en la fila), con el mismo componente de evidencia
 // del control. La bandeja solo muestra (D96): no hay botones de aprobar ni rechazar aquí; el estado lo calcula el servidor a partir de la revisión del administrador de la empresa.
@@ -55,9 +51,6 @@ export class EvidenceInboxView {
   readonly serviceId = computed(() => this.activeService.serviceId() ?? '');
 
   readonly stage = signal<Stage>('loading');
-  readonly progress = signal({ done: 0, total: 0 });
-  /** Controles cuya evidencia no se pudo cargar: la lista puede estar incompleta, y se avisa. */
-  readonly failed = signal(0);
   readonly selected = signal<string | null>(null);
   readonly filter = signal<EvidenceFilter>('all');
 
@@ -102,47 +95,29 @@ export class EvidenceInboxView {
     });
   }
 
+  /** Dos peticiones en paralelo: los controles del servicio y la evidencia de todos ellos. */
   load(): void {
     const seq = ++this.requestSeq;
     this.stage.set('loading');
-    this.failed.set(0);
-    this.progress.set({ done: 0, total: 0 });
     const view = this.view.viewParam();
 
-    this.controlsApi
-      .listAll(this.serviceId(), view)
-      .pipe(
-        tap((controls) => {
-          if (seq !== this.requestSeq) return;
-          this.controls.set(controls);
-          this.progress.set({ done: 0, total: controls.length });
-        }),
-        switchMap((controls) =>
-          from(controls).pipe(
-            mergeMap(
-              (c) =>
-                this.api.list(c.id, view).pipe(
-                  map((requirements) => ({ id: c.id, requirements, ok: true })),
-                  catchError(() => of({ id: c.id, requirements: [] as EvidenceRequirement[], ok: false })),
-                ),
-              CONCURRENCY,
-            ),
-            tap(() => seq === this.requestSeq && this.progress.update((p) => ({ ...p, done: p.done + 1 }))),
-            toArray(),
-          ),
-        ),
-      )
-      .subscribe({
-        next: (results) => {
-          if (seq !== this.requestSeq) return;
-          this.evidence.set(new Map(results.map((r) => [r.id, r.requirements])));
-          this.failed.set(results.filter((r) => !r.ok).length);
-          this.stage.set('ready');
-        },
-        error: () => {
-          if (seq === this.requestSeq) this.stage.set('error');
-        },
-      });
+    forkJoin({ controls: this.controlsApi.listAll(this.serviceId(), view), items: this.api.listByService(this.serviceId(), view) }).subscribe({
+      next: ({ controls, items }) => {
+        if (seq !== this.requestSeq) return;
+        const byControl = new Map<string, EvidenceRequirement[]>();
+        for (const item of items) {
+          const list = byControl.get(item.control_id);
+          if (list) list.push(item);
+          else byControl.set(item.control_id, [item]);
+        }
+        this.controls.set(controls);
+        this.evidence.set(byControl);
+        this.stage.set('ready');
+      },
+      error: () => {
+        if (seq === this.requestSeq) this.stage.set('error');
+      },
+    });
   }
 
   pick(value: string): void {

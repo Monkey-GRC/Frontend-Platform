@@ -5,7 +5,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { ControlListItem } from '@features/compliance/domain/models/control.models';
-import { EvidenceRequirement, EvidenceSubmission, buildInboxRows, evidenceFilterOf } from '@features/compliance/domain/models/evidence.models';
+import { EvidenceRequirement, EvidenceSubmission, ServiceEvidenceRequirement, buildInboxRows, evidenceFilterOf } from '@features/compliance/domain/models/evidence.models';
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { EvidenceInboxView } from './evidence-inbox';
@@ -37,11 +37,11 @@ describe('EvidenceInboxView', () => {
   let api: jasmine.SpyObj<EvidenceService>;
   let fixture: ComponentFixture<EvidenceInboxView>;
 
-  function setup(role = 'admin_empresa', failOn: string[] = []): EvidenceInboxView {
+  function setup(role = 'admin_empresa'): EvidenceInboxView {
     controls = jasmine.createSpyObj<ControlService>('ControlService', ['listAll']);
     controls.listAll.and.returnValue(of(CONTROLS));
-    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list']);
-    api.list.and.callFake((id: string) => (failOn.includes(id) ? throwError(() => new HttpErrorResponse({ status: 500 })) : of(EVIDENCE[id] ?? [])));
+    api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'listByService']);
+    api.listByService.and.returnValue(of(Object.entries(EVIDENCE).flatMap(([controlId, items]) => items.map((i): ServiceEvidenceRequirement => ({ ...i, control_id: controlId })))));
     TestBed.configureTestingModule({
       imports: [EvidenceInboxView],
       providers: [
@@ -59,10 +59,18 @@ describe('EvidenceInboxView', () => {
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-  it('asks for the controls of the service and then the evidence of each one, in the technical view for the company admin', () => {
+  it('asks for the controls and the evidence of the whole service with one request each, in the technical view for the company admin', () => {
     setup();
-    expect(controls.listAll).toHaveBeenCalledWith('s1', 'technical');
-    expect(api.list.calls.allArgs()).toEqual([['c1', 'technical'], ['c2', 'technical'], ['c3', 'technical']]);
+    expect(controls.listAll).toHaveBeenCalledOnceWith('s1', 'technical');
+    expect(api.listByService).toHaveBeenCalledOnceWith('s1', 'technical');
+    expect(api.list).not.toHaveBeenCalled();
+  });
+
+  it('asks for the evidence of the service once and without the technical view for the other roles', () => {
+    setup('funcional');
+    expect(controls.listAll).toHaveBeenCalledOnceWith('s1', undefined);
+    expect(api.listByService).toHaveBeenCalledOnceWith('s1', undefined);
+    expect(api.list).not.toHaveBeenCalled();
   });
 
   it('lists one row per required evidence with its control, code, responsible and the state of the latest delivery', () => {
@@ -104,12 +112,12 @@ describe('EvidenceInboxView', () => {
     expect(view.visible().length).toBe(3);
   });
 
-  it('shows what it could load and warns when the evidence of some controls could not be loaded', () => {
-    const view = setup('admin_empresa', ['c2']);
-    expect(view.failed()).toBe(1);
-    expect(view.rows().map((r) => r.requirement.id)).toEqual(['e1', 'e2']);
-    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
-    expect(text()).toContain('COMPLIANCE.EVIDENCE_INBOX.PARTIAL');
+  it('shows an error with a retry when the evidence of the service fails', () => {
+    setup();
+    api.listByService.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    fixture.componentInstance.load();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.stage()).toBe('error');
   });
 
   it('shows an error with a retry when the list of controls itself fails', () => {

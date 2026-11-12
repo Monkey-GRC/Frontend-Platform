@@ -462,8 +462,6 @@
       "NOT_DELIVERED": "Sin entregar",
       "LAST_DELIVERY": "v{{version}} · {{date}}",
       "OPEN": "Abrir el control para subir o descargar",
-      "LOADING": "Revisando las evidencias de los controles… {{done}} de {{total}}",
-      "PARTIAL": "No se pudieron cargar las evidencias de {{count}} controles; la lista puede estar incompleta.",
       "LOAD_ERROR_TITLE": "No se pudieron cargar las evidencias",
       "EMPTY_TITLE": "Ningún control de este servicio pide evidencias",
       "EMPTY_BODY": "Cuando un control exija evidencias, aparecerán aquí.",
