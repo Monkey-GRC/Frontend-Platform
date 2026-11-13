@@ -4,13 +4,14 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { Card } from '@shared/presentation/components/card/card';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { Tag } from '@shared/presentation/components/tag/tag';
 import { IntegrationConnection } from '@features/integrations/domain/models/integration.models';
 import { connectionLink, connectionTone } from '@features/integrations/domain/utils/integration-look';
 
 // Las conexiones de la empresa a esta integración. «Necesita atención» es un problema de conexión, no de cumplimiento (D57). El administrador llega a cada conexión por servicio.
 @Component({
   selector: 'app-integration-connections',
-  imports: [Card, RouterLink, StatusIndicator, TranslatePipe],
+  imports: [Tag, Card, RouterLink, StatusIndicator, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -22,7 +23,7 @@ import { connectionLink, connectionTone } from '@features/integrations/domain/ut
           <app-card data-test-connection>
             <div class="flex flex-wrap items-start justify-between gap-2">
               <div class="min-w-0">
-                <p class="text-xs font-medium text-ink-muted">{{ c.code }}</p>
+                <app-tag [text]="c.code" />
                 <p class="font-medium text-ink">{{ c.name }}</p>
               </div>
               <app-status-indicator [tone]="tone(c.connection_status)" [label]="labels.of('TECHNICAL_CONTROL.STATUS', c.connection_status)" />

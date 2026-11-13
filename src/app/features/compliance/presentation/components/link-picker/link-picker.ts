@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { TranslatePipe } from '@ngx-translate/core';
 import { SearchField } from '@shared/presentation/components/search-field/search-field';
 import { Select, SelectOption } from '@shared/presentation/components/select/select';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 export interface PickerItem {
   id: string;
@@ -14,15 +16,15 @@ let nextId = 0;
 // ya están vinculadas); el campo de texto acota la lista cuando es larga. No decide nada: avisa qué se eligió y quien lo usa llama a la API.
 @Component({
   selector: 'app-link-picker',
-  imports: [TranslatePipe, SearchField, Select],
+  imports: [TranslatePipe, SearchField, Select, Busy, BusyFields],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2" [appBusyFields]="busy()">
       <label class="text-xs font-medium text-ink-muted" [for]="id + '-filter'">{{ labelKey() | translate }}</label>
       <app-search-field [inputId]="id + '-filter'" placeholderKey="COMPLIANCE.LINK.SEARCH" [ariaLabelKey]="labelKey()" [value]="query()" (valueChange)="query.set($event)" />
       <app-select [inputId]="id + '-select'" [ariaLabelKey]="labelKey()" [options]="options()" [value]="selected() ?? ''" [disabled]="options().length === 0" [placeholderKey]="options().length ? 'COMPLIANCE.LINK.PLACEHOLDER' : 'COMPLIANCE.LINK.NOTHING_TO_LINK'" (valueChange)="selected.set($event || null)" />
       <div class="flex items-center gap-3">
-        <button type="button" (click)="confirm()" [disabled]="!selected() || busy()"
+        <button type="button" (click)="confirm()" [disabled]="!selected()" [appBusy]="busy()"
           class="h-9 shadow mk-btn">{{ 'COMPLIANCE.LINK.LINK' | translate }}</button>
         <button type="button" (click)="cancelled.emit()" [disabled]="busy()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
       </div>
@@ -50,6 +52,7 @@ export class LinkPicker {
   protected readonly options = computed<SelectOption[]>(() => this.visible().map((i) => ({ value: i.id, label: i.label })));
 
   protected confirm(): void {
+    if (this.busy()) return;
     const id = this.selected();
     if (id) this.picked.emit(id);
   }

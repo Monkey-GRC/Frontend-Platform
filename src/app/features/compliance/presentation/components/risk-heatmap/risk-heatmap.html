@@ -72,7 +72,7 @@
           <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
             @for (r of row.risks; track r.id) {
             <a [routerLink]="riskLink()" [queryParams]="riskQuery(r.id)" [title]="r.name" data-distribution-risk
-              class="rounded-control text-xs font-medium text-action hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40">{{ r.code }}</a>
+              class="rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40"><app-tag [text]="r.code" /></a>
             } @empty { <span class="text-xs text-ink-faint">—</span> }
           </span>
           <span class="w-6 shrink-0 text-right text-sm font-semibold text-ink">{{ row.count }}</span>
@@ -91,7 +91,7 @@
       @for (r of selectedRisks(); track r.id) {
       <li>
         <a [routerLink]="riskLink()" [queryParams]="riskQuery(r.id)" class="flex items-center gap-3 px-1 py-2 hover:bg-tint">
-          <span class="w-12 shrink-0 text-xs font-medium text-ink-muted">{{ r.code }}</span>
+          <app-tag class="shrink-0" [text]="r.code" />
           <span class="min-w-0 flex-1 text-ink">{{ r.name }}</span>
         </a>
       </li>

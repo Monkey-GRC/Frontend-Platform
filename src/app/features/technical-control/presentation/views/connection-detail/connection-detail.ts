@@ -8,18 +8,19 @@ import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { Breadcrumb, Crumb } from '@shared/presentation/components/breadcrumb/breadcrumb';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { Asset, TechnicalControlState } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { AssetCard } from '../../components/asset-card/asset-card';
 import { categoryLabel } from '@shared/domain/utils/category-label';
+import { platformsByCode } from '@shared/domain/utils/platform-label';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 type Stage = 'loading' | 'error' | 'ready';
 
 // El detalle de una conexión: cómo está conectada y, sobre todo, los activos que Monkey encontró a través de ella.
 @Component({
   selector: 'app-connection-detail',
-  imports: [AssetCard, RouterLink, Breadcrumb, EmptyState, LoadingSpinner, TranslatePipe],
+  imports: [AssetCard, RouterLink, Breadcrumb, EmptyState, TranslatePipe, Skeleton, SkeletonRegion],
   templateUrl: './connection-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -48,6 +49,7 @@ export class ConnectionDetailView implements OnInit {
     { label: this.asset()?.name ?? this.translate.instant('TECHNICAL_CONTROL.CRUMB_CONNECTION') },
   ]);
 
+  readonly platforms = computed(() => platformsByCode(this.state()));
   readonly probeMode = computed(() => this.state()?.probe_mode ?? 'unavailable');
   readonly label = computed(() => {
     const capability = this.state()?.applicable_capabilities.find((c) => c.catalog_code === this.asset()?.connection_category);

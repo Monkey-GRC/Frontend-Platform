@@ -179,14 +179,15 @@ describe('TeamOrgChart', () => {
     expect(q('[data-org-error]')!.textContent).toContain('MOVE_TARGET');
   });
 
-  it('while the team loads shows a spinner, and a retry if it fails', () => {
+  it('while the team loads shows a skeleton, and a retry if it fails', () => {
     teamApi = jasmine.createSpyObj<TeamService>('TeamService', ['listAll', 'update']);
     teamApi.listAll.and.returnValue(NEVER);
     TestBed.configureTestingModule({ imports: [TeamOrgChart], providers: [provideTranslateService(), { provide: TeamService, useValue: teamApi }, { provide: GroupService, useValue: {} }] });
     fixture = TestBed.createComponent(TeamOrgChart);
     fixture.componentRef.setInput('actor', 'admin_empresa');
     fixture.detectChanges();
-    expect(q('[role="status"]')).not.toBeNull();
+    expect(q('[data-org-loading]')?.getAttribute('aria-busy')).toBe('true');
+    expect(q('app-loading-spinner')).toBeNull();
     TestBed.resetTestingModule();
     teamApi.listAll.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
     TestBed.configureTestingModule({ imports: [TeamOrgChart], providers: [provideTranslateService(), { provide: TeamService, useValue: teamApi }, { provide: GroupService, useValue: {} }] });

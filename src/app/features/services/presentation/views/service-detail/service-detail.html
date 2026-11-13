@@ -2,7 +2,10 @@
   @switch (stage()) {
 
   @case ('loading') {
-  <app-loading-spinner />
+  <app-skeleton-region data-service-loading>
+    <div class="space-y-2"><app-skeleton shape="title" width="35%" /><app-skeleton shape="line" width="20%" /></div>
+    <div class="mt-4 grid gap-4 xl:grid-cols-3"><app-skeleton shape="card" /><app-skeleton shape="card" /><app-skeleton shape="card" /></div>
+  </app-skeleton-region>
   }
 
   @case ('error') {
@@ -50,7 +53,7 @@
           <dt class="text-xs font-medium text-ink-faint">{{ 'SERVICES.LIST.COL_FRAMEWORKS' | translate }}</dt>
           <dd class="mt-1 flex flex-wrap gap-x-3 gap-y-1">
             @for (f of s.frameworks; track f.code) {
-            <app-tag [text]="frameworkLabel(f.code) + (f.status !== 'active' ? ' (' + ('SERVICES.LIST.PAUSED' | translate) + ')' : '')" />
+            <app-tag [text]="frameworkLabel(f.code)" />@if (f.status !== 'active') {<app-status-indicator tone="neutral" labelKey="SERVICES.LIST.PAUSED" />}
             } @empty { <span class="text-sm text-ink-faint">—</span> }
           </dd>
         </div>
@@ -118,7 +121,7 @@
     }
 
     @if (assets().length > 0) {
-    <app-connections-list [serviceId]="s.id" [assets]="assets()" [labels]="capabilityLabels()" />
+    <app-connections-list [serviceId]="s.id" [assets]="assets()" [labels]="capabilityLabels()" [platforms]="platforms()" />
     } @else {
     <app-empty-state icon="" titleKey="SERVICES.DETAIL.NO_CONNECTIONS_TITLE" descriptionKey="SERVICES.DETAIL.NO_CONNECTIONS_BODY" />
     }

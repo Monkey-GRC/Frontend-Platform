@@ -25,7 +25,7 @@
       "COL_FRAMEWORKS": "Compliance frameworks",
       "COL_CONNECTIONS": "Connections",
       "COL_CATALOG": "Catalog",
-      "PAUSED": "paused",
+      "PAUSED": "Paused",
       "CONNECTION_ONE": "{{count}} connection",
       "CONNECTION_MANY": "{{count}} connections",
       "NO_CONNECTIONS": "No connections",

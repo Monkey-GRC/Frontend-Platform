@@ -2,7 +2,7 @@
 
     <!-- Form -->
     <form class="relative w-full max-w-sm md:max-w-lg flex items-center justify-center px-6 md:px-10 py-8 md:py-12"
-        [formGroup]="form" (ngSubmit)="submit()">
+        [formGroup]="form" [appBusyFields]="loading()" (ngSubmit)="submit()">
 
         <div class="w-full">
 
@@ -67,18 +67,7 @@
             <!-- Submit -->
             <div class="mt-5 md:mt-10">
                 <button type="submit" class="mk-btn w-full !h-9 md:!h-12 md:text-base"
-                    [disabled]="loading() || form.invalid">
-
-                    @if (!loading()) {
-                    <span>{{ 'AUTH.LOGIN.SUBMIT' | translate }}</span>
-                    } @else {
-                    <span class="inline-flex items-center gap-2">
-                        <span
-                            class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
-                        {{ 'AUTH.LOGIN.VERIFYING' | translate }}
-                    </span>
-                    }
-                </button>
+                    [disabled]="form.invalid" [appBusy]="loading()" [busyLabel]="'AUTH.LOGIN.VERIFYING' | translate">{{ 'AUTH.LOGIN.SUBMIT' | translate }}</button>
             </div>
 
             <!-- Activar cuenta con la clave de acceso: la acción del cliente nuevo, bien a la vista -->

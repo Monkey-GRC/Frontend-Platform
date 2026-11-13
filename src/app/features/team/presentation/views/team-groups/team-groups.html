@@ -19,7 +19,7 @@
   }
 
   @if (!loaded()) {
-  <app-loading-spinner data-test-groups-loading />
+  <app-data-table data-test-groups-loading captionKey="TEAM.GROUPS.TABLE_CAPTION" [columns]="columns" [rows]="[]" [rowKey]="rowKey" [loading]="true" />
   } @else if (loadFailed()) {
   <app-empty-state icon="" titleKey="TEAM.LOAD_ERROR" descriptionKey="COMMON.CHECK_CONNECTION" data-test-groups-load-error>
     <button action type="button" (click)="reload()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
@@ -50,7 +50,7 @@
 </section>
 
 <!-- Crear: el administrador un grupo de responsables o el equipo de un responsable; el responsable, el suyo (una sola vez, D104). Cada sección lleva su propia acción; el pie solo cierra. -->
-<app-form-modal [open]="createOpen()" [titleKey]="isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE'" [descriptionKey]="isAdmin() ? 'TEAM.GROUPS.NEW_SUBTITLE' : 'TEAM.GROUPS.CREATE_OWN_HELP'" [dismissible]="!saving()" testId="group-create" (closed)="createOpen.set(false)">
+<app-form-modal [open]="createOpen()" [titleKey]="isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE'" [descriptionKey]="isAdmin() ? 'TEAM.GROUPS.NEW_SUBTITLE' : 'TEAM.GROUPS.CREATE_OWN_HELP'" [busy]="saving()" testId="group-create" (closed)="createOpen.set(false)">
   @if (createOpen()) {
   @if (error(); as e) {
   <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
@@ -62,7 +62,7 @@
     <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="responsables-name" hintKey="TEAM.GROUPS.CREATE_RESPONSABLES_HELP">
       <input id="responsables-name" type="text" data-test-responsables-name [attr.maxlength]="maxName" autocomplete="off" [value]="responsablesGroupName()" (input)="responsablesGroupName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
     </app-field>
-    <div class="flex justify-end"><button type="submit" [disabled]="!canCreateResponsablesGroup()" data-test-create-responsables class="mk-btn-secondary">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
+    <div class="flex justify-end"><button type="submit" [disabled]="!canCreateResponsablesGroup()" [appBusy]="saving()" data-test-create-responsables class="mk-btn-secondary">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
   </form>
 
   <form class="mt-6 flex flex-col gap-3 border-t border-line pt-6" (submit)="$event.preventDefault(); createTeam()" [attr.aria-labelledby]="'create-team-title'">
@@ -77,7 +77,7 @@
     <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="team-name">
       <input id="team-name" type="text" data-test-team-name [attr.maxlength]="maxName" autocomplete="off" [value]="teamName()" (input)="teamName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
     </app-field>
-    <div class="flex justify-end"><button type="submit" [disabled]="!canCreateTeam()" data-test-create-team class="mk-btn-secondary">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
+    <div class="flex justify-end"><button type="submit" [disabled]="!canCreateTeam()" [appBusy]="saving()" data-test-create-team class="mk-btn-secondary">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
     }
   </form>
   } @else {
@@ -89,12 +89,12 @@
   }
   }
   @if (createOpen() && !isAdmin()) {
-  <button actions type="submit" form="group-own-form" [disabled]="!canCreateOwnTeam()" data-test-create-own-submit class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button>
+  <button actions type="submit" form="group-own-form" [disabled]="!canCreateOwnTeam()" [appBusy]="saving()" data-test-create-own-submit class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button>
   }
 </app-form-modal>
 
 <!-- El detalle de un grupo: sus datos y sus personas; renombrarlo (administrador) es una acción del pie. -->
-<app-form-modal [open]="!!detail()" titleKey="TEAM.GROUPS.DETAIL_TITLE" descriptionKey="TEAM.GROUPS.DETAIL_SUBTITLE" cancelLabelKey="COMMON.CLOSE" size="wide" testId="group-detail" (closed)="closeDetail()">
+<app-form-modal [open]="!!detail()" titleKey="TEAM.GROUPS.DETAIL_TITLE" descriptionKey="TEAM.GROUPS.DETAIL_SUBTITLE" cancelLabelKey="COMMON.CLOSE" size="wide" [busy]="saving()" testId="group-detail" (closed)="closeDetail()">
   @if (detail(); as g) {
   <div [attr.data-test-group-detail]="g.id">
     @if (notice(); as n) {
@@ -113,7 +113,7 @@
       </app-field>
       <div class="flex items-center justify-end gap-3">
         <button type="button" (click)="cancelRename()" [disabled]="saving()" class="mk-btn-secondary">{{ 'COMMON.CANCEL' | translate }}</button>
-        <button type="submit" [disabled]="!canRename()" data-test-rename-save class="mk-btn">{{ 'COMMON.SAVE' | translate }}</button>
+        <button type="submit" [disabled]="!canRename()" [appBusy]="saving()" data-test-rename-save class="mk-btn">{{ 'COMMON.SAVE' | translate }}</button>
       </div>
     </form>
     } @else {

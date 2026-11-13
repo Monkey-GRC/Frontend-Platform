@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -7,6 +8,7 @@ import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ServiceService } from '@shared/domain/services/service.service';
 import { CatalogIntegration } from '@features/integrations/domain/models/integration.models';
 import { IntegrationService } from '@features/integrations/domain/services/integration.service';
+import { IntegrationCatalog } from '@features/integrations/presentation/components/integration-catalog/integration-catalog';
 import { IntegrationAddView } from './integration-add';
 
 const cat = (over: Partial<CatalogIntegration>): CatalogIntegration => ({
@@ -38,6 +40,7 @@ describe('IntegrationAddView', () => {
     fixture.detectChanges();
   }
 
+  const catalogOf = () => fixture.debugElement.query(By.directive(IntegrationCatalog)).componentInstance as IntegrationCatalog;
   const el = () => fixture.nativeElement as HTMLElement;
   const q = (s: string) => el().querySelector<HTMLElement>(s);
   const qa = (s: string) => Array.from(el().querySelectorAll<HTMLElement>(s));
@@ -74,11 +77,11 @@ describe('IntegrationAddView', () => {
 
   it('filters by name or description', () => {
     setup([SERVICE]);
-    fixture.componentInstance.query.set('suscripción');
+    catalogOf().query.set('suscripción');
     fixture.detectChanges();
     expect(qa('app-integration-card').length).toBe(1);
     expect(q('app-integration-card')!.textContent).toContain('Azure');
-    fixture.componentInstance.query.set('zzz');
+    catalogOf().query.set('zzz');
     fixture.detectChanges();
     expect(qa('app-integration-card').length).toBe(0);
   });
@@ -91,7 +94,7 @@ describe('IntegrationAddView', () => {
     expect(qa('[data-test-service]').length).toBe(1);
     q('[data-test-service]')!.click();
     fixture.detectChanges();
-    expect(nav).toHaveBeenCalledWith(['/services', 's1', 'connections', 'new', 'ac_01', 'aws']);
+    expect(nav).toHaveBeenCalledWith(['/services', 's1', 'connections', 'new', 'ac_01', 'aws'], { queryParams: { returnTo: router.url } });
     expect(q('[data-test-service]')).toBeNull();
   });
 
@@ -109,7 +112,7 @@ describe('IntegrationAddView', () => {
     q('[data-test-connect-another]')!.click();
     fixture.detectChanges();
     q('[data-test-service]')!.click();
-    expect(nav).toHaveBeenCalledWith(['/services', 's1', 'connections', 'new', 'ac_01', 'gcp']);
+    expect(nav).toHaveBeenCalledWith(['/services', 's1', 'connections', 'new', 'ac_01', 'gcp'], { queryParams: { returnTo: router.url } });
   });
 
   it('makes the whole card a link to the detail, and the connect button does not open it', () => {

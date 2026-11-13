@@ -7,12 +7,12 @@ import { RiskReadinessService } from '@shared/domain/services/risk-readiness.ser
 import { RiskProgress } from '@shared/domain/utils/risk-progress';
 import { Asset, TechnicalControlState } from '@shared/domain/models/technical-control.models';
 import { categoryLabel } from '@shared/domain/utils/category-label';
+import { platformsByCode } from '@shared/domain/utils/platform-label';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { RiskWizard } from '@shared/presentation/components/risk-wizard/risk-wizard';
 import { ConnectionsList } from '@shared/presentation/components/connections-list/connections-list';
 import { CatalogName, CatalogOption, FrameworkOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { Service } from '@shared/domain/models/service.models';
 import { FLAG_FILES, SYMBOLS } from '@features/services/domain/utils/service-display';
 import { ChipOption } from '@shared/presentation/components/option-chips/option-chips';
@@ -22,6 +22,7 @@ import { EmptyState } from '@shared/presentation/components/empty-state/empty-st
 import { Section } from '@shared/presentation/components/section/section';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Tag } from '@shared/presentation/components/tag/tag';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 type Stage = 'loading' | 'error' | 'ready';
 const CATALOGS: CatalogName[] = ['service_type', 'served_industry', 'service_country', 'data_type', 'trust_criterion', 'expected_availability', 'previous_certification'];
@@ -29,7 +30,7 @@ const CATALOGS: CatalogName[] = ['service_type', 'served_industry', 'service_cou
 // El servicio del cliente: su información ordenada arriba y, debajo, las conexiones con las que Monkey llega a sus activos (Componente 3).
 @Component({
   selector: 'app-service-detail',
-  imports: [PageHeader, RouterLink, ConnectionsList, LoadingSpinner, TranslatePipe, RiskWizard, EmptyState, Section, StatusIndicator, Tag],
+  imports: [PageHeader, RouterLink, ConnectionsList, TranslatePipe, RiskWizard, EmptyState, Section, StatusIndicator, Tag, Skeleton, SkeletonRegion],
   templateUrl: './service-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -59,6 +60,7 @@ export class ServiceDetailView implements OnInit {
   private readonly frameworks = signal<FrameworkOption[]>([]);
   private readonly options = signal<Partial<Record<CatalogName, CatalogOption[]>>>({});
 
+  readonly platforms = computed(() => platformsByCode(this.state()));
   readonly capabilityLabels = computed(() => Object.fromEntries((this.state()?.applicable_capabilities ?? []).map((c) => [c.catalog_code, categoryLabel(this.translate, c.catalog_code, c.category)])));
 
   constructor() {

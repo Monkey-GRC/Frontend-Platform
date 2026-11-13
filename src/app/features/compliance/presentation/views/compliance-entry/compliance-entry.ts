@@ -5,10 +5,10 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
 import { isAssignedRole, isCompanyAdmin } from '@shared/domain/utils/roles';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { ComplianceGeneral } from '../../components/compliance-general/compliance-general';
 import { COMPLIANCE_ROUTE, COMPLIANCE_SERVICE_PARAM, ComplianceServiceRef, DEFAULT_COMPLIANCE_SECTION } from '@features/compliance/domain/models/compliance.models';
 import { ComplianceServicesService } from '@features/compliance/domain/services/compliance-services.service';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 type Stage = 'loading' | 'error' | 'forbidden' | 'empty' | 'choose';
 
@@ -16,7 +16,7 @@ type Stage = 'loading' | 'error' | 'forbidden' | 'empty' | 'choose';
 // con un solo servicio se entra directo; con varios, se ve el General: cómo va cada servicio en cada marco.
 @Component({
   selector: 'app-compliance-entry',
-  imports: [RouterLink, TranslatePipe, EmptyState, LoadingSpinner, ComplianceGeneral],
+  imports: [RouterLink, TranslatePipe, EmptyState, ComplianceGeneral, Skeleton, SkeletonRegion],
   templateUrl: './compliance-entry.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

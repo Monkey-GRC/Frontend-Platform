@@ -8,6 +8,7 @@ import { COMPLIANCE_ROUTE, COMPLIANCE_SERVICE_PARAM } from '@features/compliance
 import { RiskListItem, RiskMatrixData } from '@shared/domain/models/risk.models';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { riskLevelHeat } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
+import { Tag } from '@shared/presentation/components/tag/tag';
 
 interface Cell {
   likelihood: number;
@@ -21,7 +22,7 @@ interface Cell {
 // dio a sus riesgos y las vacías quedan neutras. Los riesgos sin evaluar no están en la matriz: se cuentan aparte. La residual no está: espera los datos de la fórmula (P22, MD-151).
 @Component({
   selector: 'app-risk-heatmap',
-  imports: [TranslatePipe, RouterLink],
+  imports: [Tag, TranslatePipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './risk-heatmap.html',
 })

@@ -10,6 +10,8 @@ import { TeamMember, TeamRole, UpdateMemberDto } from '@shared/domain/models/tea
 import { TeamService } from '@shared/domain/services/team.service';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { Select, SelectOption } from '@shared/presentation/components/select/select';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 type Stage = 'loading' | 'error' | 'ready';
 // Quien ejecuta controles no se mueve sin confirmar: se guarda aquí hasta que el administrador diga que sí (USER_HAS_ASSIGNMENTS trae cuántos).
@@ -22,7 +24,7 @@ const DELEGATE_ROLE: TeamRole = 'delegado';
 // Mover cambia solo su equipo: si ejecuta controles, esos quedan sin ejecutor y siguen con su dueño (D102), y por eso se pide confirmar antes.
 @Component({
   selector: 'app-group-members',
-  imports: [TranslatePipe, ConfirmDialog, PersonCell, StatusIndicator, DataTable, TableCell, Select],
+  imports: [TranslatePipe, ConfirmDialog, PersonCell, StatusIndicator, DataTable, TableCell, Select, Busy, BusyFields],
   templateUrl: './group-members.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -33,8 +35,8 @@ export class GroupMembers implements OnInit {
 
   // Las personas del grupo en la lista compacta (la tabla única en su variante para paneles): la persona a un lado y «Mover» al otro.
   readonly columns: TableColumn<TeamMember>[] = [
-    { key: 'person', headerKey: 'TEAM.GROUPS.PEOPLE_TITLE' },
-    { key: 'actions', headerKey: 'COMMON.TABLE.ACTIONS', align: 'right', srOnlyHeader: true },
+    { key: 'person', headerKey: 'TEAM.GROUPS.PEOPLE_TITLE', skeleton: 'person' },
+    { key: 'actions', headerKey: 'COMMON.TABLE.ACTIONS', align: 'right', srOnlyHeader: true, skeleton: 'actions' },
   ];
   readonly memberKey = (m: TeamMember) => m.id;
 
@@ -104,7 +106,7 @@ export class GroupMembers implements OnInit {
   }
 
   move(m: TeamMember): void {
-    if (!this.target()) return;
+    if (!this.target() || this.saving()) return;
     this.send(m, { group_id: this.target() });
   }
 

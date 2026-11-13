@@ -10,9 +10,10 @@ import { SideDrawer } from '@shared/presentation/components/side-drawer/side-dra
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { Tag } from '@shared/presentation/components/tag/tag';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
+import { Badge } from '@shared/presentation/components/badge/badge';
 import { Asset, DiscoveredAsset, DiscoveredAssetsPage } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { Busy } from '@shared/presentation/directives/busy';
 
 const SERVICE_NAME: Record<string, string> = {
   ec2: 'TECHNICAL_CONTROL.ASSETS.SERVICE_NAME.EC2',
@@ -51,7 +52,7 @@ const ATTRIBUTE_LABEL: Record<string, string> = {
 // cliente marca cuáles son de ESTE servicio; los demás quedan fuera de lo que se mide.
 @Component({
   selector: 'app-discovered-assets',
-  imports: [LoadingSpinner, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, SideDrawer, Tag],
+  imports: [Badge, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, SideDrawer, Tag, Busy],
   templateUrl: './discovered-assets.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -119,14 +120,14 @@ export class DiscoveredAssets {
   });
   protected readonly groupLabel = (key: string): string => this.translate.instant(key === 'in' ? 'TECHNICAL_CONTROL.ASSETS.GROUP_IN' : 'TECHNICAL_CONTROL.ASSETS.GROUP_OUT');
   protected readonly columns: TableColumn<DiscoveredAsset>[] = [
-    { key: 'name', headerKey: 'SERVICES.LIST.COL_NAME', class: 'max-w-[16rem]' },
+    { key: 'name', headerKey: 'SERVICES.LIST.COL_NAME', class: 'max-w-[16rem]', skeleton: 'person' },
     { key: 'identifier', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_ID' },
     { key: 'ip', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_PRIVATE_IP' },
-    { key: 'kind', headerKey: 'TECHNICAL_CONTROL.LIST.COL_TYPE' },
+    { key: 'kind', headerKey: 'TECHNICAL_CONTROL.LIST.COL_TYPE', skeleton: 'badge' },
     { key: 'detail', headerKey: 'TECHNICAL_CONTROL.LIST.COL_DETAIL' },
     { key: 'zone', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_ZONE' },
-    { key: 'state', headerKey: 'TECHNICAL_CONTROL.LIST.COL_STATUS' },
-    { key: 'inService', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_IN_SERVICE' },
+    { key: 'state', headerKey: 'TECHNICAL_CONTROL.LIST.COL_STATUS', skeleton: 'badge' },
+    { key: 'inService', headerKey: 'TECHNICAL_CONTROL.ASSETS.COL_IN_SERVICE', skeleton: 'badge' },
   ];
   protected readonly assetKey = (a: DiscoveredAsset): string => a.id;
   protected readonly assetLabel = (a: DiscoveredAsset): string => a.name ?? a.code;
@@ -197,6 +198,7 @@ export class DiscoveredAssets {
   }
 
   save(): void {
+    if (!this.dirty() || this.saving()) return;
     this.saving.set(true);
     this.notice.set(null);
     this.api.setServiceAssets(this.serviceId(), this.asset().id, [...this.selected()]).subscribe({

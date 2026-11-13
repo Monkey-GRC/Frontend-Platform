@@ -87,6 +87,11 @@ export class TechnicalControlService {
     return this.http.patch<SuccessResponse<Asset>>(`${this.assets}/${assetId}/connection`, { role_arn: roleArn }).pipe(unwrapData());
   }
 
+  // GCP: el cliente entrega el número de proyecto que imprime el script de alta (no es un secreto). La conexión vuelve a «pendiente».
+  setProjectNumber(assetId: string, projectNumber: string): Observable<Asset> {
+    return this.http.patch<SuccessResponse<Asset>>(`${this.assets}/${assetId}/connection`, { project_number: projectNumber }).pipe(unwrapData());
+  }
+
   // La plantilla que el cliente crea en su cuenta (rol de solo lectura). Se descarga como archivo.
   downloadRoleTemplate(): Observable<Blob> {
     return this.http.get(`${environment.apiUrl}/connection-templates/aws-readonly-role`, { responseType: 'blob' });

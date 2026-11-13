@@ -3,13 +3,15 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Cause } from '@shared/domain/models/risk.models';
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { RiskForm } from '../risk-form/risk-form';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { SearchField } from '@shared/presentation/components/search-field/search-field';
+import { Tag } from '@shared/presentation/components/tag/tag';
+import { Badge } from '@shared/presentation/components/badge/badge';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -17,7 +19,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // se guarda en el momento (vincular o desvincular), así que no hay un «guardar» que olvidar. Es opcional: quien no marca ninguna sigue y puede hacerlo después en Cumplimiento.
 @Component({
   selector: 'app-risk-causes-picker',
-  imports: [TranslatePipe, LoadingSpinner, RiskForm, SearchField],
+  imports: [Badge, Tag, TranslatePipe, Skeleton, SkeletonRegion, RiskForm, SearchField],
   templateUrl: './risk-causes-picker.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

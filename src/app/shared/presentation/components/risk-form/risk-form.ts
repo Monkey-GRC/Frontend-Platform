@@ -9,6 +9,7 @@ import { Cause, RiskDetail } from '@shared/domain/models/risk.models';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { targetValue, targetChecked } from '@shared/presentation/utils/event-target';
 import { Select } from '@shared/presentation/components/select/select';
+import { Busy } from '@shared/presentation/directives/busy';
 
 export type RiskFormKind = 'risk' | 'cause';
 
@@ -17,7 +18,7 @@ export type RiskFormKind = 'risk' | 'cause';
 // cada campo. Solo lo puede abrir el administrador de la empresa.
 @Component({
   selector: 'app-risk-form',
-  imports: [TranslatePipe, FormModal, Select],
+  imports: [TranslatePipe, FormModal, Select, Busy],
   templateUrl: './risk-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -56,7 +57,6 @@ export class RiskForm implements OnInit {
 
   /** Al editar solo se puede guardar si algo cambió. */
   readonly canSave = computed(() => {
-    if (this.sending()) return false;
     const o = this.original;
     if (!o) return true;
     return this.name() !== o.name || this.description() !== o.description || this.group() !== o.group || this.impacts().join() !== o.impacts.join();

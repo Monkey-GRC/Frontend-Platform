@@ -1,0 +1,54 @@
+<section class="w-full pb-10">
+  <app-breadcrumb [items]="crumbs()" />
+  <app-page-header class="mt-3 block" [title]="'TECHNICAL_CONTROL.NEW_CONNECTION' | translate" [description]="'TECHNICAL_CONTROL.NEW.SUBTITLE' | translate" />
+
+  <div class="mt-4 space-y-8">
+    <app-integration-catalog [serviceId]="serviceId()" (connect)="connect($event)" />
+
+    @switch (stage()) {
+    @case ('loading') {
+    <app-skeleton-region data-servers-loading>
+      <div class="space-y-4"><app-skeleton shape="title" width="25%" /><div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"><app-skeleton shape="card" /><app-skeleton shape="card" /><app-skeleton shape="card" /></div></div>
+    </app-skeleton-region>
+    }
+    @case ('error') {
+    <app-empty-state icon="" titleKey="TECHNICAL_CONTROL.LOAD_ERROR">
+      <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+    </app-empty-state>
+    }
+    @default {
+    @if (serverGroups().length > 0) {
+    <section aria-labelledby="servers-title" data-servers>
+      <h2 id="servers-title" class="text-lg font-semibold text-ink">{{ 'TECHNICAL_CONTROL.NEW.SERVERS_TITLE' | translate }}</h2>
+      <p class="mt-1 text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.NEW.SERVERS_HINT' | translate }}</p>
+      @for (g of serverGroups(); track g.catalog_code) {
+      <section class="mt-5" [attr.aria-labelledby]="'group-' + g.catalog_code">
+        <h3 [id]="'group-' + g.catalog_code" class="flex items-center gap-2 text-base font-semibold text-ink">
+          {{ groupTitle(g.catalog_code, g.category) }}
+          <span class="text-sm font-normal text-ink-muted">({{ g.platforms.length }})</span>
+        </h3>
+        <ul class="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          @for (p of g.platforms; track p.code) {
+          <li class="flex">
+            <button type="button" aria-disabled="true" [attr.aria-label]="blockedLabel(p.name)" (click)="$event.preventDefault()" data-server-card
+              class="flex w-full cursor-not-allowed flex-col items-stretch gap-3 rounded-control border border-dashed border-line bg-canvas p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-action">
+              <span class="flex items-center gap-3">
+                <app-provider-logo [logoKey]="p.logo_key" size="card" />
+                <span class="text-base font-semibold text-ink">{{ p.name }}</span>
+              </span>
+              <span class="text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.NEW.HOW_AGENT' | translate }}</span>
+              <span class="mt-auto flex pt-1">
+                <app-status-indicator tone="neutral" labelKey="TECHNICAL_CONTROL.NEW.COMING_SOON" />
+              </span>
+            </button>
+          </li>
+          }
+        </ul>
+      </section>
+      }
+    </section>
+    }
+    }
+    }
+  </div>
+</section>

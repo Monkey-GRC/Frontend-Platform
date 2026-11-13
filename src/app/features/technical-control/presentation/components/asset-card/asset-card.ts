@@ -1,11 +1,14 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, switchMap, takeWhile, timer } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
-import { Asset, Execution, ProbeMode } from '@shared/domain/models/technical-control.models';
+import { Asset, Execution, Platform, ProbeMode } from '@shared/domain/models/technical-control.models';
+import { canResumeConnection } from '@shared/domain/utils/connection-resume';
+import { assetDetail } from '@shared/domain/utils/platform-label';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { AssetEditForm } from '../asset-edit-form/asset-edit-form';
 import { CloudConnectionPanel } from '../cloud-connection-panel/cloud-connection-panel';
@@ -14,6 +17,9 @@ import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
 import { ExecutionProgress } from '../execution-progress/execution-progress';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { ProviderLogo } from '@shared/presentation/components/provider-logo/provider-logo';
+import { Busy as BusyDirective } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { Tag } from '@shared/presentation/components/tag/tag';
 
 const STATUS: Record<string, { label: string; tone: StatusTone }> = {
   pending: { label: 'TECHNICAL_CONTROL.STATUS.PENDING', tone: 'neutral' },
@@ -29,7 +35,7 @@ type Busy = 'validate' | 'schedule';
 // conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
-  imports: [AssetEditForm, CloudConnectionPanel, ConnectionProgress, DiscoveredAssets, ExecutionProgress, ProviderLogo, StatusIndicator, TranslatePipe],
+  imports: [BusyDirective, BusyFields, Tag, AssetEditForm, CloudConnectionPanel, ConnectionProgress, DiscoveredAssets, ExecutionProgress, ProviderLogo, RouterLink, StatusIndicator, TranslatePipe],
   templateUrl: './asset-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -38,11 +44,14 @@ export class AssetCard implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
+  private readonly router = inject(Router);
 
   readonly asset = input.required<Asset>();
   // El servicio desde el que se mira la conexión: los activos que el cliente marca son de ESE servicio.
   readonly serviceId = input.required<string>();
   readonly connectionLabel = input('');
+  // Las plataformas del catálogo por código: de ahí salen el nombre y el logo de la plataforma de este activo.
+  readonly platforms = input<Record<string, Platform>>({});
   readonly probeMode = input<ProbeMode>('unavailable');
   // Frecuencias que admite esta conexión y sus etiquetas.
   readonly frequencies = input<CatalogOption[]>([]);
@@ -58,6 +67,9 @@ export class AssetCard implements OnInit {
   readonly removing = signal(false);
 
   readonly busy = signal<Busy | null>(null);
+  private readonly scheduling = signal<string | null>(null);
+  // La frecuencia cuyo botón corre ahora; los demás quedan deshabilitados.
+  readonly busyFrequency = computed(() => (this.busy() === 'schedule' ? this.scheduling() : null));
   readonly message = signal<{ kind: 'error' | 'info'; text: string } | null>(null);
 
   readonly status = computed(() => STATUS[this.asset().provisioning.connection_status] ?? STATUS['pending']);
@@ -70,15 +82,19 @@ export class AssetCard implements OnInit {
   readonly isCloud = computed(() => this.asset().connection_category === 'ac_01');
   readonly connected = computed(() => ['validated', 'active', 'scheduled'].includes(this.step()));
   // El rol de solo lectura se configura en la cuenta del cliente: mientras no esté comprobado, se le guía paso a paso.
+  readonly resumable = computed(() => canResumeConnection(this.asset()));
+  readonly resumeLink = computed(() => ['/services', this.serviceId(), 'connections', 'new', this.asset().connection_category, this.asset().platform ?? '']);
+  readonly resumeParams = computed(() => ({ assetId: this.asset().id, returnTo: this.router.url }));
   readonly needsRolePanel = computed(() => this.asset().connection_setup?.method === 'readonly_role' && ['pending', 'failed'].includes(this.step()));
   readonly canShowSetup = computed(() => this.asset().connection_setup?.method === 'readonly_role' && !this.needsRolePanel());
   readonly keysWarning = computed(() => {
     const s = this.asset().connection_setup;
     return s?.method === 'access_keys' && ['pending', 'failed'].includes(this.step()) ? (s.warning ?? null) : null;
   });
-  // El logo oficial de la plataforma que eligió el cliente (D67; hoy solo AWS) en lugar de una nube genérica.
-  readonly providerLogo = computed(() => (this.isCloud() && this.asset().platform?.toLowerCase() === 'aws' ? 'aws' : null));
-  readonly regions = computed(() => (this.asset().provisioning.regions ?? []).join(', '));
+  // El logo oficial de la plataforma de este activo (D67), el `logo_key` que trae el catálogo; sin catálogo cargado, sin logo.
+  readonly platform = computed(() => this.platforms()[this.asset().platform ?? '']);
+  readonly providerLogo = computed(() => this.platform()?.logo_key ?? null);
+  readonly detail = computed(() => assetDetail(this.translate, this.asset(), this.platform()));
 
   // «Evaluar ahora»: solo se muestra su ESTADO (en cola → en curso → completada o fallida). Los resultados son otra pantalla.
   readonly execution = signal<Execution | null>(null);
@@ -119,13 +135,12 @@ export class AssetCard implements OnInit {
   }
 
   remove(): void {
+    if (this.removing()) return;
     this.removing.set(true);
     this.message.set(null);
     this.api.removeAsset(this.asset().id).subscribe({
-      next: () => {
-        this.removing.set(false);
-        this.removed.emit(this.asset().id);
-      },
+      // Ocupado hasta que se va a otra pantalla: quien escucha navega y el componente se destruye (D116).
+      next: () => this.removed.emit(this.asset().id),
       error: (error) => {
         this.removing.set(false);
         this.confirmingRemove.set(false);
@@ -171,12 +186,15 @@ export class AssetCard implements OnInit {
 
   // Programar activa la conexión si aún no lo está: el cliente no ve un paso «activar» aparte.
   schedule(frequency: string): void {
+    if (this.busy() !== null || frequency === this.asset().provisioning.schedule_frequency) return;
+    this.scheduling.set(frequency);
     const needsActivation = this.step() === 'validated';
     this.run('schedule', () => (needsActivation ? this.api.activate(this.asset().id).pipe(switchMap(() => this.api.schedule(this.asset().id, frequency))) : this.api.schedule(this.asset().id, frequency)));
   }
 
   // Ejecuta un paso y vuelve a leer el sistema: la API manda, la pantalla solo la muestra.
   private run(kind: Busy, step: () => Observable<unknown>): void {
+    if (this.busy() !== null) return;
     this.busy.set(kind);
     this.message.set(null);
     step().subscribe({

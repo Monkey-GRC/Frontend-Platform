@@ -25,7 +25,7 @@
       "COL_FRAMEWORKS": "Marcos de cumplimiento",
       "COL_CONNECTIONS": "Conexiones",
       "COL_CATALOG": "Catálogo",
-      "PAUSED": "en pausa",
+      "PAUSED": "En pausa",
       "CONNECTION_ONE": "{{count}} conexión",
       "CONNECTION_MANY": "{{count}} conexiones",
       "NO_CONNECTIONS": "Sin conexiones",

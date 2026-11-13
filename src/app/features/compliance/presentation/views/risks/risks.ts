@@ -4,7 +4,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Observable, forkJoin, of } from 'rxjs';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
@@ -39,7 +38,7 @@ interface Group<T> {
 // Un riesgo sin evaluar no es «bajo»: se muestra «Sin evaluar» hasta que exista la evaluación (MD-123).
 @Component({
   selector: 'app-risks',
-  imports: [TranslatePipe, OptionChips, LoadingSpinner, DataTable, TableCell, TableToolbar, EmptyState, Tag, RiskLevelBadge, RiskDetailPanel, CauseDetailPanel, RiskForm],
+  imports: [TranslatePipe, OptionChips, DataTable, TableCell, TableToolbar, EmptyState, Tag, RiskLevelBadge, RiskDetailPanel, CauseDetailPanel, RiskForm],
   templateUrl: './risks.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -107,7 +106,7 @@ export class RisksView {
   protected readonly riskColumns: TableColumn<RiskListItem>[] = [
     { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', class: 'w-28' },
     { key: 'name', headerKey: 'COMPLIANCE.RISKS.COL_NAME' },
-    { key: 'level', headerKey: 'COMPLIANCE.RISKS.COL_LEVEL', class: 'w-40' },
+    { key: 'level', headerKey: 'COMPLIANCE.RISKS.COL_LEVEL', class: 'w-40', skeleton: 'badge' },
   ];
   protected readonly causeColumns: TableColumn<Cause>[] = [
     { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', class: 'w-28' },

@@ -189,6 +189,15 @@
       "COL_NAME": "Nombre",
       "COL_LEVEL": "Nivel de riesgo"
     },
+    "CONTROL_STATE": {
+      "EFFECTIVE": "Efectivo",
+      "INEFFECTIVE": "No efectivo",
+      "EXPIRED": "Vencido",
+      "ERROR": "Error",
+      "INCOMPLETE": "Incompleto",
+      "EVALUATING": "En evaluación",
+      "NO_TESTS": "Sin tests"
+    },
     "RISK_LEVEL": {
       "LOW": "Bajo",
       "MODERATE": "Moderado",

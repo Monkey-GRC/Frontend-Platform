@@ -1,7 +1,12 @@
 @switch (stage()) {
 
 @case ('loading') {
-<app-loading-spinner />
+<app-skeleton-region data-overview-loading>
+  <div class="flex flex-col gap-8">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"><app-skeleton shape="card" /><app-skeleton shape="metric" /><app-skeleton shape="metric" /></div>
+    <div class="space-y-3"><app-skeleton shape="title" width="25%" /><div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"><app-skeleton shape="card" /><app-skeleton shape="card" /><app-skeleton shape="card" /></div></div>
+  </div>
+</app-skeleton-region>
 }
 
 @case ('error') {

@@ -1,9 +1,5 @@
 @switch (stage()) {
 
-@case ('loading') {
-<app-loading-spinner />
-}
-
 @case ('error') {
 <app-empty-state icon="" titleKey="COMPLIANCE.RISKS.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
   <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
@@ -24,7 +20,7 @@
 
   <!-- Riesgos agrupados por criterio; causas, por categoría de falla: una sola tabla con un encabezado de sección por grupo -->
   @if (section() === 'risks') {
-  <app-data-table captionKey="COMPLIANCE.RISKS.TABLE_RISKS" [columns]="riskColumns" [rows]="riskRows()" [rowKey]="byId" [rowLabel]="rowLabel" [clickable]="true"
+  <app-data-table captionKey="COMPLIANCE.RISKS.TABLE_RISKS" [columns]="riskColumns" [rows]="riskRows()" [rowKey]="byId" [rowLabel]="rowLabel" [clickable]="true" [loading]="stage() === 'loading'"
     [groupBy]="groupKey" [groupLabel]="groupLabel()" (rowClick)="openRisk($event.id)">
     <ng-template appCell="code" let-r><app-tag [text]="r.code" /></ng-template>
     <ng-template appCell="name" let-r>
@@ -41,7 +37,7 @@
     </app-empty-state>
   </app-data-table>
   } @else {
-  <app-data-table captionKey="COMPLIANCE.RISKS.TABLE_CAUSES" [columns]="causeColumns" [rows]="causeRows()" [rowKey]="byId" [rowLabel]="rowLabel" [clickable]="true"
+  <app-data-table captionKey="COMPLIANCE.RISKS.TABLE_CAUSES" [columns]="causeColumns" [rows]="causeRows()" [rowKey]="byId" [rowLabel]="rowLabel" [clickable]="true" [loading]="stage() === 'loading'"
     [groupBy]="groupKey" [groupLabel]="groupLabel()" (rowClick)="openCause($event.id)">
     <ng-template appCell="code" let-c><app-tag [text]="c.code" /></ng-template>
     <ng-template appCell="name" let-c>

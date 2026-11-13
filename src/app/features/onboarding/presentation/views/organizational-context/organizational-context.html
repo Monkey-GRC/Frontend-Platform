@@ -5,15 +5,13 @@
 
   <!-- ===================== Cargando ===================== -->
   @case ('loading') {
-  <div class="space-y-4 animate-pulse" aria-busy="true" [attr.aria-label]="'COMMON.LOADING' | translate">
-    <div class="h-4 w-40 rounded bg-tint-strong"></div>
-    <div class="h-2 w-full rounded-full bg-tint-strong"></div>
-    <div class="py-8">
-      <div class="h-7 w-2/3 rounded bg-tint-strong"></div>
-      <div class="mt-3 h-4 w-1/2 rounded bg-canvas"></div>
-      <div class="mt-5 h-28 rounded-control bg-canvas"></div>
+  <app-skeleton-region data-onboarding-loading>
+    <div class="space-y-4">
+      <app-skeleton shape="line" width="10rem" />
+      <app-skeleton shape="block" height="0.5rem" />
+      <div class="space-y-4 py-8"><app-skeleton shape="title" width="66%" /><app-skeleton shape="line" width="50%" /><app-skeleton shape="field" /><app-skeleton shape="field" /></div>
     </div>
-  </div>
+  </app-skeleton-region>
   }
 
   <!-- ===================== Error al cargar ===================== -->
@@ -41,25 +39,13 @@
       <span class="font-medium text-ink">{{ 'ONBOARDING.STEP_OF' | translate: { current: step() + 1, total: steps.length } }}</span>
       <span class="text-ink-faint">{{ steps[step()].labelKey | translate }}</span>
     </div>
-    <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-tint-strong" role="progressbar"
-      [attr.aria-valuenow]="step() + 1" aria-valuemin="1" [attr.aria-valuemax]="steps.length">
-      <div class="h-full rounded-full bg-action transition-all duration-500"
-        [style.width.%]="((step() + 1) / steps.length) * 100"></div>
+    <div class="mt-4">
+      <app-stepper [steps]="stepperSteps" [current]="step() + 1" [ariaLabel]="'ONBOARDING.STEP_OF' | translate: { current: step() + 1, total: steps.length }" />
     </div>
-    <ol class="mt-4 hidden justify-between sm:flex">
-      @for (s of steps; track s.key; let i = $index) {
-      <li class="flex items-center gap-2 text-xs" [attr.aria-current]="i === step() ? 'step' : null"
-        [class]="i === step() ? 'font-semibold text-action' : i < step() ? 'text-ink' : 'text-ink-faint'">
-        <span class="flex h-6 w-6 items-center justify-center rounded-control border text-[11px]"
-          [class]="i < step() ? 'border-action bg-action text-white' : i === step() ? 'border-action bg-tint text-tint-ink' : 'border-line'">{{ i + 1 }}</span>
-        {{ s.labelKey | translate }}
-      </li>
-      }
-    </ol>
   </header>
   }
 
-  <div class="flex min-w-0 flex-col lg:flex-1">
+  <div class="flex min-w-0 flex-col lg:flex-1" [appBusyFields]="stage() === 'saving'">
 
     <!-- El contenido del paso: los pasos con poca información se centran (en horizontal y en vertical) en vez de quedar en una esquina; el primero y la revisión ocupan todo el alto -->
     <div [class]="step() === 0 ? 'flex flex-col lg:flex-1' : step() === reviewStep ? 'lg:flex-1' : 'mx-auto my-auto w-full max-w-3xl py-6 text-center [&>span:first-child]:mx-auto [&_[role=group]]:justify-center'">
@@ -373,15 +359,10 @@
           {{ (step() === steps.length - 1 ? 'COMMON.WIZARD.REVIEW' : 'COMMON.NEXT') | translate }}
         </button>
         } @else {
-        <button type="button" (click)="save()" [disabled]="stage() === 'saving' || !allValid()"
+        <button type="button" (click)="save()" [disabled]="!allValid()" [appBusy]="stage() === 'saving'" [busyLabel]="'COMMON.WIZARD.SAVING' | translate"
           class="mk-btn">
-          @if (stage() === 'saving') {
-          <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
-          {{ 'COMMON.WIZARD.SAVING' | translate }}
-          } @else {
           <span class="material-symbols-rounded text-[20px]">check</span>
           {{ (alreadySaved() ? 'COMMON.WIZARD.SAVE_CHANGES' : 'ONBOARDING.SAVE_AND_CONTINUE') | translate }}
-          }
         </button>
         }
       </div>

@@ -1,9 +1,5 @@
 @switch (stage()) {
 
-@case ('loading') {
-<app-loading-spinner />
-}
-
 @case ('error') {
 <app-empty-state icon="" titleKey="COMPLIANCE.CONTROLS.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
   <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
@@ -21,17 +17,17 @@
   </app-table-toolbar>
 
   <app-data-table captionKey="COMPLIANCE.CONTROLS.TABLE_CAPTION" [columns]="columns()" [rows]="rows()" [rowKey]="rowKey" [page]="page()"
-    [loading]="loadingPage()" [clickable]="true" emptyIcon=""
+    [loading]="stage() === 'loading' || loadingPage()" [clickable]="true" emptyIcon=""
     [emptyTitleKey]="hasFilters() ? 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_TITLE' : 'COMPLIANCE.CONTROLS.EMPTY_TITLE'"
     [emptyDescriptionKey]="hasFilters() ? 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_BODY' : 'COMPLIANCE.CONTROLS.EMPTY_BODY'"
     (pageChange)="goTo($event)" (pageSizeChange)="resize($event)" (rowClick)="open($event)">
 
     <!-- D80: el código se muestra siempre; debajo, los requisitos del marco que el control cubre. -->
     <ng-template appCell="code" let-row>
-      <div class="text-xs text-ink">
-        <p class="font-semibold">{{ row.code }}</p>
-        @if (row.requirement_codes.length) {
-        <p class="mt-0.5 text-ink-muted">{{ row.requirement_codes.join(', ') }}</p>
+      <div class="flex flex-wrap items-center gap-1">
+        <app-tag [text]="row.code" />
+        @for (r of row.requirement_codes; track r) {
+        <app-tag [text]="r" />
         }
       </div>
     </ng-template>
@@ -40,9 +36,8 @@
       <div class="min-w-0">
         <p class="font-medium text-ink">{{ row.name }}</p>
         @if (row.origin === 'own' || row.approval === 'pending') {
-        <p class="mt-0.5 text-xs text-ink-muted">
-          @if (row.origin === 'own') {<span>{{ 'COMPLIANCE.CONTROLS.OWN' | translate }}</span>}
-          @if (row.origin === 'own' && row.approval === 'pending') { · }
+        <p class="mt-1 flex flex-wrap items-center gap-1">
+          @if (row.origin === 'own') {<app-badge kind="attribute" value="own">{{ 'COMPLIANCE.CONTROLS.OWN' | translate }}</app-badge>}
           @if (row.approval === 'pending') {<app-status-indicator tone="warn" labelKey="COMPLIANCE.CONTROLS.AWAITING_APPROVAL" />}
         </p>
         }
@@ -50,7 +45,7 @@
     </ng-template>
 
     <ng-template appCell="topics" let-row>
-      <span class="text-sm text-ink">{{ topicLabels(row) }}</span>
+      <div class="flex flex-wrap gap-1">@for (t of topics(row); track t.value) {<app-badge kind="attribute" [value]="t.value">{{ t.label }}</app-badge>}</div>
     </ng-template>
 
     <ng-template appCell="status" let-row>

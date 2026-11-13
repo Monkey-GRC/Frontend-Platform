@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
@@ -74,5 +74,66 @@ describe('OrganizationalContextView · carga con error', () => {
     const el = render(500);
     expect(el.textContent).toContain('ONBOARDING.LOAD_ERROR_TITLE');
     expect(el.querySelector('button')).not.toBeNull();
+  });
+});
+
+describe('OrganizationalContextView · guardar por primera vez', () => {
+  let fixture: ComponentFixture<OrganizationalContextView>;
+  let router: Router;
+
+  beforeEach(() => {
+    const drafts = jasmine.createSpyObj<OnboardingDraftService>('OnboardingDraftService', ['load', 'save', 'clear']);
+    drafts.load.and.returnValue(null);
+    TestBed.configureTestingModule({
+      imports: [OrganizationalContextView],
+      providers: [
+        provideTranslateService({ fallbackLang: 'es' }),
+        provideRouter([]),
+        { provide: OnboardingService, useValue: { get: () => of(EMPTY_CONTEXT), save: () => of(EMPTY_CONTEXT) } },
+        { provide: OnboardingDraftService, useValue: drafts },
+        { provide: AuthService, useValue: { validate: () => of(true) } },
+        { provide: SessionService, useValue: { user: () => ({ id: 'u1' }), onboarding: () => null } },
+        { provide: CatalogService, useValue: { options: () => of([]), regulations: () => of([]) } },
+      ],
+    });
+    router = TestBed.inject(Router);
+    fixture = TestBed.createComponent(OrganizationalContextView);
+    fixture.detectChanges();
+    fixture.componentInstance.draft.set({
+      description: 'Vendemos software contable',
+      size: 'small',
+      years_in_operation: null,
+      industry: 'tech',
+      business_model: 'b2b',
+      incorporation_countries: ['CO'],
+      client_countries: ['CO'],
+      compliance_maturity: 'initial',
+      regulation_codes: ['SOC2'],
+    });
+  });
+
+  it('keeps the screen busy until the navigation ends', async () => {
+    let finish!: (ok: boolean) => void;
+    spyOn(router, 'navigateByUrl').and.returnValue(new Promise<boolean>((resolve) => (finish = resolve)));
+    fixture.componentInstance.save();
+    expect(fixture.componentInstance.stage()).toBe('saving');
+    finish(true);
+    await fixture.whenStable();
+    expect(fixture.componentInstance.stage()).toBe('saving');
+  });
+
+  it('goes back to the form when the navigation is cancelled', async () => {
+    spyOn(router, 'navigateByUrl').and.resolveTo(false);
+    fixture.componentInstance.save();
+    expect(fixture.componentInstance.stage()).toBe('saving');
+    await fixture.whenStable();
+    expect(fixture.componentInstance.stage()).toBe('form');
+  });
+
+  it('goes back to the form when the navigation fails', async () => {
+    spyOn(router, 'navigateByUrl').and.rejectWith(new Error('nav'));
+    fixture.componentInstance.save();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.stage()).toBe('form');
   });
 });

@@ -4,10 +4,7 @@
   <app-card class="block flex-1">
     @switch (stage()) {
     @case ('loading') {
-    <div class="flex justify-center py-10" role="status">
-      <span class="material-symbols-rounded animate-spin text-[28px] text-action" aria-hidden="true">progress_activity</span>
-      <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
-    </div>
+    <app-skeleton-region><app-skeleton shape="row" /><app-skeleton shape="row" /><app-skeleton shape="row" /></app-skeleton-region>
     }
     @case ('error') {
     <div class="py-6 text-center" data-team-error>
@@ -70,10 +67,7 @@
   <app-card class="block flex-1">
     @switch (stage()) {
     @case ('loading') {
-    <div class="flex justify-center py-10" role="status">
-      <span class="material-symbols-rounded animate-spin text-[28px] text-action" aria-hidden="true">progress_activity</span>
-      <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
-    </div>
+    <app-skeleton-region><app-skeleton shape="row" /><app-skeleton shape="row" /><app-skeleton shape="row" /></app-skeleton-region>
     }
     @case ('error') {
     <div class="py-6 text-center" data-access-error>

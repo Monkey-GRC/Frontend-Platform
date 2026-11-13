@@ -26,7 +26,7 @@ export interface Capability {
 // `runner`: la conexión se comprueba DE VERDAD contra la cuenta del cliente (D58). `simulated` es demostración; `unavailable`, aún sin evaluación automática.
 export type ProbeMode = 'simulated' | 'unavailable' | 'runner';
 
-export type ConnectionMethod = 'readonly_role' | 'access_keys' | 'agent';
+export type ConnectionMethod = 'readonly_role' | 'access_keys' | 'agent' | 'identity_federation';
 
 // Lo que el cliente necesita para completar la conexión. Sin secretos: el identificador externo lo genera Monkey y las llaves nunca vuelven.
 // Los pasos ya llegan traducidos (la plataforma no tiene i18n propio).
@@ -37,6 +37,10 @@ export interface ConnectionSetup {
   role_name?: string;
   template_path?: string;
   role_arn?: string | null;
+  // `identity_federation` (GCP, D112): el proyecto declarado, su número (nulo hasta que el cliente lo entrega) y el comando listo para pegar en Cloud Shell (nulo si el servidor no tiene configurada la identidad de Monkey). Ninguno es un secreto.
+  project_id?: string;
+  project_number?: string | null;
+  setup_command?: string | null;
   warning?: string;
   steps: string[];
 }
