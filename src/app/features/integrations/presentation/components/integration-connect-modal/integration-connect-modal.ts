@@ -4,20 +4,20 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { ServiceListItem } from '@shared/domain/models/service.models';
 import { ServiceService } from '@shared/domain/services/service.service';
 import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { CatalogIntegration } from '@features/integrations/domain/models/integration.models';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 type Stage = 'loading' | 'error' | 'ready';
 
 // «Conectar»: se elige el servicio al que va la conexión y se sigue por el flujo de conexión de ese servicio. Lo usan «Agregar integración» y el detalle.
 @Component({
   selector: 'app-integration-connect-modal',
-  imports: [FormModal, LoadingSpinner, RouterLink, TranslatePipe],
+  imports: [FormModal, RouterLink, TranslatePipe, Skeleton, SkeletonRegion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-form-modal [open]="target() !== null" titleKey="INTEGRATIONS.PICK.TITLE" [titleParams]="{ name: target()?.name }" descriptionKey="INTEGRATIONS.PICK.DESCRIPTION" size="md" cancelLabelKey="COMMON.CANCEL" testId="pick-service" (closed)="closed.emit()">
       @switch (stage()) {
-        @case ('loading') { <app-loading-spinner /> }
+        @case ('loading') { <app-skeleton-region><div class="space-y-2"><app-skeleton shape="block" height="3rem" /><app-skeleton shape="block" height="3rem" /><app-skeleton shape="block" height="3rem" /></div></app-skeleton-region> }
         @case ('error') {
           <p class="text-sm text-bad">{{ 'INTEGRATIONS.PICK.LOAD_ERROR' | translate }}</p>
         }
@@ -77,6 +77,6 @@ export class IntegrationConnectModal {
     const connection = this.target()?.connection;
     if (!connection) return;
     this.closed.emit();
-    void this.router.navigate(['/services', service.id, 'connections', 'new', connection.category, connection.platform]);
+    void this.router.navigate(['/services', service.id, 'connections', 'new', connection.category, connection.platform], { queryParams: { returnTo: this.router.url } });
   }
 }

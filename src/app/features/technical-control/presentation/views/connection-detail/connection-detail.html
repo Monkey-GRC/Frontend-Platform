@@ -4,7 +4,9 @@
   <div class="mt-4">
     @switch (stage()) {
     @case ('loading') {
-    <app-loading-spinner />
+    <app-skeleton-region data-detail-loading>
+      <div class="space-y-4"><app-skeleton shape="title" width="40%" /><app-skeleton shape="card" /><app-skeleton shape="card" /></div>
+    </app-skeleton-region>
     }
     @case ('error') {
     <app-empty-state icon="" titleKey="TECHNICAL_CONTROL.DETAIL.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
@@ -14,7 +16,7 @@
     }
     @default {
     @if (asset(); as a) {
-    <app-asset-card [asset]="a" [serviceId]="serviceId()" [connectionLabel]="label()" [probeMode]="probeMode()" [frequencies]="frequencies()" [criticalities]="criticalities()"
+    <app-asset-card [asset]="a" [serviceId]="serviceId()" [connectionLabel]="label()" [platforms]="platforms()" [probeMode]="probeMode()" [frequencies]="frequencies()" [criticalities]="criticalities()"
       (changed)="onChanged($event)" (removed)="onRemoved()" />
     }
     }

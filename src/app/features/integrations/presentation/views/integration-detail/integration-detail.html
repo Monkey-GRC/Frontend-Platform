@@ -2,7 +2,10 @@
   @switch (stage()) {
 
   @case ('loading') {
-  <app-loading-spinner />
+  <app-skeleton-region data-detail-loading>
+    <div class="flex items-center gap-4 pb-4"><app-skeleton shape="circle" [size]="56" /><div class="min-w-0 flex-1"><app-skeleton shape="title" width="30%" /><app-skeleton shape="line" width="50%" /></div></div>
+    <div class="grid gap-4 md:grid-cols-2"><app-skeleton shape="card" /><app-skeleton shape="card" /></div>
+  </app-skeleton-region>
   }
 
   @case ('error') {
@@ -41,7 +44,7 @@
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
     <aside class="min-w-0 lg:col-start-3 lg:row-start-1 lg:sticky lg:top-6 lg:self-start" data-test-side>
-      <app-integration-side-panel [detail]="d" [isAdmin]="isAdmin()" (connect)="connecting.set(true)" />
+      <app-integration-side-panel [detail]="d" [isAdmin]="isAdmin()" (connect)="connect()" />
     </aside>
 
     <div class="min-w-0 space-y-6 lg:col-span-2 lg:col-start-1 lg:row-start-1">

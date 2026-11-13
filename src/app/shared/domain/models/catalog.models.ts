@@ -25,6 +25,20 @@ export interface FrameworkOption {
   availability: 'available' | 'coming_soon';
 }
 
+// Etiquetas de una opción de conexión (`connection_option_tag`); su texto es de i18n.
+export type OptionTag = 'recommended' | 'fastest' | 'advanced' | 'less_secure';
+
+// Una opción de un asistente de conexión (D114): la sirve el backend con su explicación, si ya se puede elegir y sus etiquetas. Las `coming_soon` se muestran bloqueadas.
+export interface ConnectionOption {
+  value: string;
+  label: string;
+  description: string;
+  availability: 'available' | 'coming_soon';
+  tags: OptionTag[];
+}
+
+export type ConnectionOptionName = 'connection_method' | 'gcp_connection_scope' | 'gcp_setup_method';
+
 export type CatalogName =
   // Componente 1 — la empresa
   | 'size'
@@ -48,7 +62,7 @@ export type CatalogName =
   | 'asset_criticality'
   | 'schedule_frequency'
   // Conexión de nube (D53, D58)
-  | 'connection_method'
+  | ConnectionOptionName
   | 'aws_region'
   | 'resource_kind'
   // Cumplimiento (compliance-catalogs.ts del Backend): salen de los enums de Postgres

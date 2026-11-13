@@ -5,6 +5,10 @@ import { Asset } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { ConnectionProgress } from '../connection-progress/connection-progress';
+import { CopyValue } from '../copy-value/copy-value';
+import { RoleTemplateDownload } from '../role-template-download/role-template-download';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 type Phase = 'idle' | 'saving' | 'checking';
 
@@ -12,7 +16,7 @@ type Phase = 'idle' | 'saving' | 'checking';
 // Aquí no hay credenciales: el cliente comparte un rol que él controla y puede borrar cuando quiera. Los pasos vienen del backend (ya en su idioma).
 @Component({
   selector: 'app-cloud-connection-panel',
-  imports: [TranslatePipe, ConnectionProgress],
+  imports: [TranslatePipe, ConnectionProgress, CopyValue, RoleTemplateDownload, Busy, BusyFields],
   templateUrl: './cloud-connection-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,8 +32,6 @@ export class CloudConnectionPanel {
   readonly phase = signal<Phase>('idle');
   readonly roleError = signal<string | null>(null);
   readonly message = signal<{ kind: 'error' | 'info'; text: string } | null>(null);
-  readonly copied = signal<string | null>(null);
-  readonly downloading = signal(false);
 
   readonly setup = computed(() => this.asset().connection_setup ?? null);
   readonly busy = computed(() => this.phase() !== 'idle');
@@ -55,38 +57,9 @@ export class CloudConnectionPanel {
     });
   }
 
-  copy(key: string, value: string): void {
-    if (!value) return;
-    navigator.clipboard?.writeText(value).then(
-      () => {
-        this.copied.set(key);
-        setTimeout(() => this.copied.update((k) => (k === key ? null : k)), 1800);
-      },
-      () => undefined,
-    );
-  }
-
-  downloadTemplate(): void {
-    this.downloading.set(true);
-    this.api.downloadRoleTemplate().subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'RoleMonkeyReadOnly.yaml';
-        link.click();
-        URL.revokeObjectURL(url);
-        this.downloading.set(false);
-      },
-      error: (error) => {
-        this.downloading.set(false);
-        this.message.set({ kind: 'error', text: apiErrorMessage(error, this.translate.instant('TECHNICAL_CONTROL.PANEL.DOWNLOAD_ERROR')) });
-      },
-    });
-  }
-
   // Guarda el rol (si cambió) y comprueba el acceso de verdad. La API manda: la pantalla vuelve a leer el sistema al terminar.
   check(): void {
+    if (this.busy()) return;
     const arn = this.roleArn().trim();
     this.roleError.set(null);
     this.message.set(null);

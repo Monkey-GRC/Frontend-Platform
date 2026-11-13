@@ -7,7 +7,10 @@ import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { Asset, UpdateAssetInput } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { isGcpProjectId } from '@features/technical-control/domain/utils/gcp-validation';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 const ACCOUNT_ID = /^\d{12}$/;
 
@@ -15,7 +18,7 @@ const ACCOUNT_ID = /^\d{12}$/;
 // Lo que cambia la conexión la devuelve a «pendiente» (lo que ya se comprobó no vale para lo nuevo) y se le avisa al cliente antes de guardar.
 @Component({
   selector: 'app-asset-edit-form',
-  imports: [OptionChips, TranslatePipe],
+  imports: [OptionChips, TranslatePipe, Busy, BusyFields],
   templateUrl: './asset-edit-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -51,6 +54,8 @@ export class AssetEditForm implements OnInit {
 
   readonly method = computed(() => this.asset().provisioning.connection_method ?? null);
   readonly isCloud = computed(() => this.asset().connection_category === 'ac_01' && !!this.method() && this.method() !== 'agent');
+  readonly isGcp = computed(() => this.isCloud() && this.method() === 'identity_federation');
+  readonly hasRegions = computed(() => this.isCloud() && !this.isGcp());
   readonly usesRole = computed(() => this.method() === 'readonly_role');
   readonly usesKeys = computed(() => this.method() === 'access_keys');
   readonly regionChips = computed<ChipOption[]>(() => this.regionOptions().map((r) => ({ value: r.value, label: r.label })));
@@ -65,7 +70,7 @@ export class AssetEditForm implements OnInit {
     if (this.isCloud()) {
       if (this.accountId() && this.accountId() !== a.external_account_id) p.external_account_id = this.accountId();
       const current = a.provisioning.regions ?? [];
-      if (!sameSet(this.regions(), current)) p.regions = this.regions();
+      if (this.hasRegions() && !sameSet(this.regions(), current)) p.regions = this.regions();
       const role = this.roleArn().trim();
       if (this.usesRole() && role && role !== (a.connection_setup?.role_arn ?? '')) p.role_arn = role;
       if (this.usesKeys() && (this.accessKeyId().trim() || this.secretAccessKey().trim())) {
@@ -79,6 +84,7 @@ export class AssetEditForm implements OnInit {
   readonly valid = computed(() => {
     if (!this.name().trim()) return false;
     if (!this.isCloud()) return true;
+    if (this.isGcp()) return isGcpProjectId(this.accountId());
     if (!ACCOUNT_ID.test(this.accountId())) return false;
     if (this.regions().length === 0) return false;
     // Las llaves se cambian las dos juntas.
@@ -99,13 +105,13 @@ export class AssetEditForm implements OnInit {
     effect(() => {
       this.language.current();
       untracked(() => {
-        if (this.isCloud()) this.catalogs.options('aws_region').subscribe((o) => this.regionOptions.set(o));
+        if (this.hasRegions()) this.catalogs.options('aws_region').subscribe((o) => this.regionOptions.set(o));
       });
     });
   }
 
   setAccountId(value: string): void {
-    this.accountId.set(value.replace(/\D/g, '').slice(0, 12));
+    this.accountId.set(this.isGcp() ? value.trim().toLowerCase().slice(0, 30) : value.replace(/\D/g, '').slice(0, 12));
   }
 
   toggleRegion(value: string): void {
@@ -117,6 +123,7 @@ export class AssetEditForm implements OnInit {
   }
 
   save(): void {
+    if (this.saving()) return;
     if (!this.valid() || !this.dirty()) return;
     this.saving.set(true);
     this.error.set(null);

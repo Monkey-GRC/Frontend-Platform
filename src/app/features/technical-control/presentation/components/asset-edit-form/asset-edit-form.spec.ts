@@ -48,7 +48,12 @@ describe('AssetEditForm · evaluar ahora', () => {
 
   it('waits while an evaluation is already queued or running', () => {
     open({ canEvaluate: true, evaluating: true });
-    expect(button()!.disabled).toBeTrue();
+    let asked = 0;
+    fixture.componentInstance.evaluate.subscribe(() => asked++);
+    expect(button()!.getAttribute('aria-busy')).toBe('true');
+    expect(button()!.getAttribute('aria-disabled')).toBe('true');
+    button()!.click();
+    expect(asked).toBe(0);
   });
 
   it('waits while there are unsaved changes, so it never evaluates with old details', () => {
@@ -57,5 +62,53 @@ describe('AssetEditForm · evaluar ahora', () => {
     fixture.detectChanges();
     expect(button()!.disabled).toBeTrue();
     expect(button()!.getAttribute('title')).toContain('EVALUATE_SAVE_FIRST');
+  });
+});
+
+// El formulario lo decide la plataforma/canal: una cuenta AWS pide 12 dígitos y regiones; un proyecto GCP, su ID y sin regiones (el backend da 422 si llegan).
+describe('AssetEditForm · por plataforma', () => {
+  const gcp = {
+    id: 'g1', name: 'Proyecto GCP', criticality: 'high', connection_category: 'ac_01', platform: 'gcp', external_account_id: 'mi-proyecto-123',
+    provisioning: { connection_method: 'identity_federation', connection_status: 'active' },
+  } as unknown as Asset;
+
+  function open(a: Asset): ComponentFixture<AssetEditForm> {
+    TestBed.configureTestingModule({
+      imports: [AssetEditForm],
+      providers: [
+        provideTranslateService(),
+        { provide: TechnicalControlService, useValue: {} },
+        { provide: CatalogService, useValue: { list: () => NEVER, options: () => NEVER, regions: () => NEVER } },
+      ],
+    });
+    const f = TestBed.createComponent(AssetEditForm);
+    f.componentRef.setInput('asset', a);
+    f.detectChanges();
+    return f;
+  }
+
+  it('AWS: asks for the 12-digit account and the regions', () => {
+    const f = open(asset);
+    const html = f.nativeElement as HTMLElement;
+    expect(html.textContent).toContain('EDIT.ACCOUNT');
+    expect(html.textContent).toContain('EDIT.REGIONS');
+    f.componentInstance.setAccountId('abc12');
+    expect(f.componentInstance.accountId()).toBe('12');
+    expect(f.componentInstance.valid()).toBeFalse();
+  });
+
+  it('GCP: asks for the project ID, shows no regions and never sends them', () => {
+    const f = open(gcp);
+    const c = f.componentInstance;
+    const text = (f.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('EDIT.ACCOUNT_GCP');
+    expect(text).not.toContain('EDIT.REGIONS');
+    expect(c.valid()).toBeTrue();
+    c.setAccountId('otro-proyecto-9');
+    expect(c.valid()).toBeTrue();
+    expect(c.patch()).toEqual({ external_account_id: 'otro-proyecto-9' });
+    expect('regions' in c.patch()).toBeFalse();
+    c.setAccountId('1x');
+    expect(c.valid()).toBeFalse();
   });
 });

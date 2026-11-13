@@ -114,7 +114,7 @@ describe('IntegrationDetailView', () => {
       fixture.detectChanges();
       expect(qa('[data-test-service]').length).toBe(1);
       q('[data-test-service]')!.click();
-      expect(nav).toHaveBeenCalledWith(['/services', 's1', 'connections', 'new', 'ac_01', 'aws']);
+      expect(nav).toHaveBeenCalledWith(['/services', 's1', 'connections', 'new', 'ac_01', 'aws'], { queryParams: { returnTo: router.url } });
     });
 
     it('hides the prerequisites when there are none', () => {
@@ -264,5 +264,34 @@ describe('IntegrationDetailView', () => {
     setup('admin_empresa', AWS, 'permissions');
     expect(api.getDetail).toHaveBeenCalledTimes(1);
     expect(q('#tab-permissions')!.getAttribute('aria-selected')).toBe('true');
+  });
+
+  describe('from the connections of a service (?service=)', () => {
+    const SID = '51c0a1b2-3c4d-4e5f-8a9b-0c1d2e3f4a5b';
+
+    it('goes back to the service connections and connects straight to the wizard of that service, without asking for it', () => {
+      setup('admin_empresa', AWS);
+      query.next(convertToParamMap({ service: SID }));
+      fixture.detectChanges();
+      expect(q('[data-test-back]')!.getAttribute('href')).toBe(`/services/${SID}/connections/new`);
+      expect(q('[data-test-back]')!.textContent).toContain('BACK_SERVICE');
+      const nav = spyOn(router, 'navigate').and.resolveTo(true);
+      q('[data-test-connect]')!.click();
+      fixture.detectChanges();
+      expect(nav).toHaveBeenCalledWith(['/services', SID, 'connections', 'new', 'ac_01', 'aws'], { queryParams: { returnTo: router.url } });
+      expect(q('[data-test-service]')).toBeNull();
+    });
+
+    it('ignores a service that is not a uuid and asks for the service in the modal as usual', () => {
+      setup('admin_empresa', AWS);
+      query.next(convertToParamMap({ service: '../x' }));
+      fixture.detectChanges();
+      expect(q('[data-test-back]')!.getAttribute('href')).toBe('/integraciones/agregar');
+      const nav = spyOn(router, 'navigate').and.resolveTo(true);
+      q('[data-test-connect]')!.click();
+      fixture.detectChanges();
+      expect(nav).not.toHaveBeenCalled();
+      expect(qa('[data-test-service]').length).toBe(1);
+    });
   });
 });

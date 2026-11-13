@@ -1,0 +1,27 @@
+<app-connection-wizard-shell titleKey="TECHNICAL_CONTROL.CONNECT.TITLE" [titleParams]="{ name: platform().name }" [steps]="steps" [current]="current()" [showBack]="showBack()"
+  [showNext]="true" [nextLabelKey]="nextLabelKey()" [nextDisabled]="nextDisabled()" [busy]="busy()" [leaveMode]="leaveMode()" (closed)="closed.emit()" (back)="onBack()" (next)="onNext()">
+  @switch (step()) {
+  @case ('choose') {
+  <app-gcp-choose-step [state]="optionsState()" [scopes]="scopes()" [methods]="methods()" [scope]="scope()" [method]="method()" (scopeChange)="scope.set($event)" (methodChange)="method.set($event)"
+    (retry)="loadOptions()" />
+  }
+  @case ('project') {
+  <app-gcp-project-step [(projectId)]="projectId" [(name)]="name" [(criticality)]="criticality" [(extraServiceIds)]="extraServiceIds" [criticalities]="criticalities()"
+    [otherServices]="otherServices()" [showHints]="showHints()" [fieldErrors]="fieldErrors()" [error]="error()" />
+  }
+  @case ('access') {
+  @if (setup(); as s) {
+  <app-gcp-access-step [setup]="s" />
+  }
+  }
+  @case ('check') {
+  <app-gcp-check-step [(projectNumber)]="projectNumber" [busy]="checking()" [numberError]="numberError()" [message]="message()" />
+  }
+  @case ('result') {
+  @if (asset(); as a) {
+  <app-connection-result-step [asset]="a" [demo]="demo()" titleKey="TECHNICAL_CONTROL.WIZARD.GCP.RESULT.TITLE" subtitleKey="TECHNICAL_CONTROL.WIZARD.GCP.RESULT.SUBTITLE"
+    accountLabelKey="TECHNICAL_CONTROL.WIZARD.GCP.RESULT.PROJECT" />
+  }
+  }
+  }
+</app-connection-wizard-shell>

@@ -12,9 +12,19 @@ import { roleGuard } from '@core/domain/guards/role.guard';
 import { ONBOARDING_ROLE } from '@shared/domain/utils/roles';
 import { workLandingGuard } from '@core/domain/guards/work-landing.guard';
 import { legacyComplianceRedirectGuard } from '@features/compliance/domain/guards/legacy-compliance-redirect.guard';
+import { wizardLeaveGuard } from '@features/technical-control/domain/guards/wizard-leave.guard';
 import { risksEvaluatedGuard } from '@features/services/domain/guards/risks-evaluated.guard';
 
 export const routes: Routes = [
+  // El asistente de conexión a pantalla completa de toda plataforma: fuera del shell (sin menú, encabezado ni migas). `?assetId=` retoma una conexión a medias. Salir (la X, «Atrás» del
+  // navegador o cambiar de ruta) pregunta primero si hay algo que perder.
+  {
+    path: 'services/:id/connections/new/:catalog/:platform',
+    title: 'PAGE_TITLE.CONNECT_PLATFORM',
+    canActivate: [authGuard, risksEvaluatedGuard],
+    canDeactivate: [wizardLeaveGuard],
+    loadComponent: () => import('@features/technical-control/presentation/views/connection-wizard/connection-wizard').then(m => m.ConnectionWizardView),
+  },
   {
     path: '',
     component: AppLayoutComponent,
@@ -70,14 +80,7 @@ export const routes: Routes = [
         path: 'services/:id/connections/new',
         title: 'PAGE_TITLE.CONNECTION_NEW',
         canActivate: [risksEvaluatedGuard],
-        loadComponent: () => import('@features/technical-control/presentation/views/new-connection/new-connection').then(m => m.NewConnectionView),
-      },
-      // El paso a paso de una plataforma elegida en el marketplace (D67).
-      {
-        path: 'services/:id/connections/new/:catalog/:platform',
-        title: 'PAGE_TITLE.CONNECT_PLATFORM',
-        canActivate: [risksEvaluatedGuard],
-        loadComponent: () => import('@features/technical-control/presentation/views/connect-platform/connect-platform').then(m => m.ConnectPlatformView),
+        loadComponent: () => import('@features/integrations/presentation/views/service-new-connection/service-new-connection').then(m => m.ServiceNewConnectionView),
       },
       {
         path: 'services/:id/connections/:assetId',

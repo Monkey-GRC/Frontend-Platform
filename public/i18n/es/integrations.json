@@ -82,7 +82,8 @@
       },
       "FEATURES_TITLE": "Qué puedes hacer",
       "PREREQUISITES_TITLE": "Antes de conectar",
-      "SOON_TITLE": "Lo publicaremos cuando la integración esté disponible"
+      "SOON_TITLE": "Lo publicaremos cuando la integración esté disponible",
+      "BACK_SERVICE": "Conexiones del servicio"
     },
     "CONNECTIONS": {
       "TITLE": "Conexiones de esta integración ({{count}})",
