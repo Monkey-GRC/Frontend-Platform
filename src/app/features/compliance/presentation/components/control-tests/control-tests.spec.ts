@@ -92,14 +92,14 @@ describe('ControlTests', () => {
     expect(Array.from(el.querySelectorAll('tbody tr')).find((li) => li.textContent!.includes('T-SRV-001'))!.querySelector('[data-test-evidence]')).toBeNull();
   });
 
-  it('offers what failed and how to fix it only under a cloud test that does not comply, and only when it knows the control (D90)', () => {
+  it('offers what failed and how to fix it only under an automatic test that does not comply, and only when it knows the control (D90)', () => {
     const cloud: ControlTest = { test_id: 'id-cld-1', test_code: 'T-CLD-001', display_name: 'Acceso público', dimension: 'cloud', state: 'non_compliant' };
     const passing: ControlTest = { ...cloud, test_id: 'id-cld-2', test_code: 'T-CLD-002', state: 'compliant' };
-    const withControl = (id: string | null) => {
+    const withControl = (id: string | null, tests: ControlTest[] = [cloud, passing, TESTS[0]]) => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({ imports: [ControlTests], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: FindingService, useValue: {} }] });
       fixture = TestBed.createComponent(ControlTests);
-      fixture.componentRef.setInput('tests', [cloud, passing, TESTS[0]]);
+      fixture.componentRef.setInput('tests', tests);
       fixture.componentRef.setInput('dimensions', [...DIMENSIONS, { dimension: 'cloud', applies: true, type: 'automated', reason_not_applicable: null }]);
       fixture.componentRef.setInput('controlId', id);
       fixture.detectChanges();
@@ -110,6 +110,13 @@ describe('ControlTests', () => {
     expect(rows.length).toBe(1);
     expect(rows[0].textContent).toContain('T-CLD-001');
     expect(withControl(null).querySelector('app-test-findings')).toBeNull();
+
+    // D112 · Una prueba de servidores que no cumple también dice qué falló y cómo corregirlo; una documental no.
+    const server: ControlTest = { test_id: 'id-srv-9', test_code: 'T-SRV-009', display_name: 'Configuración de servidores', dimension: 'server', state: 'non_compliant' };
+    const manual: ControlTest = { test_id: 'id-doc-9', test_code: 'T-DOC-009', display_name: 'Revisión de política', dimension: 'policy', state: 'non_compliant' };
+    const mixed = Array.from(withControl('c1', [server, manual]).querySelectorAll('tbody tr')).filter((li) => li.querySelector('app-test-findings'));
+    expect(mixed.length).toBe(1);
+    expect(mixed[0].textContent).toContain('T-SRV-009');
   });
   describe('short description', () => {
     const SHORT = 'Verifica que existe una política vigente.';

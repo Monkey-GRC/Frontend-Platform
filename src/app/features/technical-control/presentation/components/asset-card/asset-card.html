@@ -12,6 +12,8 @@
         <p class="mt-0.5 text-xs text-ink-faint">
           @if (isCloud() && asset().external_account_id) {
           {{ 'TECHNICAL_CONTROL.AWS_ACCOUNT' | translate: { account: asset().external_account_id } }}@if (regions()) { · {{ regions() }} }
+          } @else if (asset().agent; as agent) {
+          {{ agent.os_version.label }}
           } @else {
           {{ asset().platform }}@if (asset().ip_address) { · {{ asset().ip_address }} }@if (asset().location) { · {{ asset().location }} }
           }
@@ -93,7 +95,13 @@
   <app-cloud-connection-panel [asset]="asset()" (changed)="changed.emit($event)" />
   }
 
+  <!-- Un servidor: instalar la sonda, con su comando (D112) -->
+  @if (isAgent()) {
+  <app-agent-install-panel [asset]="asset()" (changed)="changed.emit($event)" />
+  }
+
   <!-- Siguiente paso -->
+  @if (!isAgent()) {
   <div class="mt-4 flex flex-wrap items-center gap-3">
     @switch (step() === 'validated' ? 'active' : step()) {
     @case ('active') {
@@ -132,6 +140,7 @@
     }
     }
   </div>
+  }
 
   @if (busy() === 'validate') {
   <app-connection-progress />

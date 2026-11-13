@@ -19,18 +19,20 @@
   @if (items().length === 0) {
   <p class="mt-2 text-sm text-ink-muted" data-findings-empty>{{ 'COMPLIANCE.FINDINGS.NONE' | translate }}</p>
   } @else {
-  <p class="mt-2 text-xs text-ink-muted">{{ 'COMPLIANCE.FINDINGS.SUMMARY' | translate: { count: total() } }}</p>
+  <p class="mt-2 text-xs text-ink-muted">{{ (ranked() ? 'COMPLIANCE.FINDINGS.SUMMARY' : 'COMPLIANCE.FINDINGS.SUMMARY_UNRANKED') | translate: { count: total() } }}</p>
   <ul class="mt-2 flex flex-col gap-3" data-findings-list>
     @for (f of items(); track f.id) {
     <li class="rounded-control border border-line p-3.5" data-finding>
       <div class="flex flex-wrap items-start justify-between gap-2">
         <p class="min-w-0 flex-1 text-sm font-semibold leading-snug text-ink">{{ f.title }}</p>
-        <span class="whitespace-nowrap rounded-control border px-2 py-0.5 text-xs font-medium" [class]="chip[f.severity]" data-finding-severity>{{ 'COMPLIANCE.FINDINGS.SEVERITY.' + f.severity.toUpperCase() | translate }}</span>
+        @if (f.severity; as severity) {
+        <span class="whitespace-nowrap rounded-control border px-2 py-0.5 text-xs font-medium" [class]="chip[severity]" data-finding-severity>{{ 'COMPLIANCE.FINDINGS.SEVERITY.' + severity.toUpperCase() | translate }}</span>
+        }
       </div>
 
       @if (f.resources.length) {
       <div class="mt-2">
-        <p class="text-xs font-medium uppercase tracking-wide text-ink-muted">{{ 'COMPLIANCE.FINDINGS.AFFECTED' | translate: { count: f.resources_total } }}</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-ink-muted">{{ (dimension() === 'cloud' ? 'COMPLIANCE.FINDINGS.AFFECTED' : 'COMPLIANCE.FINDINGS.AFFECTED_ASSETS') | translate: { count: f.resources_total } }}</p>
         <ul class="mt-1 flex flex-col gap-0.5 text-sm text-ink">
           @for (r of shown(f); track $index) {
           <li class="break-all"><span class="font-medium">{{ r.name || r.uid }}</span>@if (r.region) {<span class="text-ink-muted"> · {{ r.region }}</span>}</li>
@@ -52,6 +54,8 @@
           @for (b of blocks(rem.text); track $index) {
           @if (b.kind === 'li') {
           <p class="flex gap-2"><span aria-hidden="true">•</span><span>{{ b.text }}</span></p>
+          } @else if (b.kind === 'code') {
+          <pre class="my-1 overflow-x-auto whitespace-pre-wrap break-all rounded-control border border-line bg-surface px-3 py-2 font-mono text-xs leading-relaxed text-ink" data-finding-code>{{ b.text }}</pre>
           } @else {
           <p>{{ b.text }}</p>
           }

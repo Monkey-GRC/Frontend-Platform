@@ -58,6 +58,13 @@ describe('TestFindings (D90)', () => {
     expect(guide).toContain('Revisa los permisos');
   });
 
+  it('shows a command in its own block, separate from the prose', () => {
+    setup(of(page([finding('a', { remediation: { text: 'Ejecute:\n```\nsystemctl unmask tmp.mount\n```\nY reinicie.', language: 'es', is_ai_generated: true } })])));
+    open();
+    expect(q('[data-finding-code]')?.textContent).toBe('systemctl unmask tmp.mount');
+    expect(q('[data-finding-remediation]')!.textContent).toContain('Y reinicie.');
+  });
+
   it('says it was translated by AI when nobody has reviewed the translation', () => {
     setup(of(page([finding('a')])));
     open();
@@ -102,6 +109,43 @@ describe('TestFindings (D90)', () => {
     c.load();
     fixture.detectChanges();
     expect(q('[data-finding]')).not.toBeNull();
+  });
+
+  // D112 · Los servidores: la sonda no califica sus checks, y lo afectado es un activo del cliente.
+  describe('a server test', () => {
+    const serverFinding = (id: string) => finding(id, { severity: null, resources: [{ name: 'srv-prod-01', uid: null, region: null }], resources_total: 1 });
+    function openServer(items: Finding[]) {
+      setup(of(page(items)));
+      fixture.componentRef.setInput('dimension', 'server');
+      fixture.detectChanges();
+      open();
+    }
+
+    it('shows no severity level when there is none, and does not promise an order by severity', () => {
+      openServer([serverFinding('a'), serverFinding('b')]);
+      expect(q('[data-finding-severity]')).toBeNull();
+      expect(el().textContent).toContain('SUMMARY_UNRANKED');
+      expect(el().textContent).not.toContain('FINDINGS.SUMMARY"');
+    });
+
+    it('names the affected server and says it is an asset, not a resource', () => {
+      openServer([serverFinding('a')]);
+      expect(q('[data-finding]')!.textContent).toContain('srv-prod-01');
+      expect(q('[data-finding]')!.textContent).toContain('AFFECTED_ASSETS');
+    });
+
+    it('keeps the severity chip and the order wording when the findings do come rated', () => {
+      openServer([finding('a', { severity: 'low' })]);
+      expect(q('[data-finding-severity]')).not.toBeNull();
+      expect(el().textContent).not.toContain('SUMMARY_UNRANKED');
+    });
+  });
+
+  it('still says «resources» for a cloud test', () => {
+    setup(of(page([finding('a')])));
+    open();
+    expect(q('[data-finding]')!.textContent).toContain('FINDINGS.AFFECTED');
+    expect(q('[data-finding]')!.textContent).not.toContain('AFFECTED_ASSETS');
   });
 
   it('asks for the next page when there are more findings', () => {

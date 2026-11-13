@@ -57,6 +57,57 @@ export interface AssetProvisioning {
   regions?: string[];
 }
 
+// La versión que el cliente declaró de su servidor: el mismo `{ value, label }` que el catálogo `<sistema>_version`.
+export interface OsVersionRef {
+  value: string;
+  label: string;
+}
+
+// Solo un servidor o equipo que se conecta con la sonda instalada (D112); en las demás conexiones el activo trae `agent: null`.
+export interface AssetAgent {
+  // Si el programa ya se conectó (`connected`) o sigue esperando (`pending`).
+  status: 'pending' | 'connected' | 'disconnected' | 'removed';
+  os: string;
+  os_version: OsVersionRef;
+  // La última vez que Monkey leyó este servidor con éxito («última revisión»); nulo mientras no se ha conectado.
+  last_sync_at?: string | null;
+}
+
+// not_started → preparing → ready → delivered; `failed` se reintenta. Cada valor lo fija el backend (contracts/control-tecnico.md).
+export type AgentInstallStatus = 'not_started' | 'preparing' | 'ready' | 'delivered' | 'failed';
+
+// Lo que el firewall del cliente debe permitir de SALIDA: no hay que abrir puertos de entrada.
+export interface RequiresOutbound {
+  host: string;
+  port: number;
+}
+
+// El estado de la instalación. Nunca lleva secretos: se consulta las veces que haga falta.
+export interface AgentInstallState {
+  status: AgentInstallStatus;
+  failure_message: string | null;
+  os: string;
+  os_version: OsVersionRef;
+  expires_at: string | null;
+  requires_outbound: RequiresOutbound;
+  // Cómo va el servidor con Monkey una vez instalado. `watching`: Monkey lo busca solo (hasta 24 h desde que se creó su agente; uno desconectado se sigue buscando). Si es falso y el
+  // servidor sigue `pending`, Monkey dejó de buscarlo: la pantalla ofrece «Comprobar ahora» o un comando nuevo.
+  connection: { status: 'pending' | 'connected' | 'disconnected' | 'removed'; watching: boolean; last_sync_at: string | null };
+}
+
+// Una forma de instalar: un comando que se pega, o un archivo que se descarga. El contenido es SENSIBLE (lleva la clave del servidor).
+export type AgentInstallOption =
+  | { kind: 'command'; label: string; shell: string; value: string }
+  | { kind: 'file'; label: string; filename: string; content: string };
+
+// Lo que sale UNA sola vez: no se guarda en ninguna parte más que en la memoria de la pantalla.
+export interface AgentInstallReveal {
+  os: string;
+  os_version: OsVersionRef;
+  options: AgentInstallOption[];
+  requires_outbound: RequiresOutbound;
+}
+
 export interface Asset {
   id: string;
   code: string;
@@ -71,6 +122,7 @@ export interface Asset {
   technical_coverage: string;
   external_account_id?: string | null;
   connection_setup?: ConnectionSetup | null;
+  agent?: AssetAgent | null;
   services: { id: string; name: string }[];
   provisioning: AssetProvisioning;
 }
@@ -173,5 +225,7 @@ export interface NewAssetInput {
   connection_method?: ConnectionMethod;
   external_account_id?: string;
   regions?: string[];
+  // Servidor con la sonda instalada (D112): la versión que declara el cliente, un `value` de `<sistema>_version`. De ella sale el comando correcto.
+  os_version?: string;
 }
 

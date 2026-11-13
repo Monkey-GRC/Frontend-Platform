@@ -5,7 +5,9 @@ export interface CatalogOption {
   label: string;
   // Solo en las listas de países: `eu` es una región y `other` es "Otro". En los países del
   // servicio, además, `latam` y `global` son región.
-  group?: 'country' | 'region' | 'other';
+  group?: 'country' | 'region' | 'other' | string;
+  // Solo en las versiones de un sistema operativo (`<sistema>_version`): `group` es la distribución y `group_label` su nombre ya traducido.
+  group_label?: string;
 }
 
 export interface RegulationOption {
@@ -69,4 +71,6 @@ export type CatalogName =
   | 'integration_status'
   | 'integration_purpose'
   // Las regiones de una plataforma (`aws_region`…) salen de la base (D67): una plataforma nueva con regiones no exige cambiar esta lista.
-  | `${string}_region`;
+  | `${string}_region`
+  // Las versiones que se pueden declarar de un sistema operativo (`linux_version`, `windows_version`…, D112): también salen de la base.
+  | `${string}_version`;

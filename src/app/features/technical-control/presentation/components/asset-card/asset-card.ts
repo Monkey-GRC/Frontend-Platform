@@ -7,6 +7,7 @@ import { apiErrorCode, apiErrorMessage, apiFieldErrors } from '@core/domain/util
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { Asset, Execution, ProbeMode } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { AgentInstallPanel } from '../agent-install-panel/agent-install-panel';
 import { AssetEditForm } from '../asset-edit-form/asset-edit-form';
 import { CloudConnectionPanel } from '../cloud-connection-panel/cloud-connection-panel';
 import { ConnectionProgress } from '../connection-progress/connection-progress';
@@ -23,13 +24,21 @@ const STATUS: Record<string, { label: string; tone: StatusTone }> = {
   failed: { label: 'TECHNICAL_CONTROL.STATUS.FAILED', tone: 'bad' },
 };
 
+// Un servidor con la sonda (D112) no se «comprueba» como una cuenta de nube: su estado es el del programa instalado.
+const AGENT_STATUS: Record<string, { label: string; tone: StatusTone }> = {
+  pending: { label: 'TECHNICAL_CONTROL.STATUS.AGENT_PENDING', tone: 'neutral' },
+  connected: { label: 'TECHNICAL_CONTROL.STATUS.AGENT_CONNECTED', tone: 'ok' },
+  disconnected: { label: 'TECHNICAL_CONTROL.STATUS.AGENT_DISCONNECTED', tone: 'warn' },
+  removed: { label: 'TECHNICAL_CONTROL.STATUS.AGENT_REMOVED', tone: 'neutral' },
+};
+
 type Busy = 'validate' | 'schedule';
 
 // Un sistema conectado y lo que se puede hacer con él según en qué paso va: comprobar la
 // conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
-  imports: [AssetEditForm, CloudConnectionPanel, ConnectionProgress, DiscoveredAssets, ExecutionProgress, ProviderLogo, StatusIndicator, TranslatePipe],
+  imports: [AgentInstallPanel, AssetEditForm, CloudConnectionPanel, ConnectionProgress, DiscoveredAssets, ExecutionProgress, ProviderLogo, StatusIndicator, TranslatePipe],
   templateUrl: './asset-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -60,7 +69,13 @@ export class AssetCard implements OnInit {
   readonly busy = signal<Busy | null>(null);
   readonly message = signal<{ kind: 'error' | 'info'; text: string } | null>(null);
 
-  readonly status = computed(() => STATUS[this.asset().provisioning.connection_status] ?? STATUS['pending']);
+  // Un servidor con la sonda instalada (D112): `agent` solo viene en esos activos.
+  readonly isAgent = computed(() => !!this.asset().agent);
+  readonly status = computed(() => {
+    const agent = this.asset().agent;
+    if (agent) return AGENT_STATUS[agent.status] ?? AGENT_STATUS['pending'];
+    return STATUS[this.asset().provisioning.connection_status] ?? STATUS['pending'];
+  });
   readonly step = computed(() => this.asset().provisioning.connection_status);
   readonly demo = computed(
     () => this.probeMode() === 'simulated' && this.asset().provisioning.is_active && this.asset().operational_status === 'warning',
@@ -77,7 +92,11 @@ export class AssetCard implements OnInit {
     return s?.method === 'access_keys' && ['pending', 'failed'].includes(this.step()) ? (s.warning ?? null) : null;
   });
   // El logo oficial de la plataforma que eligió el cliente (D67; hoy solo AWS) en lugar de una nube genérica.
-  readonly providerLogo = computed(() => (this.isCloud() && this.asset().platform?.toLowerCase() === 'aws' ? 'aws' : null));
+  readonly providerLogo = computed(() => {
+    const platform = this.asset().platform?.toLowerCase();
+    if (this.isAgent()) return platform ?? null;
+    return this.isCloud() && platform === 'aws' ? 'aws' : null;
+  });
   readonly regions = computed(() => (this.asset().provisioning.regions ?? []).join(', '));
 
   // «Evaluar ahora»: solo se muestra su ESTADO (en cola → en curso → completada o fallida). Los resultados son otra pantalla.

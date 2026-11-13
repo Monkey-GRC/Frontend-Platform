@@ -1,0 +1,83 @@
+<div>
+
+  <h2 class="text-lg font-semibold text-ink">{{ 'TECHNICAL_CONTROL.SERVER_FORM.TITLE' | translate }}</h2>
+  <p class="mt-4 rounded-control bg-canvas p-3 text-xs text-ink-muted">
+    {{ 'TECHNICAL_CONTROL.SERVER_FORM.NOTE' | translate }}
+  </p>
+
+  <div class="mt-4 space-y-4">
+    <div>
+      <label for="server-name" class="mb-2 block text-sm font-medium text-ink-muted">
+        {{ 'TECHNICAL_CONTROL.SERVER_FORM.NAME_LABEL' | translate }} <span class="text-bad-ink">*</span>
+      </label>
+      <input id="server-name" type="text" [value]="name()" maxlength="200" autocomplete="off"
+        (input)="name.set(targetValue($event))" [placeholder]="'TECHNICAL_CONTROL.SERVER_FORM.NAME_PLACEHOLDER' | translate"
+        class="h-12 w-full rounded-control border border-line bg-surface px-4 text-sm text-ink placeholder:text-ink-faint focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
+      @if (showHints() && !name().trim()) {
+      <p class="mt-1.5 text-xs text-bad-ink">{{ 'TECHNICAL_CONTROL.FORM.NAME_HINT' | translate }}</p>
+      }
+    </div>
+
+    <!-- ---------- Sistema y versión ---------- -->
+    <div>
+      <label for="server-os" class="mb-1 block text-sm font-medium text-ink-muted">
+        {{ 'TECHNICAL_CONTROL.SERVER_FORM.VERSION_LABEL' | translate: { name: platform().name } }} <span class="text-bad-ink">*</span>
+      </label>
+      <p class="mb-2 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.SERVER_FORM.VERSION_HELP' | translate }}</p>
+      @switch (versionsState()) {
+      @case ('error') {
+      <p class="p-3 text-sm text-ink mk-surface-state-bad" role="alert">{{ 'TECHNICAL_CONTROL.SERVER_FORM.VERSIONS_ERROR' | translate }}</p>
+      }
+      @default {
+      <app-select inputId="server-os" [options]="versionOptions()" [value]="osVersion()" [disabled]="versionsState() === 'loading'"
+        [invalid]="!!fieldError('os_version') || (showHints() && !osVersion())" placeholderKey="TECHNICAL_CONTROL.SERVER_FORM.VERSION_PLACEHOLDER" (valueChange)="osVersion.set($event)" />
+      }
+      }
+      @if (fieldError('os_version'); as e) {
+      <p class="mt-1.5 text-xs text-bad-ink">{{ e }}</p>
+      } @else if (showHints() && !osVersion()) {
+      <p class="mt-1.5 text-xs text-bad-ink">{{ 'TECHNICAL_CONTROL.SERVER_FORM.VERSION_HINT' | translate }}</p>
+      }
+    </div>
+
+    <div>
+      <p class="mb-3 text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.FORM.IMPORTANCE' | translate }}</p>
+      <app-option-chips [options]="criticalityChips()" [selected]="[criticality()]" [ariaLabel]="'TECHNICAL_CONTROL.FORM.IMPORTANCE_ARIA' | translate"
+        (picked)="criticality.set($event)" />
+    </div>
+
+    @if (otherServices().length > 0) {
+    <div>
+      <p class="mb-1 text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.FORM.ALSO_SUPPORTS' | translate }}</p>
+      <p class="mb-3 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.FORM.ALSO_SUPPORTS_HELP' | translate }}</p>
+      <div class="space-y-2">
+        @for (s of otherServices(); track s.id) {
+        <label class="flex cursor-pointer items-center gap-3 rounded-control border border-line p-3 text-sm text-ink-muted">
+          <input type="checkbox" [checked]="extraServiceIds().includes(s.id)" (change)="toggleService(s.id)" class="h-4 w-4" />
+          {{ s.name }}
+        </label>
+        }
+      </div>
+    </div>
+    }
+  </div>
+
+  @if (error()) {
+  <div class="mt-4 flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ error() }}</span>
+  </div>
+  }
+
+  <div class="mt-5 flex items-center justify-between gap-3">
+    <button type="button" (click)="cancelled.emit()" [disabled]="saving()" class="mk-btn-secondary">
+      {{ 'COMMON.CANCEL' | translate }}
+    </button>
+    <button type="button" (click)="submit()" [disabled]="saving() || versionsState() !== 'ready'" class="mk-btn">
+      @if (saving()) {
+      <span class="material-symbols-rounded animate-spin text-[20px] leading-none" aria-hidden="true">progress_activity</span>
+      {{ 'COMMON.WIZARD.SAVING' | translate }}
+      } @else {
+      {{ 'TECHNICAL_CONTROL.SERVER_FORM.REGISTER' | translate }}
+      }
+    </button>
+  </div>
+</div>

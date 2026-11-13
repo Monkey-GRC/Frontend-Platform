@@ -5,7 +5,7 @@
     <app-provider-logo [logoKey]="p.logo_key" />
     <div>
       <h1 class="text-2xl font-semibold text-ink">{{ 'TECHNICAL_CONTROL.CONNECT.TITLE' | translate: { name: p.name } }}</h1>
-      <p class="mt-1 text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.CONNECT.SUBTITLE' | translate }}</p>
+      <p class="mt-1 text-sm text-ink-muted">{{ (isServer() ? 'TECHNICAL_CONTROL.CONNECT.SUBTITLE_SERVER' : 'TECHNICAL_CONTROL.CONNECT.SUBTITLE') | translate }}</p>
     </div>
   </div>
   }
@@ -21,8 +21,13 @@
     </app-empty-state>
     }
     @default {
+    @if (isServer()) {
+    <app-connect-server-form [capability]="capability()!" [platform]="platform()!" [service]="service()!" [otherServices]="otherServices()"
+      [criticalities]="criticalities()" (created)="onCreated($event)" (cancelled)="backToMarketplace()" />
+    } @else {
     <app-connect-asset-form [capability]="capability()!" [platform]="platform()!" [service]="service()!" [otherServices]="otherServices()"
       [criticalities]="criticalities()" (created)="onCreated($event)" (cancelled)="backToMarketplace()" />
+    }
     }
     }
   </div>

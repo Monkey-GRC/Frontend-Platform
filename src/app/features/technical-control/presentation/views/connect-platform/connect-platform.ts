@@ -11,6 +11,7 @@ import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/
 import { Asset, Capability, Platform } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { ConnectAssetForm } from '../../components/connect-asset-form/connect-asset-form';
+import { ConnectServerForm } from '../../components/connect-server-form/connect-server-form';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { ProviderLogo } from '@shared/presentation/components/provider-logo/provider-logo';
 
@@ -20,7 +21,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // o está bloqueada, se vuelve al marketplace: nadie llega aquí a conectar algo que no se puede.
 @Component({
   selector: 'app-connect-platform',
-  imports: [Breadcrumb, ConnectAssetForm, ProviderLogo, LoadingSpinner, TranslatePipe, EmptyState],
+  imports: [Breadcrumb, ConnectAssetForm, ConnectServerForm, ProviderLogo, LoadingSpinner, TranslatePipe, EmptyState],
   templateUrl: './connect-platform.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -40,6 +41,9 @@ export class ConnectPlatformView implements OnInit {
   readonly capability = signal<Capability | null>(null);
   readonly platform = signal<Platform | null>(null);
   readonly criticalities = signal<CatalogOption[]>([]);
+
+  // Un servidor, base de datos o equipo se conecta con la sonda instalada (canal `agent`, D112); una cuenta de nube, con rol o llaves.
+  readonly isServer = computed(() => this.platform()?.connection_methods[0] === 'agent');
 
   // Mis servicios › {servicio} › Nueva conexión › {plataforma}
   readonly crumbs = computed<Crumb[]>(() => [

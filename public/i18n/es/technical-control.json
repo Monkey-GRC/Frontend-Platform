@@ -18,7 +18,11 @@
       "VALIDATED": "Conexión comprobada",
       "ACTIVE": "Activa",
       "SCHEDULED": "Programada",
-      "FAILED": "No pudimos conectar"
+      "FAILED": "No pudimos conectar",
+      "AGENT_PENDING": "Esperando la instalación",
+      "AGENT_CONNECTED": "Conectado",
+      "AGENT_DISCONNECTED": "Desconectado",
+      "AGENT_REMOVED": "Retirado"
     },
     "CONNECT_PROGRESS": {
       "TITLE": "Conectando con tu cuenta",
@@ -51,7 +55,8 @@
     },
     "CONNECT": {
       "TITLE": "Conectar {{name}}",
-      "SUBTITLE": "Al terminar, Monkey te muestra los activos que encontró."
+      "SUBTITLE": "Al terminar, Monkey te muestra los activos que encontró.",
+      "SUBTITLE_SERVER": "Registras el servidor y luego instalas en él la sonda de Monkey con un comando."
     },
     "NEW": {
       "SUBTITLE": "Elige a qué quieres conectarte. Al terminar, Monkey te muestra los activos que encontró.",
@@ -158,6 +163,59 @@
       "CHECK_MARKED": "Revisa los datos marcados y vuelve a intentarlo.",
       "METHOD_NOT_APPLICABLE": "Ese tipo de conexión no está disponible para esta plataforma. Elige otro.",
       "REGISTER_ERROR": "No pudimos registrar el activo. Inténtalo de nuevo."
+    },
+    "SERVER_FORM": {
+      "TITLE": "Datos de tu servidor",
+      "NOTE": "Aquí solo nos dices cómo se llama tu servidor y qué sistema tiene. No pedimos contraseñas ni llaves: en el paso siguiente te damos un comando con la clave de este servidor, que se muestra una sola vez.",
+      "NAME_LABEL": "¿Cómo lo llamas?",
+      "NAME_PLACEHOLDER": "Por ejemplo: Servidor de base de datos principal",
+      "VERSION_LABEL": "¿Qué versión de {{name}} tiene?",
+      "VERSION_HELP": "Con la versión armamos el comando correcto para tu servidor y sabemos qué revisar en él.",
+      "VERSION_PLACEHOLDER": "Elige la versión",
+      "VERSION_HINT": "Elige la versión de tu servidor.",
+      "VERSIONS_ERROR": "No pudimos cargar las versiones disponibles. Revisa tu conexión e inténtalo de nuevo.",
+      "REGISTER": "Registrar servidor",
+      "REGISTER_ERROR": "No pudimos registrar el servidor. Inténtalo de nuevo."
+    },
+    "AGENT": {
+      "TITLE": "Instalar la sonda de Monkey en este servidor",
+      "INTRO": "La sonda es un programa liviano que lee la configuración de tu servidor ({{version}}) y la envía a Monkey para evaluarla. Solo lee: no modifica nada.",
+      "LOADING": "Revisando el estado de la instalación…",
+      "BEFORE_TITLE": "Antes de empezar",
+      "BEFORE_ADMIN_LINUX": "Entra al servidor como administrador: con el usuario root o con un usuario que pueda usar sudo.",
+      "BEFORE_ADMIN_WINDOWS": "Entra al servidor como administrador y abre PowerShell con «Ejecutar como administrador».",
+      "BEFORE_OUTBOUND": "El servidor debe poder conectarse a {{host}} por el puerto {{port}} (conexión de salida). No necesitas abrir ningún puerto de entrada.",
+      "START_HELP": "Cuando estés listo, preparamos la clave de este servidor. Tarda unos segundos.",
+      "START": "Preparar la instalación",
+      "RETRY": "Intentar de nuevo",
+      "PREPARING": "Estamos preparando la clave de este servidor. Unos segundos…",
+      "READY_WARNING": "Todo listo. Al mostrar el comando verás la clave de este servidor, y solo se muestra una vez: ten a mano el servidor donde lo vas a pegar.",
+      "READY_UNTIL": "Puedes pedirlo hasta las {{time}}.",
+      "SHOW": "Mostrar el comando",
+      "ONCE_WARNING": "Cópialo ahora. Contiene la clave de este servidor y no lo volveremos a mostrar. Si lo pierdes, genera uno nuevo.",
+      "COMMAND_IN": "Pega este comando en {{shell}}:",
+      "OR_FILE": "O descarga el archivo y ejecútalo en {{shell}}:",
+      "DOWNLOAD": "Descargar {{file}}",
+      "WAITING": "Esperando a que el servidor se conecte. Puede tardar un par de minutos después de ejecutar el comando.",
+      "ALREADY_SHOWN": "El comando ya se mostró y no se puede ver otra vez.",
+      "CONNECTED": "El servidor está conectado. Monkey ya puede recibir su información.",
+      "REGENERATE": "¿No alcanzaste a copiarlo? Generar un comando nuevo",
+      "REGENERATE_ARIA": "Confirmar un comando nuevo",
+      "REGENERATE_CONFIRM": "Se crea una clave nueva y la anterior deja de servir. Si ya ejecutaste el comando anterior en el servidor, tendrás que ejecutar el nuevo.",
+      "REGENERATE_YES": "Sí, generar uno nuevo",
+      "NOT_READY": "El comando ya se mostró o caducó. Genera uno nuevo para continuar.",
+      "UNAVAILABLE": "Esta instalación de Monkey todavía no está lista para conectar servidores. Avísale a tu contacto en Monkey.",
+      "IN_PROGRESS": "Ya estamos preparando la clave de este servidor. Espera unos segundos.",
+      "WAITING_AUTO": "Lo buscamos solos cada pocos minutos: no tienes que hacer nada más. Cuando se conecte, este estado cambia solo.",
+      "CHECK_NOW": "Comprobar ahora",
+      "CHECKING": "Comprobando…",
+      "CHECK_IN_PROGRESS": "Ya estamos comprobando este servidor. En un momento verás el resultado.",
+      "CHECK_FAILED": "No pudimos comprobar el servidor. Inténtalo de nuevo en unos minutos.",
+      "CHECK_SLOW": "La comprobación sigue en curso. Vuelve a mirar en unos minutos: si el servidor se conecta, este estado cambia solo.",
+      "LAST_REVIEW": "Última revisión: {{when}}",
+      "EXPIRED": "No vimos que el servidor se conectara en las últimas 24 horas. Revisa que el comando se ejecutó sin errores y que el servidor puede salir a {{host}}:{{port}}. Si no estás seguro, genera un comando nuevo.",
+      "DISCONNECTED": "El servidor dejó de reportar a Monkey. Revisa que esté encendido y que pueda salir a {{host}}:{{port}}. Cuando vuelva, se conecta solo.",
+      "ERROR": "No pudimos completar este paso. Inténtalo de nuevo."
     },
     "ASSETS": {
       "TITLE": "Activos de esta conexión",
