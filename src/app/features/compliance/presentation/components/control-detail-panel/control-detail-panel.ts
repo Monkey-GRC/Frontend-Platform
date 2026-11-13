@@ -9,13 +9,19 @@ import { SideDrawer } from '@shared/presentation/components/side-drawer/side-dra
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import type { UserRole } from '@core/domain/models/auth.models';
 import { Tag } from '@shared/presentation/components/tag/tag';
+import { Badge } from '@shared/presentation/components/badge/badge';
 import { readinessLook } from '@shared/domain/utils/readiness-look';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { controlStateTone } from '@features/compliance/domain/utils/control-state-look';
 import { ControlDetail, ControlDimension, UpdateControlBody } from '@features/compliance/domain/models/control.models';
 import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { ControlEvidence } from '../control-evidence/control-evidence';
 import { DetailCard } from '../detail-card/detail-card';
 import { ControlTests } from '../control-tests/control-tests';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -40,12 +46,14 @@ const UPLOADING_ROLES: readonly UserRole[] = ['admin_empresa', 'responsable', 'd
 // recalcula. Los errores 422 se muestran bajo cada campo. El dueño y el ejecutor del control (D102) llegan con MD-202, cuando el Backend los exponga.
 @Component({
   selector: 'app-control-detail-panel',
-  imports: [FormsModule, TranslatePipe, SideDrawer, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlTests, DetailCard],
+  imports: [Badge, FormsModule, TranslatePipe, SideDrawer, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlTests, DetailCard, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './control-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ControlDetailPanel {
   protected readonly readinessLook = readinessLook;
+  protected readonly controlStateTone = controlStateTone;
+  protected readonly labels = inject(EnumLabelService);
   private readonly api = inject(ControlService);
   private readonly translate = inject(TranslateService);
   readonly view = inject(ComplianceViewService);
@@ -199,6 +207,7 @@ export class ControlDetailPanel {
   }
 
   private save(body: UpdateControlBody): void {
+    if (this.saving()) return;
     this.saving.set(true);
     this.resetFeedback();
     this.api.update(this.controlId(), body, this.view.viewParam()).subscribe({

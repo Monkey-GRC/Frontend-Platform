@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { Badge } from '@shared/presentation/components/badge/badge';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
 import { RiskCauseNode, RiskDetail } from '@shared/domain/models/risk.models';
@@ -14,6 +15,7 @@ import { DetailCard } from '../detail-card/detail-card';
 import { LinkPicker, PickerItem } from '../link-picker/link-picker';
 import { RiskAssessment } from '../risk-assessment/risk-assessment';
 import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -21,7 +23,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // empresa puede vincular y quitar causas y dar de baja un riesgo propio; el resto de roles solo lee. La evaluación 5×5 y el tratamiento los trae `app-risk-assessment` (MD-123).
 @Component({
   selector: 'app-risk-detail-panel',
-  imports: [TranslatePipe, SideDrawer, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailCard],
+  imports: [Badge, TranslatePipe, SideDrawer, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailCard, Skeleton, SkeletonRegion],
   templateUrl: './risk-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

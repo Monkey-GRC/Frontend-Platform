@@ -1,11 +1,5 @@
 @switch (stage()) {
 
-@case ('loading') {
-<div class="flex flex-col items-center gap-3 py-8" role="status">
-  <app-loading-spinner />
-</div>
-}
-
 @case ('error') {
 <app-empty-state icon="" titleKey="COMPLIANCE.EVIDENCE_INBOX.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
   <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
@@ -18,7 +12,7 @@
     <app-option-chips filters [compact]="true" [options]="chips()" [selected]="[filter()]" labelKey="COMPLIANCE.EVIDENCE_INBOX.FILTER" (picked)="pick($event)" />
   </app-table-toolbar>
 
-  <app-data-table captionKey="COMPLIANCE.EVIDENCE_INBOX.TABLE_CAPTION" [columns]="columns" [rows]="visible()" [rowKey]="rowKey" [clickable]="true"
+  <app-data-table captionKey="COMPLIANCE.EVIDENCE_INBOX.TABLE_CAPTION" [columns]="columns" [rows]="visible()" [rowKey]="rowKey" [clickable]="true" [loading]="stage() === 'loading'"
     emptyIcon=""
     [emptyTitleKey]="filter() === 'all' ? 'COMPLIANCE.EVIDENCE_INBOX.EMPTY_TITLE' : 'COMPLIANCE.EVIDENCE_INBOX.EMPTY_FILTERED_TITLE'"
     [emptyDescriptionKey]="filter() === 'all' ? 'COMPLIANCE.EVIDENCE_INBOX.EMPTY_BODY' : 'COMPLIANCE.EVIDENCE_INBOX.EMPTY_FILTERED_BODY'"
@@ -29,7 +23,7 @@
       <div class="min-w-0">
         <p class="font-medium text-ink">{{ row.control.name }}</p>
         @if (row.control.code) {
-        <p class="mt-0.5 text-xs text-ink-muted">{{ row.control.code }}</p>
+        <p class="mt-1"><app-tag [text]="row.control.code" /></p>
         }
       </div>
     </ng-template>
@@ -37,8 +31,8 @@
     <ng-template appCell="evidence" let-row>
       <div class="min-w-0 text-sm">
         <p class="text-ink">{{ row.requirement.description }}</p>
-        <p class="mt-0.5 text-xs text-ink-muted">
-          <span class="font-mono">{{ row.requirement.code }}</span> · {{ labels.of('COMPLIANCE.DIMENSION', row.requirement.dimension) }}
+        <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
+          <app-tag [text]="row.requirement.code" /><span>{{ labels.of('COMPLIANCE.DIMENSION', row.requirement.dimension) }}</span>
         </p>
       </div>
     </ng-template>

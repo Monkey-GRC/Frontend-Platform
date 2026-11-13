@@ -10,9 +10,7 @@
 
   @switch (stage()) {
   @case ('loading') {
-  <p class="flex items-center gap-2 text-sm text-ink-muted" role="status">
-    <span class="material-symbols-rounded animate-spin text-[20px] text-action" aria-hidden="true">progress_activity</span>{{ 'COMMON.LOADING' | translate }}
-  </p>
+  <app-data-table captionKey="TEAM.GROUPS.PEOPLE_TITLE" [compact]="true" [hideHeader]="true" [columns]="columns" [rows]="[]" [rowKey]="memberKey" [loading]="true" [loadingRows]="3" />
   }
   @case ('error') {
   <p class="text-sm text-bad" data-test-members-load-error>
@@ -37,12 +35,12 @@
         </p>
 
         @if (movingId() === m.id) {
-        <div class="mt-3 flex flex-wrap items-end gap-3">
+        <div class="mt-3 flex flex-wrap items-end gap-3" [appBusyFields]="saving()">
           <div class="flex flex-col gap-1 text-xs font-medium text-ink-faint">
             <label for="member-move-target">{{ 'TEAM.GROUPS.MOVE_TO' | translate }}</label>
             <app-select inputId="member-move-target" data-test-move-target class="min-w-64" [options]="destinationOptions()" [value]="target()" [disabled]="saving()" placeholderKey="TEAM.GROUPS.MOVE_PICK" (valueChange)="target.set($event)" />
           </div>
-          <button type="button" (click)="move(m)" [disabled]="!target() || saving()" data-test-move-confirm class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.MOVE_SUBMIT' | translate }}</button>
+          <button type="button" (click)="move(m)" [disabled]="!target()" [appBusy]="saving()" data-test-move-confirm class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.MOVE_SUBMIT' | translate }}</button>
           <button type="button" (click)="cancelMove()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
         </div>
         }

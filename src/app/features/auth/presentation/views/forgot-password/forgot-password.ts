@@ -5,6 +5,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { AuthPageLayoutComponent } from '@core/presentation/pages/auth-page-layout/auth-page-layout.component';
 import { AuthService } from '@core/domain/services/auth.service';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 // Un correo pegado suele traer espacios al final: se valida ya recortado (el envío también lo recorta), para que no se rechace por algo que la persona no ve.
 const trimmedEmail: ValidatorFn = (control: AbstractControl): ValidationErrors | null => Validators.email({ value: String(control.value ?? '').trim() } as AbstractControl);
@@ -12,7 +14,7 @@ const trimmedEmail: ValidatorFn = (control: AbstractControl): ValidationErrors |
 // «Olvidé mi contraseña» (D101): el correo y nada más. La respuesta es la misma exista o no la cuenta, así que la pantalla tampoco lo dice.
 @Component({
   selector: 'app-forgot-password',
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, AuthPageLayoutComponent],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, AuthPageLayoutComponent, Busy, BusyFields],
   templateUrl: './forgot-password.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -27,6 +29,7 @@ export class ForgotPassword {
   readonly form = this.fb.nonNullable.group({ email: ['', [Validators.required, trimmedEmail]] });
 
   submit(): void {
+    if (this.loading()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

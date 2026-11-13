@@ -6,7 +6,6 @@ import { DataTable, TableCell, TableColumn } from '@shared/presentation/componen
 import { isCompanyAdmin } from '@shared/domain/utils/roles';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { Field } from '@shared/presentation/components/field/field';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
 import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
@@ -19,6 +18,7 @@ import { TeamService } from '@shared/domain/services/team.service';
 import { GroupMembers } from '../../components/group-members/group-members';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { Select, SelectOption } from '@shared/presentation/components/select/select';
+import { Busy } from '@shared/presentation/directives/busy';
 
 const MAX_NAME = 100;
 
@@ -29,7 +29,7 @@ const MAX_NAME = 100;
 // datos, el renombrado (administrador) y sus personas (con el movimiento de delegados).
 @Component({
   selector: 'app-team-groups',
-  imports: [TranslatePipe, GroupMembers, PageHeader, DataTable, TableCell, TableToolbar, TableFilter, FormModal, Field, EmptyState, LoadingSpinner, PersonCell, Select],
+  imports: [TranslatePipe, GroupMembers, PageHeader, DataTable, TableCell, TableToolbar, TableFilter, FormModal, Field, EmptyState, PersonCell, Select, Busy],
   templateUrl: './team-groups.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -71,7 +71,7 @@ export class TeamGroupsView implements OnInit {
   readonly columns: TableColumn<Group>[] = [
     { key: 'name', headerKey: 'TEAM.GROUPS.COLUMNS.NAME' },
     { key: 'kind', headerKey: 'TEAM.GROUPS.COLUMNS.KIND' },
-    { key: 'leader', headerKey: 'TEAM.GROUPS.COLUMNS.LEADER' },
+    { key: 'leader', headerKey: 'TEAM.GROUPS.COLUMNS.LEADER', skeleton: 'person' },
     { key: 'members', headerKey: 'TEAM.GROUPS.COLUMNS.MEMBERS', align: 'right' },
   ];
   readonly rowKey = (g: Group): string => g.id;
@@ -102,13 +102,13 @@ export class TeamGroupsView implements OnInit {
   });
 
   readonly leaderOptions = computed<SelectOption[]>(() => this.eligibleLeaders().map((m) => ({ value: m.id, label: this.personName(m) })));
-  readonly canCreateResponsablesGroup = computed(() => !!this.responsablesGroupName().trim() && !this.saving());
-  readonly canCreateTeam = computed(() => !!this.teamName().trim() && !!this.teamLeaderId() && !this.saving());
-  readonly canCreateOwnTeam = computed(() => !!this.ownTeamName().trim() && !this.saving());
+  readonly canCreateResponsablesGroup = computed(() => !!this.responsablesGroupName().trim());
+  readonly canCreateTeam = computed(() => !!this.teamName().trim() && !!this.teamLeaderId());
+  readonly canCreateOwnTeam = computed(() => !!this.ownTeamName().trim());
   readonly canRename = computed(() => {
     const draft = this.renameDraft().trim();
     const current = this.groups().find((g) => g.id === this.renamingId());
-    return !!draft && !!current && draft !== current.name && !this.saving();
+    return !!draft && !!current && draft !== current.name;
   });
 
   ngOnInit(): void {
@@ -169,11 +169,13 @@ export class TeamGroupsView implements OnInit {
 
   // ─── crear ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   createResponsablesGroup(): void {
+    if (this.saving()) return;
     if (!this.canCreateResponsablesGroup()) return;
     this.create({ name: this.responsablesGroupName().trim() }, () => this.responsablesGroupName.set(''));
   }
 
   createTeam(): void {
+    if (this.saving()) return;
     if (!this.canCreateTeam()) return;
     this.create({ name: this.teamName().trim(), leader_id: this.teamLeaderId() }, () => {
       this.teamName.set('');
@@ -183,11 +185,12 @@ export class TeamGroupsView implements OnInit {
 
   /** El responsable crea su equipo: no manda `leader_id` (es él). */
   createOwnTeam(): void {
-    if (!this.canCreateOwnTeam()) return;
+    if (!this.canCreateOwnTeam() || this.saving()) return;
     this.create({ name: this.ownTeamName().trim() }, () => this.ownTeamName.set(''));
   }
 
   private create(dto: CreateGroupDto, done: () => void): void {
+    if (this.saving()) return;
     this.saving.set(true);
     this.reset();
     this.groupApi.create(dto).subscribe({
@@ -215,7 +218,7 @@ export class TeamGroupsView implements OnInit {
 
   saveRename(): void {
     const id = this.renamingId();
-    if (!id || !this.canRename()) return;
+    if (!id || !this.canRename() || this.saving()) return;
     this.saving.set(true);
     this.reset();
     this.groupApi.rename(id, this.renameDraft().trim()).subscribe({

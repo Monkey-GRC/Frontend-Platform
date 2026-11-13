@@ -7,6 +7,7 @@ import { StatusIndicator, StatusTone } from '@shared/presentation/components/sta
 import { HomeTeamRole } from '@features/home/domain/models/team.models';
 import { HomeTeamService, MAX_PEOPLE } from '@features/home/domain/services/team-overview.service';
 import { SUMMARY_ROLES, TeamSummary, summarizeTeam } from '@features/home/domain/utils/team-summary';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 interface AccessRow {
   id: string;
@@ -23,7 +24,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // cuenta cuentas. La casilla de cada bloque es una columna del grid del padre (el host es `display: contents`).
 @Component({
   selector: 'app-team-blocks',
-  imports: [TranslatePipe, RouterLink, Card, EmptyState, StatusIndicator],
+  imports: [TranslatePipe, RouterLink, Card, EmptyState, StatusIndicator, Skeleton, SkeletonRegion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
   templateUrl: './team-blocks.html',

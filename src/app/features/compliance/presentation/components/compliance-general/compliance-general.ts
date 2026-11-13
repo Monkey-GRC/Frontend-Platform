@@ -30,10 +30,7 @@ interface Row {
     <p class="mt-1 text-sm text-ink-muted">{{ 'COMPLIANCE.ENTRY.GENERAL_BODY' | translate }}</p>
 
     @if (loading()) {
-      <div class="mt-6 flex justify-center py-10" role="status">
-        <span class="material-symbols-rounded animate-spin text-[28px] text-action" aria-hidden="true">progress_activity</span>
-        <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
-      </div>
+      <div class="mt-6"><app-data-table captionKey="COMPLIANCE.ENTRY.GENERAL_TABLE" [columns]="columns" [rows]="[]" [rowKey]="rowKey" [loading]="true" /></div>
     } @else {
       <!-- Una sola tabla agrupada por marco: cada fila es un servicio con su propio estado, avance y cobertura (nunca uno combinado). -->
       @if (rows().length) {
@@ -97,7 +94,7 @@ export class ComplianceGeneral implements OnInit {
 
   protected readonly columns: TableColumn<Row>[] = [
     { key: 'service', headerKey: 'COMPLIANCE.ENTRY.COL_SERVICE' },
-    { key: 'status', headerKey: 'COMPLIANCE.ENTRY.COL_STATUS' },
+    { key: 'status', headerKey: 'COMPLIANCE.ENTRY.COL_STATUS', skeleton: 'badge' },
     { key: 'progress', headerKey: 'COMPLIANCE.ENTRY.COL_PROGRESS' },
   ];
   protected readonly plainColumns: TableColumn<ComplianceServiceRef>[] = [{ key: 'service', headerKey: 'COMPLIANCE.ENTRY.COL_SERVICE' }];

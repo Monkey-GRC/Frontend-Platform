@@ -1,9 +1,5 @@
 @switch (stage()) {
 
-@case ('loading') {
-<app-loading-spinner />
-}
-
 @case ('forbidden') {
 <app-empty-state icon="" titleKey="COMPLIANCE.EXCLUSIONS.FORBIDDEN_TITLE" descriptionKey="COMPLIANCE.EXCLUSIONS.FORBIDDEN_BODY" />
 }
@@ -21,7 +17,7 @@
   </app-table-toolbar>
 
   <div data-test-list>
-    <app-data-table captionKey="COMPLIANCE.EXCLUSIONS.TABLE" [columns]="columns" [rows]="items()" [rowKey]="byId">
+    <app-data-table captionKey="COMPLIANCE.EXCLUSIONS.TABLE" [columns]="columns" [rows]="items()" [rowKey]="byId" [loading]="stage() === 'loading'">
       <ng-template appCell="test" let-e>
         <span class="block font-medium text-ink">{{ e.test.display_name }}</span>
         <span class="block text-xs text-ink-muted">{{ 'COMPLIANCE.EXCLUSIONS.ASSET' | translate: { name: e.asset.name } }}</span>

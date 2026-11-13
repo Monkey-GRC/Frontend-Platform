@@ -1,21 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+import type { StatusTone } from '@shared/domain/models/status-tone.model';
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { Badge } from '../badge/badge';
 
-// Nivel de un riesgo en la matriz 5×5: Bajo 1–4 · Moderado 5–9 · Alto 10–16 · Crítico 17–25 (enums.md `risk_level`). La escala tiene sus propios tokens de color
-// (`risk-low|moderate|high|critical`, con su fondo y su tinta: no son los de estado `ok|warn|bad`) y el nivel nunca va solo en color: la etiqueta lleva su palabra y no lleva icono.
-// Un riesgo sin evaluar (`null`) no es «bajo»: es que la empresa aún no lo evalúa, y se pinta neutro con borde punteado.
-const LOOKS: Record<string, string> = {
-  low: 'border-risk-low/30 bg-risk-low-bg text-risk-low-ink',
-  moderate: 'border-risk-moderate/50 bg-risk-moderate-bg text-risk-moderate-ink',
-  high: 'border-risk-high/30 bg-risk-high-bg text-risk-high-ink',
-  critical: 'border-risk-critical/30 bg-risk-critical-bg text-risk-critical-ink',
-};
-const UNEVALUATED = 'border-dashed border-neutral bg-transparent text-ink-muted';
+// Nivel de un riesgo en la matriz 5×5: Bajo 1–4 · Moderado 5–9 · Alto 10–16 · Crítico 17–25 (enums.md `risk_level`). Se pinta con `app-badge` de estado y el tono de la escala
+// de riesgo (`risk-low|moderate|high|critical`, con sus tokens: no son los de estado `ok|warn|bad`); el nivel nunca va solo en color: el badge lleva su palabra.
+// Un riesgo sin evaluar (`null`) no es «bajo»: es que la empresa aún no lo evalúa, y se pinta neutro.
+const TONES: Record<string, StatusTone> = { low: 'risk-low', moderate: 'risk-moderate', high: 'risk-high', critical: 'risk-critical' };
 
-/** Las clases de color de un nivel; un riesgo sin evaluar (o un nivel desconocido) sale neutro. */
-export function riskLevelLook(level: string | null | undefined): string {
-  return LOOKS[level ?? ''] ?? UNEVALUATED;
+/** El tono de un nivel; un riesgo sin evaluar (o un nivel desconocido) sale neutro. */
+export function riskLevelTone(level: string | null | undefined): StatusTone {
+  return TONES[level ?? ''] ?? 'neutral';
 }
 
 // El mapa de calor (de lo mejor a lo peor, con los tokens de la escala de riesgo). Cada casilla tiene dos tonos: el suave pinta la casilla vacía y el intenso la que tiene
@@ -35,20 +31,21 @@ export function riskLevelHeat(level: string | null | undefined): { soft: string;
 
 @Component({
   selector: 'app-risk-level-badge',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Badge],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'inline-flex max-w-full align-middle' },
   template: `
-    <span class="inline-flex items-center whitespace-nowrap rounded-control border px-2 py-0.5 text-xs font-medium" [class]="look()" [attr.data-level]="level() ?? 'none'">
+    <app-badge kind="status" size="sm" [tone]="tone()" [attr.data-level]="level() ?? 'none'">
       @if (level(); as l) {
         {{ labels.of('COMPLIANCE.RISK_LEVEL', l) }}
       } @else {
         {{ 'COMPLIANCE.RISKS.NOT_EVALUATED' | translate }}
       }
-    </span>
+    </app-badge>
   `,
 })
 export class RiskLevelBadge {
   protected readonly labels = inject(EnumLabelService);
   readonly level = input<string | null | undefined>(null);
-  protected readonly look = computed(() => riskLevelLook(this.level()));
+  protected readonly tone = computed(() => riskLevelTone(this.level()));
 }

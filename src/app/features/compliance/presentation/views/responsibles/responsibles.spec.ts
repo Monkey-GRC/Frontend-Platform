@@ -2,7 +2,7 @@ import { COMPLIANCE_OPTIONS, provideCatalogStub } from '@shared/testing/catalog-
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { Responsible } from '@shared/domain/models/risk.models';
 import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
@@ -101,6 +101,40 @@ describe('ResponsiblesView', () => {
     expect(api.list).toHaveBeenCalledTimes(2);
     expect(text()).toContain('COMPLIANCE.RESPONSIBLES.CREATED');
     expect(el().querySelector('app-form-modal [role="dialog"]')).toBeNull(); // the modal closes once saved
+  });
+
+  it('while the list loads it shows the table skeleton, not a spinner', () => {
+    setup('admin_empresa', []);
+    TestBed.resetTestingModule();
+    api = jasmine.createSpyObj<ResponsibleService>('ResponsibleService', ['list']);
+    api.list.and.returnValue(new Subject<Responsible[]>());
+    TestBed.configureTestingModule({ imports: [ResponsiblesView], providers: [provideCatalogStub(), provideTranslateService({ fallbackLang: 'es' }), { provide: ResponsibleService, useValue: api }] });
+    TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role: 'admin_empresa' }, { id: 'c', name: 'ACME' });
+    fixture = TestBed.createComponent(ResponsiblesView);
+    fixture.detectChanges();
+    expect(el().querySelector('table')?.getAttribute('aria-busy')).toBe('true');
+    expect(el().querySelector('app-loading-spinner')).toBeNull();
+  });
+
+  it('keeps the add action busy (and the fields read-only) until the API answers, and clears it on error', () => {
+    setup('admin_empresa');
+    const pending = new Subject<Responsible>();
+    api.create.and.returnValue(pending);
+    openDrawer();
+    type('[data-test-type]', 'coo');
+    type('[data-test-name]', 'Luisa Mejía');
+    click('[data-test-add]');
+    const add = () => el().querySelector<HTMLButtonElement>('[data-test-add]')!;
+    expect(add().getAttribute('aria-busy')).toBe('true');
+    expect(add().getAttribute('aria-disabled')).toBe('true');
+    expect(add().hasAttribute('data-app-busy')).toBeTrue();
+    expect(el().querySelector('[data-test-name]')!.hasAttribute('readonly')).toBeTrue();
+    click('[data-test-add]');
+    expect(api.create).toHaveBeenCalledTimes(1);
+    pending.error(new HttpErrorResponse({ status: 409, error: { message: 'Ya existe.' } }));
+    fixture.detectChanges();
+    expect(add().getAttribute('aria-busy')).toBeNull();
+    expect(text()).toContain('Ya existe.');
   });
 
   it('shows the message of the server when the role already exists', () => {

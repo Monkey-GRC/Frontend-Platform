@@ -100,7 +100,6 @@ export class TeamInviteForm {
       !!this.name().trim() &&
       !!this.lastName().trim() &&
       !this.existing() &&
-      !this.saving() &&
       (this.role() !== 'delegado' || (this.groupsLoaded() && this.isInternal() !== null && !this.noTeam() && (this.actor() === 'responsable' || !!this.groupId()))),
   );
 
@@ -126,7 +125,7 @@ export class TeamInviteForm {
   }
 
   submit(): void {
-    if (!this.canSubmit()) return;
+    if (!this.canSubmit() || this.saving()) return;
     const role = this.role();
     const body: InviteDto = { email: this.email().trim(), name: this.name().trim(), last_name: this.lastName().trim(), role };
     if (role === 'delegado') {

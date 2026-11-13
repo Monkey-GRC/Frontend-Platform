@@ -1,5 +1,5 @@
-<!-- El asistente de riesgos (D93) usa todo el ancho; el resto del alta, una columna angosta. -->
-<section class="w-full pb-10" [class.max-w-3xl]="!wide()">
+<!-- El asistente de riesgos (D93) usa todo el ancho; el resto (carga, error, resultado), una columna angosta centrada en el panel (mx-auto: sin él queda pegada a la izquierda). -->
+<section class="mx-auto w-full pb-10" [class.max-w-3xl]="!wide()">
 <div class="lg:flex lg:min-h-[calc(100dvh-10rem)] lg:flex-col">
 
   @if (needsCompany()) {
@@ -27,15 +27,13 @@
 
   <!-- ===================== Cargando ===================== -->
   @case ('loading') {
-  <div class="space-y-4 animate-pulse" aria-busy="true" [attr.aria-label]="'COMMON.LOADING' | translate">
-    <div class="h-4 w-40 rounded bg-tint-strong"></div>
-    <div class="h-2 w-full rounded-full bg-tint-strong"></div>
-    <div class="py-8">
-      <div class="h-7 w-2/3 rounded bg-tint-strong"></div>
-      <div class="mt-3 h-4 w-1/2 rounded bg-canvas"></div>
-      <div class="mt-5 h-28 rounded-control bg-canvas"></div>
+  <app-skeleton-region data-service-form-loading>
+    <div class="space-y-4">
+      <app-skeleton shape="line" width="10rem" />
+      <app-skeleton shape="block" height="0.5rem" />
+      <div class="space-y-4 py-8"><app-skeleton shape="title" width="66%" /><app-skeleton shape="line" width="50%" /><app-skeleton shape="field" /><app-skeleton shape="field" /><app-skeleton shape="field" /></div>
     </div>
-  </div>
+  </app-skeleton-region>
   }
 
   <!-- ===================== Error al cargar ===================== -->
@@ -49,19 +47,9 @@
   @case ('risks') {
   <!-- D89 · La cadena de declarar un servicio: crear → evaluar sus riesgos → declarar sus activos. Se evalúa aquí mismo, sin salir de la pantalla de crear el servicio. -->
   <div class="w-full py-2 md:py-3">
-    <ol class="flex items-center gap-2 text-xs font-medium sm:text-sm" [attr.aria-label]="'SERVICES.FORM.CHAIN_LABEL' | translate" data-chain>
-      <li class="inline-flex items-center gap-1.5 text-ok-ink">
-        <span class="flex h-5 w-5 items-center justify-center rounded-control border border-ok text-[11px] font-bold" aria-hidden="true">1</span>{{ 'SERVICES.FORM.CHAIN_CREATE' | translate }}
-      </li>
-      <li class="h-px w-6 bg-line" aria-hidden="true"></li>
-      <li class="inline-flex items-center gap-1.5 text-action" aria-current="step">
-        <span class="flex h-5 w-5 items-center justify-center rounded-control bg-action text-[11px] font-bold text-white" aria-hidden="true">2</span>{{ 'SERVICES.FORM.CHAIN_RISKS' | translate }}
-      </li>
-      <li class="h-px w-6 bg-line" aria-hidden="true"></li>
-      <li class="inline-flex items-center gap-1.5 text-ink-faint">
-        <span class="flex h-5 w-5 items-center justify-center rounded-control border border-line text-[11px] font-bold" aria-hidden="true">3</span>{{ 'SERVICES.FORM.CHAIN_ASSETS' | translate }}
-      </li>
-    </ol>
+    <div class="max-w-md" data-chain>
+      <app-stepper [steps]="chainSteps" [current]="2" [ariaLabel]="'SERVICES.FORM.CHAIN_LABEL' | translate" />
+    </div>
     <h1 class="mt-3 text-xl font-semibold text-ink">{{ 'SERVICES.FORM.RISKS_TITLE' | translate: { name: saved()?.name } }}</h1>
     <p class="mt-0.5 text-sm text-ink-muted">{{ 'SERVICES.FORM.RISKS_INTRO' | translate }}</p>
     @if (saved(); as s) {
@@ -73,42 +61,42 @@
   }
 
   @case ('done') {
-  <div class="py-12 text-center md:py-16">
-    <h1 class="mt-4 text-2xl font-semibold text-ink md:text-3xl">
-      {{ (editing() ? 'SERVICES.FORM.DONE_UPDATED' : 'SERVICES.FORM.DONE_CREATED') | translate }}
-    </h1>
-    <p class="mx-auto mt-3 max-w-md text-sm text-ink-faint md:text-base">
-      <strong class="text-ink">{{ saved()?.name }}</strong>
-      {{ (editing() ? 'SERVICES.FORM.DONE_UPDATED_BODY' : 'SERVICES.FORM.DONE_CREATED_BODY') | translate }}
-    </p>
+  <div class="flex min-h-[60dvh] flex-1 items-center justify-center py-8" data-service-done>
+    <div class="flex w-full max-w-lg flex-col items-center text-center">
+      <span class="material-symbols-rounded text-[44px] text-ok-ink" aria-hidden="true">check_circle</span>
+      <h1 class="mt-3 text-2xl font-semibold text-ink md:text-3xl">
+        {{ (editing() ? 'SERVICES.FORM.DONE_UPDATED' : 'SERVICES.FORM.DONE_CREATED') | translate }}
+      </h1>
+      <p class="mt-2 max-w-md text-sm text-ink-muted md:text-base">
+        <strong class="font-semibold text-ink">{{ saved()?.name }}</strong>
+        {{ (editing() ? 'SERVICES.FORM.DONE_UPDATED_BODY' : 'SERVICES.FORM.DONE_CREATED_BODY') | translate }}
+      </p>
 
-    @if (saved(); as s) {
-    <dl class="mx-auto mt-5 grid max-w-md grid-cols-2 gap-3 text-left">
-      <div class="rounded-control bg-canvas p-4">
-        <dt class="text-xs text-ink-faint">{{ 'SERVICES.FORM.REQUIREMENTS' | translate }}</dt>
-        <dd class="mt-1 text-2xl font-semibold text-ink">{{ s.catalog.applicable_requirements }}</dd>
+      @if (saved(); as s) {
+      <dl class="mt-8 grid w-full grid-cols-1 gap-3 text-left sm:grid-cols-2">
+        <app-card tinted>
+          <dt class="text-sm text-ink-muted">{{ 'SERVICES.FORM.REQUIREMENTS' | translate }}</dt>
+          <dd class="mt-2 text-3xl font-semibold tabular-nums text-action">{{ s.catalog.applicable_requirements }}</dd>
+        </app-card>
+        <app-card tinted>
+          <dt class="text-sm text-ink-muted">{{ 'SERVICES.FORM.CONTROLS_READY' | translate }}</dt>
+          <dd class="mt-2 text-3xl font-semibold tabular-nums text-action">{{ s.catalog.cloned_controls }}</dd>
+        </app-card>
+      </dl>
+      <p class="mt-4 max-w-md text-xs text-ink-muted">
+        {{ 'SERVICES.FORM.OWN_COPY' | translate }}
+      </p>
+      }
+
+      <div class="mt-8 flex flex-col-reverse items-center justify-center gap-3 sm:flex-row">
+        <button type="button" (click)="addAnother()" class="mk-btn-secondary">
+          {{ 'SERVICES.FORM.DECLARE_ANOTHER' | translate }}
+        </button>
+        <!-- D89 · Un servicio nuevo no llega aquí: al crearlo se va directo a evaluar sus riesgos (postSaveRoute). Esta pantalla es de la edición. -->
+        <a routerLink="/" class="mk-btn">
+          {{ 'COMMON.CONTINUE' | translate }}
+        </a>
       </div>
-      <div class="rounded-control bg-canvas p-4">
-        <dt class="text-xs text-ink-faint">{{ 'SERVICES.FORM.CONTROLS_READY' | translate }}</dt>
-        <dd class="mt-1 text-2xl font-semibold text-ink">{{ s.catalog.cloned_controls }}</dd>
-      </div>
-    </dl>
-    <p class="mx-auto mt-4 max-w-md text-xs text-ink-faint">
-      {{ 'SERVICES.FORM.OWN_COPY' | translate }}
-    </p>
-    }
-
-
-    <div class="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-      <!-- D89 · Un servicio nuevo no llega aquí: al crearlo se va directo a evaluar sus riesgos (postSaveRoute). Esta pantalla es de la edición. -->
-      <a routerLink="/"
-        class="mk-btn">
-        {{ 'COMMON.CONTINUE' | translate }}
-      </a>
-      <button type="button" (click)="addAnother()"
-        class="mk-btn-secondary">
-        {{ 'SERVICES.FORM.DECLARE_ANOTHER' | translate }}
-      </button>
     </div>
   </div>
   }
@@ -127,40 +115,22 @@
         <span class="font-medium text-ink">{{ 'SERVICES.FORM.STEP_OF' | translate: { current: step() + 1, total: steps.length + 1 } }}</span>
         <span class="text-ink-muted lg:hidden">{{ (step() < reviewStep ? steps[step()].labelKey : 'COMMON.WIZARD.REVIEW') | translate }}</span>
       </div>
-      <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-tint-strong" role="progressbar"
+      <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-tint-strong lg:hidden" role="progressbar"
         [attr.aria-valuenow]="step() + 1" aria-valuemin="1" [attr.aria-valuemax]="steps.length + 1">
         <div class="h-full rounded-full bg-action transition-all duration-500"
           [style.width.%]="((step() + 1) / (steps.length + 1)) * 100"></div>
       </div>
-      <ol class="mt-4 hidden flex-col gap-1 lg:flex">
-        @for (s of steps; track s.key; let i = $index) {
-        <li>
-          <button type="button" (click)="i < step() ? goTo(i) : null" [disabled]="i >= step() || stage() === 'saving'" [attr.data-rail-step]="i"
-            [attr.aria-current]="i === step() ? 'step' : null"
-            class="flex w-full items-center gap-3 rounded-control px-1.5 py-1.5 text-left text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action/40 enabled:hover:bg-tint disabled:cursor-not-allowed disabled:text-ink-faint"
-            [class]="i === step() ? 'font-semibold text-action' : i < step() ? 'text-ink' : 'text-ink-muted'">
-            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border text-xs transition"
-              [class]="i < step() ? 'border-action bg-action text-white' : i === step() ? 'border-action bg-tint text-tint-ink' : 'border-line bg-surface'">{{ i + 1 }}</span>
-            {{ s.labelKey | translate }}
-          </button>
-        </li>
-        }
-        <li>
-          <span class="flex items-center gap-3 px-1.5 py-1.5 text-sm" [attr.aria-current]="step() === reviewStep ? 'step' : null"
-            [class]="step() === reviewStep ? 'font-semibold text-action' : 'text-ink-muted'">
-            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border text-xs"
-              [class]="step() === reviewStep ? 'border-action bg-tint text-tint-ink' : 'border-line bg-surface'">{{ steps.length + 1 }}</span>
-            {{ 'COMMON.WIZARD.REVIEW' | translate }}
-          </span>
-        </li>
-      </ol>
+      <div class="mt-5 hidden lg:block" data-rail-stepper>
+        <app-stepper orientation="vertical" [steps]="railSteps" [current]="step() + 1" [navigable]="true" [disabled]="stage() === 'saving'"
+          [ariaLabel]="'SERVICES.FORM.RAIL_TITLE' | translate" (stepSelected)="goTo($event)" />
+      </div>
       @if (!editing() && step() < reviewStep) {
       <p class="mt-4 hidden pt-4 text-xs text-ink-muted lg:mt-auto lg:block">{{ 'COMMON.WIZARD.PROGRESS_SAVED' | translate }}
       </p>
       }
     </div>
   </aside>
-  <div class="flex min-w-0 flex-col">
+  <div class="flex min-w-0 flex-col" [appBusyFields]="stage() === 'saving'">
 
     <!-- El contenido del paso: los pasos con poca información se centran (en horizontal y en vertical) en vez de quedar arriba a la izquierda; el primero y la revisión ocupan todo el alto -->
     <div [class]="step() === 0 ? 'flex flex-col lg:flex-1' : step() === reviewStep ? 'lg:flex-1' : 'mx-auto my-auto w-full max-w-5xl py-6 ' + (step() === 1 || step() === 2 ? 'text-center [&>div:first-child]:flex-col [&>div:first-child]:items-center [&_[role=group]]:justify-center' : '')">
@@ -576,7 +546,7 @@
             <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_INDUSTRIES' | translate }}</dt>
             <dd class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
             @for (item of pillsOf(cat.industries, draft().industries_served); track item.value) {
-              <span class="rounded-control bg-canvas px-2.5 py-1 text-xs font-medium text-ink-muted">{{ item.label }}</span>
+              <app-badge kind="attribute" [value]="item.value">{{ item.label }}</app-badge>
             } @empty { <span class="text-sm font-medium text-ink-faint">{{ 'SERVICES.FORM.FIELD_EMPTY' | translate }}</span> }
             </dd>
           </div>
@@ -723,15 +693,8 @@
         {{ (step() === steps.length - 1 ? 'COMMON.WIZARD.REVIEW' : 'COMMON.NEXT') | translate }}
       </button>
       } @else {
-      <button type="button" (click)="save()" [disabled]="stage() === 'saving' || !allValid()"
-        class="mk-btn">
-        @if (stage() === 'saving') {
-        <span class="material-symbols-rounded animate-spin text-[20px] leading-none" aria-hidden="true">progress_activity</span>
-        {{ (editing() ? 'COMMON.WIZARD.SAVING' : 'SERVICES.FORM.PREPARING_CATALOG') | translate }}
-        } @else {
-        {{ (editing() ? 'COMMON.WIZARD.SAVE_CHANGES' : 'SERVICES.FORM.SAVE_AND_PREPARE') | translate }}
-        }
-      </button>
+      <button type="button" (click)="save()" [disabled]="!allValid()" [appBusy]="stage() === 'saving'" [busyLabel]="(editing() ? 'COMMON.WIZARD.SAVING' : 'SERVICES.FORM.PREPARING_CATALOG') | translate"
+        class="mk-btn">{{ (editing() ? 'COMMON.WIZARD.SAVE_CHANGES' : 'SERVICES.FORM.SAVE_AND_PREPARE') | translate }}</button>
       }
     </div>
   </div>

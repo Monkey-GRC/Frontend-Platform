@@ -10,6 +10,8 @@ import { AuthService } from '@core/domain/services/auth.service';
 import { CatalogOption, FrameworkOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { Card } from '@shared/presentation/components/card/card';
+import { Stepper, StepperItem } from '@shared/presentation/components/stepper/stepper';
 import { Modal } from '@shared/presentation/components/modal/modal';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import {
@@ -28,6 +30,10 @@ import { ServiceDraftService } from '@features/services/domain/services/service-
 import { ServiceService } from '@shared/domain/services/service.service';
 import { RiskWizard } from '@shared/presentation/components/risk-wizard/risk-wizard';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Badge } from '@shared/presentation/components/badge/badge';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 interface Catalogs {
   type: CatalogOption[];
@@ -97,7 +103,7 @@ type SubserviceTextKey = 'service_provided' | 'responsibility';
 
 @Component({
   selector: 'app-service-form',
-  imports: [OptionChips, RouterLink, TranslatePipe, RiskWizard, EmptyState, Modal],
+  imports: [Badge, OptionChips, RouterLink, TranslatePipe, RiskWizard, EmptyState, Modal, Stepper, Card, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './service-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -114,6 +120,8 @@ export class ServiceFormView implements OnInit {
   private readonly language = inject(LanguageService);
 
   readonly steps = STEPS;
+  readonly railSteps: StepperItem[] = [...STEPS.map((s) => ({ label: s.labelKey })), { label: 'COMMON.WIZARD.REVIEW' }];
+  readonly chainSteps: StepperItem[] = [{ label: 'SERVICES.FORM.CHAIN_CREATE' }, { label: 'SERVICES.FORM.CHAIN_RISKS' }, { label: 'SERVICES.FORM.CHAIN_ASSETS' }];
   readonly reviewStep = REVIEW_STEP;
   readonly textMax = TEXT_MAX;
   readonly criterionInfo = CRITERION_INFO;
@@ -422,6 +430,7 @@ export class ServiceFormView implements OnInit {
   // ---------- guardar ----------
 
   save(): void {
+    if (this.stage() === 'saving') return;
     if (!this.allValid()) {
       // No debería pasar (la revisión solo se alcanza con todo contestado), pero se protege.
       const firstPending = STEPS.findIndex((_, i) => !this.isStepValid(i, this.draft()));

@@ -78,7 +78,8 @@ describe('ControlsListView', () => {
     fixture.detectChanges();
     expect(view.columns()[0].key).toBe('code');
     expect(text()).toContain('IAC-12');
-    expect(text()).toContain('CC6.1, CC6.2');
+    expect(text()).toContain('CC6.1');
+    expect(text()).toContain('CC6.2');
   });
 
   it('shows compliance and coverage as percentages together with the counts, truncated and never a bare number', () => {

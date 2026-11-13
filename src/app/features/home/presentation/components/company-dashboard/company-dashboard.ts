@@ -16,6 +16,7 @@ import { HomeDashboardService } from '@features/home/domain/services/dashboard.s
 import { isCompanyAdmin } from '@shared/domain/utils/roles';
 import { ServiceCard } from '../service-card/service-card';
 import { TeamBlocks } from '../team-blocks/team-blocks';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -31,7 +32,7 @@ const PAGE_SIZES = [10, 25, 50];
 // empresa: el cumplimiento se mide por servicio × marco. Hoy solo el administrador de la empresa lee los servicios (B1), así que solo a él se le muestra.
 @Component({
   selector: 'app-company-dashboard',
-  imports: [TranslatePipe, RouterLink, Card, Tag, EmptyState, DataTable, TableCell, ServiceCard, TeamBlocks],
+  imports: [TranslatePipe, RouterLink, Card, Tag, EmptyState, DataTable, TableCell, ServiceCard, TeamBlocks, Skeleton, SkeletonRegion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './company-dashboard.html',
 })

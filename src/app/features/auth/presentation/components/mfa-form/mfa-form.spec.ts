@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks, tick } from '@an
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { AuthPayloadWithRecovery, MfaSetupStart } from '@core/domain/models/auth.models';
 import { AuthService } from '@core/domain/services/auth.service';
 import { MfaForm } from './mfa-form';
@@ -26,6 +26,31 @@ describe('MfaForm · activar el segundo factor, QR y códigos de recuperación',
     });
     fixture = TestBed.createComponent(MfaForm);
     fixture.detectChanges();
+  });
+
+  describe('ocupado (D116)', () => {
+    it('keeps the button busy until the answer arrives and clears it on error, showing the error', () => {
+      const pending = new Subject<MfaSetupStart>();
+      auth.startMfaSetup.and.returnValue(pending);
+      const button = () => el().querySelector<HTMLButtonElement>('button.mk-btn')!;
+      button().click();
+      fixture.detectChanges();
+      expect(component().loading()).toBeTrue();
+      expect(button().getAttribute('aria-busy')).toBe('true');
+      expect(button().getAttribute('aria-disabled')).toBe('true');
+      expect(button().hasAttribute('data-app-busy')).toBeTrue();
+      button().click();
+      expect(auth.startMfaSetup).toHaveBeenCalledTimes(1);
+      pending.error({ status: 500 });
+      fixture.detectChanges();
+      expect(component().loading()).toBeFalse();
+      expect(button().getAttribute('aria-busy')).toBeNull();
+      expect(component().errorMessage()).toBeTruthy();
+    });
+
+    it('does not use a hand-made spinner', () => {
+      expect(el().querySelector('.animate-spin')).toBeNull();
+    });
   });
 
   describe('activar', () => {

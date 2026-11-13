@@ -6,6 +6,8 @@ import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { CodeLookup } from '@core/domain/models/auth.models';
 import { passwordsMatch, STRONG_PASSWORD } from '@shared/domain/utils/password-rules';
 import { NewPasswordFields } from '@shared/presentation/components/new-password-fields/new-password-fields';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 import { AuthService } from '@core/domain/services/auth.service';
 import { postLoginPath } from '@core/domain/utils/post-login-path';
 
@@ -18,7 +20,7 @@ type FieldName = 'code' | 'password' | 'password_confirmation';
 // La cuenta se identifica por su correo: no se pide nombre ni apellido.
 @Component({
   selector: 'app-register-form',
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, NewPasswordFields],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, NewPasswordFields, Busy, BusyFields],
   templateUrl: './register-form.html',
   styleUrl: './register-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,6 +58,7 @@ export class RegisterForm {
 
   // Paso 1: comprueba el código. No lo gasta: solo trae la empresa y el correo.
   continue(): void {
+    if (this.loading()) return;
     if (this.codeForm.invalid) {
       this.codeForm.markAllAsTouched();
       return;
@@ -88,6 +91,7 @@ export class RegisterForm {
 
   // Paso 2: crea la cuenta con la contraseña. El correo es el que quedó fijado, no se edita.
   submit(): void {
+    if (this.loading()) return;
     const found = this.lookup();
     if (!found) return;
     if (this.passwordForm.invalid) {
@@ -103,14 +107,12 @@ export class RegisterForm {
       .claimAccount(found, this.codeForm.getRawValue().code.trim(), this.passwordForm.getRawValue().password)
       .subscribe({
         next: (outcome) => {
-          this.loading.set(false);
-          if (outcome.kind === 'mfa') {
-            this.router.navigateByUrl('/mfa', { replaceUrl: true });
-            return;
-          }
-          const payload = outcome.payload;
-          // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
-          this.router.navigateByUrl(postLoginPath(payload.user.role, payload.onboarding), { replaceUrl: true });
+          // Ocupado hasta que termina la navegación (D116).
+          const url = outcome.kind === 'mfa' ? '/mfa' : postLoginPath(outcome.payload.user.role, outcome.payload.onboarding);
+          this.router.navigateByUrl(url, { replaceUrl: true }).then(
+            () => this.loading.set(false),
+            () => this.loading.set(false),
+          );
         },
         error: (error) => {
           this.loading.set(false);

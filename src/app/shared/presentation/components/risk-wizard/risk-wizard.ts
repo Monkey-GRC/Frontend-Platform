@@ -7,7 +7,9 @@ import { catchError, of } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { Modal } from '@shared/presentation/components/modal/modal';
 import { Tag } from '@shared/presentation/components/tag/tag';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 import { RiskDetail, RiskListItem, RiskMatrixData } from '@shared/domain/models/risk.models';
 import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
@@ -45,7 +47,7 @@ const byCode = (a: RiskListItem, b: RiskListItem) => a.code.localeCompare(b.code
 // También se puede agregar un riesgo propio y elegir sus causas. La pestaña Riesgos de Cumplimiento queda para ver y corregir esas calificaciones después.
 @Component({
   selector: 'app-risk-wizard',
-  imports: [NgTemplateOutlet, TranslatePipe, LoadingSpinner, Modal, Tag, RiskLevelBadge, RiskMatrix, RiskForm, RiskCausesPicker],
+  imports: [NgTemplateOutlet, TranslatePipe, Skeleton, SkeletonRegion, Busy, BusyFields, Modal, Tag, RiskLevelBadge, RiskMatrix, RiskForm, RiskCausesPicker],
   templateUrl: './risk-wizard.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -94,7 +96,7 @@ export class RiskWizard {
 
   readonly current = computed(() => this.risks()[this.index()] ?? null);
   readonly progress = computed(() => riskProgress(this.risks()));
-  readonly canSave = computed(() => this.likelihood() !== null && this.impact() !== null && !this.saving());
+  readonly canSave = computed(() => this.likelihood() !== null && this.impact() !== null);
   /** ¿Guardar este es lo último que falta? Cambia el texto del botón. */
   readonly closesTheStep = computed(() => {
     const c = this.current();

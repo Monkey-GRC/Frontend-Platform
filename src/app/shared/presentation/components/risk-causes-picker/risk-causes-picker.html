@@ -11,7 +11,11 @@
   </div>
 
   @switch (stage()) {
-  @case ('loading') { <app-loading-spinner /> }
+  @case ('loading') {
+  <app-skeleton-region data-causes-loading>
+    <div class="grid gap-1.5 xl:grid-cols-2"><app-skeleton shape="block" height="3.5rem" /><app-skeleton shape="block" height="3.5rem" /><app-skeleton shape="block" height="3.5rem" /><app-skeleton shape="block" height="3.5rem" /></div>
+  </app-skeleton-region>
+  }
   @case ('error') {
   <div class="py-8 text-center">
     <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.RISK_WIZARD.CAUSES_LOAD_ERROR' | translate }}</p>
@@ -39,8 +43,8 @@
         <input type="checkbox" class="mk-checkbox mt-0.5" [checked]="isLinked(c.id)" [disabled]="busy().has(c.id)" (change)="toggle(c)" [attr.data-cause]="c.id" />
         <span class="min-w-0">
           <span class="flex flex-wrap items-center gap-x-2">
-            <span class="font-mono text-xs font-semibold text-ink-muted">{{ c.code }}</span>
-            <span class="text-xs text-ink-muted">{{ labels.of('COMPLIANCE.FAILURE_CATEGORY', c.failure_category) }}</span>
+            <app-tag [text]="c.code" />
+            <app-badge kind="attribute" size="sm" [value]="c.failure_category">{{ labels.of('COMPLIANCE.FAILURE_CATEGORY', c.failure_category) }}</app-badge>
           </span>
           <span class="block text-ink">{{ c.name }}</span>
         </span>

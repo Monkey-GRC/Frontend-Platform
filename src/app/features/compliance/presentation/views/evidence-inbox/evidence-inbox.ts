@@ -6,8 +6,8 @@ import { DataTable, TableCell, TableColumn } from '@shared/presentation/componen
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
+import { Tag } from '@shared/presentation/components/tag/tag';
 import { bindInsight } from '@features/compliance/domain/services/compliance-context.service';
 import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 import { ControlListItem } from '@features/compliance/domain/models/control.models';
@@ -34,7 +34,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // Hoy lo ve el administrador de la empresa; el detalle por rol espera a los permisos por pantalla (P3).
 @Component({
   selector: 'app-evidence-inbox',
-  imports: [TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, EmptyState, StatusIndicator, LoadingSpinner, ControlDetailPanel],
+  imports: [Tag, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, EmptyState, StatusIndicator, ControlDetailPanel],
   templateUrl: './evidence-inbox.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -81,7 +81,7 @@ export class EvidenceInboxView {
     { key: 'control', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_CONTROL' },
     { key: 'evidence', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_EVIDENCE' },
     { key: 'responsible', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_RESPONSIBLE' },
-    { key: 'state', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_STATE' },
+    { key: 'state', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_STATE', skeleton: 'badge' },
   ];
   readonly rowKey = (row: EvidenceInboxRow): string => row.requirement.id;
 

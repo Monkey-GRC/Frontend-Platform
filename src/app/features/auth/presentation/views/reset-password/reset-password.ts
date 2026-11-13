@@ -8,12 +8,14 @@ import { AuthService } from '@core/domain/services/auth.service';
 import { passwordsMatch, STRONG_PASSWORD } from '@shared/domain/utils/password-rules';
 import { NewPasswordFields } from '@shared/presentation/components/new-password-fields/new-password-fields';
 import { SecondFactorField } from '@shared/presentation/components/second-factor-field/second-factor-field';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 // Segundo paso de «olvidé mi contraseña» (D101): llega desde el enlace del correo (`?token=`), pide la contraseña nueva y el segundo factor. Todas las sesiones se
 // cierran, así que al terminar se manda a iniciar sesión.
 @Component({
   selector: 'app-reset-password',
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, AuthPageLayoutComponent, NewPasswordFields, SecondFactorField],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, AuthPageLayoutComponent, NewPasswordFields, SecondFactorField, Busy, BusyFields],
   templateUrl: './reset-password.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

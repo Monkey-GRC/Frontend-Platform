@@ -28,7 +28,7 @@
     </p>
     <div class="mt-2 flex flex-wrap items-center gap-4">
       @if (inv.status === 'failed' && canManage()) {
-      <button type="button" (click)="resend(inv.id, inv.email)" [disabled]="saving()" data-test-resend class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.INVITATION.RESEND' | translate }}</button>
+      <button type="button" (click)="resend(inv.id, inv.email)" [appBusy]="busyAction() === 'resend'" data-test-resend class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.INVITATION.RESEND' | translate }}</button>
       }
       <button type="button" (click)="dismissInvitation()" data-test-invitation-dismiss class="text-sm font-medium text-ink-muted hover:underline">{{ 'TEAM.INVITATION.DISMISS' | translate }}</button>
     </div>
@@ -36,9 +36,6 @@
   }
 
   @switch (stage()) {
-  @case ('loading') {
-  <app-loading-spinner />
-  }
   @case ('error') {
   <app-empty-state icon="" titleKey="TEAM.LOAD_ERROR" descriptionKey="COMMON.CHECK_CONNECTION">
     <button action type="button" (click)="load(true)" data-test-retry class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
@@ -56,7 +53,7 @@
     }
   </app-table-toolbar>
 
-  <app-data-table captionKey="TEAM.TABLE_CAPTION" [columns]="columns()" [rows]="members()" [rowKey]="rowKey" [page]="page()" [loading]="loadingPage()" [clickable]="true" emptyIcon="" emptyTitleKey="TEAM.EMPTY_TITLE" emptyDescriptionKey="TEAM.EMPTY_BODY"
+  <app-data-table captionKey="TEAM.TABLE_CAPTION" [columns]="columns()" [rows]="members()" [rowKey]="rowKey" [page]="page()" [loading]="stage() === 'loading' || loadingPage()" [clickable]="true" emptyIcon="" emptyTitleKey="TEAM.EMPTY_TITLE" emptyDescriptionKey="TEAM.EMPTY_BODY"
     (rowClick)="openDetail($event)" (pageChange)="goTo($event)" (pageSizeChange)="resize($event)">
 
     <ng-template appCell="person" let-m>
@@ -65,7 +62,7 @@
     </ng-template>
 
     <ng-template appCell="role" let-m>
-      <span class="text-sm text-ink">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</span>
+      <app-badge kind="attribute" [value]="m.role">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</app-badge>
     </ng-template>
 
     <ng-template appCell="status" let-m>
@@ -74,7 +71,7 @@
 
     <ng-template appCell="group" let-m>
       @if (m.group) {
-      <p class="text-sm text-ink" data-test-group>{{ m.group.name }}</p>
+      <p data-test-group><app-badge kind="attribute" [value]="m.group.name">{{ m.group.name }}</app-badge></p>
       @if (m.responsible) {<p class="text-xs text-ink-muted" data-test-responsible>{{ 'TEAM.LIST.RESPONSIBLE' | translate: { name: personName({ email: '', name: m.responsible.name, last_name: m.responsible.last_name }) } }}</p>}
       } @else {
       <span class="text-ink-faint">—</span>
@@ -83,7 +80,7 @@
 
     <ng-template appCell="affiliation" let-m>
       @if (m.is_internal !== null && m.is_internal !== undefined) {
-      <span class="text-sm text-ink" data-test-affiliation>{{ (m.is_internal ? 'TEAM.INVITE.INTERNAL' : 'TEAM.INVITE.EXTERNAL') | translate }}</span>
+      <app-badge kind="attribute" [value]="m.is_internal ? 'internal' : 'external'" data-test-affiliation>{{ (m.is_internal ? 'TEAM.INVITE.INTERNAL' : 'TEAM.INVITE.EXTERNAL') | translate }}</app-badge>
       } @else {
       <span class="text-ink-faint">—</span>
       }
@@ -105,12 +102,12 @@
 </section>
 
 <!-- La invitación vive en un modal que abre «Invitar»; el formulario se crea al abrirlo y se descarta al cerrar. Su acción va en el pie. -->
-<app-form-modal [open]="inviteOpen()" titleKey="TEAM.INVITE.TITLE" descriptionKey="TEAM.INVITE.SUBTITLE" [dismissible]="!inviteSaving()" [guarded]="inviteDirty()" testId="invite" (closed)="inviteOpen.set(false)">
+<app-form-modal [open]="inviteOpen()" titleKey="TEAM.INVITE.TITLE" descriptionKey="TEAM.INVITE.SUBTITLE" [busy]="inviteSaving()" [guarded]="inviteDirty()" testId="invite" (closed)="inviteOpen.set(false)">
   @if (inviteOpen()) {
   <app-team-invite-form [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" [members]="members()" (invited)="onInvited($event)" (fixName)="onFixName($event)" (manageGroups)="onManageGroups()" (teamCreated)="onTeamCreated()" (teamFailed)="onTeamFailed($event)" />
   }
   @if (inviteOpen()) {
-  <button actions type="submit" form="invite-form" [disabled]="!inviteCanSubmit()" data-test-invite class="mk-btn">{{ 'TEAM.INVITE.SUBMIT' | translate }}</button>
+  <button actions type="submit" form="invite-form" [disabled]="!inviteCanSubmit()" [appBusy]="inviteSaving()" data-test-invite class="mk-btn">{{ 'TEAM.INVITE.SUBMIT' | translate }}</button>
   }
 </app-form-modal>
 
@@ -158,7 +155,7 @@
     </dl>
 
     @if (nameEditing() === m.id) {
-    <form class="mt-5 flex flex-col gap-3 border-t border-line pt-4" (submit)="$event.preventDefault(); saveName()">
+    <form class="mt-5 flex flex-col gap-3 border-t border-line pt-4" [appBusyFields]="saving()" (submit)="$event.preventDefault(); saveName()">
       <app-field labelKey="TEAM.INVITE.NAME" forId="edit-name">
         <input id="edit-name" type="text" data-test-edit-name maxlength="100" [value]="nameDraft()" (input)="nameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
       </app-field>
@@ -167,7 +164,7 @@
       </app-field>
       <div class="flex items-center justify-end gap-3">
         <button type="button" (click)="nameEditing.set(null)" [disabled]="saving()" class="mk-btn-secondary">{{ 'COMMON.CANCEL' | translate }}</button>
-        <button type="submit" [disabled]="!canSaveName()" data-test-save-name class="mk-btn">{{ 'COMMON.SAVE' | translate }}</button>
+        <button type="submit" [disabled]="!canSaveName()" [appBusy]="saving()" data-test-save-name class="mk-btn">{{ 'COMMON.SAVE' | translate }}</button>
       </div>
     </form>
     }
@@ -180,7 +177,7 @@
     }
     @if (!isMe(m)) {
     @if (m.status === 'pending') {
-    <button type="button" (click)="resend(m.id, m.email)" [disabled]="saving()" data-test-reissue class="mk-btn">{{ 'TEAM.ACTIONS.RESEND_INVITATION' | translate }}</button>
+    <button type="button" (click)="resend(m.id, m.email)" [disabled]="saving() && busyAction() !== 'resend'" [appBusy]="busyAction() === 'resend'" data-test-reissue class="mk-btn">{{ 'TEAM.ACTIONS.RESEND_INVITATION' | translate }}</button>
     }
     @if (m.status === 'active') {
     @if (canResetMfa(m)) {
@@ -189,7 +186,7 @@
     <button type="button" (click)="ask('deactivate', m)" [disabled]="saving()" data-test-deactivate class="mk-btn-danger">{{ 'TEAM.ACTIONS.DEACTIVATE' | translate }}</button>
     }
     @if (m.status === 'inactive') {
-    <button type="button" (click)="reactivate(m)" [disabled]="saving()" data-test-reactivate class="mk-btn">{{ 'TEAM.ACTIONS.REACTIVATE' | translate }}</button>
+    <button type="button" (click)="reactivate(m)" [disabled]="saving() && busyAction() !== 'reactivate'" [appBusy]="busyAction() === 'reactivate'" data-test-reactivate class="mk-btn">{{ 'TEAM.ACTIONS.REACTIVATE' | translate }}</button>
     }
     }
   </div>

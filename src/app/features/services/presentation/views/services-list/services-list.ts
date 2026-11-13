@@ -9,7 +9,6 @@ import { AuthService } from '@core/domain/services/auth.service';
 import { CatalogOption, FrameworkOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ServiceListItem } from '@shared/domain/models/service.models';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { ServiceService } from '@shared/domain/services/service.service';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
@@ -17,6 +16,9 @@ import { TableToolbar } from '@shared/presentation/components/table-toolbar/tabl
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Tag } from '@shared/presentation/components/tag/tag';
+import { Badge } from '@shared/presentation/components/badge/badge';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -24,7 +26,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // actúan sobre lo seleccionado (ver, editar, eliminar uno o varios).
 @Component({
   selector: 'app-services-list',
-  imports: [PageHeader, RouterLink, LoadingSpinner, TranslatePipe, DataTable, TableCell, TableToolbar, EmptyState, StatusIndicator, Tag],
+  imports: [Badge, PageHeader, RouterLink, TranslatePipe, DataTable, TableCell, TableToolbar, EmptyState, StatusIndicator, Tag, Busy, BusyFields],
   templateUrl: './services-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -51,11 +53,11 @@ export class ServicesListView implements OnInit {
 
   readonly columns: TableColumn<ServiceListItem>[] = [
     { key: 'name', headerKey: 'SERVICES.LIST.COL_NAME' },
-    { key: 'type', headerKey: 'SERVICES.LIST.COL_TYPE' },
-    { key: 'frameworks', headerKey: 'SERVICES.LIST.COL_FRAMEWORKS' },
-    { key: 'connections', headerKey: 'SERVICES.LIST.COL_CONNECTIONS' },
-    { key: 'catalog', headerKey: 'SERVICES.LIST.COL_CATALOG' },
-    { key: 'actions', headerKey: 'SERVICES.LIST.COL_ACTIONS', align: 'right', srOnlyHeader: true },
+    { key: 'type', headerKey: 'SERVICES.LIST.COL_TYPE', skeleton: 'badge' },
+    { key: 'frameworks', headerKey: 'SERVICES.LIST.COL_FRAMEWORKS', skeleton: 'badge' },
+    { key: 'connections', headerKey: 'SERVICES.LIST.COL_CONNECTIONS', skeleton: 'badge' },
+    { key: 'catalog', headerKey: 'SERVICES.LIST.COL_CATALOG', skeleton: 'badge' },
+    { key: 'actions', headerKey: 'SERVICES.LIST.COL_ACTIONS', align: 'right', srOnlyHeader: true, skeleton: 'actions' },
   ];
   readonly rowKey = (item: ServiceListItem): string => item.id;
   readonly rowName = (item: ServiceListItem): string => item.name;
@@ -151,6 +153,7 @@ export class ServicesListView implements OnInit {
 
   // Elimina uno por uno y cuenta lo que se pudo: un servicio con evaluaciones registradas no se elimina y no detiene a los demás.
   remove(): void {
+    if (this.deleting()) return;
     const targets = this.selectedItems();
     if (targets.length === 0) return;
     this.deleting.set(true);
