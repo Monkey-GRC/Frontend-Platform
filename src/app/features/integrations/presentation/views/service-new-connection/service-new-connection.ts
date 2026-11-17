@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
-import { Capability } from '@shared/domain/models/technical-control.models';
+import { Capability, Platform } from '@shared/domain/models/technical-control.models';
 import { ServiceService } from '@shared/domain/services/service.service';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { categoryLabel } from '@shared/domain/utils/category-label';
+import { hasConnectionFlow } from '@shared/domain/utils/connection-flow-platforms';
 import { Breadcrumb, Crumb } from '@shared/presentation/components/breadcrumb/breadcrumb';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
@@ -68,6 +69,16 @@ export class ServiceNewConnectionView implements OnInit {
   connect(item: CatalogIntegration): void {
     if (!item.connection) return;
     void this.router.navigate(['/services', this.serviceId(), 'connections', 'new', item.connection.category, item.connection.platform], { queryParams: { returnTo: this.router.url } });
+  }
+
+  /** Una plataforma se conecta si está disponible Y tiene su recorrido en el asistente (`CONNECTION_FLOW_PLATFORMS`); las demás se muestran bloqueadas. */
+  canConnect(p: Platform): boolean {
+    return p.availability === 'available' && hasConnectionFlow(p.code);
+  }
+
+  /** Un servidor, base de datos o equipo con recorrido: al asistente de su plataforma, y al cerrar se vuelve aquí. */
+  connectServer(category: string, p: Platform): void {
+    void this.router.navigate(['/services', this.serviceId(), 'connections', 'new', category, p.code], { queryParams: { returnTo: this.router.url } });
   }
 
   // El título del grupo es el nombre del tipo de conexión sin la aclaración entre paréntesis.

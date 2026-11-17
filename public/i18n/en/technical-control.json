@@ -64,6 +64,7 @@
     "NEW": {
       "SUBTITLE": "Choose what you want to connect to. When you finish, Monkey shows you the assets it found.",
       "COMING_SOON": "Coming soon",
+      "AVAILABLE": "Available",
       "HOW_AGENT": "You install a lightweight Monkey program on the machine. You don't need to give any passwords.",
       "BLOCKED_ARIA": "{{name}}, not available, coming soon",
       "SERVERS_TITLE": "Servers, databases and devices",
