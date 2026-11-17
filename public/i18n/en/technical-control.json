@@ -22,7 +22,11 @@
       "VALIDATED": "Connection checked",
       "ACTIVE": "Active",
       "SCHEDULED": "Scheduled",
-      "FAILED": "We couldn't connect"
+      "FAILED": "We couldn't connect",
+      "AGENT_PENDING": "Waiting for installation",
+      "AGENT_CONNECTED": "Connected",
+      "AGENT_DISCONNECTED": "Disconnected",
+      "AGENT_REMOVED": "Removed"
     },
     "CONNECT_PROGRESS": {
       "TITLE": "Connecting to your account",
@@ -54,7 +58,8 @@
       "FAILED": "We couldn't complete the assessment. Please try again."
     },
     "CONNECT": {
-      "TITLE": "Connect {{name}}"
+      "TITLE": "Connect {{name}}",
+      "SUBTITLE_SERVER": "You register the server and then install the Monkey probe on it with a command."
     },
     "NEW": {
       "SUBTITLE": "Choose what you want to connect to. When you finish, Monkey shows you the assets it found.",
@@ -155,6 +160,59 @@
       "CHECK_MARKED": "Check the marked fields and try again.",
       "METHOD_NOT_APPLICABLE": "That connection type isn't available for this platform. Choose another one.",
       "REGISTER_ERROR": "We couldn't register the asset. Please try again."
+    },
+    "SERVER_FORM": {
+      "TITLE": "Your server's details",
+      "NOTE": "Here you only tell us your server's name and which system it runs. We don't ask for passwords or keys: in the next step we give you a command with this server's key, shown only once.",
+      "NAME_LABEL": "What do you call it?",
+      "NAME_PLACEHOLDER": "For example: Main database server",
+      "VERSION_LABEL": "Which version of {{name}} does it run?",
+      "VERSION_HELP": "With the version we build the right command for your server and know what to check on it.",
+      "VERSION_PLACEHOLDER": "Choose the version",
+      "VERSION_HINT": "Choose your server's version.",
+      "VERSIONS_ERROR": "We couldn't load the available versions. Check your connection and try again.",
+      "REGISTER": "Register server",
+      "REGISTER_ERROR": "We couldn't register the server. Try again."
+    },
+    "AGENT": {
+      "TITLE": "Install the Monkey probe on this server",
+      "INTRO": "The probe is a lightweight program that reads your server's configuration ({{version}}) and sends it to Monkey to be assessed. It only reads: it changes nothing.",
+      "LOADING": "Checking the installation status…",
+      "BEFORE_TITLE": "Before you start",
+      "BEFORE_ADMIN_LINUX": "Sign in to the server as an administrator: as root, or as a user who can use sudo.",
+      "BEFORE_ADMIN_WINDOWS": "Sign in to the server as an administrator and open PowerShell with “Run as administrator”.",
+      "BEFORE_OUTBOUND": "The server must be able to connect to {{host}} on port {{port}} (outbound connection). You don't need to open any inbound port.",
+      "START_HELP": "When you're ready, we prepare this server's key. It takes a few seconds.",
+      "START": "Prepare the installation",
+      "RETRY": "Try again",
+      "PREPARING": "We're preparing this server's key. A few seconds…",
+      "READY_WARNING": "All set. When you show the command you'll see this server's key, and it's shown only once: have the server where you'll paste it at hand.",
+      "READY_UNTIL": "You can request it until {{time}}.",
+      "SHOW": "Show the command",
+      "ONCE_WARNING": "Copy it now. It contains this server's key and we won't show it again. If you lose it, generate a new one.",
+      "COMMAND_IN": "Paste this command in {{shell}}:",
+      "OR_FILE": "Or download the file and run it in {{shell}}:",
+      "DOWNLOAD": "Download {{file}}",
+      "WAITING": "Waiting for the server to connect. It can take a couple of minutes after you run the command.",
+      "ALREADY_SHOWN": "The command was already shown and can't be seen again.",
+      "CONNECTED": "The server is connected. Monkey can now receive its information.",
+      "REGENERATE": "Didn't get to copy it? Generate a new command",
+      "REGENERATE_ARIA": "Confirm a new command",
+      "REGENERATE_CONFIRM": "A new key is created and the previous one stops working. If you already ran the previous command on the server, you'll need to run the new one.",
+      "REGENERATE_YES": "Yes, generate a new one",
+      "NOT_READY": "The command was already shown or has expired. Generate a new one to continue.",
+      "UNAVAILABLE": "This Monkey installation isn't ready to connect servers yet. Let your Monkey contact know.",
+      "IN_PROGRESS": "We're already preparing this server's key. Wait a few seconds.",
+      "WAITING_AUTO": "We look for it on our own every few minutes: you don't need to do anything else. When it connects, this status changes by itself.",
+      "CHECK_NOW": "Check now",
+      "CHECKING": "Checking…",
+      "CHECK_IN_PROGRESS": "We're already checking this server. You'll see the result in a moment.",
+      "CHECK_FAILED": "We couldn't check the server. Try again in a few minutes.",
+      "CHECK_SLOW": "The check is still running. Look again in a few minutes: if the server connects, this status changes by itself.",
+      "LAST_REVIEW": "Last review: {{when}}",
+      "EXPIRED": "We didn't see the server connect in the last 24 hours. Check that the command ran without errors and that the server can reach {{host}}:{{port}}. If you're not sure, generate a new command.",
+      "DISCONNECTED": "The server stopped reporting to Monkey. Check that it is on and that it can reach {{host}}:{{port}}. When it's back, it connects by itself.",
+      "ERROR": "We couldn't complete this step. Try again."
     },
     "ASSETS": {
       "TITLE": "Assets of this connection",

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { TranslatePipe } from '@ngx-translate/core';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import type { StatusTone } from '@shared/domain/models/status-tone.model';
+import { ControlDimension } from '@features/compliance/domain/models/control.models';
 import { Finding, FindingSeverity } from '@features/compliance/domain/models/finding.models';
 import { FindingService } from '@features/compliance/domain/services/finding.service';
 import { remediationBlocks } from '@features/compliance/domain/utils/remediation-text';
@@ -34,6 +35,8 @@ export class TestFindings {
 
   readonly controlId = input.required<string>();
   readonly testId = input.required<string>();
+  // De qué mide la prueba: en la nube se afectan «recursos»; en un servidor, base de datos o aplicación, «activos» (lo que el cliente declaró).
+  readonly dimension = input<ControlDimension>('cloud');
 
   readonly stage = signal<Stage>('closed');
   readonly items = signal<Finding[]>([]);
@@ -44,6 +47,8 @@ export class TestFindings {
   private readonly expanded = signal<ReadonlySet<string>>(new Set());
 
   readonly hasMore = computed(() => this.items().length < this.total());
+  // «De la más grave a la menos grave» solo si lo que se mostró trae nivel: la sonda de servidores no califica sus checks y no se inventa uno.
+  readonly ranked = computed(() => this.items().some((f) => f.severity !== null));
   protected readonly SHOWN = SHOWN_RESOURCES;
   protected readonly tone = SEVERITY_TONE;
   protected readonly blocks = remediationBlocks;

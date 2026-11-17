@@ -1,4 +1,4 @@
-// Qué falló y cómo corregirlo (contracts/modules/compliance-audit.md, D90). Es lo que la última evaluación encontró en una prueba de nube de un control.
+// Qué falló y cómo corregirlo (contracts/modules/compliance-audit.md, D90). Es lo que la última evaluación encontró en una prueba automática de un control (de nube o de servidores).
 export type FindingSeverity = 'critical' | 'high' | 'medium' | 'low' | 'informational';
 
 export interface FindingResource {
@@ -19,7 +19,8 @@ export interface FindingRemediation {
 export interface Finding {
   id: string;
   title: string;
-  severity: FindingSeverity;
+  /** Nulo cuando quien midió no califica sus checks (los servidores): no se muestra nivel, no se inventa. */
+  severity: FindingSeverity | null;
   resources: FindingResource[];
   /** Cuántos recursos están afectados en total (`resources` trae hasta 50). */
   resources_total: number;

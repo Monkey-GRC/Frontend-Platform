@@ -93,7 +93,13 @@
   <app-cloud-connection-panel [asset]="asset()" (changed)="changed.emit($event)" />
   }
 
+  <!-- Un servidor: instalar la sonda, con su comando (D112) -->
+  @if (isAgent()) {
+  <app-agent-install-panel [asset]="asset()" (changed)="changed.emit($event)" />
+  }
+
   <!-- Siguiente paso -->
+  @if (!isAgent()) {
   <div class="mt-4 flex flex-wrap items-center gap-3">
     @switch (step() === 'validated' ? 'active' : step()) {
     @case ('active') {
@@ -131,6 +137,7 @@
     }
     }
   </div>
+  }
 
   @if (busy() === 'validate') {
   <app-connection-progress />

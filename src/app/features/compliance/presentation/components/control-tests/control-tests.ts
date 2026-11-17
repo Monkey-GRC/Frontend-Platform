@@ -71,8 +71,8 @@ const TONES: Record<string, StatusTone> = {
                 }
                 <!-- D88 · La evidencia de una prueba documental es de ESTE control: se entrega y se valida bajo la prueba que respalda. -->
                 <!-- D90 · Una prueba técnica que no cumple dice qué falló y cómo corregirlo. -->
-                @if (t.dimension === 'cloud' && t.state === 'non_compliant' && controlId(); as cid) {
-                  <app-test-findings [controlId]="cid" [testId]="t.test_id" />
+                @if (AUTOMATED.includes(t.dimension) && t.state === 'non_compliant' && controlId(); as cid) {
+                  <app-test-findings [controlId]="cid" [testId]="t.test_id" [dimension]="t.dimension" />
                 }
                 @if (t.manual && evidenceTpl(); as tpl) {
                   <div data-test-evidence>
@@ -95,6 +95,8 @@ export class ControlTests {
   protected readonly labels = inject(EnumLabelService);
   /** Desde cuántos caracteres una descripción se recorta a dos líneas con «Ver más». */
   protected readonly LONG = 140;
+  /** Las pruebas que mide una sonda (nube o servidores): las que no cumplen dicen qué falló y cómo corregirlo (D90). `policy` es documental. */
+  protected readonly AUTOMATED: readonly string[] = ['cloud', 'server', 'database', 'app'];
   // Cada prueba es una fila de la lista compacta (la tabla única en su variante para paneles): una sola columna con todo lo suyo.
   protected readonly columns: TableColumn<{ test_code: string }>[] = [{ key: 'test', headerKey: 'COMPLIANCE.TESTS.TITLE' }];
   protected readonly testKey = (t: { test_code: string }) => t.test_code;

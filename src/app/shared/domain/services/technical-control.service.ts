@@ -5,6 +5,8 @@ import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
 import {
+  AgentInstallReveal,
+  AgentInstallState,
   Asset,
   AssetPage,
   DiscoveredAssetsPage,
@@ -95,6 +97,24 @@ export class TechnicalControlService {
   // La plantilla que el cliente crea en su cuenta (rol de solo lectura). Se descarga como archivo.
   downloadRoleTemplate(): Observable<Blob> {
     return this.http.get(`${environment.apiUrl}/connection-templates/aws-readonly-role`, { responseType: 'blob' });
+  }
+
+  // Instalar la sonda en un servidor (D112). El estado no lleva secretos; el comando sale UNA vez con `revealAgentInstall`, que es un POST a propósito:
+  // un reintento del navegador no debe poder gastar la clave.
+  agentInstall(assetId: string): Observable<AgentInstallState> {
+    return this.http.get<SuccessResponse<AgentInstallState>>(`${this.assets}/${assetId}/agent-install`).pipe(unwrapData());
+  }
+
+  startAgentInstall(assetId: string): Observable<AgentInstallState> {
+    return this.http.post<SuccessResponse<AgentInstallState>>(`${this.assets}/${assetId}/agent-install`, {}).pipe(unwrapData());
+  }
+
+  revealAgentInstall(assetId: string): Observable<AgentInstallReveal> {
+    return this.http.post<SuccessResponse<AgentInstallReveal>>(`${this.assets}/${assetId}/agent-install/reveal`, {}).pipe(unwrapData());
+  }
+
+  regenerateAgentInstall(assetId: string): Observable<AgentInstallState> {
+    return this.http.post<SuccessResponse<AgentInstallState>>(`${this.assets}/${assetId}/agent-install/regenerate`, {}).pipe(unwrapData());
   }
 
   // «Evaluar ahora»: deja una evaluación en cola y responde ya; el avance se consulta con `lastExecution`.

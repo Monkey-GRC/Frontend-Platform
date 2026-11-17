@@ -20,5 +20,6 @@ export function assetDetail(translate: TranslateService, asset: Asset, platform:
     const regions = (asset.provisioning.regions ?? []).join(', ');
     return [name, accountLabel(translate, asset.platform, asset.external_account_id), regions].filter(Boolean).join(' · ');
   }
-  return [name, asset.ip_address, asset.location].filter(Boolean).join(' · ');
+  // Un servidor con la sonda: su sistema y versión («Ubuntu 22.04 LTS») identifican mejor que su plataforma.
+  return [name, asset.agent?.os_version.label, asset.ip_address, asset.location].filter(Boolean).join(' · ');
 }
