@@ -22,7 +22,7 @@ const DETAIL: ControlDetail = {
   readiness: 'not_measured',
   progress: { done: 0, total: 5 },
   coverage: { measured: 0, applicable: 5 },
-  assigned_to: null,
+  owner: null, executor: null,
   interpretation: { text: 'Los accesos se otorgan con el formulario de TI.', is_customized: false },
   dimensions: [
     { dimension: 'policy', applies: true, type: 'manual', reason_not_applicable: null },
