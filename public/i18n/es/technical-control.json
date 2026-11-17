@@ -64,6 +64,7 @@
     "NEW": {
       "SUBTITLE": "Elige a qué quieres conectarte. Al terminar, Monkey te muestra los activos que encontró.",
       "COMING_SOON": "Próximamente",
+      "AVAILABLE": "Disponible",
       "HOW_AGENT": "Instalas un programa ligero de Monkey en el equipo. No necesitas dar contraseñas.",
       "BLOCKED_ARIA": "{{name}}, no disponible, próximamente",
       "SERVERS_TITLE": "Servidores, bases de datos y equipos",

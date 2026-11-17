@@ -30,17 +30,31 @@
         <ul class="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           @for (p of g.platforms; track p.code) {
           <li class="flex">
-            <button type="button" aria-disabled="true" [attr.aria-label]="blockedLabel(p.name)" (click)="$event.preventDefault()" data-server-card
-              class="flex w-full cursor-not-allowed flex-col items-stretch gap-3 rounded-control border border-dashed border-line bg-canvas p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-action">
+            @if (canConnect(p)) {
+            <button type="button" (click)="connectServer(g.catalog_code, p)" data-server-card data-server-open
+              class="flex w-full flex-col items-stretch gap-3 rounded-control border border-line bg-surface p-5 text-left transition hover:border-action/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-action">
               <span class="flex items-center gap-3">
                 <app-provider-logo [logoKey]="p.logo_key" size="card" />
                 <span class="text-base font-semibold text-ink">{{ p.name }}</span>
               </span>
               <span class="text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.NEW.HOW_AGENT' | translate }}</span>
               <span class="mt-auto flex pt-1">
-                <app-status-indicator tone="neutral" labelKey="TECHNICAL_CONTROL.NEW.COMING_SOON" />
+                <app-status-indicator tone="ok" labelKey="TECHNICAL_CONTROL.NEW.AVAILABLE" />
               </span>
             </button>
+            } @else {
+              <button type="button" aria-disabled="true" [attr.aria-label]="blockedLabel(p.name)" (click)="$event.preventDefault()" data-server-card
+                class="flex w-full cursor-not-allowed flex-col items-stretch gap-3 rounded-control border border-dashed border-line bg-canvas p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-action">
+                <span class="flex items-center gap-3">
+                  <app-provider-logo [logoKey]="p.logo_key" size="card" />
+                  <span class="text-base font-semibold text-ink">{{ p.name }}</span>
+                </span>
+                <span class="text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.NEW.HOW_AGENT' | translate }}</span>
+                <span class="mt-auto flex pt-1">
+                  <app-status-indicator tone="neutral" labelKey="TECHNICAL_CONTROL.NEW.COMING_SOON" />
+                </span>
+              </button>
+            }
           </li>
           }
         </ul>
