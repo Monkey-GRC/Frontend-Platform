@@ -1,3 +1,4 @@
+import { UserRole } from '@core/domain/models/auth.models';
 import { Readiness } from '@shared/domain/models/readiness.models';
 import { EvidenceState } from './evidence.models';
 
@@ -19,10 +20,12 @@ export interface Coverage {
   applicable: number;
 }
 
-export interface Assignee {
-  user_id: string;
+// Dueño o ejecutor de un control (D102).
+export interface ControlPerson {
+  id: string;
   name: string | null;
   last_name: string | null;
+  role: UserRole;
 }
 
 // Solo llega con `?view=technical` (auditor y administrador de la empresa). El código del control y sus requisitos son de la vista de negocio (D80).
@@ -48,7 +51,8 @@ export interface ControlListItem {
   readiness: Readiness;
   progress: Progress;
   coverage: Coverage;
-  assigned_to: Assignee | null;
+  owner: ControlPerson | null;
+  executor: ControlPerson | null;
   technical?: ControlTechnical;
 }
 

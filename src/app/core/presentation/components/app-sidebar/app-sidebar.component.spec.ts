@@ -296,9 +296,13 @@ describe('AppSidebarComponent · groups', () => {
       expect(closed).toBe(0);
       title(root, 'nav-group-equipo').click();
       fixture.detectChanges();
-      await new Promise((r) => setTimeout(r, 90));
+      // The browser's own transition is sampled, not the wall clock: a busy headless Chrome may not paint a frame in time and the height would still read 0.
+      const transition = target.getAnimations().find((a) => (a as CSSTransition).transitionProperty === 'grid-template-rows') as CSSTransition | undefined;
+      expect(transition).withContext('opening the group starts a height transition').toBeDefined();
+      transition!.pause();
+      transition!.currentTime = 100; // halfway through the 200 ms
       const middle = target.getBoundingClientRect().height;
-      await new Promise((r) => setTimeout(r, 500));
+      transition!.finish();
       const open = target.getBoundingClientRect().height;
       expect(middle).toBeGreaterThan(0);
       expect(middle).toBeLessThan(open);
