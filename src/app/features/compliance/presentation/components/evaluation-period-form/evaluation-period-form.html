@@ -1,4 +1,4 @@
-<app-form-modal titleKey="COMPLIANCE.PERIOD.TITLE" descriptionKey="COMPLIANCE.PERIOD.SUBTITLE" [descriptionParams]="{ name: framework().name }" [dismissible]="!sending()" testId="period-form" (closed)="closed.emit()">
+<app-form-modal titleKey="COMPLIANCE.PERIOD.TITLE" descriptionKey="COMPLIANCE.PERIOD.SUBTITLE" [descriptionParams]="{ name: framework().name }" [busy]="sending()" testId="period-form" (closed)="closed.emit()">
   <form id="period-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
 
     @if (banner(); as b) {
@@ -20,7 +20,5 @@
     </div>
   </form>
 
-  <button actions type="submit" form="period-form" [disabled]="!canSave()" data-save class="mk-btn">
-    {{ (sending() ? 'COMPLIANCE.PERIOD.SAVING' : 'COMPLIANCE.PERIOD.SAVE') | translate }}
-  </button>
+  <button actions type="submit" form="period-form" [disabled]="!canSave()" [appBusy]="sending()" [busyLabel]="'COMPLIANCE.PERIOD.SAVING' | translate" data-save class="mk-btn">{{ 'COMPLIANCE.PERIOD.SAVE' | translate }}</button>
 </app-form-modal>

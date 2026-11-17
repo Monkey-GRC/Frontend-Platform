@@ -103,6 +103,17 @@ describe('ServiceFormView — declarar un servicio', () => {
     expect(el().querySelector('[data-service-rail]')).not.toBeNull();
   });
 
+  it('centers the narrow stages (result) in the content panel and keeps the wizard full width', () => {
+    setup();
+    const section = () => el().querySelector('section') as HTMLElement;
+    expect(section().classList.contains('max-w-3xl')).toBe(false);
+    form.stage.set('done');
+    render();
+    expect(section().classList.contains('max-w-3xl')).toBe(true);
+    expect(section().classList.contains('mx-auto')).toBe(true);
+    expect(el().querySelector('[data-service-done]')).not.toBeNull();
+  });
+
   it('updates the draft when the person types in the name field', () => {
     setup();
     const input = el().querySelector('input#name') as HTMLInputElement;

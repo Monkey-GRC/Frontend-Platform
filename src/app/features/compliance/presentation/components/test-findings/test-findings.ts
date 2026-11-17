@@ -1,22 +1,24 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
-import { riskLevelLook } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
+import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import type { StatusTone } from '@shared/domain/models/status-tone.model';
 import { ControlDimension } from '@features/compliance/domain/models/control.models';
 import { Finding, FindingSeverity } from '@features/compliance/domain/models/finding.models';
 import { FindingService } from '@features/compliance/domain/services/finding.service';
 import { remediationBlocks } from '@features/compliance/domain/utils/remediation-text';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { Busy } from '@shared/presentation/directives/busy';
 
 type Stage = 'closed' | 'loading' | 'ready' | 'error';
 
 // La severidad de un hallazgo usa la escala de nivel de riesgo del sistema (`risk-*`: crítica, alta, media = moderada, baja) y el neutro para lo informativo; no son los tonos de
 // estado. La severidad siempre va con su palabra y sin icono.
-const SEVERITY_CHIP: Record<FindingSeverity, string> = {
-  critical: riskLevelLook('critical'),
-  high: riskLevelLook('high'),
-  medium: riskLevelLook('moderate'),
-  low: riskLevelLook('low'),
-  informational: 'border-line bg-canvas text-ink-muted',
+const SEVERITY_TONE: Record<FindingSeverity, StatusTone> = {
+  critical: 'risk-critical',
+  high: 'risk-high',
+  medium: 'risk-moderate',
+  low: 'risk-low',
+  informational: 'neutral',
 };
 const SHOWN_RESOURCES = 5;
 
@@ -24,7 +26,7 @@ const SHOWN_RESOURCES = 5;
 // traducida por una IA: entonces lo dice, porque nadie la ha revisado; si no hay traducción, se muestra el original en inglés y también se dice.
 @Component({
   selector: 'app-test-findings',
-  imports: [TranslatePipe, LoadingSpinner],
+  imports: [TranslatePipe, StatusIndicator, Skeleton, SkeletonRegion, Busy],
   templateUrl: './test-findings.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -48,7 +50,7 @@ export class TestFindings {
   // «De la más grave a la menos grave» solo si lo que se mostró trae nivel: la sonda de servidores no califica sus checks y no se inventa uno.
   readonly ranked = computed(() => this.items().some((f) => f.severity !== null));
   protected readonly SHOWN = SHOWN_RESOURCES;
-  protected readonly chip = SEVERITY_CHIP;
+  protected readonly tone = SEVERITY_TONE;
   protected readonly blocks = remediationBlocks;
 
   toggle(): void {
@@ -71,6 +73,7 @@ export class TestFindings {
   }
 
   more(): void {
+    if (this.loadingMore()) return;
     this.loadingMore.set(true);
     this.api.list(this.controlId(), this.testId(), this.page + 1).subscribe({
       next: (r) => {

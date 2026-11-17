@@ -170,7 +170,8 @@ describe('ChangePasswordCard (SEG-14, D101)', () => {
       fixture.detectChanges();
       card().recoverByEmail();
       expect(security.requestPasswordRecovery).toHaveBeenCalledTimes(1);
-      expect(q<HTMLButtonElement>('recover-by-email')!.disabled).toBeTrue();
+      expect(q('recover-by-email')!.getAttribute('aria-busy')).toBe('true');
+      expect(q('recover-by-email')!.getAttribute('aria-disabled')).toBe('true');
     });
   });
 });

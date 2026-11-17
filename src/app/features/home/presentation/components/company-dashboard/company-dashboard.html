@@ -2,10 +2,12 @@
 @switch (stage()) {
 
 @case ('loading') {
-<div class="flex justify-center py-10" role="status">
-  <span class="material-symbols-rounded animate-spin text-[28px] text-action" aria-hidden="true">progress_activity</span>
-  <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
-</div>
+<app-skeleton-region data-dashboard-loading>
+  <div class="space-y-8">
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6"><app-skeleton shape="metric" /><app-skeleton shape="metric" /><app-skeleton shape="metric" /><app-skeleton shape="metric" /><app-skeleton shape="metric" /><app-skeleton shape="metric" /></div>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"><app-skeleton shape="card" /><app-skeleton shape="card" /><app-skeleton shape="card" /></div>
+  </div>
+</app-skeleton-region>
 }
 
 @case ('error') {

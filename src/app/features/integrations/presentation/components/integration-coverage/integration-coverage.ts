@@ -4,12 +4,13 @@ import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { Section } from '@shared/presentation/components/section/section';
 import { Tag } from '@shared/presentation/components/tag/tag';
+import { Badge } from '@shared/presentation/components/badge/badge';
 import { IntegrationDetail } from '@features/integrations/domain/models/integration.models';
 
 // «Qué evalúa»: los tipos de recurso que descubre y las pruebas, controles y marcos que alimenta. Alimentar no es cumplir: la nota lo dice siempre.
 @Component({
   selector: 'app-integration-coverage',
-  imports: [EmptyState, Section, Tag, TranslatePipe],
+  imports: [Badge, EmptyState, Section, Tag, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block space-y-4' },
   template: `
@@ -21,7 +22,7 @@ import { IntegrationDetail } from '@features/integrations/domain/models/integrat
       <app-section titleKey="INTEGRATIONS.EVALUATES.RESOURCES_TITLE" data-test-resources>
         <ul class="flex flex-wrap gap-1.5">
           @for (k of d.resource_types; track k) {
-            <li class="rounded-control border border-line px-2 py-1 text-xs text-ink">{{ labels.of('INTEGRATIONS.RESOURCE_KIND', k) }}</li>
+            <li><app-badge kind="attribute" [value]="k">{{ labels.of('INTEGRATIONS.RESOURCE_KIND', k) }}</app-badge></li>
           }
         </ul>
       </app-section>
@@ -46,7 +47,7 @@ import { IntegrationDetail } from '@features/integrations/domain/models/integrat
           <ul class="mt-2 divide-y divide-line">
             @for (f of cov.frameworks; track f.code) {
               <li class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 py-2 text-sm" data-test-framework>
-                <span class="min-w-0 text-ink">{{ f.name }}</span>
+                <app-badge kind="attribute" [value]="f.code">{{ f.name }}</app-badge>
                 <span class="text-ink-muted">{{ (f.controls_count === 1 ? 'INTEGRATIONS.COUNT.CONTROLS_ONE' : 'INTEGRATIONS.COUNT.CONTROLS_MANY') | translate: { count: f.controls_count } }}</span>
               </li>
             }

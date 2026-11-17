@@ -13,13 +13,16 @@ import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge
 import { MatrixCell, MatrixPosition, RiskMatrix } from '@shared/presentation/components/risk-matrix/risk-matrix';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { Select, SelectOption } from '@shared/presentation/components/select/select';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 // La evaluación 5×5 de un riesgo y su tratamiento (MD-123). Cada evaluación y cada decisión se AGREGA (nunca pisa la anterior) y el servidor calcula el valor y el
 // nivel: aquí solo se eligen probabilidad e impacto de 1 a 5. Evalúa y trata el administrador de la empresa; los demás roles leen. El historial se pide al abrirlo,
 // porque no todos los roles pueden leerlo.
 @Component({
   selector: 'app-risk-assessment',
-  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix, DetailCard, Select],
+  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix, DetailCard, Select, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './risk-assessment.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -76,8 +79,8 @@ export class RiskAssessment {
     (this.responsibles() ?? []).map((r) => ({ value: r.id, label: this.labels.of('COMPLIANCE.RESPONSIBLE_TYPE', r.type) + (r.person_name ? ' · ' + r.person_name : '') })),
   );
 
-  readonly canSaveEvaluation = computed(() => this.likelihood() !== null && this.impact() !== null && !this.saving());
-  readonly canSaveTreatment = computed(() => !!this.decision() && !!this.responsibleId() && !!this.dueDate() && !this.saving());
+  readonly canSaveEvaluation = computed(() => this.likelihood() !== null && this.impact() !== null);
+  readonly canSaveTreatment = computed(() => !!this.decision() && !!this.responsibleId() && !!this.dueDate());
 
   startEvaluation(): void {
     this.reset();
@@ -96,6 +99,7 @@ export class RiskAssessment {
   }
 
   saveEvaluation(): void {
+    if (this.saving()) return;
     const likelihood = this.likelihood();
     const impact = this.impact();
     if (likelihood === null || impact === null) return;
@@ -148,6 +152,7 @@ export class RiskAssessment {
   }
 
   saveTreatment(): void {
+    if (this.saving()) return;
     if (!this.canSaveTreatment()) return;
     this.saving.set(true);
     this.reset();

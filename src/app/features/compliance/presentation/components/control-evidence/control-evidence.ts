@@ -12,11 +12,15 @@ import { Tag } from '@shared/presentation/components/tag/tag';
 import { FileUpload } from '@shared/presentation/components/file-upload/file-upload';
 import { Modal } from '@shared/presentation/components/modal/modal';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { Badge } from '@shared/presentation/components/badge/badge';
 import { ControlEvidence as EvidenceSummary } from '@features/compliance/domain/models/control.models';
 import { EVIDENCE_FILE_ACCEPT, EVIDENCE_MAX_BYTES, EvidencePerson, EvidenceRequirement, EvidenceSubmission, canPreviewEvidence, evidenceStateTone, suggestedEvidence } from '@features/compliance/domain/models/evidence.models';
 import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 // 'full' = las evidencias del contrato; 'summary' = el resumen que trae el detalle del control, porque el endpoint de evidencias aún no existe en el backend.
 type Stage = 'loading' | 'full' | 'summary' | 'error';
@@ -44,7 +48,7 @@ const TEST_KEY = '__test__';
 // Si el backend aún no tiene el endpoint (MD-126), muestra el resumen del detalle sin la subida, y se enciende solo cuando exista.
 @Component({
   selector: 'app-control-evidence',
-  imports: [TranslatePipe, FileUpload, NgTemplateOutlet, Modal, StatusIndicator, DataTable, TableCell, Tag],
+  imports: [Badge, TranslatePipe, FileUpload, NgTemplateOutlet, Modal, StatusIndicator, DataTable, TableCell, Tag, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './control-evidence.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -226,6 +230,7 @@ export class ControlEvidence {
   }
 
   send(): void {
+    if (this.sending()) return;
     const key = this.uploadingFor();
     const file = this.file();
     if (!key || !file) return;

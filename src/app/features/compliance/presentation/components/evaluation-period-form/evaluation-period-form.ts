@@ -5,13 +5,14 @@ import { DatePicker } from '@shared/presentation/components/date-picker/date-pic
 import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { OverviewFramework } from '@features/compliance/domain/models/overview.models';
 import { OverviewService } from '@features/compliance/domain/services/overview.service';
+import { Busy } from '@shared/presentation/directives/busy';
 
 // El período auditado de un marco del servicio y, si se quiere, su fecha de corte congelada (D87, MD-168). Sin período el motor no mide. Las fechas son días (`AAAA-MM-DD`):
 // inicio y fin pueden ser el mismo día (SOC 2 Tipo I). La fecha de corte sin congelar es siempre «hoy»; congelarla no borra evidencia ni resultados. Lo mismo que el servidor
 // valida (orden, dentro del período, no futura) se avisa aquí para no hacer esperar a quien se equivoca, pero manda el servidor.
 @Component({
   selector: 'app-evaluation-period-form',
-  imports: [TranslatePipe, FormModal, DatePicker],
+  imports: [TranslatePipe, FormModal, DatePicker, Busy],
   templateUrl: './evaluation-period-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -41,7 +42,7 @@ export class EvaluationPeriodForm {
     return errors;
   });
   readonly errors = computed(() => ({ ...this.serverErrors(), ...this.localErrors() }));
-  readonly canSave = computed(() => !!this.start() && !!this.end() && Object.keys(this.localErrors()).length === 0 && !this.sending());
+  readonly canSave = computed(() => !!this.start() && !!this.end() && Object.keys(this.localErrors()).length === 0);
 
   constructor() {
     // Se abre con lo que el marco ya tiene; sin período, vacío, y la fecha de corte congelada propone hoy.
@@ -55,6 +56,7 @@ export class EvaluationPeriodForm {
   }
 
   save(): void {
+    if (this.sending()) return;
     if (!this.canSave()) return;
     this.sending.set(true);
     this.banner.set(null);

@@ -20,8 +20,8 @@ describe('RiskLevelBadge', () => {
   it('paints each of the four levels with its own risk tokens, with its word and no icon', () => {
     for (const l of ['low', 'moderate', 'high', 'critical']) {
       const r = render(l);
-      expect(r.classes).toContain(`bg-risk-${l}-bg`);
-      expect(r.classes).toContain(`text-risk-${l}-ink`);
+      expect(r.classes).toContain(`bg-badge-risk-${l}-bg`);
+      expect(r.classes).toContain(`text-badge-risk-${l}-ink`);
       expect(r.hasIcon).toBeFalse();
       expect(r.text).not.toBe('');
     }
@@ -29,14 +29,14 @@ describe('RiskLevelBadge', () => {
 
   it('does not use the status tokens or a pill', () => {
     const r = render('critical');
-    expect(r.classes).not.toMatch(/bad|ok|warn|red-|rounded-full/);
+    expect(r.classes).not.toMatch(/badge-(bad|ok|warn)|red-|rounded-full/);
   });
 
   it('shows a risk that has not been evaluated as such, never as low', () => {
     const none = render(null);
     expect(none.level).toBe('none');
     expect(none.text).toContain('COMPLIANCE.RISKS.NOT_EVALUATED');
-    expect(none.classes).toContain('border-dashed');
+    expect(none.classes).toContain('bg-badge-neutral-bg');
     expect(none.hasIcon).toBeFalse();
   });
 

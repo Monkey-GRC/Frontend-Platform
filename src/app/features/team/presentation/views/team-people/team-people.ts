@@ -7,7 +7,6 @@ import { SessionService } from '@core/domain/services/session.service';
 import { PageInfo } from '@shared/presentation/components/data-table/table-page';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
 import { TableFilter, TableFilterOption } from '@shared/presentation/components/table-filter/table-filter';
@@ -24,6 +23,9 @@ import { TeamService } from '@shared/domain/services/team.service';
 import { InviteActor, TeamInviteForm } from '../../components/team-invite-form/team-invite-form';
 import { isCompanyAdmin } from '@shared/domain/utils/roles';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Badge } from '@shared/presentation/components/badge/badge';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 type Stage = 'loading' | 'error' | 'ready';
 interface Pending { kind: 'deactivate' | 'reset_mfa'; member: TeamMember }
@@ -48,7 +50,7 @@ const STATUS_FILTERS: readonly TeamStatus[] = ['active', 'pending', 'inactive'];
 // Falta (espera al Backend): la baja con aviso de controles asignados y corregir si un delegado es interno o externo (ambos en MD-191, aún fuera de develop).
 @Component({
   selector: 'app-team-people',
-  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, LocalDatePipe, DataTable, TableCell, TeamInviteForm, EmptyState, Field, FormModal, StatusIndicator, PersonCell, TableToolbar, TableFilter],
+  imports: [Badge, PageHeader, TranslatePipe, ConfirmDialog, LocalDatePipe, DataTable, TableCell, TeamInviteForm, EmptyState, Field, FormModal, StatusIndicator, PersonCell, TableToolbar, TableFilter, Busy, BusyFields],
   templateUrl: './team-people.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -99,6 +101,8 @@ export class TeamPeopleView implements OnInit {
   readonly hasFilters = computed(() => !!(this.roleFilter() || this.statusFilter() || this.groupFilter() || this.affiliationFilter()));
 
   readonly saving = signal(false);
+  // Cuál acción lanzada con un botón corre: solo ese botón muestra el ocupado; los demás quedan deshabilitados.
+  readonly busyAction = signal<'resend' | 'reactivate' | null>(null);
   readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly invitation = signal<SentInvitation | null>(null);
@@ -107,7 +111,7 @@ export class TeamPeopleView implements OnInit {
   readonly nameEditing = signal<string | null>(null);
   readonly nameDraft = signal('');
   readonly lastNameDraft = signal('');
-  readonly canSaveName = computed(() => !!this.nameDraft().trim() && !!this.lastNameDraft().trim() && !this.saving());
+  readonly canSaveName = computed(() => !!this.nameDraft().trim() && !!this.lastNameDraft().trim());
 
   // Confirmaciones (desactivar, quitar el segundo factor)
   readonly confirming = signal<Pending | null>(null);
@@ -118,9 +122,9 @@ export class TeamPeopleView implements OnInit {
 
   /** «Interno o externo» solo existe para un delegado: la columna aparece si la página trae alguno. */
   readonly columns = computed<TableColumn<TeamMember>[]>(() => [
-    { key: 'person', headerKey: 'TEAM.COLUMNS.PERSON' },
-    { key: 'role', headerKey: 'TEAM.COLUMNS.ROLE' },
-    { key: 'status', headerKey: 'TEAM.COLUMNS.STATUS' },
+    { key: 'person', headerKey: 'TEAM.COLUMNS.PERSON', skeleton: 'person' },
+    { key: 'role', headerKey: 'TEAM.COLUMNS.ROLE', skeleton: 'badge' },
+    { key: 'status', headerKey: 'TEAM.COLUMNS.STATUS', skeleton: 'badge' },
     { key: 'group', headerKey: 'TEAM.COLUMNS.GROUP' },
     ...(this.members().some((m) => m.is_internal !== null && m.is_internal !== undefined) ? [{ key: 'affiliation', headerKey: 'TEAM.COLUMNS.AFFILIATION' }] : []),
     { key: 'lastLogin', headerKey: 'TEAM.COLUMNS.LAST_LOGIN' },
@@ -278,6 +282,8 @@ export class TeamPeopleView implements OnInit {
 
   /** Reenvía la invitación (código nuevo por correo; el anterior deja de servir). Sirve para una cuenta `pending`, también cuando el primer envío falló. */
   resend(id: string, email: string): void {
+    if (this.saving()) return;
+    this.busyAction.set('resend');
     this.run(this.api.resendInvitation(id), 'TEAM.NOTICE.CODE_REISSUED', (invitation) => this.showInvitation(id, email, invitation));
   }
 
@@ -298,6 +304,7 @@ export class TeamPeopleView implements OnInit {
   }
 
   saveName(): void {
+    if (this.saving()) return;
     const id = this.nameEditing();
     if (!id || !this.canSaveName()) return;
     this.run(this.api.update(id, { name: this.nameDraft().trim(), last_name: this.lastNameDraft().trim() }), 'TEAM.NOTICE.NAME_SAVED', () => this.nameEditing.set(null));
@@ -305,6 +312,8 @@ export class TeamPeopleView implements OnInit {
 
   // ─── estado ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   reactivate(m: TeamMember): void {
+    if (this.saving()) return;
+    this.busyAction.set('reactivate');
     this.run(this.api.update(m.id, { status: 'active' }), 'TEAM.NOTICE.REACTIVATED', () => undefined);
   }
 
@@ -331,6 +340,7 @@ export class TeamPeopleView implements OnInit {
     call.subscribe({
       next: (result) => {
         this.saving.set(false);
+        this.busyAction.set(null);
         done(result);
         this.notice.set(this.translate.instant(noticeKey));
         this.refresh();
@@ -338,6 +348,7 @@ export class TeamPeopleView implements OnInit {
       // `message` ya viene traducido por el backend (409: no activada, es el último administrador; 422: campos).
       error: (e) => {
         this.saving.set(false);
+        this.busyAction.set(null);
         failed?.();
         this.error.set(apiErrorMessage(e, this.translate.instant('TEAM.ERROR.SAVE')));
       },

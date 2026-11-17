@@ -19,7 +19,7 @@ import { CatalogIntegration } from '@features/integrations/domain/models/integra
         <div class="flex items-center gap-3">
           <app-provider-logo [logoKey]="item().logo_key" size="card" />
           <h3 class="text-base font-semibold text-ink">
-            <a [routerLink]="['/integraciones', item().code]" data-test-open class="rounded-control after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action">{{ item().name }}</a>
+            <a [routerLink]="['/integraciones', item().code]" [queryParams]="serviceId() ? { service: serviceId() } : null" data-test-open class="rounded-control after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action">{{ item().name }}</a>
           </h3>
         </div>
         <p class="text-sm text-ink-muted">{{ item().description }}</p>
@@ -54,5 +54,7 @@ import { CatalogIntegration } from '@features/integrations/domain/models/integra
 })
 export class IntegrationCard {
   readonly item = input.required<CatalogIntegration>();
+  /** El servicio desde el que se llegó: el detalle se abre dentro de él y «Conectar» ya lo lleva. */
+  readonly serviceId = input<string | null>(null);
   readonly connect = output<CatalogIntegration>();
 }

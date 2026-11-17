@@ -1,0 +1,12 @@
+<ng-container #flowHost />
+@if (stage() !== 'ready') {
+<app-connection-wizard-shell titleKey="TECHNICAL_CONTROL.WIZARD.TITLE_GENERIC" [showFooter]="false" (closed)="close()">
+  @if (stage() === 'loading') {
+  <app-skeleton-region data-wizard-loading><div class="space-y-4"><app-skeleton shape="title" width="50%" /><app-skeleton shape="line" [lines]="2" /><app-skeleton shape="block" height="8rem" /></div></app-skeleton-region>
+  } @else {
+  <app-empty-state icon="" titleKey="TECHNICAL_CONTROL.LOAD_ERROR">
+    <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  }
+</app-connection-wizard-shell>
+}

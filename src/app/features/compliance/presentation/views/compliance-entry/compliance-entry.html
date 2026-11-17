@@ -2,7 +2,9 @@
   @switch (stage()) {
 
   @case ('loading') {
-  <app-loading-spinner />
+  <app-skeleton-region>
+    <div class="space-y-4"><app-skeleton shape="title" width="30%" /><app-skeleton shape="line" [lines]="2" /><app-skeleton shape="card" /></div>
+  </app-skeleton-region>
   }
 
   @case ('error') {

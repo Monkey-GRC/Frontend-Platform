@@ -3,10 +3,9 @@
   @switch (stage()) {
 
   @case ('loading') {
-  <div class="flex justify-center py-12" role="status">
-    <span class="material-symbols-rounded animate-spin text-[28px] text-action" aria-hidden="true">progress_activity</span>
-    <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
-  </div>
+  <app-skeleton-region>
+    <div class="flex flex-col gap-4"><app-skeleton shape="title" width="60%" /><app-skeleton shape="line" [lines]="3" /><app-skeleton shape="card" /><app-skeleton shape="card" /></div>
+  </app-skeleton-region>
   }
 
   @case ('error') {
@@ -38,7 +37,7 @@
         @let look = readinessLook(d.readiness);
         <app-status-indicator [tone]="look.tone" [labelKey]="look.labelKey" [hintKey]="look.hintKey" [attr.data-status]="look.level" />
         @if (d.origin === 'own') {
-        <span class="text-sm text-ink-muted">{{ 'COMPLIANCE.CONTROLS.OWN' | translate }}</span>
+        <app-badge kind="attribute" value="own">{{ 'COMPLIANCE.CONTROLS.OWN' | translate }}</app-badge>
         }
         @if (d.approval === 'pending') {
         <app-status-indicator tone="warn" labelKey="COMPLIANCE.CONTROLS.AWAITING_APPROVAL" />
@@ -77,7 +76,7 @@
         }
 
       @if (mode() === 'interpretation') {
-      <form class="mt-2" (ngSubmit)="submitInterpretation()">
+      <form class="mt-2" [appBusyFields]="saving()" (ngSubmit)="submitInterpretation()">
         <label class="sr-only" for="interpretation">{{ 'COMPLIANCE.DETAIL.INTERPRETATION' | translate }}</label>
         <textarea id="interpretation" name="interpretation" rows="5" [maxLength]="maxInterpretation" [ngModel]="interpretationDraft()" (ngModelChange)="interpretationDraft.set($event)"
           [attr.aria-invalid]="fieldError('interpretation.text') ? 'true' : null"
@@ -87,7 +86,7 @@
         }
         <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.DETAIL.PROPOSAL_NOTE' | translate }}</p>
         <div class="mt-3 flex items-center gap-3">
-          <button type="submit" [disabled]="!interpretationValid() || saving()"
+          <button type="submit" [disabled]="!interpretationValid()" [appBusy]="saving()"
             class="h-9 mk-btn">{{ 'COMPLIANCE.DETAIL.SEND_PROPOSAL' | translate }}</button>
           <button type="button" (click)="cancelEdit()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
         </div>
@@ -110,7 +109,7 @@
         }
 
       @if (mode() === 'dimensions') {
-      <form class="mt-2" (ngSubmit)="submitDimensions()">
+      <form class="mt-2" [appBusyFields]="saving()" (ngSubmit)="submitDimensions()">
         <ul class="flex flex-col gap-3">
           @for (item of dimensionsDraft(); track item.dimension; let i = $index) {
           <li class="rounded-control border border-line p-3">
@@ -134,7 +133,7 @@
         </ul>
         <p class="mt-2 text-xs text-ink-muted">{{ 'COMPLIANCE.DETAIL.PROPOSAL_NOTE' | translate }}</p>
         <div class="mt-3 flex items-center gap-3">
-          <button type="submit" [disabled]="!dimensionsValid() || saving()"
+          <button type="submit" [disabled]="!dimensionsValid()" [appBusy]="saving()"
             class="h-9 mk-btn">{{ 'COMPLIANCE.DETAIL.SEND_PROPOSAL' | translate }}</button>
           <button type="button" (click)="cancelEdit()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
         </div>
@@ -214,8 +213,8 @@
     @if (d.technical; as tech) {
     <app-detail-card titleKey="COMPLIANCE.SHELL.TECHNICAL_VIEW" [startOpen]="false">
       <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs text-ink-muted">
-        <dt class="font-medium">{{ 'COMPLIANCE.DETAIL.TECH_FOCUS' | translate }}</dt><dd class="font-mono">{{ tech.points_of_focus.length ? tech.points_of_focus.join(', ') : '—' }}</dd>
-        <dt class="font-medium">{{ 'COMPLIANCE.DETAIL.TECH_STATE' | translate }}</dt><dd class="font-mono">{{ tech.control_state }}</dd>
+        <dt class="font-medium">{{ 'COMPLIANCE.DETAIL.TECH_FOCUS' | translate }}</dt><dd class="flex flex-wrap gap-1.5">@for (p of tech.points_of_focus; track p) {<app-tag [text]="p" />} @empty {—}</dd>
+        <dt class="font-medium">{{ 'COMPLIANCE.DETAIL.TECH_STATE' | translate }}</dt><dd><app-status-indicator [tone]="controlStateTone(tech.control_state)" [label]="labels.of('COMPLIANCE.CONTROL_STATE', tech.control_state)" data-test-control-state /></dd>
       </dl>
     </app-detail-card>
     }

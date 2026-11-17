@@ -11,6 +11,7 @@ import { CatalogOption, RegulationOption } from '@shared/domain/models/catalog.m
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { FLAG_FILES, SYMBOLS } from '@shared/domain/utils/country-flags';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { Stepper, StepperItem } from '@shared/presentation/components/stepper/stepper';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import {
   OrganizationalContextDraft,
@@ -21,6 +22,9 @@ import {
 import { OnboardingDraftService } from '@features/onboarding/domain/services/onboarding-draft.service';
 import { OnboardingService } from '@features/onboarding/domain/services/onboarding.service';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 interface Catalogs {
   size: CatalogOption[];
@@ -52,7 +56,7 @@ type SingleKey = 'size' | 'years_in_operation' | 'industry' | 'business_model' |
 
 @Component({
   selector: 'app-organizational-context',
-  imports: [OptionChips, RouterLink, TranslatePipe, EmptyState],
+  imports: [OptionChips, RouterLink, TranslatePipe, EmptyState, Stepper, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './organizational-context.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -68,6 +72,7 @@ export class OrganizationalContextView implements OnInit {
   private readonly language = inject(LanguageService);
 
   readonly steps = STEPS;
+  readonly stepperSteps: StepperItem[] = STEPS.map((s) => ({ icon: s.icon, label: s.labelKey }));
   readonly reviewStep = REVIEW_STEP;
   readonly descriptionMax = DESCRIPTION_MAX;
 
@@ -233,6 +238,7 @@ export class OrganizationalContextView implements OnInit {
   // ---------- guardar ----------
 
   save(): void {
+    if (this.stage() === 'saving') return;
     if (!this.allValid()) {
       // No debería pasar (la revisión solo se alcanza con todo contestado), pero se protege.
       const firstPending = STEPS.findIndex((_, i) => !this.isStepValid(i, this.draft()));
@@ -256,7 +262,13 @@ export class OrganizationalContextView implements OnInit {
           // La primera vez se sigue a Inicio; al editar, la persona se queda en la ficha de su empresa, ya con los cambios.
           this.auth.validate().subscribe(() => {
             if (firstTime) {
-              this.router.navigateByUrl('/');
+              const restore = (): void => this.stage.set('form');
+              this.router.navigateByUrl('/').then(
+                (ok) => {
+                  if (!ok) restore();
+                },
+                restore,
+              );
               return;
             }
             this.stage.set('form');

@@ -10,11 +10,12 @@ import { PageInfo } from '@shared/presentation/components/data-table/table-page'
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { readinessLook } from '@shared/domain/utils/readiness-look';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
+import { Tag } from '@shared/presentation/components/tag/tag';
+import { Badge } from '@shared/presentation/components/badge/badge';
 import { bindInsight } from '@features/compliance/domain/services/compliance-context.service';
 import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 import { ControlListItem, TrustCriterion } from '@features/compliance/domain/models/control.models';
@@ -32,7 +33,7 @@ const PAGE_SIZE = 25;
 // porcentaje de cumplimiento y su cobertura, con los conteos entre paréntesis (D80); nunca un porcentaje solo. «Sin medir» no es un fallo.
 @Component({
   selector: 'app-controls-list',
-  imports: [TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, EmptyState, LoadingSpinner, ControlDetailPanel],
+  imports: [Badge, Tag, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, EmptyState, ControlDetailPanel],
   templateUrl: './controls-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -79,8 +80,8 @@ export class ControlsListView {
   readonly columns = computed<TableColumn<ControlListItem>[]>(() => [
     { key: 'code', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TECHNICAL' },
     { key: 'name', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_NAME' },
-    { key: 'topics', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TOPIC' },
-    { key: 'status', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_STATUS' },
+    { key: 'topics', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TOPIC', skeleton: 'badge' },
+    { key: 'status', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_STATUS', skeleton: 'badge' },
     { key: 'counts', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_PROGRESS' },
   ]);
 
@@ -172,9 +173,10 @@ export class ControlsListView {
     this.selected.set(row.id);
   }
 
-  topicLabels(row: ControlListItem): string {
+  /** Los temas del control: el valor estable (decide el color del badge) y su etiqueta traducida. */
+  topics(row: ControlListItem): { value: string; label: string }[] {
     const options = this.trustOptions();
-    return row.trust_criteria.map((c) => options.find((o) => o.value === c)?.label ?? c).join(', ');
+    return row.trust_criteria.map((c) => ({ value: c, label: options.find((o) => o.value === c)?.label ?? c }));
   }
 
   private restart(): void {

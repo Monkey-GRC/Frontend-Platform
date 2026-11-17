@@ -1,4 +1,4 @@
-<app-form-modal [titleKey]="'COMPLIANCE.RISK_FORM.TITLE_' + (editing() ? 'EDIT_' : 'NEW_') + kind().toUpperCase()" [descriptionKey]="'COMPLIANCE.RISK_FORM.SUBTITLE_' + kind().toUpperCase()" [dismissible]="!sending()" testId="risk-form" (closed)="closed.emit()">
+<app-form-modal [titleKey]="'COMPLIANCE.RISK_FORM.TITLE_' + (editing() ? 'EDIT_' : 'NEW_') + kind().toUpperCase()" [descriptionKey]="'COMPLIANCE.RISK_FORM.SUBTITLE_' + kind().toUpperCase()" [busy]="sending()" testId="risk-form" (closed)="closed.emit()">
   <form id="risk-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
 
     @if (banner(); as b) {
@@ -45,7 +45,5 @@
     }
   </form>
 
-  <button actions type="submit" form="risk-form" [disabled]="!canSave()" data-save class="mk-btn">
-    {{ (sending() ? 'COMPLIANCE.RISK_FORM.SAVING' : 'COMPLIANCE.RISK_FORM.SAVE') | translate }}
-  </button>
+  <button actions type="submit" form="risk-form" [disabled]="!canSave()" [appBusy]="sending()" [busyLabel]="'COMPLIANCE.RISK_FORM.SAVING' | translate" data-save class="mk-btn">{{ 'COMPLIANCE.RISK_FORM.SAVE' | translate }}</button>
 </app-form-modal>

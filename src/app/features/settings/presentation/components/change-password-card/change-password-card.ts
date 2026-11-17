@@ -9,6 +9,8 @@ import { NewPasswordFields } from '@shared/presentation/components/new-password-
 import { PasswordField } from '@shared/presentation/components/password-field/password-field';
 import { SecondFactorAnswer, SecondFactorDialog } from '@shared/presentation/components/second-factor-dialog/second-factor-dialog';
 import { SecurityService } from '@features/settings/domain/services/security.service';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 // Un código equivocado se corrige en el mismo modal; cualquier otro error (la contraseña actual, una repetida, demasiados cambios) manda a la persona de vuelta al formulario.
 const STAYS_IN_DIALOG = new Set(['MFA_CODE_INVALID', 'ACCOUNT_LOCKED']);
@@ -17,7 +19,7 @@ const STAYS_IN_DIALOG = new Set(['MFA_CODE_INVALID', 'ACCOUNT_LOCKED']);
 // del segundo factor y recién entonces se envía.
 @Component({
   selector: 'app-change-password-card',
-  imports: [ReactiveFormsModule, TranslatePipe, NewPasswordFields, NoticeDialog, PasswordField, SecondFactorDialog],
+  imports: [ReactiveFormsModule, TranslatePipe, NewPasswordFields, NoticeDialog, PasswordField, SecondFactorDialog, Busy, BusyFields],
   templateUrl: './change-password-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

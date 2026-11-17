@@ -4,13 +4,13 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { Asset, Capability, Platform } from '@shared/domain/models/technical-control.models';
+import { Asset, Platform } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { isSelect, optionsText, optionValues, pickOption, selectText } from '@shared/presentation/components/select/select.testing';
 import { ConnectServerForm } from './connect-server-form';
 
 const platform: Platform = { code: 'linux', name: 'Linux', logo_key: 'linux', availability: 'available', connection_methods: ['agent'] };
-const capability = { catalog_code: 'ac_04', category: 'Servidores on-premise', platforms: [platform] } as unknown as Capability;
+const catalogCode = 'ac_04';
 const versions: CatalogOption[] = [
   { value: 'ubuntu_22_04_lts', label: 'Ubuntu 22.04 LTS', group: 'ubuntu', group_label: 'Ubuntu' },
   { value: 'ubuntu_24_04_lts', label: 'Ubuntu 24.04 LTS', group: 'ubuntu', group_label: 'Ubuntu' },
@@ -33,7 +33,7 @@ describe('ConnectServerForm', () => {
       providers: [provideTranslateService(), { provide: TechnicalControlService, useValue: api }, { provide: CatalogService, useValue: catalogs }],
     });
     fixture = TestBed.createComponent(ConnectServerForm);
-    fixture.componentRef.setInput('capability', capability);
+    fixture.componentRef.setInput('catalogCode', catalogCode);
     fixture.componentRef.setInput('platform', platform);
     fixture.componentRef.setInput('service', { id: 's1', name: 'Mi servicio' });
     fixture.detectChanges();

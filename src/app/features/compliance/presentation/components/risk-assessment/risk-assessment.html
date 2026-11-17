@@ -29,18 +29,15 @@
     }
 
     @if (evaluating()) {
-    <div class="mt-3 rounded-control border border-line p-3">
+    <div class="mt-3 rounded-control border border-line p-3" [appBusyFields]="saving()">
       <p class="mb-2 text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_ASSESSMENT.MATRIX_HINT' | translate }}</p>
       <app-risk-matrix [editable]="true" [disabled]="saving()" [selected]="cell()" [saved]="position()" (picked)="onCell($event)" />
       <p class="mt-2 text-sm text-ink" data-test-picked>
         @if (cell(); as c) { {{ 'COMPLIANCE.RISK_ASSESSMENT.PICKED' | translate: { likelihood: c.likelihood, impact: c.impact } }} } @else { {{ 'COMPLIANCE.RISK_ASSESSMENT.PICK_PROMPT' | translate }} }
       </p>
       <div class="mt-3 flex items-center gap-3">
-        <button type="button" (click)="saveEvaluation()" [disabled]="!canSaveEvaluation()" data-test-save-evaluation
-          class="h-9 mk-btn">
-          @if (saving()) {<span class="material-symbols-rounded animate-spin text-[16px]" aria-hidden="true">progress_activity</span>}
-          {{ (saving() ? 'COMPLIANCE.RISK_ASSESSMENT.SAVING' : 'COMPLIANCE.RISK_ASSESSMENT.SAVE_EVALUATION') | translate }}
-        </button>
+        <button type="button" (click)="saveEvaluation()" [disabled]="!canSaveEvaluation()" [appBusy]="saving()" [busyLabel]="'COMPLIANCE.RISK_ASSESSMENT.SAVING' | translate" data-test-save-evaluation
+          class="h-9 mk-btn">{{ 'COMPLIANCE.RISK_ASSESSMENT.SAVE_EVALUATION' | translate }}</button>
         <button type="button" (click)="cancelEvaluation()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
       </div>
     </div>
@@ -95,12 +92,9 @@
     }
 
     @if (treating()) {
-    <div class="mt-3 rounded-control border border-line p-3">
+    <div class="mt-3 rounded-control border border-line p-3" [appBusyFields]="saving()">
       @if (responsibles() === null) {
-      <div class="flex justify-center py-3" role="status">
-        <span class="material-symbols-rounded animate-spin text-[20px] text-action" aria-hidden="true">progress_activity</span>
-        <span class="sr-only">{{ 'COMMON.LOADING' | translate }}</span>
-      </div>
+      <app-skeleton-region><div class="grid gap-3 sm:grid-cols-3"><app-skeleton shape="field" /><app-skeleton shape="field" /><app-skeleton shape="field" /></div></app-skeleton-region>
       } @else if (responsibles()?.length === 0) {
       <p class="text-sm text-ink-muted" data-test-no-responsibles>{{ 'COMPLIANCE.RISK_ASSESSMENT.NO_RESPONSIBLES' | translate }}</p>
       <button type="button" (click)="cancelTreatment()" class="mt-3 text-sm font-medium text-ink-muted hover:underline">{{ 'COMMON.CANCEL' | translate }}</button>
@@ -121,11 +115,8 @@
         </label>
       </div>
       <div class="mt-3 flex items-center gap-3">
-        <button type="button" (click)="saveTreatment()" [disabled]="!canSaveTreatment()" data-test-save-treatment
-          class="h-9 mk-btn">
-          @if (saving()) {<span class="material-symbols-rounded animate-spin text-[16px]" aria-hidden="true">progress_activity</span>}
-          {{ (saving() ? 'COMPLIANCE.RISK_ASSESSMENT.SAVING' : 'COMPLIANCE.RISK_ASSESSMENT.SAVE_TREATMENT') | translate }}
-        </button>
+        <button type="button" (click)="saveTreatment()" [disabled]="!canSaveTreatment()" [appBusy]="saving()" [busyLabel]="'COMPLIANCE.RISK_ASSESSMENT.SAVING' | translate" data-test-save-treatment
+          class="h-9 mk-btn">{{ 'COMPLIANCE.RISK_ASSESSMENT.SAVE_TREATMENT' | translate }}</button>
         <button type="button" (click)="cancelTreatment()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
       </div>
       }

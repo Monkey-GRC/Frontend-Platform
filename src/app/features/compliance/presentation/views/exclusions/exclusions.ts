@@ -8,7 +8,6 @@ import { EmptyState } from '@shared/presentation/components/empty-state/empty-st
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { bindInsight } from '@features/compliance/domain/services/compliance-context.service';
 import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
@@ -23,7 +22,7 @@ type Stage = 'loading' | 'error' | 'forbidden' | 'ready';
 // activo deja de medirse en esa prueba hasta que venza (el fin del período). El administrador y el auditor las leen. Crear una desde un control está por construir.
 @Component({
   selector: 'app-exclusions',
-  imports: [TranslatePipe, LoadingSpinner, DataTable, TableCell, TableToolbar, OptionChips, EmptyState, StatusIndicator],
+  imports: [TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, EmptyState, StatusIndicator],
   templateUrl: './exclusions.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -56,9 +55,9 @@ export class ExclusionsView implements OnInit {
   protected readonly columns: TableColumn<Exclusion>[] = [
     { key: 'test', headerKey: 'COMPLIANCE.EXCLUSIONS.COL_TEST' },
     { key: 'justification', headerKey: 'COMPLIANCE.EXCLUSIONS.JUSTIFICATION' },
-    { key: 'status', headerKey: 'COMPLIANCE.EXCLUSIONS.COL_STATUS' },
+    { key: 'status', headerKey: 'COMPLIANCE.EXCLUSIONS.COL_STATUS', skeleton: 'badge' },
     { key: 'validity', headerKey: 'COMPLIANCE.EXCLUSIONS.VALIDITY', class: 'whitespace-nowrap' },
-    { key: 'people', headerKey: 'COMPLIANCE.EXCLUSIONS.CREATED_BY' },
+    { key: 'people', headerKey: 'COMPLIANCE.EXCLUSIONS.CREATED_BY', skeleton: 'person' },
   ];
   protected readonly byId = (e: Exclusion): string => e.id;
 

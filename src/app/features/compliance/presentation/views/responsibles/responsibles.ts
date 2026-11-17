@@ -3,7 +3,6 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { Responsible } from '@shared/domain/models/risk.models';
@@ -18,6 +17,8 @@ import { FormModal } from '@shared/presentation/components/form-modal/form-modal
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { Select } from '@shared/presentation/components/select/select';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -26,7 +27,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // El administrador de la empresa crea, cambia la persona y quita; el resto de roles solo lee. Un cargo del que algo depende no se puede quitar (409).
 @Component({
   selector: 'app-responsibles',
-  imports: [PageHeader, TranslatePipe, ConfirmDialog, LoadingSpinner, DataTable, TableCell, EmptyState, Field, FormModal, StatusIndicator, Select],
+  imports: [PageHeader, TranslatePipe, ConfirmDialog, DataTable, TableCell, EmptyState, Field, FormModal, StatusIndicator, Select, Busy, BusyFields],
   templateUrl: './responsibles.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -48,10 +49,10 @@ export class ResponsiblesView implements OnInit {
 
   // Tabla: la columna de acciones solo existe para quien administra.
   readonly columns = computed<TableColumn<Responsible>[]>(() => [
-    { key: 'type', headerKey: 'COMPLIANCE.RESPONSIBLES.TYPE' },
-    { key: 'person', headerKey: 'COMPLIANCE.RESPONSIBLES.PERSON' },
-    { key: 'status', headerKey: 'COMPLIANCE.RESPONSIBLES.COL_STATUS' },
-    ...(this.view.canManage() ? [{ key: 'actions', headerKey: 'COMPLIANCE.RESPONSIBLES.COL_ACTIONS', align: 'right' as const, srOnlyHeader: true }] : []),
+    { key: 'type', headerKey: 'COMPLIANCE.RESPONSIBLES.TYPE', skeleton: 'badge' },
+    { key: 'person', headerKey: 'COMPLIANCE.RESPONSIBLES.PERSON', skeleton: 'person' },
+    { key: 'status', headerKey: 'COMPLIANCE.RESPONSIBLES.COL_STATUS', skeleton: 'badge' },
+    ...(this.view.canManage() ? [{ key: 'actions', headerKey: 'COMPLIANCE.RESPONSIBLES.COL_ACTIONS', align: 'right' as const, srOnlyHeader: true, skeleton: 'actions' as const }] : []),
   ]);
   readonly rowKey = (r: Responsible): string => r.id;
 
@@ -59,7 +60,7 @@ export class ResponsiblesView implements OnInit {
   readonly addOpen = signal(false);
   readonly newType = signal('');
   readonly newName = signal('');
-  readonly canAdd = computed(() => !!this.newType() && !!this.newName().trim() && !this.saving());
+  readonly canAdd = computed(() => !!this.newType() && !!this.newName().trim());
 
   // Cambio de persona y baja
   readonly editing = signal<string | null>(null);
@@ -131,6 +132,7 @@ export class ResponsiblesView implements OnInit {
   }
 
   private run(call: Observable<unknown>, noticeKey: string, done: () => void, failed?: () => void): void {
+    if (this.saving()) return;
     this.saving.set(true);
     this.reset();
     call.subscribe({

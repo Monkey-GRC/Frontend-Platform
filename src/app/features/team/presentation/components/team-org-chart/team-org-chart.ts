@@ -7,7 +7,6 @@ import { SessionService } from '@core/domain/services/session.service';
 import { isCompanyAdmin } from '@shared/domain/utils/roles';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { targetChecked, targetValue } from '@shared/presentation/utils/event-target';
@@ -17,6 +16,9 @@ import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { OrgResponsible, OrgWorkload, buildOrgChart } from '@features/team/domain/utils/team-org';
 import { Select, SelectOption } from '@shared/presentation/components/select/select';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
 type Stage = 'loading' | 'error' | 'ready';
 // Quien ejecuta controles no se mueve sin confirmar (USER_HAS_ASSIGNMENTS trae cuántos).
@@ -31,7 +33,7 @@ const OPEN_BY_DEFAULT_UP_TO = 4;
 // Cuando el Backend entregue la carga por persona (MD-195), `workload` mostrará controles y avance; mientras no, no se pinta nada de eso.
 @Component({
   selector: 'app-team-org-chart',
-  imports: [TranslatePipe, ConfirmDialog, NgTemplateOutlet, PersonCell, StatusIndicator, EmptyState, LoadingSpinner, Select],
+  imports: [TranslatePipe, ConfirmDialog, NgTemplateOutlet, PersonCell, StatusIndicator, EmptyState, Select, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './team-org-chart.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -88,11 +90,11 @@ export class TeamOrgChart implements OnInit {
   readonly target = signal('');
   readonly pending = signal<PendingMove | null>(null);
 
-  readonly canCreateTeam = computed(() => !!this.teamNameDraft().trim() && !this.saving());
+  readonly canCreateTeam = computed(() => !!this.teamNameDraft().trim());
   readonly canRename = computed(() => {
     const draft = this.renameDraft().trim();
     const current = this.groups().find((g) => g.id === this.renamingId());
-    return !!draft && !!current && draft !== current.name && !this.saving();
+    return !!draft && !!current && draft !== current.name;
   });
 
   ngOnInit(): void {
@@ -165,7 +167,7 @@ export class TeamOrgChart implements OnInit {
   }
 
   createTeam(node: OrgResponsible): void {
-    if (!this.canCreateTeam()) return;
+    if (!this.canCreateTeam() || this.saving()) return;
     // El responsable crea el suyo sin `leader_id` (es él); el administrador lo crea por el responsable.
     const dto = this.isAdmin() ? { name: this.teamNameDraft().trim(), leader_id: node.id } : { name: this.teamNameDraft().trim() };
     this.run(this.groupApi.create(dto), (g) => {
@@ -187,7 +189,7 @@ export class TeamOrgChart implements OnInit {
 
   saveRename(): void {
     const id = this.renamingId();
-    if (!id || !this.canRename()) return;
+    if (!id || !this.canRename() || this.saving()) return;
     this.run(this.groupApi.rename(id, this.renameDraft().trim()), (g) => {
       this.renamingId.set(null);
       this.notice.set(this.translate.instant('TEAM.ORG.NOTICE.RENAMED', { name: g.name }));
@@ -220,6 +222,7 @@ export class TeamOrgChart implements OnInit {
   }
 
   private sendMove(m: TeamMember, body: UpdateMemberDto): void {
+    if (this.saving()) return;
     this.run(
       this.teamApi.update(m.id, body),
       () => {

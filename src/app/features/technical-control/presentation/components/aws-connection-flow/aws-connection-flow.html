@@ -1,0 +1,28 @@
+<app-connection-wizard-shell titleKey="TECHNICAL_CONTROL.CONNECT.TITLE" [titleParams]="{ name: platform().name }" [steps]="steps" [current]="current()" [showBack]="showBack()"
+  [showNext]="true" [nextLabelKey]="nextLabelKey()" [nextDisabled]="nextDisabled()" [busy]="busy()" [leaveMode]="leaveMode()" (closed)="closed.emit()" (back)="onBack()" (next)="onNext()">
+  @switch (step()) {
+  @case ('choose') {
+  <app-aws-choose-step [state]="optionsState()" [methods]="methods()" [method]="method()" (methodChange)="chooseMethod($event)" (retry)="loadOptions()" />
+  }
+  @case ('account') {
+  <app-aws-account-step [(accountId)]="accountId" [(regions)]="regions" [(name)]="name" [(criticality)]="criticality" [(extraServiceIds)]="extraServiceIds" [regionOptions]="regionOptions()"
+    [criticalities]="criticalities()" [otherServices]="otherServices()" [showHints]="showHints()" [fieldErrors]="fieldErrors()" [error]="error()" />
+  }
+  @case ('access') {
+  @if (method(); as m) {
+  <app-aws-access-step [method]="m" [setup]="setup()" [(accessKeyId)]="accessKeyId" [(secretAccessKey)]="secretAccessKey" [showHints]="showHints()" [fieldErrors]="fieldErrors()" [error]="error()" />
+  }
+  }
+  @case ('check') {
+  @if (method(); as m) {
+  <app-aws-check-step [method]="m" [(roleArn)]="roleArn" [busy]="checking()" [roleError]="roleError()" [message]="message()" />
+  }
+  }
+  @case ('result') {
+  @if (asset(); as a) {
+  <app-connection-result-step [asset]="a" [demo]="demo()" titleKey="TECHNICAL_CONTROL.WIZARD.AWS.RESULT.TITLE" subtitleKey="TECHNICAL_CONTROL.WIZARD.AWS.RESULT.SUBTITLE"
+    accountLabelKey="TECHNICAL_CONTROL.WIZARD.AWS.RESULT.ACCOUNT" />
+  }
+  }
+  }
+</app-connection-wizard-shell>

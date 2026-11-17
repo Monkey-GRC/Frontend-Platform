@@ -4,7 +4,11 @@
     "CRUMB_SERVICE": "Service",
     "CRUMB_CONNECTION": "Connection",
     "NEW_CONNECTION": "New connection",
-    "AWS_ACCOUNT": "AWS · account {{account}}",
+    "ACCOUNT": {
+      "GENERIC": "Account {{account}}",
+      "AWS": "Account {{account}}",
+      "GCP": "Project {{account}}"
+    },
     "CATEGORY": {
       "AC_01": "Cloud services (managed, serverless)",
       "AC_02": "Cloud servers / VPS",
@@ -47,7 +51,7 @@
     },
     "EXECUTION": {
       "QUEUED": "Queued: it will start in a few seconds.",
-      "RUNNING": "Assessing your AWS account… it may take a few minutes.",
+      "RUNNING": "Assessing your connection… it may take a few minutes.",
       "LAST_REVIEW": "Last automatic review: {{when}}",
       "COMPLETED": "Assessment completed.",
       "CANCELLED": "The assessment was cancelled. You can start it again.",
@@ -55,19 +59,15 @@
     },
     "CONNECT": {
       "TITLE": "Connect {{name}}",
-      "SUBTITLE": "When you finish, Monkey shows you the assets it found.",
       "SUBTITLE_SERVER": "You register the server and then install the Monkey probe on it with a command."
     },
     "NEW": {
       "SUBTITLE": "Choose what you want to connect to. When you finish, Monkey shows you the assets it found.",
-      "AVAILABLE": "Available",
-      "READ_ONLY": "Read-only",
       "COMING_SOON": "Coming soon",
-      "HOW_READONLY_ROLE": "Monkey reviews your account with a read-only role. You don't share passwords or keys.",
-      "HOW_ACCESS_KEYS": "Monkey reviews your account with a read-only access key.",
       "HOW_AGENT": "You install a lightweight Monkey program on the machine. You don't need to give any passwords.",
-      "SOON": "It will be available very soon.",
-      "BLOCKED_ARIA": "{{name}}, not available, coming soon"
+      "BLOCKED_ARIA": "{{name}}, not available, coming soon",
+      "SERVERS_TITLE": "Servers, databases and devices",
+      "SERVERS_HINT": "They connect with the probe and are not integrations: they stay in each service's connections."
     },
     "DETAIL": {
       "LOAD_ERROR_TITLE": "We couldn't load this connection",
@@ -78,7 +78,10 @@
       "COL_TYPE": "Type",
       "COL_DETAIL": "Detail",
       "COL_STATUS": "Status",
-      "TABLE_CAPTION": "Service connections"
+      "TABLE_CAPTION": "Service connections",
+      "COL_ACTION": "Action",
+      "RESUME": "Continue setup",
+      "RESUME_ARIA": "Continue the setup of {{name}}"
     },
     "CARD": {
       "HIDE_SETUP": "Hide connection details",
@@ -99,7 +102,8 @@
       "EVALUATE_ERROR": "We couldn't start the assessment. Please try again.",
       "CONNECT_ERROR": "We couldn't connect to your account.",
       "CHECK_DATA": "Check the details and try again.",
-      "STEP_ERROR": "We couldn't complete this step. Please try again."
+      "STEP_ERROR": "We couldn't complete this step. Please try again.",
+      "RESUME_HINT": "This connection was left half-way. Continue where you left off."
     },
     "EDIT": {
       "TITLE": "Edit this asset",
@@ -107,6 +111,8 @@
       "IMPORTANCE": "How important is it?",
       "IMPORTANCE_ARIA": "Asset importance",
       "ACCOUNT": "Your AWS account number",
+      "ACCOUNT_GCP": "Your Google Cloud project ID",
+      "ACCOUNT_GCP_HELP": "You see it in the project picker of the Google Cloud console. It is the ID, not the name or the number. If you change it, you will need to run the setup command again.",
       "REGIONS": "Regions to assess",
       "REGIONS_ARIA": "AWS regions",
       "ROLE": "The role you created",
@@ -139,15 +145,7 @@
       "CHECK_ERROR": "We couldn't complete the check. Please try again."
     },
     "FORM": {
-      "TITLE": "Your account details",
-      "READ_ONLY_NOTE": "Monkey only reads, it never changes anything. What you share (keys or passwords, if your connection asks for them) is stored encrypted and is not shown again.",
-      "NAME_LABEL": "What do you call it?",
-      "NAME_PLACEHOLDER": "For example: Application server",
       "NAME_HINT": "Give it a name so you can recognize it later.",
-      "METHOD_LABEL": "How do you want to connect your {{name}} account?",
-      "METHOD_ARIA": "Connection method",
-      "METHOD_ROLE_HELP": "You don't share any password or key: you create a role in your account that can only read, and you tell us which one it is.",
-      "METHOD_KEYS_HELP": "You paste a read-only access key. It lasts a long time, so it is less secure than a role.",
       "ACCOUNT_HELP": "It's 12 digits. You see it at the top right of the AWS console, when you open your user menu.",
       "ACCOUNT_HINT": "Enter the 12 digits of the account.",
       "REGIONS_LABEL": "In which regions do you have resources?",
@@ -159,7 +157,6 @@
       "IMPORTANCE_ARIA": "Importance",
       "ALSO_SUPPORTS": "Does it also support other services?",
       "ALSO_SUPPORTS_HELP": "This way you don't register it twice. It's optional.",
-      "REGISTER": "Register asset",
       "CHECK_MARKED": "Check the marked fields and try again.",
       "METHOD_NOT_APPLICABLE": "That connection type isn't available for this platform. Choose another one.",
       "REGISTER_ERROR": "We couldn't register the asset. Please try again."
@@ -302,6 +299,116 @@
       "GROUP_IN": "In this service",
       "GROUP_OUT": "Outside the service",
       "DETAIL_SUBTITLE": "{{code}} · {{kind}}"
+    },
+    "WIZARD": {
+      "TITLE_GENERIC": "Connect a platform",
+      "CLOSE": "Close the wizard",
+      "STEPS_ARIA": "Steps to connect",
+      "BACK": "Back",
+      "NEXT": "Continue",
+      "SOON": "Coming soon",
+      "TAG_RECOMMENDED": "Recommended",
+      "TAG_FASTEST": "Fastest",
+      "TAG_ADVANCED": "Advanced",
+      "GCP": {
+        "CHOOSE": {
+          "TITLE": "How do you want to connect GCP?",
+          "SUBTITLE": "Choose what you connect and how you grant access. Options that are not ready yet are shown locked.",
+          "SCOPE_TITLE": "What do you want to connect?",
+          "METHOD_TITLE": "How do you grant access?",
+          "READ_ONLY": "Monkey only reads the configuration of your project: it never creates, changes or deletes anything. You share no keys or passwords."
+        },
+        "PROJECT": {
+          "TITLE": "Your project details",
+          "SUBTITLE": "Tell us which Google Cloud project you are connecting and what to call this connection.",
+          "ID_LABEL": "Project ID",
+          "ID_HELP": "You can see it in the project picker of the Google Cloud console. It is the ID, not the name or the number.",
+          "ID_INVALID": "The ID is 6 to 30 characters: lowercase letters, numbers and hyphens, starting with a letter.",
+          "NAME_PLACEHOLDER": "GCP production"
+        },
+        "ACCESS": {
+          "TITLE": "Give Monkey read-only access",
+          "SUBTITLE": "Run this command in Cloud Shell, in the project {{project}}.",
+          "COMMAND": "Setup command",
+          "NO_COMMAND": "Monkey cannot build the command for your project yet. Let us know before you continue.",
+          "NO_KEYS": "The command includes no keys or passwords, and you can revoke the access any time from your project.",
+          "DONE": "I ran the command"
+        },
+        "CHECK": {
+          "TITLE": "Check the connection",
+          "SUBTITLE": "When it finishes, the command prints your project number. Paste it here and Monkey will check the access.",
+          "NUMBER_LABEL": "Project number",
+          "NUMBER_HELP": "Digits only, for example 407295138461.",
+          "NUMBER_INVALID": "Paste the project number the command printed: 6 to 19 digits.",
+          "ACCESS_ERROR": "We could not reach your project. Check that the command finished without errors and check again."
+        },
+        "RESULT": {
+          "TITLE": "Your project is connected",
+          "SUBTITLE": "Monkey can now read the configuration of your Google Cloud project.",
+          "PROJECT": "Project"
+        }
+      },
+      "TAG_LESS_SECURE": "Less secure",
+      "STEP": {
+        "CHOOSE": "How to connect",
+        "DATA": "Details",
+        "ACCESS": "Grant access",
+        "CHECK": "Check",
+        "RESULT": "Result"
+      },
+      "LEAVE": {
+        "TITLE": "Leave the connection?",
+        "DISCARD": "If you leave now, what you have so far on this connection will be lost.",
+        "SAVED": "Your progress is saved. You can continue this connection from the service connections.",
+        "STAY": "Continue",
+        "EXIT": "Leave",
+        "EXIT_DISCARD": "Leave without saving"
+      },
+      "COMMON": {
+        "NAME_LABEL": "What do you call it?",
+        "NAME_HELP": "A name that helps you recognize it, for example “Production”.",
+        "SERVICES_PLACEHOLDER": "Choose the services"
+      },
+      "RESULT": {
+        "NAME": "Connection",
+        "STATUS": "Status",
+        "NEXT": "Next step: in the connection you choose which assets belong to the service and turn on the automatic assessment.",
+        "OPEN": "View the connection"
+      },
+      "AWS": {
+        "CHOOSE": {
+          "TITLE": "How do you want to connect AWS?",
+          "SUBTITLE": "Choose how you grant read-only access to your account.",
+          "METHOD_TITLE": "How do you grant access?",
+          "READ_ONLY": "Monkey only reads the configuration of your account: it never creates, changes or deletes anything."
+        },
+        "ACCOUNT": {
+          "TITLE": "Your account details",
+          "SUBTITLE": "Tell us which AWS account you connect, in which regions you have resources and what you want to call this connection.",
+          "NAME_PLACEHOLDER": "AWS production"
+        },
+        "ACCESS": {
+          "ROLE_TITLE": "Give Monkey read-only access",
+          "ROLE_SUBTITLE": "Create a role in your AWS account that can only read. You can delete it whenever you want.",
+          "NO_KEYS": "You share no passwords or keys, and you can delete the role whenever you want.",
+          "DONE": "I created the role",
+          "KEYS_TITLE": "Paste the access key",
+          "KEYS_SUBTITLE": "Use the key of a user that can only read. It is stored encrypted and never shown again.",
+          "KEY_REQUIRED": "Paste the access key ID.",
+          "SECRET_REQUIRED": "Paste the secret key."
+        },
+        "CHECK": {
+          "TITLE": "Check the connection",
+          "ROLE_SUBTITLE": "Paste the role ARN that AWS gave you when creating the stack and Monkey will check the access.",
+          "KEYS_SUBTITLE": "Monkey will check the access with the key you pasted."
+        },
+        "RESULT": {
+          "TITLE": "Your account is connected",
+          "SUBTITLE": "Monkey can now read the configuration of your AWS account.",
+          "ACCOUNT": "Account"
+        }
+      },
+      "OPTIONS_ERROR": "We couldn't load the options. Check your connection and try again."
     }
   }
 }

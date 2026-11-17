@@ -7,7 +7,7 @@
 
   @switch (stage()) {
   @case ('loading') {
-  <div class="py-3"><app-loading-spinner /></div>
+  <app-skeleton-region class="py-3"><app-skeleton shape="line" [lines]="2" /></app-skeleton-region>
   }
   @case ('error') {
   <p class="mt-2 text-sm text-ink-muted" role="alert" data-findings-error>
@@ -26,7 +26,7 @@
       <div class="flex flex-wrap items-start justify-between gap-2">
         <p class="min-w-0 flex-1 text-sm font-semibold leading-snug text-ink">{{ f.title }}</p>
         @if (f.severity; as severity) {
-        <span class="whitespace-nowrap rounded-control border px-2 py-0.5 text-xs font-medium" [class]="chip[severity]" data-finding-severity>{{ 'COMPLIANCE.FINDINGS.SEVERITY.' + severity.toUpperCase() | translate }}</span>
+        <app-status-indicator [tone]="tone[severity]" [label]="'COMPLIANCE.FINDINGS.SEVERITY.' + severity.toUpperCase() | translate" data-finding-severity />
         }
       </div>
 
@@ -77,7 +77,7 @@
     }
   </ul>
   @if (hasMore()) {
-  <button type="button" (click)="more()" [disabled]="loadingMore()" data-findings-more class="mt-3 text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMPLIANCE.FINDINGS.MORE' | translate }}</button>
+  <button type="button" (click)="more()" [appBusy]="loadingMore()" data-findings-more class="mt-3 text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMPLIANCE.FINDINGS.MORE' | translate }}</button>
   }
   }
   }

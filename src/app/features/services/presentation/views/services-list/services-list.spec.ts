@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { AuthService } from '@core/domain/services/auth.service';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ServiceListItem } from '@shared/domain/models/service.models';
@@ -85,6 +85,44 @@ describe('ServicesListView', () => {
     expect(q('[data-test-confirm]')).not.toBeNull();
     click('[data-test-confirm-yes]');
     expect(api.remove).toHaveBeenCalledOnceWith('s2');
+  });
+
+  it('while the list loads it shows the table skeleton (aria-busy), never a spinner', () => {
+    api = jasmine.createSpyObj<ServiceService>('ServiceService', ['list', 'remove']);
+    api.list.and.returnValue(new Subject());
+    TestBed.configureTestingModule({
+      imports: [ServicesListView],
+      providers: [
+        provideTranslateService(),
+        provideRouter([]),
+        { provide: ServiceService, useValue: api },
+        { provide: CatalogService, useValue: { options: () => of([]), frameworks: () => of([]) } },
+        { provide: AuthService, useValue: { validate: () => of(true) } },
+      ],
+    });
+    fixture = TestBed.createComponent(ServicesListView);
+    fixture.detectChanges();
+    expect(q('table')?.getAttribute('aria-busy')).toBe('true');
+    expect(q('app-loading-spinner')).toBeNull();
+  });
+
+  it('keeps the delete confirmation busy until the API answers, and clears it on the answer', () => {
+    setup([READY]);
+    const pending = new Subject<undefined>();
+    api.remove.and.returnValue(pending);
+    el().querySelectorAll<HTMLElement>('[data-test-delete-row]')[0].click();
+    fixture.detectChanges();
+    click('[data-test-confirm-yes]');
+    const yes = q('[data-test-confirm-yes]') as HTMLButtonElement;
+    expect(yes.getAttribute('aria-busy')).toBe('true');
+    expect(yes.getAttribute('aria-disabled')).toBe('true');
+    expect(yes.hasAttribute('data-app-busy')).toBeTrue();
+    yes.click();
+    expect(api.remove).toHaveBeenCalledTimes(1);
+    pending.next(undefined);
+    pending.complete();
+    fixture.detectChanges();
+    expect(q('[data-test-confirm-yes]')).toBeNull();
   });
 
   it('filters by name and says when nothing matches', () => {

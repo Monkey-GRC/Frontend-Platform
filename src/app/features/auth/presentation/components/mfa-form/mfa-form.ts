@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Busy } from '@shared/presentation/directives/busy';
+import { BusyFields } from '@shared/presentation/directives/busy-fields';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
@@ -19,7 +21,7 @@ type Stage = 'verify' | 'recovery' | 'install' | 'scan' | 'confirm' | 'codes';
 
 @Component({
   selector: 'app-mfa-form',
-  imports: [ReactiveFormsModule, TranslatePipe, CodeInput, QrCode, Stepper],
+  imports: [ReactiveFormsModule, TranslatePipe, CodeInput, QrCode, Stepper, Busy, BusyFields],
   templateUrl: './mfa-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -169,22 +171,25 @@ export class MfaForm {
     this.router.navigateByUrl('/signin', { replaceUrl: true });
   }
 
-  private enter(payload: AuthPayload): void {
-    this.navigateIn(payload);
+  private enter(payload: AuthPayload): Promise<unknown> {
+    return this.navigateIn(payload);
   }
 
-  private navigateIn(payload: AuthPayload): void {
+  // Devuelve la navegación: el ocupado sigue hasta que termina (D116).
+  private navigateIn(payload: AuthPayload): Promise<unknown> {
     // Quien aún no ha contado de qué trata su empresa empieza por ahí; el resto, por el inicio.
-    this.router.navigateByUrl(postLoginPath(payload.user.role, payload.onboarding), { replaceUrl: true });
+    return this.router.navigateByUrl(postLoginPath(payload.user.role, payload.onboarding), { replaceUrl: true });
   }
 
-  private run<T>(request: Observable<T>,onSuccess: (value: T) => void): void {
+  // `onSuccess` puede devolver la navegación: el ocupado se mantiene hasta que termina; si no, se quita al llegar la respuesta.
+  private run<T>(request: Observable<T>, onSuccess: (value: T) => void | Promise<unknown>): void {
     this.loading.set(true);
     this.errorMessage.set(null);
     request.subscribe({
       next: (value) => {
-        this.loading.set(false);
-        onSuccess(value);
+        const pending = onSuccess(value);
+        if (pending) pending.then(() => this.loading.set(false), () => this.loading.set(false));
+        else this.loading.set(false);
       },
       error: (error) => {
         this.loading.set(false);

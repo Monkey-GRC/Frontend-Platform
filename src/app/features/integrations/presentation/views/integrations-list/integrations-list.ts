@@ -7,13 +7,13 @@ import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { LocalDatePipe } from '@shared/presentation/pipes/local-date.pipe';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 import { ProviderLogo } from '@shared/presentation/components/provider-logo/provider-logo';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { TableFilter, TableFilterOption } from '@shared/presentation/components/table-filter/table-filter';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { Card } from '@shared/presentation/components/card/card';
+import { Tag } from '@shared/presentation/components/tag/tag';
 import { Integration } from '@features/integrations/domain/models/integration.models';
 import { IntegrationService } from '@features/integrations/domain/services/integration.service';
 import { attentionItems, connectionLink, integrationTone } from '@features/integrations/domain/utils/integration-look';
@@ -23,7 +23,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // «Integraciones»: lo que la empresa ya conectó, con su estado derivado (D110). El administrador agrega y revisa conexiones; el auditor solo lee.
 @Component({
   selector: 'app-integrations-list',
-  imports: [PageHeader, RouterLink, LoadingSpinner, TranslatePipe, DataTable, TableCell, TableToolbar, TableFilter, EmptyState, StatusIndicator, ProviderLogo, LocalDatePipe, Card],
+  imports: [Tag, PageHeader, RouterLink, TranslatePipe, DataTable, TableCell, TableToolbar, TableFilter, EmptyState, StatusIndicator, ProviderLogo, LocalDatePipe, Card],
   templateUrl: './integrations-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -49,10 +49,10 @@ export class IntegrationsListView {
   readonly statusOptions = signal<TableFilterOption[]>([]);
 
   readonly columns: TableColumn<Integration>[] = [
-    { key: 'name', headerKey: 'INTEGRATIONS.LIST.COL_NAME', class: 'lg:w-2/5 lg:min-w-72' },
+    { key: 'name', headerKey: 'INTEGRATIONS.LIST.COL_NAME', skeleton: 'person', class: 'lg:w-2/5 lg:min-w-72' },
     { key: 'purpose', headerKey: 'INTEGRATIONS.LIST.COL_PURPOSE', class: 'lg:w-1/5' },
     { key: 'resources', headerKey: 'INTEGRATIONS.LIST.COL_RESOURCES', align: 'center', class: 'lg:w-32' },
-    { key: 'status', headerKey: 'INTEGRATIONS.LIST.COL_STATUS', class: 'lg:w-48' },
+    { key: 'status', headerKey: 'INTEGRATIONS.LIST.COL_STATUS', skeleton: 'badge', class: 'lg:w-48' },
   ];
   readonly rowKey = (item: Integration): string => item.code;
 

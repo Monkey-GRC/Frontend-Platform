@@ -6,7 +6,7 @@ import { CatalogName, CatalogOption } from '@shared/domain/models/catalog.models
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { Select, SelectOption } from '@shared/presentation/components/select/select';
-import { Asset, Capability, NewAssetInput, Platform } from '@shared/domain/models/technical-control.models';
+import { Asset, NewAssetInput, Platform } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { targetValue } from '@shared/presentation/utils/event-target';
 
@@ -26,7 +26,8 @@ export class ConnectServerForm {
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
 
-  readonly capability = input.required<Capability>();
+  // El código de la categoría de conexión (p. ej. `ac_04`, servidores on-premise): lo trae la ruta del asistente.
+  readonly catalogCode = input.required<string>();
   readonly platform = input.required<Platform>();
   readonly service = input.required<{ id: string; name: string }>();
   readonly otherServices = input<{ id: string; name: string }[]>([]);
@@ -85,7 +86,7 @@ export class ConnectServerForm {
     }
     this.save({
       name: this.name().trim(),
-      connection_category: this.capability().catalog_code,
+      connection_category: this.catalogCode(),
       platform: this.platform().code,
       ip_address: null,
       location: null,

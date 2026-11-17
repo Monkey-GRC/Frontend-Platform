@@ -6,7 +6,6 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
-import { LoadingSpinner } from '@shared/presentation/components/loading-spinner/loading-spinner';
 import { Card } from '@shared/presentation/components/card/card';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { PageInfo } from '@shared/presentation/components/data-table/table-page';
@@ -25,6 +24,7 @@ import { OverviewService } from '@features/compliance/domain/services/overview.s
 import { RiskService } from '@shared/domain/services/risk.service';
 import { EvaluationPeriodForm } from '../../components/evaluation-period-form/evaluation-period-form';
 import { RiskHeatmap } from '../../components/risk-heatmap/risk-heatmap';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 type Stage = 'loading' | 'error' | 'ready';
 type Tone = DonutTone;
@@ -54,7 +54,7 @@ const PAGE_SIZES = [10, 25, 50];
 // vencido nunca cuenta como cumplido, y sin resultados no se inventa ningún porcentaje. El cumplimiento se mide por servicio × marco; nunca hay un total de la empresa.
 @Component({
   selector: 'app-overview',
-  imports: [TranslatePipe, RouterLink, StatusIndicator, Tag, Card, Donut, EmptyState, DataTable, TableCell, LoadingSpinner, RiskHeatmap, EvaluationPeriodForm],
+  imports: [TranslatePipe, RouterLink, StatusIndicator, Tag, Card, Donut, EmptyState, DataTable, TableCell, RiskHeatmap, EvaluationPeriodForm, Skeleton, SkeletonRegion],
   templateUrl: './overview.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

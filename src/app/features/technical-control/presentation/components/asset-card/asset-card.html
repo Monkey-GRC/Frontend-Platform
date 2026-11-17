@@ -7,16 +7,10 @@
       <app-provider-logo [logoKey]="logo" size="sm" />
       }
       <div class="min-w-0">
-        <p class="text-xs text-ink-faint">{{ asset().code }} · {{ connectionLabel() }}</p>
+        <p class="flex flex-wrap items-center gap-1.5 text-xs text-ink-faint"><app-tag [text]="asset().code" /><span>{{ connectionLabel() }}</span></p>
         <h3 class="mt-0.5 truncate text-base font-semibold text-ink">{{ asset().name }}</h3>
         <p class="mt-0.5 text-xs text-ink-faint">
-          @if (isCloud() && asset().external_account_id) {
-          {{ 'TECHNICAL_CONTROL.AWS_ACCOUNT' | translate: { account: asset().external_account_id } }}@if (regions()) { · {{ regions() }} }
-          } @else if (asset().agent; as agent) {
-          {{ agent.os_version.label }}
-          } @else {
-          {{ asset().platform }}@if (asset().ip_address) { · {{ asset().ip_address }} }@if (asset().location) { · {{ asset().location }} }
-          }
+          {{ detail() }}
         </p>
       </div>
     </div>
@@ -41,17 +35,14 @@
   </div>
 
   @if (confirmingRemove()) {
-  <div class="mt-4 p-4 mk-surface-state-bad text-ink" role="alertdialog" [attr.aria-label]="'TECHNICAL_CONTROL.CARD.CONFIRM_REMOVE_ARIA' | translate">
+  <div class="mt-4 p-4 mk-surface-state-bad text-ink" [appBusyFields]="removing()" role="alertdialog" [attr.aria-label]="'TECHNICAL_CONTROL.CARD.CONFIRM_REMOVE_ARIA' | translate">
     <p class="text-sm font-medium text-ink">{{ 'TECHNICAL_CONTROL.CARD.REMOVE_TITLE' | translate: { name: asset().name } }}</p>
     <p class="mt-1 text-xs text-ink-muted">
       {{ 'TECHNICAL_CONTROL.CARD.REMOVE_BODY' | translate }}
     </p>
     <div class="mt-3 flex gap-2">
-      <button type="button" (click)="remove()" [disabled]="removing()"
-        class="mk-btn-danger">
-        @if (removing()) {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}
-        {{ 'TECHNICAL_CONTROL.CARD.REMOVE_YES' | translate }}
-      </button>
+      <button type="button" (click)="remove()" [appBusy]="removing()"
+        class="mk-btn-danger">{{ 'TECHNICAL_CONTROL.CARD.REMOVE_YES' | translate }}</button>
       <button type="button" (click)="confirmingRemove.set(false)" [disabled]="removing()"
         class="mk-btn-secondary">{{ 'COMMON.CANCEL' | translate }}</button>
     </div>
@@ -90,6 +81,13 @@
   <p class="mt-4 p-3 text-sm text-ink" role="status" [class]="m.kind === 'error' ? 'mk-surface-state-bad' : 'mk-surface-tinted'">{{ m.text }}</p>
   }
 
+  @if (resumable()) {
+  <div class="mt-4 flex flex-wrap items-center justify-between gap-3 p-3.5 mk-surface-tinted text-ink" data-resume-banner>
+    <p class="min-w-0 flex-1 text-sm">{{ 'TECHNICAL_CONTROL.CARD.RESUME_HINT' | translate }}</p>
+    <a [routerLink]="resumeLink()" [queryParams]="resumeParams()" data-resume class="mk-btn">{{ 'TECHNICAL_CONTROL.LIST.RESUME' | translate }}</a>
+  </div>
+  }
+
   <!-- Paso pendiente: dar acceso (mientras la conexión no esté comprobada) -->
   @if (needsRolePanel() || showSetup()) {
   <app-cloud-connection-panel [asset]="asset()" (changed)="changed.emit($event)" />
@@ -109,7 +107,7 @@
       <p class="mb-2 text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.CARD.HOW_OFTEN' | translate }}</p>
       <div class="flex flex-wrap gap-2">
         @for (f of frequencies(); track f.value) {
-        <button type="button" (click)="schedule(f.value)" [disabled]="busy() !== null"
+        <button type="button" (click)="schedule(f.value)" [disabled]="busy() !== null && busyFrequency() !== f.value" [appBusy]="busyFrequency() === f.value"
           class="mk-btn-secondary">
           {{ f.label }}
         </button>
@@ -121,7 +119,7 @@
     <div class="flex flex-wrap items-center gap-2">
       <span class="text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.CARD.CHANGE_FREQUENCY' | translate }}:</span>
       @for (f of frequencies(); track f.value) {
-      <button type="button" (click)="schedule(f.value)" [disabled]="busy() !== null || f.value === asset().provisioning.schedule_frequency"
+      <button type="button" (click)="schedule(f.value)" [disabled]="(busy() !== null && busyFrequency() !== f.value) || f.value === asset().provisioning.schedule_frequency" [appBusy]="busyFrequency() === f.value"
         class="rounded-control border px-3 py-1.5 text-xs font-medium transition"
         [class]="f.value === asset().provisioning.schedule_frequency ? 'border-action bg-tint text-tint-ink' : 'border-line text-ink-muted enabled:hover:border-action/50 enabled:hover:bg-tint disabled:cursor-not-allowed disabled:text-ink-faint'">
         {{ f.label }}
@@ -131,9 +129,8 @@
     }
     @default {
     @if (!needsRolePanel()) {
-    <button type="button" (click)="validate()" [disabled]="busy() !== null"
+    <button type="button" (click)="validate()" [disabled]="busy() !== null && busy() !== 'validate'" [appBusy]="busy() === 'validate'"
       class="mk-btn">
-      @if (busy() === 'validate') {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}
       {{ (step() === 'failed' ? 'TECHNICAL_CONTROL.CARD.CHECK_AGAIN' : 'TECHNICAL_CONTROL.CARD.CHECK_CONNECTION') | translate }}
     </button>
     }

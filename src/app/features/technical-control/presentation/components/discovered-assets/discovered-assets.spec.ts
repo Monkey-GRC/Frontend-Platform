@@ -102,8 +102,13 @@ describe('DiscoveredAssets', () => {
     });
 
     it('waits while an evaluation is already queued or running', () => {
-      setup(two(), { canEvaluate: true, evaluating: true });
-      expect(button()!.disabled).toBeTrue();
+      const view = setup(two(), { canEvaluate: true, evaluating: true });
+      let asked = 0;
+      view.evaluate.subscribe(() => asked++);
+      expect(button()!.getAttribute('aria-busy')).toBe('true');
+      expect(button()!.getAttribute('aria-disabled')).toBe('true');
+      button()!.click();
+      expect(asked).toBe(0);
     });
 
     it('waits while the selection has unsaved changes, so it never evaluates with old choices', () => {

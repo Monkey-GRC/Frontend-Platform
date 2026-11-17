@@ -30,7 +30,7 @@
 
             @if (step() === 1) {
             <!-- ============ Paso 1: solo el código ============ -->
-            <form [formGroup]="codeForm" (ngSubmit)="continue()">
+            <form [formGroup]="codeForm" [appBusyFields]="loading()" (ngSubmit)="continue()">
                 <p class="mt-1 md:mt-2 text-xs md:text-sm text-ink-muted text-center">
                     {{ 'AUTH.REGISTER.CODE_HELP' | translate }}
                 </p>
@@ -51,23 +51,12 @@
                 }
 
                 <div class="mt-5 md:mt-10">
-                    <button type="submit"
-                        class="w-full h-9 md:h-12 mk-btn"
-                        [disabled]="loading() || codeForm.invalid">
-                        @if (!loading()) {
-                        <span>{{ 'AUTH.REGISTER.CONTINUE' | translate }}</span>
-                        } @else {
-                        <span class="inline-flex items-center gap-2">
-                            <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
-                            {{ 'AUTH.REGISTER.CHECKING_KEY' | translate }}
-                        </span>
-                        }
-                    </button>
+                    <button type="submit" class="w-full h-9 md:h-12 mk-btn" [disabled]="codeForm.invalid" [appBusy]="loading()" [busyLabel]="'AUTH.REGISTER.CHECKING_KEY' | translate">{{ 'AUTH.REGISTER.CONTINUE' | translate }}</button>
                 </div>
             </form>
             } @else {
             <!-- ============ Paso 2: datos fijados por Monkey + contraseña ============ -->
-            <form [formGroup]="passwordForm" (ngSubmit)="submit()">
+            <form [formGroup]="passwordForm" [appBusyFields]="loading()" (ngSubmit)="submit()">
                 <p class="mt-1 md:mt-2 text-xs md:text-sm text-ink-muted text-center">
                     {{ 'AUTH.REGISTER.FIXED_HELP' | translate }}
                 </p>
@@ -104,19 +93,8 @@
                 }
 
                 <div class="mt-5 md:mt-10 space-y-3">
-                    <button type="submit"
-                        class="w-full h-9 md:h-12 mk-btn"
-                        [disabled]="loading() || passwordForm.invalid">
-                        @if (!loading()) {
-                        <span>{{ 'AUTH.REGISTER.SUBMIT' | translate }}</span>
-                        } @else {
-                        <span class="inline-flex items-center gap-2">
-                            <span class="material-symbols-rounded animate-spin text-[20px] leading-none">progress_activity</span>
-                            {{ 'AUTH.REGISTER.ACTIVATING' | translate }}
-                        </span>
-                        }
-                    </button>
-                    <button type="button" (click)="changeCode()" [disabled]="loading()"
+                    <button type="submit" class="w-full h-9 md:h-12 mk-btn" [disabled]="passwordForm.invalid" [appBusy]="loading()" [busyLabel]="'AUTH.REGISTER.ACTIVATING' | translate">{{ 'AUTH.REGISTER.SUBMIT' | translate }}</button>
+                    <button type="button" (click)="changeCode()"
                         class="w-full text-xs text-ink-muted underline enabled:hover:text-action disabled:cursor-not-allowed disabled:text-ink-faint">
                         {{ 'AUTH.REGISTER.CHANGE_KEY' | translate }}
                     </button>

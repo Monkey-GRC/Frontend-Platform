@@ -6,6 +6,7 @@ import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/co
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { Badge } from '@shared/presentation/components/badge/badge';
 import { Cause, CauseRiskRef, ControlLink } from '@shared/domain/models/risk.models';
 import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
 import { ControlService } from '@features/compliance/domain/services/control.service';
@@ -13,6 +14,7 @@ import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { DetailCard } from '../detail-card/detail-card';
 import { LinkPicker, PickerItem } from '../link-picker/link-picker';
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -20,7 +22,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // controles y dar de baja una causa propia; el resto de roles solo lee.
 @Component({
   selector: 'app-cause-detail-panel',
-  imports: [TranslatePipe, SideDrawer, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, DetailCard],
+  imports: [Badge, TranslatePipe, SideDrawer, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, DetailCard, Skeleton, SkeletonRegion],
   templateUrl: './cause-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
