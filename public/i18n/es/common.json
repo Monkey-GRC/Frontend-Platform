@@ -96,17 +96,19 @@
       "REQUIRED": "La contraseña es obligatoria.",
       "MISMATCH": "Las contraseñas no coinciden.",
       "GUIDE": {
-        "TITLE": "Tu contraseña debe tener:",
         "MIN_LENGTH": "Al menos 12 caracteres",
         "LOWERCASE": "Una letra minúscula",
         "UPPERCASE": "Una letra mayúscula",
         "NUMBER": "Un número",
         "SYMBOL": "Un símbolo (por ejemplo ! ? # $ %)",
         "DIFFERENT": "Ser distinta de tu contraseña actual",
-        "MATCH": "Las dos contraseñas coinciden",
-        "MET": "cumple",
-        "PENDING": "pendiente",
-        "MISMATCH": "no coinciden"
+        "MATCH": "Las dos contraseñas coinciden"
+      },
+      "REQUIREMENTS": {
+        "TITLE": "Requisitos de contraseña",
+        "ALL_MET": "Todos los requisitos se cumplen.",
+        "REMAINING_ONE": "Falta {{count}} requisito.",
+        "REMAINING_MANY": "Faltan {{count}} requisitos."
       }
     },
     "SECOND_FACTOR": {
@@ -169,6 +171,7 @@
     "SETTINGS_RECOVERY": "Ajustes · Códigos de recuperación",
     "INTEGRATIONS": "Integraciones",
     "INTEGRATION_ADD": "Agregar integración",
-    "INTEGRATION_DETAIL": "Detalle de la integración"
+    "INTEGRATION_DETAIL": "Detalle de la integración",
+    "SETTINGS_DEVICES": "Ajustes · Dispositivos recordados"
   }
 }
