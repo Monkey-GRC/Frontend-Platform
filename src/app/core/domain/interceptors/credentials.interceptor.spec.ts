@@ -79,4 +79,26 @@ describe('credentialsInterceptor', () => {
     backend.expectOne(`${api}/auth/login`).flush({}, { status: 401, statusText: 'Unauthorized' });
     expect(failed).toBeTrue();
   });
+
+  it('does not renew nor retry a 401 with a second-factor domain code (single request)', () => {
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    let failed = false;
+    http.post(`${api}/auth/password/change`, {}).subscribe({ error: () => (failed = true) });
+    backend
+      .expectOne(`${api}/auth/password/change`)
+      .flush({ error: { code: 'MFA_CODE_INVALID' } }, { status: 401, statusText: 'Unauthorized' });
+    backend.expectNone(`${api}/auth/refresh`);
+    expect(failed).toBeTrue();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(session.isAuthenticated()).toBeTrue();
+  });
+
+  it('renews and retries once on a 401 with the session code', () => {
+    let body: unknown;
+    http.get(`${api}/companies`).subscribe((b) => (body = b));
+    backend.expectOne(`${api}/companies`).flush({ error: { code: 'SESSION_EXPIRED' } }, { status: 401, statusText: 'Unauthorized' });
+    backend.expectOne(`${api}/auth/refresh`).flush({});
+    backend.expectOne(`${api}/companies`).flush({ ok: true });
+    expect(body).toEqual({ ok: true });
+  });
 });

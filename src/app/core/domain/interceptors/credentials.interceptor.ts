@@ -11,6 +11,15 @@ import { AuthService } from '@core/domain/services/auth.service';
 // Endpoints de auth: su 401 lo maneja AuthService (credenciales malas, sesión vencida), no aquí.
 const AUTH_ENDPOINT = /\/auth\/(login|redeem|refresh|logout|me|mfa\/(verify|setup|setup\/confirm|recovery-codes))$/;
 
+// Un 401 con código de dominio (segundo factor, credenciales, enlace) NO es una sesión caída: reintentarlo gastaría otro
+// intento y repetiría bcrypt. Solo se renueva ante un 401 sin código o con el de sesión.
+const SESSION_401_CODES = ['UNAUTHENTICATED', 'SESSION_EXPIRED'];
+
+function isSessionExpired(error: HttpErrorResponse): boolean {
+  const code = error.error?.error?.code;
+  return typeof code !== 'string' || SESSION_401_CODES.includes(code);
+}
+
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const session = inject(SessionService);
@@ -28,7 +37,7 @@ export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status !== 401 || AUTH_ENDPOINT.test(req.url)) {
+      if (error.status !== 401 || AUTH_ENDPOINT.test(req.url) || !isSessionExpired(error)) {
         return throwError(() => sanitizeHttpError(error, translate.instant('COMMON.AUTH_PROBLEM')));
       }
 
