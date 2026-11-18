@@ -223,6 +223,11 @@ export const routes: Routes = [
         loadComponent: () => import('@features/settings/presentation/views/recovery-codes/recovery-codes').then(m => m.RecoveryCodesSettingsView),
       },
       {
+        path: 'seguridad/dispositivos',
+        title: 'PAGE_TITLE.SETTINGS_DEVICES',
+        loadComponent: () => import('@features/settings/presentation/views/devices/devices').then(m => m.DevicesSettingsView),
+      },
+      {
         path: 'seguridad',
         title: 'PAGE_TITLE.SETTINGS_SECURITY',
         loadComponent: () => import('@features/settings/presentation/views/security/security').then(m => m.SecurityView),

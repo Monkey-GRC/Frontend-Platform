@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
@@ -21,12 +23,13 @@ type Stage = 'verify' | 'recovery' | 'install' | 'scan' | 'confirm' | 'codes';
 
 @Component({
   selector: 'app-mfa-form',
-  imports: [ReactiveFormsModule, TranslatePipe, CodeInput, QrCode, Stepper, Busy, BusyFields],
+  imports: [ReactiveFormsModule, TranslatePipe, CodeInput, QrCode, Stepper, Busy, BusyFields, NgTemplateOutlet],
   templateUrl: './mfa-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MfaForm {
   protected readonly targetChecked = targetChecked;
+  private readonly destroyRef = inject(DestroyRef);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
@@ -39,6 +42,8 @@ export class MfaForm {
   // El desafío (5 min) venció o se agotó: no hay nada que reintentar aquí, hay que volver a iniciar sesión.
   readonly expired = signal(false);
   readonly code = signal('');
+  // «Recordar este dispositivo por 30 días» (D123): opcional y desmarcada; se lee al enviar el código.
+  readonly remember = signal(false);
   readonly recovery = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(10)] });
 
   readonly setup = signal<MfaSetupStart | null>(null);
@@ -88,9 +93,9 @@ export class MfaForm {
     if (this.loading()) return;
     const stage = this.stage();
     if (stage === 'verify') {
-      this.run(this.auth.verifyMfa({ code }), (payload) => this.enter(payload));
+      this.run(this.auth.verifyMfa({ code, remember_device: this.remember() }), (payload) => this.enter(payload));
     } else if (stage === 'confirm') {
-      this.run(this.auth.confirmMfaSetup(code), (payload) => {
+      this.run(this.auth.confirmMfaSetup(code, this.remember()), (payload) => {
         this.confirmedPayload = payload;
         this.recoveryCodes.set(payload.recovery_codes ?? []);
         this.stage.set('codes');
@@ -104,7 +109,7 @@ export class MfaForm {
       this.recovery.markAsTouched();
       return;
     }
-    this.run(this.auth.verifyMfa({ recovery_code: this.recovery.value.trim() }), (payload) => this.enter(payload));
+    this.run(this.auth.verifyMfa({ recovery_code: this.recovery.value.trim(), remember_device: this.remember() }), (payload) => this.enter(payload));
   }
 
   showRecovery(): void {
@@ -185,7 +190,7 @@ export class MfaForm {
   private run<T>(request: Observable<T>, onSuccess: (value: T) => void | Promise<unknown>): void {
     this.loading.set(true);
     this.errorMessage.set(null);
-    request.subscribe({
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (value) => {
         const pending = onSuccess(value);
         if (pending) pending.then(() => this.loading.set(false), () => this.loading.set(false));

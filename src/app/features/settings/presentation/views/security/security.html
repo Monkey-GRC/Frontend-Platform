@@ -14,4 +14,12 @@
     </app-settings-row>
     <app-settings-row [title]="'SETTINGS.SECURITY.RECOVERY.TITLE' | translate" [description]="'SETTINGS.SECURITY.ROWS.RECOVERY_DESC' | translate" [link]="recoveryLink" />
   </app-settings-group>
+
+  <app-settings-group [title]="'SETTINGS.SECURITY.GROUPS.ACCESS' | translate">
+    <app-settings-row [title]="'SETTINGS.SECURITY.DEVICES.TITLE' | translate" [description]="'SETTINGS.SECURITY.ROWS.DEVICES_DESC' | translate" [link]="devicesLink">
+      @if (deviceCount() !== null) {
+        <span data-testid="devices-count">{{ 'SETTINGS.SECURITY.ROWS.DEVICES_COUNT' | translate: { count: deviceCount() } }}</span>
+      }
+    </app-settings-row>
+  </app-settings-group>
 </div>

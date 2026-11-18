@@ -53,4 +53,23 @@ describe('SecurityService (SEG-14, D101)', () => {
     req.flush({ data: null }, { status: 202, statusText: 'Accepted' });
     expect(done).toBe(true);
   });
+
+  it('lists, forgets one and forgets all the remembered devices (D123)', () => {
+    let count = -1;
+    service.listDevices().subscribe((d) => (count = d.length));
+    const list = http.expectOne(`${api}/auth/devices`);
+    expect(list.request.method).toBe('GET');
+    list.flush({ status: 200, message: 'ok', data: [{ id: 'd1' }] });
+    expect(count).toBe(1);
+
+    service.forgetDevice('d1').subscribe();
+    const one = http.expectOne(`${api}/auth/devices/d1`);
+    expect(one.request.method).toBe('DELETE');
+    one.flush(null, { status: 204, statusText: 'No Content' });
+
+    service.forgetAllDevices().subscribe();
+    const all = http.expectOne(`${api}/auth/devices`);
+    expect(all.request.method).toBe('DELETE');
+    all.flush(null, { status: 204, statusText: 'No Content' });
+  });
 });

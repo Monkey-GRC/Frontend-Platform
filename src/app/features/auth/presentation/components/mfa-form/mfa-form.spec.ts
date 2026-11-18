@@ -17,7 +17,7 @@ describe('MfaForm · activar el segundo factor, QR y códigos de recuperación',
   const secondary = () => Array.from(el().querySelectorAll<HTMLButtonElement>('button.mk-btn-secondary'));
 
   beforeEach(() => {
-    auth = Object.assign(jasmine.createSpyObj<AuthService>('AuthService', ['startMfaSetup', 'confirmMfaSetup', 'finishMfaSetup']), {
+    auth = Object.assign(jasmine.createSpyObj<AuthService>('AuthService', ['startMfaSetup', 'confirmMfaSetup', 'finishMfaSetup', 'verifyMfa']), {
       pendingMfa: signal({ next_step: 'mfa_setup' } as unknown),
     }) as typeof auth;
     TestBed.configureTestingModule({
@@ -77,7 +77,7 @@ describe('MfaForm · activar el segundo factor, QR y códigos de recuperación',
       auth.confirmMfaSetup.and.returnValue(of({ recovery_codes: ['aaaa-bbbb', 'cccc-dddd'] } as unknown as AuthPayloadWithRecovery));
       component().submitCode('123456');
       fixture.detectChanges();
-      expect(auth.confirmMfaSetup).toHaveBeenCalledOnceWith('123456');
+      expect(auth.confirmMfaSetup).toHaveBeenCalledOnceWith('123456', false);
       expect(component().stage()).toBe('codes');
       expect(component().recoveryCodes()).toEqual(['aaaa-bbbb', 'cccc-dddd']);
       expect(el().querySelectorAll('ul li').length).toBe(2);
@@ -186,6 +186,40 @@ describe('MfaForm · activar el segundo factor, QR y códigos de recuperación',
       box.checked = false;
       box.dispatchEvent(new Event('change'));
       expect(component().saved()).toBeFalse();
+    });
+  });
+
+  describe('recordar este dispositivo (D123)', () => {
+    const box = () => el().querySelector<HTMLInputElement>('[data-testid="remember-device"]')!;
+
+    it('offers an unchecked box in the verify, recovery and confirm steps', () => {
+      for (const stage of ['verify', 'recovery', 'confirm'] as const) {
+        component().stage.set(stage);
+        fixture.detectChanges();
+        expect(box().checked).toBeFalse();
+      }
+      component().stage.set('install');
+      fixture.detectChanges();
+      expect(el().querySelector('[data-testid="remember-device"]')).toBeNull();
+    });
+
+    it('sends remember_device with the app code, the recovery code and the setup confirmation', () => {
+      auth.verifyMfa.and.returnValue(of({ user: { role: 'admin_empresa' } } as unknown as AuthPayloadWithRecovery));
+      auth.confirmMfaSetup.and.returnValue(of({ recovery_codes: [] } as unknown as AuthPayloadWithRecovery));
+      component().stage.set('verify');
+      fixture.detectChanges();
+      box().click();
+      component().submitCode('123456');
+      expect(auth.verifyMfa).toHaveBeenCalledWith({ code: '123456', remember_device: true });
+      component().loading.set(false);
+      component().recovery.setValue('AAAAA-BBBBB');
+      component().stage.set('recovery');
+      component().submitRecovery();
+      expect(auth.verifyMfa).toHaveBeenCalledWith({ recovery_code: 'AAAAA-BBBBB', remember_device: true });
+      component().loading.set(false);
+      component().stage.set('confirm');
+      component().submitCode('654321');
+      expect(auth.confirmMfaSetup).toHaveBeenCalledWith('654321', true);
     });
   });
 });

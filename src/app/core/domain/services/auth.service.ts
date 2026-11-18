@@ -98,7 +98,7 @@ export class AuthService {
   }
 
   /** Segundo paso del ingreso: el código de 6 dígitos de la app o uno de recuperación. Abre la sesión. */
-  verifyMfa(input: { code: string } | { recovery_code: string }): Observable<AuthPayloadWithRecovery> {
+  verifyMfa(input: ({ code: string } | { recovery_code: string }) & { remember_device?: boolean }): Observable<AuthPayloadWithRecovery> {
     return this.http.post<SuccessResponse<AuthPayloadWithRecovery>>(`${this.baseUrl}/mfa/verify`, input).pipe(
       unwrapData(),
       switchMap((data) => this.acceptSession(data)),
@@ -115,8 +115,8 @@ export class AuthService {
    * Confirma el primer código y activa el factor. El servidor ya abrió la sesión, pero aquí NO se guarda todavía: antes la persona debe ver sus códigos
    * de recuperación (una sola vez); `finishMfaSetup` la deja entrar.
    */
-  confirmMfaSetup(code: string): Observable<AuthPayloadWithRecovery> {
-    return this.http.post<SuccessResponse<AuthPayloadWithRecovery>>(`${this.baseUrl}/mfa/setup/confirm`, { code }).pipe(unwrapData());
+  confirmMfaSetup(code: string, rememberDevice = false): Observable<AuthPayloadWithRecovery> {
+    return this.http.post<SuccessResponse<AuthPayloadWithRecovery>>(`${this.baseUrl}/mfa/setup/confirm`, { code, remember_device: rememberDevice }).pipe(unwrapData());
   }
 
   /** Entra a la plataforma una vez guardados los códigos. */

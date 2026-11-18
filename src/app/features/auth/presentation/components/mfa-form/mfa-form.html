@@ -9,6 +9,16 @@
         </div>
         }
 
+        <ng-template #rememberBox>
+        <label class="mt-6 mx-auto flex w-fit max-w-full items-start gap-3 text-left text-sm text-ink cursor-pointer" [appBusyFields]="loading()">
+            <input type="checkbox" data-testid="remember-device" class="mk-checkbox mt-0.5" [checked]="remember()" (change)="remember.set(targetChecked($event))" />
+            <span>
+                {{ 'AUTH.MFA.REMEMBER' | translate }}
+                <span class="block text-xs text-ink-muted">{{ 'AUTH.MFA.REMEMBER_HELP' | translate }}</span>
+            </span>
+        </label>
+        </ng-template>
+
         @switch (stage()) {
 
         <!-- ───────── Ingreso: código de la app ───────── -->
@@ -26,9 +36,13 @@
             {{ 'AUTH.MFA.VERIFYING' | translate }}
         </p>
         }
-        <button type="button" class="mt-6 block mx-auto text-sm font-medium text-action hover:underline" (click)="showRecovery()">
-            {{ 'AUTH.MFA.USE_RECOVERY' | translate }}
-        </button>
+        <ng-container [ngTemplateOutlet]="rememberBox" />
+        <div class="mt-6 grid gap-3 grid-cols-1 min-[420px]:grid-cols-2">
+            <button type="button" class="mk-btn-secondary min-h-11 md:min-h-12 w-full px-3 leading-tight" (click)="showRecovery()"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">key</span>{{ 'AUTH.MFA.USE_RECOVERY' | translate }}</button>
+            @if (!expired()) {
+            <button type="button" class="mk-btn-secondary min-h-11 md:min-h-12 w-full px-3 leading-tight" (click)="backToLogin()"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">arrow_back</span>{{ 'AUTH.MFA.CANCEL' | translate }}</button>
+            }
+        </div>
         }
 
         <!-- ───────── Ingreso: código de recuperación ───────── -->
@@ -42,14 +56,18 @@
             <input id="recovery-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" [formControl]="recovery"
                 placeholder="XXXXX-XXXXX"
                 class="mk-input !h-12 text-center !text-lg font-semibold tracking-widest uppercase" />
+            <ng-container [ngTemplateOutlet]="rememberBox" />
             <button type="submit" [disabled]="expired()" [appBusy]="loading()" [busyLabel]="'AUTH.MFA.VERIFYING' | translate"
                 class="mt-5 w-full h-11 md:h-12 mk-btn">
                 {{ 'AUTH.MFA.CONTINUE' | translate }}
             </button>
         </form>
-        <button type="button" class="mt-5 block mx-auto text-sm font-medium text-action hover:underline" (click)="showCode()">
-            {{ 'AUTH.MFA.USE_APP' | translate }}
-        </button>
+        <div class="mt-6 grid gap-3 grid-cols-1 min-[420px]:grid-cols-2">
+            <button type="button" class="mk-btn-secondary min-h-11 md:min-h-12 w-full px-3 leading-tight" (click)="showCode()"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">smartphone</span>{{ 'AUTH.MFA.USE_APP' | translate }}</button>
+            @if (!expired()) {
+            <button type="button" class="mk-btn-secondary min-h-11 md:min-h-12 w-full px-3 leading-tight" (click)="backToLogin()"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">arrow_back</span>{{ 'AUTH.MFA.CANCEL' | translate }}</button>
+            }
+        </div>
         }
 
         <!-- ───────── Configuración · 1: instalar la app ───────── -->
@@ -120,9 +138,10 @@
             {{ 'AUTH.MFA.VERIFYING' | translate }}
         </p>
         }
-        <button type="button" class="mt-6 block mx-auto text-sm font-medium text-action hover:underline" (click)="backToScan()">
-            {{ 'AUTH.MFA.BACK_TO_QR' | translate }}
-        </button>
+        <ng-container [ngTemplateOutlet]="rememberBox" />
+        <div class="mt-6 grid gap-3 grid-cols-1">
+            <button type="button" class="mk-btn-secondary min-h-11 md:min-h-12 w-full px-3 leading-tight" (click)="backToScan()"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">arrow_back</span>{{ 'AUTH.MFA.BACK_TO_QR' | translate }}</button>
+        </div>
         }
 
         <!-- ───────── Códigos de recuperación (se muestran una sola vez) ───────── -->
@@ -163,9 +182,9 @@
         @if (expired()) {
         <button type="button" (click)="backToLogin()"
             class="mt-4 block mx-auto text-sm font-medium text-action hover:underline">{{ 'AUTH.MFA.BACK_TO_LOGIN' | translate }}</button>
-        } @else if (stage() === 'verify' || stage() === 'recovery' || stage() === 'install') {
+        } @else if (stage() === 'install') {
         <button type="button" (click)="backToLogin()"
-            class="mt-6 block mx-auto text-xs text-ink-muted hover:underline">{{ 'AUTH.MFA.CANCEL' | translate }}</button>
+            class="mk-btn-secondary mt-3 h-11 md:h-12 w-full"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">arrow_back</span>{{ 'AUTH.MFA.CANCEL' | translate }}</button>
         }
     </div>
 </div>

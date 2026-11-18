@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
-import { ChangePasswordInput } from '../models/security.models';
+import { ChangePasswordInput, RememberedDevice } from '../models/security.models';
 
 // La seguridad de la propia cuenta (contracts/modules/auth.md): cambiar la contraseña (D101) y renovar los códigos de recuperación (D94).
 @Injectable({ providedIn: 'root' })
@@ -27,5 +27,20 @@ export class SecurityService {
     return this.http
       .post<SuccessResponse<{ recovery_codes: string[] }>>(`${this.baseUrl}/mfa/recovery-codes`, { code })
       .pipe(unwrapData(), map((d) => d.recovery_codes));
+  }
+
+  /** Los dispositivos recordados vigentes de la persona (D123, SEG-84), del más reciente al más antiguo. */
+  listDevices(): Observable<RememberedDevice[]> {
+    return this.http.get<SuccessResponse<RememberedDevice[]>>(`${this.baseUrl}/devices`).pipe(unwrapData());
+  }
+
+  /** Olvida un dispositivo: en su próximo ingreso se vuelve a pedir el código. */
+  forgetDevice(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/devices/${id}`).pipe(map(() => void 0));
+  }
+
+  /** Olvida todos los dispositivos recordados de la persona. */
+  forgetAllDevices(): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/devices`).pipe(map(() => void 0));
   }
 }
