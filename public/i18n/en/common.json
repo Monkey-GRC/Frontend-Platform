@@ -96,17 +96,19 @@
       "REQUIRED": "The password is required.",
       "MISMATCH": "The passwords do not match.",
       "GUIDE": {
-        "TITLE": "Your password must have:",
         "MIN_LENGTH": "At least 12 characters",
         "LOWERCASE": "A lowercase letter",
         "UPPERCASE": "An uppercase letter",
         "NUMBER": "A number",
         "SYMBOL": "A symbol (for example ! ? # $ %)",
         "DIFFERENT": "Be different from your current password",
-        "MATCH": "Both passwords match",
-        "MET": "met",
-        "PENDING": "pending",
-        "MISMATCH": "do not match"
+        "MATCH": "Both passwords match"
+      },
+      "REQUIREMENTS": {
+        "TITLE": "Password requirements",
+        "ALL_MET": "All requirements are met.",
+        "REMAINING_ONE": "{{count}} requirement left.",
+        "REMAINING_MANY": "{{count}} requirements left."
       }
     },
     "SECOND_FACTOR": {
@@ -169,6 +171,7 @@
     "SETTINGS_RECOVERY": "Settings · Recovery codes",
     "INTEGRATIONS": "Integrations",
     "INTEGRATION_ADD": "Add integration",
-    "INTEGRATION_DETAIL": "Integration detail"
+    "INTEGRATION_DETAIL": "Integration detail",
+    "SETTINGS_DEVICES": "Settings · Remembered devices"
   }
 }

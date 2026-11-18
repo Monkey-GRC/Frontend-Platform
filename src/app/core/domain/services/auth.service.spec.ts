@@ -59,6 +59,20 @@ describe('AuthService · segundo factor (D94)', () => {
     expect(session.user()?.email).toBe('ana@empresa.com');
   });
 
+  it('verificar manda remember_device cuando se marca la casilla', () => {
+    service.verifyMfa({ code: '123456', remember_device: true }).subscribe();
+    const req = http.expectOne(`${api}/mfa/verify`);
+    expect(req.request.body).toEqual({ code: '123456', remember_device: true });
+    req.flush({ status: 200, message: 'ok', data: payload });
+  });
+
+  it('confirmar la configuración manda remember_device (falso por defecto)', () => {
+    service.confirmMfaSetup('123456', true).subscribe();
+    expect(http.expectOne(`${api}/mfa/setup/confirm`).request.body).toEqual({ code: '123456', remember_device: true });
+    service.confirmMfaSetup('654321').subscribe();
+    expect(http.expectOne(`${api}/mfa/setup/confirm`).request.body).toEqual({ code: '654321', remember_device: false });
+  });
+
   it('al confirmar la configuración la sesión NO se guarda hasta terminar (antes se ven los códigos de recuperación)', () => {
     service.pendingMfa.set({ next_step: 'mfa_setup', expires_at: '2026-10-26T14:05:00Z' });
     let received: string[] | undefined;

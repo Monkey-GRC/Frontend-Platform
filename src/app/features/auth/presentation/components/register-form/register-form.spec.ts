@@ -20,13 +20,17 @@ describe('RegisterForm · la contraseña del primer ingreso', () => {
 
   const el = () => fixture.nativeElement as HTMLElement;
 
-  it('shows the password guide when the person chooses a password', () => {
-    expect(el().querySelector('[data-testid="password-guide"]')).not.toBeNull();
+  it('shows the requirements balloon when the person focuses the new password', () => {
+    expect(el().querySelector('[data-testid="password-guide"]')).toBeNull();
+    el().querySelector('#new-password')!.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    fixture.detectChanges();
+    fixture.detectChanges();
+    expect(document.body.querySelector<HTMLElement>('[data-testid="password-requirements"]')!.hidden).toBeFalse();
   });
 
   it('does NOT ask for «different from the current one»: a new account has no current password', () => {
-    expect(el().querySelector('[data-check="different"]')).toBeNull();
-    expect(el().querySelector('[data-check="match"]')).not.toBeNull();
+    expect(document.body.querySelector('[data-testid="password-requirements"] [data-check="different"]')).toBeNull();
+    expect(el().querySelector('[data-testid="password-match"]')).not.toBeNull();
   });
 
   it('gives each password field its own eye', () => {
