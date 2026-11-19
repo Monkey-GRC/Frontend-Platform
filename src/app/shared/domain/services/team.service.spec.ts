@@ -17,6 +17,15 @@ describe('TeamService (D96)', () => {
   });
   afterEach(() => http.verify());
 
+  it('reads the team workload from /team/workload and unwraps the data', () => {
+    let result = { n: 0, unassigned: 0 };
+    service.workload().subscribe((r) => (result = { n: r.items.length, unassigned: r.unassigned_count }));
+    const req = http.expectOne(`${api}/team/workload`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ data: { items: [{ user: { id: 'u1', name: 'Ana', last_name: 'Ruiz', role: 'responsable' }, owned_count: 3, executed_count: 1, progress: { readiness: 'needs_work', progress: { done: 1, total: 3 }, coverage: { measured: 3, applicable: 3 } } }], unassigned_count: 2 } });
+    expect(result).toEqual({ n: 1, unassigned: 2 });
+  });
+
   it('invites a person and reads whether the invitation email went out (the code never comes back, MD-190)', () => {
     let result: { status?: string; code?: unknown } = {};
     service.invite({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'auditor' }).subscribe((m) => (result = { status: m.invitation.delivery_status, code: (m as unknown as Record<string, unknown>)['activation_code'] }));

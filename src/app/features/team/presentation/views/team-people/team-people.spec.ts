@@ -5,7 +5,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { Group } from '@features/team/domain/models/group.models';
-import { InvitedMember, TeamMember, TeamPage } from '@shared/domain/models/team.models';
+import { InvitedMember, TeamMember, TeamPage, TeamWorkloadResponse } from '@shared/domain/models/team.models';
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { TeamPeopleView } from './team-people';
@@ -35,10 +35,11 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
   let groupApi: jasmine.SpyObj<GroupService>;
   let fixture: ComponentFixture<TeamPeopleView>;
 
-  function setup(members: TeamMember[] = [ME, OTHER_ADMIN, ANA, DELEGATE, PENDING], role = 'admin_empresa', groups: Group[] = GROUPS, groups$?: Observable<Group[]>): void {
-    api = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'listAll', 'invite', 'update', 'resendInvitation', 'resetMfa']);
+  function setup(members: TeamMember[] = [ME, OTHER_ADMIN, ANA, DELEGATE, PENDING], role = 'admin_empresa', groups: Group[] = GROUPS, groups$?: Observable<Group[]>, workload$?: Observable<TeamWorkloadResponse>): void {
+    api = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'listAll', 'workload', 'invite', 'update', 'resendInvitation', 'resetMfa']);
     api.list.and.returnValue(of(pageOf(members)));
     api.listAll.and.returnValue(of(members));
+    api.workload.and.returnValue(workload$ ?? of({ items: [], unassigned_count: 0 }));
     groupApi = jasmine.createSpyObj<GroupService>('GroupService', ['list']);
     groupApi.list.and.returnValue(groups$ ?? of(groups));
     TestBed.configureTestingModule({
@@ -216,7 +217,76 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       expect(panel.textContent).toContain('Ana Ruiz'); // su responsable
       expect(panel.textContent).toContain('TEAM.INVITE.EXTERNAL');
       expect(panel.querySelector('[data-test-detail-mfa]')!.textContent).toContain('TEAM.DETAIL.YES');
-      expect(panel.querySelector('app-status-indicator')).not.toBeNull();
+      expect(panel.querySelector('app-badge[data-kind="status"]')).not.toBeNull();
+    });
+
+    it('is organised as profile, summary, general information and actions, with an icon in the header and an X that closes', () => {
+      setup();
+      open('ana@acme.co');
+      const panel = q('[role="dialog"]');
+      expect(panel.querySelector('[data-modal-icon]')).not.toBeNull();
+      expect(panel.querySelector('[data-test-profile] [data-avatar]')).not.toBeNull();
+      expect(panel.querySelector('[data-test-summary]')!.querySelectorAll('.material-symbols-rounded').length).toBe(3);
+      expect(panel.querySelectorAll('[data-test-actions] li button').length).toBeGreaterThan(0);
+      // The footer only closes: the actions live in the list, not twice.
+      expect(panel.querySelectorAll('footer button').length).toBe(1);
+      expect(panel.querySelector('[data-test-deactivate] .text-bad-ink')).not.toBeNull();
+      click('[data-close-x]');
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
+    });
+
+    it('shows the workload in the summary: «—» while there is none, and the counts, the readiness with its percentage and the coverage once it arrives', () => {
+      setup();
+      open('ana@acme.co');
+      const summary = q('[data-test-summary]');
+      expect(summary.querySelector('[data-test-workload-owned]')!.textContent!.trim()).toBe('—');
+      expect(summary.querySelector('[data-test-workload-progress]')).toBeNull();
+      fixture.componentInstance.workload.set({
+        owned_count: 50,
+        executed_count: 12,
+        progress: { readiness: 'needs_work', progress: { done: 20, total: 50 }, coverage: { measured: 46, applicable: 50 } },
+      });
+      fixture.detectChanges();
+      expect(summary.querySelector('[data-test-workload-owned]')!.textContent!.trim()).toBe('50');
+      expect(summary.querySelector('[data-test-workload-executed]')!.textContent!.trim()).toBe('12');
+      expect(summary.textContent).toContain('COMMON.READINESS.LABEL.NEEDS_WORK');
+      expect(summary.querySelector('[data-test-workload-progress]')!.textContent).toContain('40 %');
+      expect(summary.querySelector('[data-test-workload-coverage]')).not.toBeNull();
+    });
+
+    it('fills the summary from the one team workload request, by the person opened', () => {
+      const item = { user: { id: 'ana', name: 'Ana', last_name: 'Ruiz', role: 'responsable' as const }, owned_count: 7, executed_count: 2, progress: { readiness: 'needs_work' as const, progress: { done: 1, total: 4 }, coverage: { measured: 4, applicable: 4 } } };
+      setup(undefined, 'admin_empresa', GROUPS, undefined, of({ items: [item], unassigned_count: 0 }));
+      open('ana@acme.co');
+      expect(q('[data-test-workload-owned]').textContent!.trim()).toBe('7');
+      expect(q('[data-test-workload-progress]').textContent).toContain('25 %');
+      click('[data-close-x]');
+      open('adm2@acme.co');
+      expect(q('[data-test-workload-owned]').textContent!.trim()).toBe('—');
+      expect(api.workload).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the em dash and shows no error when the workload request fails', () => {
+      setup(undefined, 'admin_empresa', GROUPS, undefined, throwError(() => new HttpErrorResponse({ status: 500 })));
+      open('ana@acme.co');
+      expect(q('[data-test-workload-owned]').textContent!.trim()).toBe('—');
+      expect(el().querySelector('[role="alert"]')).toBeNull();
+    });
+
+    it('without the admin role it neither asks for the workload nor shows the summary, and the profile takes the full width', () => {
+      setup(undefined, 'responsable');
+      open('ana@acme.co');
+      expect(api.workload).not.toHaveBeenCalled();
+      expect(el().querySelector('[data-test-summary]')).toBeNull();
+      expect(q('[data-test-profile]').classList).toContain('lg:col-span-2');
+    });
+
+    it('does not repeat in the general information what the profile already says (the status), and keeps the last sign-in there', () => {
+      setup();
+      open('ana@acme.co');
+      const general = q('[aria-labelledby="person-general"]');
+      expect(general.textContent).not.toContain('TEAM.COLUMNS.STATUS');
+      expect(general.querySelector('[data-test-last-login]')).not.toBeNull();
     });
 
     it('closes with the close button', () => {
