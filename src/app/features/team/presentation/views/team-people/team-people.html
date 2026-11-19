@@ -111,83 +111,191 @@
   }
 </app-form-modal>
 
-<!-- El detalle de una persona: solo lectura, con los datos que ya trae la lista (no hay endpoint de detalle) y las acciones que ya existen, en el pie. -->
-<app-form-modal [open]="!!detail()" titleKey="TEAM.DETAIL.TITLE" descriptionKey="TEAM.DETAIL.SUBTITLE" cancelLabelKey="COMMON.CLOSE" size="wide" testId="person-detail" (closed)="closeDetail()">
+<!-- El detalle de una persona: con los datos que ya trae la lista (no hay endpoint de detalle) y las acciones que ya existen, como filas. El pie solo cierra. -->
+<app-form-modal [open]="!!detail()" titleKey="TEAM.DETAIL.TITLE" descriptionKey="TEAM.DETAIL.SUBTITLE" icon="person" [closeButton]="true" cancelLabelKey="COMMON.CLOSE" size="max" testId="person-detail" (closed)="closeDetail()">
   @if (detail(); as m) {
-  <div data-test-detail [attr.data-test-detail-email]="m.email">
-    <div class="border-b border-line pb-4">
-      <app-person-cell [name]="personName(m)" [initialsFrom]="personName(m)" [hint]="isMe(m) ? ('TEAM.YOU' | translate) : null"
-        [secondary]="personName(m) !== m.email ? m.email : ('TEAM.NO_NAME' | translate)" />
-    </div>
+  <div class="grid gap-3 lg:grid-cols-2" data-test-detail [attr.data-test-detail-email]="m.email">
 
     @if (notice(); as n) {
-    <div class="mt-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status"><span>{{ n }}</span>
+    <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok lg:col-span-2" role="status"><span>{{ n }}</span>
     </div>
     }
     @if (error(); as e) {
-    <div class="mt-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert"><span>{{ e }}</span>
+    <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad lg:col-span-2" role="alert"><span>{{ e }}</span>
     </div>
     }
 
-    <dl class="mt-4 grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-6 gap-y-3">
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.DETAIL.EMAIL' | translate }}</dt>
-      <dd class="break-all text-ink">{{ m.email }}</dd>
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.ROLE' | translate }}</dt>
-      <dd class="text-ink">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</dd>
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.STATUS' | translate }}</dt>
-      <dd><app-status-indicator [tone]="statusTone(m.status)" [labelKey]="'TEAM.STATUS.' + m.status.toUpperCase()" /></dd>
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.GROUP' | translate }}</dt>
-      <dd class="text-ink">{{ m.group ? m.group.name : '—' }}</dd>
-      @if (m.responsible) {
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.DETAIL.RESPONSIBLE' | translate }}</dt>
-      <dd class="text-ink">{{ personName({ email: '', name: m.responsible.name, last_name: m.responsible.last_name }) }}</dd>
-      }
-      @if (m.is_internal !== null && m.is_internal !== undefined) {
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.AFFILIATION' | translate }}</dt>
-      <dd class="text-ink">{{ (m.is_internal ? 'TEAM.INVITE.INTERNAL' : 'TEAM.INVITE.EXTERNAL') | translate }}</dd>
-      }
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.DETAIL.MFA' | translate }}</dt>
-      <dd class="text-ink" data-test-detail-mfa>{{ (m.is_mfa_enabled ? 'TEAM.DETAIL.YES' : 'TEAM.DETAIL.NO') | translate }}</dd>
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.COLUMNS.LAST_LOGIN' | translate }}</dt>
-      <dd class="text-ink">{{ m.last_login_at ? (m.last_login_at | localDate) : ('TEAM.LIST.NEVER' | translate) }}</dd>
-      <dt class="text-xs font-medium text-ink-faint">{{ 'TEAM.DETAIL.CREATED' | translate }}</dt>
-      <dd class="text-ink">{{ m.created_at | localDate }}</dd>
-    </dl>
+    <!-- Perfil y resumen -->
+      <section class="flex min-w-0 items-center gap-4 rounded-card border border-line bg-surface p-4" [class.lg:col-span-2]="!canManage()" [attr.aria-label]="'TEAM.DETAIL.PROFILE' | translate" data-test-profile>
+        <span class="flex size-16 shrink-0 items-center justify-center rounded-full bg-tint-strong text-xl font-semibold text-tint-ink" data-avatar aria-hidden="true">{{ initials(m) }}</span>
+        <div class="min-w-0">
+          <p class="break-words text-xl font-semibold text-ink" data-person-name>{{ personName(m) !== m.email ? personName(m) : ('TEAM.NO_NAME' | translate) }}@if (isMe(m)) {<span class="ml-2 text-sm font-normal text-ink-muted">{{ 'TEAM.YOU' | translate }}</span>}</p>
+          <p class="mt-1 flex items-start gap-1.5 text-sm text-ink-muted"><span class="material-symbols-rounded mt-px text-lg leading-none" aria-hidden="true">mail</span><span class="min-w-0 break-all">{{ m.email }}</span></p>
+          <app-badge class="mt-2" size="sm" kind="status" [tone]="statusTone(m.status)">{{ ('TEAM.STATUS.' + m.status.toUpperCase()) | translate }}</app-badge>
+        </div>
+      </section>
 
-    @if (nameEditing() === m.id) {
-    <form class="mt-5 flex flex-col gap-3 border-t border-line pt-4" [appBusyFields]="saving()" (submit)="$event.preventDefault(); saveName()">
-      <app-field labelKey="TEAM.INVITE.NAME" forId="edit-name">
-        <input id="edit-name" type="text" data-test-edit-name maxlength="100" [value]="nameDraft()" (input)="nameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
-      </app-field>
-      <app-field labelKey="TEAM.INVITE.LAST_NAME" forId="edit-last-name">
-        <input id="edit-last-name" type="text" data-test-edit-last-name maxlength="100" [value]="lastNameDraft()" (input)="lastNameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
-      </app-field>
-      <div class="flex items-center justify-end gap-3">
-        <button type="button" (click)="nameEditing.set(null)" [disabled]="saving()" class="mk-btn-secondary">{{ 'COMMON.CANCEL' | translate }}</button>
-        <button type="submit" [disabled]="!canSaveName()" [appBusy]="saving()" data-test-save-name class="mk-btn">{{ 'COMMON.SAVE' | translate }}</button>
-      </div>
-    </form>
-    }
-  </div>
-  }
-  @if (canManage() && detail(); as m) {
-  <div actions class="contents">
-    @if (nameEditing() !== m.id) {
-    <button type="button" (click)="startNameEdit(m)" [disabled]="saving()" data-test-edit-name-btn class="mk-btn-secondary">{{ 'TEAM.ACTIONS.EDIT_NAME' | translate }}</button>
-    }
-    @if (!isMe(m)) {
-    @if (m.status === 'pending') {
-    <button type="button" (click)="resend(m.id, m.email)" [disabled]="saving() && busyAction() !== 'resend'" [appBusy]="busyAction() === 'resend'" data-test-reissue class="mk-btn">{{ 'TEAM.ACTIONS.RESEND_INVITATION' | translate }}</button>
-    }
-    @if (m.status === 'active') {
-    @if (canResetMfa(m)) {
-    <button type="button" (click)="ask('reset_mfa', m)" [disabled]="saving()" data-test-reset-mfa class="mk-btn-secondary">{{ 'TEAM.ACTIONS.RESET_MFA' | translate }}</button>
-    }
-    <button type="button" (click)="ask('deactivate', m)" [disabled]="saving()" data-test-deactivate class="mk-btn-danger">{{ 'TEAM.ACTIONS.DEACTIVATE' | translate }}</button>
-    }
-    @if (m.status === 'inactive') {
-    <button type="button" (click)="reactivate(m)" [disabled]="saving() && busyAction() !== 'reactivate'" [appBusy]="busyAction() === 'reactivate'" data-test-reactivate class="mk-btn">{{ 'TEAM.ACTIONS.REACTIVATE' | translate }}</button>
-    }
+      @if (canManage()) {
+      <section class="grid min-w-0 rounded-card border border-line bg-surface sm:grid-cols-3 sm:divide-x max-sm:divide-y divide-line" [attr.aria-label]="'TEAM.DETAIL.SUMMARY' | translate" data-test-summary>
+        <div class="flex min-w-0 flex-col items-center justify-center gap-1.5 px-3 py-4 text-center">
+          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-xl leading-none" aria-hidden="true">shield_person</span>{{ 'TEAM.DETAIL.WORKLOAD.OWNED' | translate }}</p>
+          @if (workload(); as w) {
+          <p class="text-2xl font-semibold leading-8 tabular-nums text-ink" data-test-workload-owned>{{ w.owned_count }}</p>
+          } @else {
+          <p class="text-2xl font-semibold leading-8 text-ink-faint" data-test-workload-owned [attr.aria-label]="'TEAM.DETAIL.WORKLOAD.UNAVAILABLE' | translate">—</p>
+          }
+        </div>
+        <div class="flex min-w-0 flex-col items-center justify-center gap-1.5 px-3 py-4 text-center">
+          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-xl leading-none" aria-hidden="true">task_alt</span>{{ 'TEAM.DETAIL.WORKLOAD.EXECUTED' | translate }}</p>
+          @if (workload(); as w) {
+          <p class="text-2xl font-semibold leading-8 tabular-nums text-ink" data-test-workload-executed>{{ w.executed_count }}</p>
+          } @else {
+          <p class="text-2xl font-semibold leading-8 text-ink-faint" data-test-workload-executed [attr.aria-label]="'TEAM.DETAIL.WORKLOAD.UNAVAILABLE' | translate">—</p>
+          }
+        </div>
+        <div class="flex min-w-0 flex-col items-center justify-center gap-1.5 px-3 py-4 text-center">
+          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-xl leading-none" aria-hidden="true">monitoring</span>{{ 'TEAM.DETAIL.WORKLOAD.PROGRESS' | translate }}</p>
+          @if (workload(); as w) {
+          @let look = readinessLook(w.progress.readiness);
+          <p class="whitespace-nowrap text-2xl font-semibold leading-8 tabular-nums text-ink" data-test-workload-progress>{{ workloadPercent(w.progress.progress.done, w.progress.progress.total) }}</p>
+          <app-badge size="sm" kind="status" [tone]="look.tone">{{ look.labelKey | translate }}</app-badge>
+          <p class="whitespace-nowrap text-xs tabular-nums text-ink-muted" data-test-workload-coverage>{{ 'TEAM.DETAIL.WORKLOAD.COVERAGE' | translate: { percent: workloadPercent(w.progress.coverage.measured, w.progress.coverage.applicable), measured: w.progress.coverage.measured, applicable: w.progress.coverage.applicable } }}</p>
+          } @else {
+          <p class="text-2xl font-semibold leading-8 text-ink-faint" [attr.aria-label]="'TEAM.DETAIL.WORKLOAD.UNAVAILABLE' | translate">—</p>
+          }
+        </div>
+      </section>
+      }
+
+    <!-- Información general -->
+    <section class="flex flex-col rounded-card border border-line bg-surface" [class.lg:col-span-2]="!canManage()" aria-labelledby="person-general">
+      <h3 id="person-general" class="flex items-center gap-2 border-b border-line px-5 py-2.5 text-base font-semibold text-ink"><span class="material-symbols-rounded text-xl leading-none text-ink-muted" aria-hidden="true">info</span>{{ 'TEAM.DETAIL.GENERAL' | translate }}</h3>
+      <dl class="divide-y divide-line px-5 text-sm">
+        <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.DETAIL.EMAIL' | translate }}</dt>
+          <dd class="flex min-w-0 items-center gap-2 text-ink"><span class="min-w-0 break-all">{{ m.email }}</span>
+            <button type="button" (click)="copyEmail(m)" [attr.aria-label]="(copied() === m.id ? 'TEAM.DETAIL.COPIED' : 'TEAM.DETAIL.COPY_EMAIL') | translate" data-test-copy-email
+              class="inline-flex size-8 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40"><span class="material-symbols-rounded text-lg leading-none" aria-hidden="true">{{ copied() === m.id ? 'check' : 'content_copy' }}</span></button>
+          </dd>
+        </div>
+        <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.COLUMNS.ROLE' | translate }}</dt>
+          <dd><app-badge size="sm" kind="attribute" [value]="m.role">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</app-badge></dd>
+        </div>
+        <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.COLUMNS.GROUP' | translate }}</dt>
+          <dd class="text-ink">{{ m.group ? m.group.name : '—' }}</dd>
+        </div>
+        @if (m.responsible) {
+        <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.DETAIL.RESPONSIBLE' | translate }}</dt>
+          <dd class="text-ink">{{ personName({ email: '', name: m.responsible.name, last_name: m.responsible.last_name }) }}</dd>
+        </div>
+        }
+        @if (m.is_internal !== null && m.is_internal !== undefined) {
+        <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.COLUMNS.AFFILIATION' | translate }}</dt>
+          <dd class="text-ink">{{ (m.is_internal ? 'TEAM.INVITE.INTERNAL' : 'TEAM.INVITE.EXTERNAL') | translate }}</dd>
+        </div>
+        }
+        <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.DETAIL.MFA' | translate }}</dt>
+          <dd class="flex items-center gap-2 text-ink"><span class="material-symbols-rounded text-xl leading-none" [class]="m.is_mfa_enabled ? 'text-ok-ink' : 'text-ink-muted'" aria-hidden="true">{{ m.is_mfa_enabled ? 'check_circle' : 'cancel' }}</span><span data-test-detail-mfa>{{ (m.is_mfa_enabled ? 'TEAM.DETAIL.YES' : 'TEAM.DETAIL.NO') | translate }}</span></dd>
+        </div>
+        <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.COLUMNS.LAST_LOGIN' | translate }}</dt>
+          <dd class="flex items-center gap-2 tabular-nums text-ink"><span class="material-symbols-rounded text-xl leading-none text-ink-muted" aria-hidden="true">login</span><span data-test-last-login>{{ m.last_login_at ? (m.last_login_at | localDate) : ('TEAM.LIST.NEVER' | translate) }}</span></dd>
+        </div>
+        <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.DETAIL.CREATED' | translate }}</dt>
+          <dd class="flex items-center gap-2 tabular-nums text-ink"><span class="material-symbols-rounded text-xl leading-none text-ink-muted" aria-hidden="true">calendar_today</span>{{ m.created_at | localDate }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- Acciones disponibles: las mismas condiciones y confirmaciones de siempre -->
+    @if (canManage()) {
+    <section class="flex flex-col self-start rounded-card border border-line bg-surface" aria-labelledby="person-actions" data-test-actions>
+      <h3 id="person-actions" class="flex items-center gap-2 border-b border-line px-5 py-2.5 text-base font-semibold text-ink"><span class="material-symbols-rounded text-xl leading-none text-ink-muted" aria-hidden="true">bolt</span>{{ 'TEAM.DETAIL.ACTIONS' | translate }}</h3>
+      <ul class="divide-y divide-line">
+        @if (nameEditing() !== m.id) {
+        <li>
+          <button type="button" (click)="startNameEdit(m)" [disabled]="saving()" data-test-edit-name-btn class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
+            <span class="material-symbols-rounded text-2xl leading-none text-ink-muted" aria-hidden="true">edit</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold text-ink">{{ 'TEAM.ACTIONS.EDIT_NAME' | translate }}</span>
+              <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.EDIT_NAME' | translate }}</span>
+            </span>
+            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+          </button>
+        </li>
+        }
+        @if (!isMe(m)) {
+        @if (m.status === 'pending') {
+        <li>
+          <button type="button" (click)="resend(m.id, m.email)" [disabled]="saving() && busyAction() !== 'resend'" [appBusy]="busyAction() === 'resend'" data-test-reissue class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
+            <span class="material-symbols-rounded text-2xl leading-none text-ink-muted" aria-hidden="true">forward_to_inbox</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold text-ink">{{ 'TEAM.ACTIONS.RESEND_INVITATION' | translate }}</span>
+              <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.RESEND_INVITATION' | translate }}</span>
+            </span>
+            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+          </button>
+        </li>
+        }
+        @if (m.status === 'active') {
+        @if (canResetMfa(m)) {
+        <li>
+          <button type="button" (click)="ask('reset_mfa', m)" [disabled]="saving()" data-test-reset-mfa class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
+            <span class="material-symbols-rounded text-2xl leading-none text-ink-muted" aria-hidden="true">lock_reset</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold text-ink">{{ 'TEAM.ACTIONS.RESET_MFA' | translate }}</span>
+              <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.RESET_MFA' | translate }}</span>
+            </span>
+            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+          </button>
+        </li>
+        }
+        <li>
+          <button type="button" (click)="ask('deactivate', m)" [disabled]="saving()" data-test-deactivate class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
+            <span class="material-symbols-rounded text-2xl leading-none text-bad-ink" aria-hidden="true">person_off</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold text-bad-ink">{{ 'TEAM.ACTIONS.DEACTIVATE' | translate }}</span>
+              <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.DEACTIVATE' | translate }}</span>
+            </span>
+            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+          </button>
+        </li>
+        }
+        @if (m.status === 'inactive') {
+        <li>
+          <button type="button" (click)="reactivate(m)" [disabled]="saving() && busyAction() !== 'reactivate'" [appBusy]="busyAction() === 'reactivate'" data-test-reactivate class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
+            <span class="material-symbols-rounded text-2xl leading-none text-ink-muted" aria-hidden="true">how_to_reg</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold text-ink">{{ 'TEAM.ACTIONS.REACTIVATE' | translate }}</span>
+              <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.REACTIVATE' | translate }}</span>
+            </span>
+            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+          </button>
+        </li>
+        }
+        }
+      </ul>
+      @if (nameEditing() === m.id) {
+      <form class="flex flex-col gap-3 border-t border-line p-5" [appBusyFields]="saving()" (submit)="$event.preventDefault(); saveName()">
+        <app-field labelKey="TEAM.INVITE.NAME" forId="edit-name">
+          <input id="edit-name" type="text" data-test-edit-name maxlength="100" [value]="nameDraft()" (input)="nameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+        </app-field>
+        <app-field labelKey="TEAM.INVITE.LAST_NAME" forId="edit-last-name">
+          <input id="edit-last-name" type="text" data-test-edit-last-name maxlength="100" [value]="lastNameDraft()" (input)="lastNameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
+        </app-field>
+        <div class="flex items-center justify-end gap-3">
+          <button type="button" (click)="nameEditing.set(null)" [disabled]="saving()" class="mk-btn-secondary">{{ 'COMMON.CANCEL' | translate }}</button>
+          <button type="submit" [disabled]="!canSaveName()" [appBusy]="saving()" data-test-save-name class="mk-btn">{{ 'COMMON.SAVE' | translate }}</button>
+        </div>
+      </form>
+      }
+    </section>
     }
   </div>
   }
