@@ -18,7 +18,6 @@
       "SERVICES": "Services",
       "ASSETS": "Assets",
       "FRAMEWORKS": "Contracted frameworks",
-      "RISKS_EVALUATED": "{{evaluated}} evaluated",
       "STATUS_TITLE": "Compliance by service",
       "NO_FRAMEWORK": "This service has no framework yet.",
       "PROGRESS": "Progress {{percent}}",
@@ -26,11 +25,6 @@
       "NOT_MEASURED": "No results yet",
       "ATTENTION_TITLE": "What needs attention",
       "ATTENTION_EMPTY": "No control is failing for now.",
-      "HINT": {
-        "SERVICES": "Compliance is measured on each one",
-        "SUMMED": "Added up across your services",
-        "FRAMEWORKS": "Standards that apply to your services"
-      },
       "SEE_DETAILS": "Full details",
       "ATTENTION_CAPTION": "Controls that are failing",
       "ATTENTION_COL": {

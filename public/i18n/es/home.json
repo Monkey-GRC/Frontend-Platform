@@ -18,7 +18,6 @@
       "SERVICES": "Servicios",
       "ASSETS": "Activos",
       "FRAMEWORKS": "Marcos contratados",
-      "RISKS_EVALUATED": "{{evaluated}} evaluados",
       "STATUS_TITLE": "Cumplimiento por servicio",
       "NO_FRAMEWORK": "Este servicio aún no tiene un marco contratado.",
       "PROGRESS": "Avance {{percent}}",
@@ -26,11 +25,6 @@
       "NOT_MEASURED": "Aún sin resultados",
       "ATTENTION_TITLE": "Lo que requiere atención",
       "ATTENTION_EMPTY": "Ningún control incumple por ahora.",
-      "HINT": {
-        "SERVICES": "Tu cumplimiento se mide en cada uno",
-        "SUMMED": "Suma de todos tus servicios",
-        "FRAMEWORKS": "Normas que aplican a tus servicios"
-      },
       "SEE_DETAILS": "Detalles completos",
       "ATTENTION_CAPTION": "Controles que no cumplen",
       "ATTENTION_COL": {
