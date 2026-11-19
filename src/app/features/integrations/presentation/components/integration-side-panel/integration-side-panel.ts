@@ -45,27 +45,27 @@ import { IntegrationDetail } from '@features/integrations/domain/models/integrat
     <app-card>
       <dl class="space-y-4 text-sm" data-test-facts>
         <div>
-          <dt class="text-xs font-medium uppercase tracking-wide text-ink-muted">{{ 'INTEGRATIONS.SIDE.BUILT_BY' | translate }}</dt>
+          <dt class="text-xs font-medium text-ink-muted">{{ 'INTEGRATIONS.SIDE.BUILT_BY' | translate }}</dt>
           <dd class="mt-1 text-ink">{{ 'INTEGRATIONS.SIDE.BUILT_BY_VALUE' | translate }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-medium uppercase tracking-wide text-ink-muted">{{ 'INTEGRATIONS.SIDE.PURPOSE' | translate }}</dt>
+          <dt class="text-xs font-medium text-ink-muted">{{ 'INTEGRATIONS.SIDE.PURPOSE' | translate }}</dt>
           <dd class="mt-1 text-ink">{{ labels.of('INTEGRATIONS.PURPOSE', d.purpose) }}</dd>
         </div>
         @if (d.capabilities.length) {
           <div data-test-capabilities>
-            <dt class="text-xs font-medium uppercase tracking-wide text-ink-muted">{{ 'INTEGRATIONS.SIDE.CAPABILITIES' | translate }}</dt>
+            <dt class="text-xs font-medium text-ink-muted">{{ 'INTEGRATIONS.SIDE.CAPABILITIES' | translate }}</dt>
             <dd class="mt-1.5"><ul class="flex flex-wrap gap-1.5">@for (c of d.capabilities; track c) {<li><app-badge kind="attribute" [value]="c">{{ c }}</app-badge></li>}</ul></dd>
           </div>
         }
         @if (d.works_with.length) {
           <div data-test-works-with>
-            <dt class="text-xs font-medium uppercase tracking-wide text-ink-muted">{{ 'INTEGRATIONS.SIDE.WORKS_WITH' | translate }}</dt>
+            <dt class="text-xs font-medium text-ink-muted">{{ 'INTEGRATIONS.SIDE.WORKS_WITH' | translate }}</dt>
             <dd class="mt-1.5"><ul class="flex flex-wrap gap-1.5">@for (w of d.works_with; track w) {<li><app-badge kind="attribute" [value]="w">{{ w }}</app-badge></li>}</ul></dd>
           </div>
         }
         <div>
-          <dt class="text-xs font-medium uppercase tracking-wide text-ink-muted">{{ 'INTEGRATIONS.SIDE.AVAILABILITY' | translate }}</dt>
+          <dt class="text-xs font-medium text-ink-muted">{{ 'INTEGRATIONS.SIDE.AVAILABILITY' | translate }}</dt>
           <dd class="mt-1"><app-status-indicator [tone]="d.availability === 'available' ? 'ok' : 'neutral'" [label]="labels.of('INTEGRATIONS.AVAILABILITY', d.availability)" /></dd>
         </div>
       </dl>

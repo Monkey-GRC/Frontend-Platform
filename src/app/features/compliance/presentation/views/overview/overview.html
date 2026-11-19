@@ -3,7 +3,8 @@
 @case ('loading') {
 <app-skeleton-region data-overview-loading>
   <div class="flex flex-col gap-8">
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"><app-skeleton shape="card" /><app-skeleton shape="metric" /><app-skeleton shape="metric" /></div>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2"><app-skeleton shape="card" /><app-skeleton shape="card" /></div>
+    <div class="mk-metric-grid"><app-skeleton shape="metric" /><app-skeleton shape="metric" /><app-skeleton shape="metric" /><app-skeleton shape="metric" /></div>
     <div class="space-y-3"><app-skeleton shape="title" width="25%" /><div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"><app-skeleton shape="card" /><app-skeleton shape="card" /><app-skeleton shape="card" /></div></div>
   </div>
 </app-skeleton-region>
@@ -51,7 +52,7 @@
   <!-- Con el período definido, cuál es y «Cambiar período» van en el banner de Cumplimiento (no hay fecha de corte: se mide siempre con lo último que revisó la evaluación automática, D105). -->
 
   <!-- El veredicto, el avance y los conteos, a la misma altura. El avance no es el estado: el veredicto va aparte, con el color del estado. -->
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     @if (banner(); as b) {
     <app-card class="h-full" [tone]="b.tone" [attr.data-verdict]="b.tone" aria-live="polite">
       <div class="flex h-full flex-col gap-2">
@@ -76,33 +77,19 @@
       </div>
     </app-card>
 
-    @if (counts(); as c) {
-    <app-card class="h-full md:col-span-2 xl:col-span-1" data-kpis>
-      <div class="flex h-full flex-col justify-between gap-5">
-        <div>
-          <p class="mk-stat tabular-nums"><span class="mk-stat-value text-3xl" data-kpi="evaluated">{{ c.measured }}<span class="text-lg font-medium text-ink-faint">/{{ c.total }}</span></span><span class="mk-stat-label">{{ 'COMPLIANCE.OVERVIEW.KPI_EVALUATED' | translate }}</span></p>
-          <div class="mt-3 h-1 overflow-hidden rounded-full bg-tint-strong" aria-hidden="true">
-            <div class="h-full rounded-full bg-action" [style.width.%]="c.total ? (c.measured * 100) / c.total : 0"></div>
-          </div>
-        </div>
-        <div class="grid grid-cols-3 gap-3 border-t border-line pt-4 tabular-nums">
-          <div class="flex min-w-0 flex-col gap-1">
-            <p class="text-3xl leading-none font-semibold text-action" data-kpi="effective">{{ c.done }}</p>
-            <p class="min-w-0 text-sm"><app-status-indicator tone="ok" labelKey="COMPLIANCE.OVERVIEW.KPI_EFFECTIVE" /></p>
-          </div>
-          <div class="flex min-w-0 flex-col gap-1">
-            <p class="text-3xl leading-none font-semibold text-action" data-kpi="ineffective">{{ c.notEffective }}</p>
-            <p class="min-w-0 text-sm"><app-status-indicator tone="bad" labelKey="COMPLIANCE.OVERVIEW.KPI_INEFFECTIVE" /></p>
-          </div>
-          <div class="flex min-w-0 flex-col gap-1">
-            <p class="text-3xl leading-none font-semibold text-action" data-kpi="pending">{{ c.pending }}</p>
-            <p class="min-w-0 text-sm"><app-status-indicator tone="warn" labelKey="COMPLIANCE.OVERVIEW.KPI_PENDING" /></p>
-          </div>
-        </div>
-      </div>
-    </app-card>
-    }
   </div>
+
+  <!-- Los conteos: cuatro tarjetas iguales; el color de las tres últimas es el del estado, y cada una lleva su palabra -->
+  @if (counts(); as c) {
+  <div class="mk-metric-grid" data-kpis>
+    <app-metric-card data-kpi="evaluated" icon="monitoring" color="data-1" [label]="'COMPLIANCE.OVERVIEW.KPI_EVALUATED' | translate" [value]="c.measured + '/' + c.total">
+      <app-donut metricDonut [value]="c.total ? value(c.measured, c.total) : null" [text]="c.total ? pct(c.measured, c.total) : ''" [size]="72" [ariaLabel]="('COMPLIANCE.OVERVIEW.KPI_EVALUATED' | translate) + ' ' + (c.total ? pct(c.measured, c.total) : '—')" />
+    </app-metric-card>
+    <app-metric-card data-kpi="effective" icon="check_circle" color="ok" [label]="'COMPLIANCE.OVERVIEW.KPI_EFFECTIVE' | translate" [value]="c.done" />
+    <app-metric-card data-kpi="ineffective" icon="cancel" color="bad" [label]="'COMPLIANCE.OVERVIEW.KPI_INEFFECTIVE' | translate" [value]="c.notEffective" />
+    <app-metric-card data-kpi="pending" icon="pending" color="warn" [label]="'COMPLIANCE.OVERVIEW.KPI_PENDING' | translate" [value]="c.pending" />
+  </div>
+  }
 
   <!-- Criterios de confianza: el color es el del estado, no el de la categoría -->
   <section [attr.aria-label]="'COMPLIANCE.OVERVIEW.CATEGORIES_TITLE' | translate">

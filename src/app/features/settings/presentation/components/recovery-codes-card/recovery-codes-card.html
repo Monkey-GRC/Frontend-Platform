@@ -4,7 +4,7 @@
       <p class="text-base font-semibold text-warn-ink">{{ 'SETTINGS.SECURITY.RECOVERY.SHOWN_ONCE' | translate }}</p>
       <ul class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5" data-testid="recovery-codes-list">
         @for (item of recoveryCodes(); track item) {
-          <li><code class="block rounded-control bg-surface px-2 py-1.5 text-center text-sm font-bold tracking-wider text-ink ring-1 ring-line">{{ item }}</code></li>
+          <li><code class="block rounded-control bg-surface px-2 py-1.5 text-center text-sm font-semibold tracking-wider text-ink ring-1 ring-line">{{ item }}</code></li>
         }
       </ul>
       <div class="mt-3 flex flex-wrap items-center gap-3">

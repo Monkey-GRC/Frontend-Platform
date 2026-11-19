@@ -6,6 +6,7 @@ import { SessionService } from '@core/domain/services/session.service';
 import { canReachPath } from '@core/presentation/components/app-sidebar/sidebar-groups';
 import { NAV_ITEMS } from '@config/navigation.config';
 import { Card } from '@shared/presentation/components/card/card';
+import { MetricCard, MetricColor } from '@shared/presentation/components/metric-card/metric-card';
 import { DonutColor } from '@shared/presentation/components/donut/donut';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
@@ -32,7 +33,7 @@ const PAGE_SIZES = [10, 25, 50];
 // empresa: el cumplimiento se mide por servicio × marco. Hoy solo el administrador de la empresa lee los servicios (B1), así que solo a él se le muestra.
 @Component({
   selector: 'app-company-dashboard',
-  imports: [TranslatePipe, RouterLink, Card, Tag, EmptyState, DataTable, TableCell, ServiceCard, TeamBlocks, Skeleton, SkeletonRegion],
+  imports: [TranslatePipe, RouterLink, Card, MetricCard, Tag, EmptyState, DataTable, TableCell, ServiceCard, TeamBlocks, Skeleton, SkeletonRegion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './company-dashboard.html',
 })
@@ -64,16 +65,16 @@ export class CompanyDashboard {
     };
   });
 
-  /** Las seis cifras de «Tu empresa»: etiqueta, número y una línea de apoyo. Ninguna lleva enlace: hoy ninguna navega a otra pantalla. */
+  /** Las seis cifras de «Tu empresa»: icono y color de datos fijos por métrica (servicios y causas comparten el azul de marca: hay cinco colores y seis cifras), etiqueta y número. Ninguna lleva enlace: hoy ninguna navega a otra pantalla. */
   readonly kpis = computed(() => {
     const t = this.totals();
     return [
-      { id: 'services', value: t.services, labelKey: 'HOME.DASHBOARD.SERVICES', hintKey: 'HOME.DASHBOARD.HINT.SERVICES', hintParams: {} },
-      { id: 'assets', value: t.assets, labelKey: 'HOME.DASHBOARD.ASSETS', hintKey: 'HOME.DASHBOARD.HINT.SUMMED', hintParams: {} },
-      { id: 'frameworks', value: t.frameworks, labelKey: 'HOME.DASHBOARD.FRAMEWORKS', hintKey: 'HOME.DASHBOARD.HINT.FRAMEWORKS', hintParams: {} },
-      { id: 'controls', value: t.controls, labelKey: 'COMPLIANCE.GLOSSARY.CONTROLS', hintKey: 'HOME.DASHBOARD.HINT.SUMMED', hintParams: {} },
-      { id: 'risks', value: t.risks, labelKey: 'COMPLIANCE.GLOSSARY.RISKS', hintKey: 'HOME.DASHBOARD.RISKS_EVALUATED', hintParams: { evaluated: t.risksEvaluated } },
-      { id: 'causes', value: t.causes, labelKey: 'COMPLIANCE.GLOSSARY.CAUSES', hintKey: 'HOME.DASHBOARD.HINT.SUMMED', hintParams: {} },
+      { id: 'services', icon: 'dns', color: 'data-1' as MetricColor, value: t.services, labelKey: 'HOME.DASHBOARD.SERVICES' },
+      { id: 'assets', icon: 'inventory_2', color: 'data-2' as MetricColor, value: t.assets, labelKey: 'HOME.DASHBOARD.ASSETS' },
+      { id: 'frameworks', icon: 'verified_user', color: 'data-3' as MetricColor, value: t.frameworks, labelKey: 'HOME.DASHBOARD.FRAMEWORKS' },
+      { id: 'controls', icon: 'fact_check', color: 'data-4' as MetricColor, value: t.controls, labelKey: 'COMPLIANCE.GLOSSARY.CONTROLS' },
+      { id: 'risks', icon: 'crisis_alert', color: 'data-5' as MetricColor, value: t.risks, labelKey: 'COMPLIANCE.GLOSSARY.RISKS' },
+      { id: 'causes', icon: 'account_tree', color: 'data-1' as MetricColor, value: t.causes, labelKey: 'COMPLIANCE.GLOSSARY.CAUSES' },
     ];
   });
 

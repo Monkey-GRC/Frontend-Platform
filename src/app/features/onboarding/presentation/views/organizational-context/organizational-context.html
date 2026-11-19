@@ -247,11 +247,11 @@
           </header>
           <dl class="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.EMPLOYEES' | translate }}</dt>
+              <dt class="text-xs font-semibold text-ink-faint">{{ 'ONBOARDING.FIELD.EMPLOYEES' | translate }}</dt>
               <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.size, draft().size) }}</dd>
             </div>
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.YEARS' | translate }}</dt>
+              <dt class="text-xs font-semibold text-ink-faint">{{ 'ONBOARDING.FIELD.YEARS' | translate }}</dt>
               <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.years, draft().years_in_operation) }}</dd>
             </div>
           </dl>
@@ -266,11 +266,11 @@
           </header>
           <dl class="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.INDUSTRY' | translate }}</dt>
+              <dt class="text-xs font-semibold text-ink-faint">{{ 'ONBOARDING.FIELD.INDUSTRY' | translate }}</dt>
               <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.industry, draft().industry) }}</dd>
             </div>
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.MODEL' | translate }}</dt>
+              <dt class="text-xs font-semibold text-ink-faint">{{ 'ONBOARDING.FIELD.MODEL' | translate }}</dt>
               <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.businessModel, draft().business_model) }}</dd>
             </div>
           </dl>
@@ -285,7 +285,7 @@
           </header>
           <dl class="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.INCORPORATION' | translate }}</dt>
+              <dt class="text-xs font-semibold text-ink-faint">{{ 'ONBOARDING.FIELD.INCORPORATION' | translate }}</dt>
               <dd class="mt-1.5">
                 <ul class="flex flex-wrap gap-x-4 gap-y-1">
                   @for (item of pills(cat.incorporation, draft().incorporation_countries); track item.value) {
@@ -295,7 +295,7 @@
               </dd>
             </div>
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.CLIENTS' | translate }}</dt>
+              <dt class="text-xs font-semibold text-ink-faint">{{ 'ONBOARDING.FIELD.CLIENTS' | translate }}</dt>
               <dd class="mt-1.5">
                 <ul class="flex flex-wrap gap-x-4 gap-y-1">
                   @for (item of pills(cat.client, draft().client_countries); track item.value) {
@@ -316,11 +316,11 @@
           </header>
           <dl class="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.MATURITY' | translate }}</dt>
+              <dt class="text-xs font-semibold text-ink-faint">{{ 'ONBOARDING.FIELD.MATURITY' | translate }}</dt>
               <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.maturity, draft().compliance_maturity) }}</dd>
             </div>
             <div>
-              <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'ONBOARDING.FIELD.REGULATIONS' | translate }}</dt>
+              <dt class="text-xs font-semibold text-ink-faint">{{ 'ONBOARDING.FIELD.REGULATIONS' | translate }}</dt>
               <dd class="mt-1.5">
                 <ul class="flex flex-wrap gap-x-4 gap-y-1">
                   @for (item of regulationList(); track item) {

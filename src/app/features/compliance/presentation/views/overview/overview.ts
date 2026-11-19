@@ -7,6 +7,7 @@ import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { Card } from '@shared/presentation/components/card/card';
+import { MetricCard } from '@shared/presentation/components/metric-card/metric-card';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { PageInfo } from '@shared/presentation/components/data-table/table-page';
 import { Donut, DonutTone } from '@shared/presentation/components/donut/donut';
@@ -54,7 +55,7 @@ const PAGE_SIZES = [10, 25, 50];
 // vencido nunca cuenta como cumplido, y sin resultados no se inventa ningún porcentaje. El cumplimiento se mide por servicio × marco; nunca hay un total de la empresa.
 @Component({
   selector: 'app-overview',
-  imports: [TranslatePipe, RouterLink, StatusIndicator, Tag, Card, Donut, EmptyState, DataTable, TableCell, RiskHeatmap, EvaluationPeriodForm, Skeleton, SkeletonRegion],
+  imports: [TranslatePipe, RouterLink, StatusIndicator, Tag, Card, MetricCard, Donut, EmptyState, DataTable, TableCell, RiskHeatmap, EvaluationPeriodForm, Skeleton, SkeletonRegion],
   templateUrl: './overview.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

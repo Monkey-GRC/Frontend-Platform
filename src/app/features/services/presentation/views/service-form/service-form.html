@@ -110,7 +110,7 @@
   <!-- A la izquierda: dónde va y cuánto falta. En pantallas chicas queda una barra arriba. -->
   <aside class="lg:flex lg:flex-col" data-service-rail>
     <div class="lg:flex lg:flex-1 lg:flex-col lg:rounded-card lg:border lg:border-line lg:bg-canvas lg:p-4">
-      <p class="hidden text-xs font-semibold uppercase tracking-wide text-ink-muted lg:block">{{ (editing() ? 'SERVICES.FORM.RAIL_EDIT' : 'SERVICES.FORM.RAIL_TITLE') | translate }}</p>
+      <p class="hidden text-xs font-semibold text-ink-muted lg:block">{{ (editing() ? 'SERVICES.FORM.RAIL_EDIT' : 'SERVICES.FORM.RAIL_TITLE') | translate }}</p>
       <div class="flex items-center justify-between text-sm lg:mt-2">
         <span class="font-medium text-ink">{{ 'SERVICES.FORM.STEP_OF' | translate: { current: step() + 1, total: steps.length + 1 } }}</span>
         <span class="text-ink-muted lg:hidden">{{ (step() < reviewStep ? steps[step()].labelKey : 'COMMON.WIZARD.REVIEW') | translate }}</span>
@@ -364,7 +364,7 @@
                 </span>
                 <span class="mt-0.5 block text-xs text-ink-faint">{{ criterionInfo[c.value]?.help | translate }}</span>
                 @if (criterionInfo[c.value]; as info) {
-                <span class="mt-2 block text-[11px] font-medium uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.WE_WILL_REVIEW' | translate }}</span>
+                <span class="mt-2 block text-xs font-medium text-ink-faint">{{ 'SERVICES.FORM.WE_WILL_REVIEW' | translate }}</span>
                 <ul class="mt-1 list-disc space-y-0.5 pl-4 text-xs text-ink-faint">
                   @for (e of info.examples; track e) {
                   <li>{{ e | translate }}</li>
@@ -490,7 +490,7 @@
           <input id="system-file" type="file" class="sr-only" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             (change)="pickSystemFile($event)" />
           }
-          <p class="mt-1.5 text-[11px] text-ink-faint">{{ 'SERVICES.FORM.FILE_RULES' | translate }}</p>
+          <p class="mt-1.5 text-xs text-ink-faint">{{ 'SERVICES.FORM.FILE_RULES' | translate }}</p>
           @if (systemFileError()) {
           <p class="mt-1.5 text-xs text-bad-ink">{{ systemFileError() }}</p>
           }
@@ -525,11 +525,11 @@
             <dd class="text-base font-semibold text-ink">{{ draft().name }}</dd>
           </div>
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_DESCRIPTION' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_DESCRIPTION' | translate }}</dt>
             <dd class="mt-1 whitespace-pre-line break-words text-sm font-medium text-ink">{{ draft().description }}</dd>
           </div>
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_SCOPE' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_SCOPE' | translate }}</dt>
             <dd class="mt-1 whitespace-pre-line break-words text-sm font-medium text-ink">{{ draft().scope_statement }}</dd>
           </div>
           </dl>
@@ -543,7 +543,7 @@
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_INDUSTRIES' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_INDUSTRIES' | translate }}</dt>
             <dd class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
             @for (item of pillsOf(cat.industries, draft().industries_served); track item.value) {
               <app-badge kind="attribute" [value]="item.value">{{ item.label }}</app-badge>
@@ -551,7 +551,7 @@
             </dd>
           </div>
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_ACTIVE_CLIENTS' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_ACTIVE_CLIENTS' | translate }}</dt>
             <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.clientCount, draft().active_client_count) }}</dd>
           </div>
           </dl>
@@ -565,7 +565,7 @@
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_COUNTRIES' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_COUNTRIES' | translate }}</dt>
             <dd class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
             @for (item of pillsOf(cat.countries, draft().countries); track item.value) {
               <span class="inline-flex items-center gap-1.5 text-sm font-medium text-ink">@if (item.flag) {<img [src]="'/images/flags/' + item.flag + '.svg'" alt="" width="16" height="16" class="size-4 rounded-full" />} {{ item.label }}</span>
@@ -573,7 +573,7 @@
             </dd>
           </div>
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_DATA' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_DATA' | translate }}</dt>
             <dd class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
             @for (item of pillsOf(cat.dataTypes, draft().data_types); track item.value) {
               <span class="inline-flex items-center gap-1.5 text-sm font-medium text-ink">{{ item.label }}</span>
@@ -581,7 +581,7 @@
             </dd>
           </div>
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_AVAILABILITY' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_AVAILABILITY' | translate }}</dt>
             <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.availability, draft().expected_availability) }}</dd>
           </div>
           </dl>
@@ -595,7 +595,7 @@
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_FRAMEWORK' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_FRAMEWORK' | translate }}</dt>
             <dd class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
             @for (item of frameworkPills(); track item.value) {
               <span class="inline-flex items-center gap-1.5 text-sm font-medium text-ink">{{ item.label }}</span>
@@ -603,7 +603,7 @@
             </dd>
           </div>
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_COVERS' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_COVERS' | translate }}</dt>
             <dd class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
             @for (item of pillsOf(cat.trustCriteria, draft().trust_criteria); track item.value) {
               <span class="inline-flex items-center gap-1.5 text-sm font-medium text-ink">{{ item.label }}</span>
@@ -621,7 +621,7 @@
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_PROVIDERS' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_PROVIDERS' | translate }}</dt>
             <dd class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
             @for (item of pillsOf(cat.subserviceTypes, selectedSubserviceTypes()); track item.value) {
               <span class="inline-flex items-center gap-1.5 text-sm font-medium text-ink">{{ item.label }}</span>
@@ -640,24 +640,24 @@
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           @if (draft().previous_certification) {
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_CERT' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_CERT' | translate }}</dt>
             <dd class="mt-1 text-sm font-medium text-ink">{{ labelOf(cat.certifications, draft().previous_certification) }}</dd>
           </div>
           }
           @if (draft().system_description_url.trim()) {
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_SYSDESC_LINK' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_SYSDESC_LINK' | translate }}</dt>
             <dd class="mt-1 break-all text-sm font-medium text-ink">{{ draft().system_description_url }}</dd>
           </div>
           }
           @if (systemFile(); as f) {
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_SYSDESC_FILE' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_SYSDESC_FILE' | translate }}</dt>
             <dd class="mt-1 break-all text-sm font-medium text-ink">{{ f.name }}</dd>
           </div>
           } @else if (existingFileName()) {
           <div>
-            <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{{ 'SERVICES.FORM.FIELD_SYSDESC_FILE' | translate }}</dt>
+            <dt class="text-xs font-semibold text-ink-faint">{{ 'SERVICES.FORM.FIELD_SYSDESC_FILE' | translate }}</dt>
             <dd class="mt-1 break-all text-sm font-medium text-ink">{{ existingFileName() }}</dd>
           </div>
           }

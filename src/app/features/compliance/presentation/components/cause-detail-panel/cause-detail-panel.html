@@ -55,7 +55,7 @@
     </app-detail-card>
 
     <app-detail-card titleKey="COMPLIANCE.CAUSE_DETAIL.RISKS_ORIGINATED">
-      <p class="mb-3 text-xs font-medium uppercase tracking-wide text-ink-faint">{{ d.risks.length }}</p>
+      <p class="mb-3 text-xs font-medium text-ink-faint">{{ d.risks.length }}</p>
       @if (d.risks.length === 0) {
       <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.CAUSE_DETAIL.NO_RISKS' | translate }}</p>
       } @else {
@@ -80,7 +80,7 @@
       </div>
       }
 
-      <p class="mb-3 text-xs font-medium uppercase tracking-wide text-ink-faint">{{ d.controls.length }}</p>
+      <p class="mb-3 text-xs font-medium text-ink-faint">{{ d.controls.length }}</p>
       @if (d.controls.length === 0) {
       <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.CAUSE_DETAIL.NO_CONTROLS' | translate }}</p>
       } @else {

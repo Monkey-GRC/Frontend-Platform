@@ -14,7 +14,7 @@
         <button type="button" role="gridcell" [attr.data-cell]="l + '-' + i" [attr.aria-label]="label(l, i)" [attr.aria-pressed]="isSelected(l, i)" [disabled]="disabled()"
           [attr.tabindex]="isStop(l, i) ? 0 : -1" (click)="pick(l, i)" (keydown)="move($event, l, i)"
           class="rounded-control border text-xs font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action disabled:cursor-not-allowed"
-          [class]="cell() + ' ' + (isSelected(l, i) ? 'border-action bg-action text-white ring-2 ring-action ring-offset-1' : isSaved(l, i) ? savedTone() : soft(l, i) + ' enabled:hover:ring-2 enabled:hover:ring-action/60')">
+          [class]="cell() + ' ' + (isSelected(l, i) ? 'border-action bg-action text-on-action ring-2 ring-action ring-offset-1' : isSaved(l, i) ? savedTone() : soft(l, i) + ' enabled:hover:ring-2 enabled:hover:ring-action/60')">
           @if (isSelected(l, i)) {<span class="material-symbols-rounded text-[16px] leading-none" aria-hidden="true">check</span>}
         </button>
         } @else {

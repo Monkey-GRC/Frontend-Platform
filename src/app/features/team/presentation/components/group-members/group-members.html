@@ -13,7 +13,7 @@
   <app-data-table captionKey="TEAM.GROUPS.PEOPLE_TITLE" [compact]="true" [hideHeader]="true" [columns]="columns" [rows]="[]" [rowKey]="memberKey" [loading]="true" [loadingRows]="3" />
   }
   @case ('error') {
-  <p class="text-sm text-bad" data-test-members-load-error>
+  <p class="text-sm text-bad-ink" data-test-members-load-error>
     {{ 'TEAM.GROUPS.MEMBERS_ERROR' | translate }}
     <button type="button" (click)="load()" class="ml-2 font-semibold text-action underline">{{ 'COMMON.RETRY' | translate }}</button>
   </p>

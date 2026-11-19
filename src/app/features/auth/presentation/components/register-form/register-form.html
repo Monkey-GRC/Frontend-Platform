@@ -24,7 +24,7 @@
 
             <!-- Title -->
             <h1
-                class="text-2xl md:text-3xl font-bold text-action text-center">
+                class="text-2xl md:text-3xl font-semibold text-action text-center">
                 {{ 'AUTH.REGISTER.TITLE' | translate }}
             </h1>
 
@@ -81,7 +81,7 @@
                             class="flex items-center gap-3 w-full px-3 h-9 md:h-12 text-sm md:text-base rounded-control border border-line bg-canvas text-ink-muted">
                             <span class="flex-1 truncate">{{ lookup()?.email }}</span>
                         </div>
-                        <p class="mt-1.5 text-[11px] text-ink-muted">{{ 'AUTH.REGISTER.EMAIL_ALWAYS' | translate }}</p>
+                        <p class="mt-1.5 text-xs text-ink-muted">{{ 'AUTH.REGISTER.EMAIL_ALWAYS' | translate }}</p>
                     </div>
 
                     <!-- La contraseña que elige quien activa su cuenta: con su guía; aquí no hay contraseña actual, así que no se compara con ninguna -->
@@ -110,7 +110,7 @@
                     <span class="h-px w-full bg-line"></span>
                 </div>
 
-                <p class="text-[11px] md:text-xs text-ink-muted mt-4 text-center md:text-left">
+                <p class="text-xs text-ink-muted mt-4 text-center md:text-left">
                     {{ 'AUTH.REGISTER.ALREADY_ACTIVATED' | translate }}
                     <a routerLink="/signin" class="text-action underline">{{ 'AUTH.LOGIN.TITLE' | translate }}</a>.
                 </p>
