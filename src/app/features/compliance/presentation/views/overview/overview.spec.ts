@@ -214,21 +214,21 @@ describe('OverviewView', () => {
 
   it('derives the four counts: evaluated, effective, not effective and pending', () => {
     setup('admin_empresa', [framework({ progress: { done: 3, total: 10 }, coverage: { measured: 7, applicable: 10 }, technical: technical('non_compliant') })]);
-    const kpi = (name: string) => q(`[data-kpi="${name}"]`)!.textContent!.replace(/\s/g, '');
+    const kpi = (name: string) => q(`[data-kpi="${name}"] [data-metric-value]`)!.textContent!.replace(/\s/g, '');
     expect(kpi('evaluated')).toBe('7/10');
     expect(kpi('effective')).toBe('3');
     expect(kpi('ineffective')).toBe('4');
     expect(kpi('pending')).toBe('3');
   });
 
-  it('lays the counts out as a header with the evaluated figure and a 3-column grid of aligned figures, each with its state dot and word', () => {
+  it('lays the counts out as four equal metric cards; the three states take their state colour and the evaluated one keeps its donut', () => {
     setup('admin_empresa', [framework({ progress: { done: 3, total: 10 }, coverage: { measured: 7, applicable: 10 }, technical: technical('non_compliant') })]);
-    const card = q('[data-kpis]')!;
-    expect(card.querySelector('.grid-cols-3')!.className).toContain('tabular-nums');
-    expect(card.querySelectorAll('.grid-cols-3 app-status-indicator').length).toBe(3);
-    expect(Array.from(card.querySelectorAll('.grid-cols-3 app-status-indicator')).map((i) => i.getAttribute('data-tone'))).toEqual(['ok', 'bad', 'warn']);
-    expect(card.textContent).toContain('COMPLIANCE.OVERVIEW.KPI_EVALUATED');
-    expect(card.querySelector<HTMLElement>('[style*="width"]')!.style.width).toBe('70%');
+    const grid = q('[data-kpis]')!;
+    expect(grid.className).toContain('mk-metric-grid');
+    expect(grid.querySelectorAll('app-metric-card').length).toBe(4);
+    expect(Array.from(grid.querySelectorAll('.mk-metric-icon')).map((i) => i.className.match(/mk-metric-icon-(\S+)/)![1])).toEqual(['data-1', 'ok', 'bad', 'warn']);
+    expect(grid.textContent).toContain('COMPLIANCE.OVERVIEW.KPI_EVALUATED');
+    expect(grid.querySelector('[data-kpi="evaluated"] app-donut circle[stroke-dasharray]')).not.toBeNull();
   });
 
   it('shows one card per criterion with the names the backend serves', () => {

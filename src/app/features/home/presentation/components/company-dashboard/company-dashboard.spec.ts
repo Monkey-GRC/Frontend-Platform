@@ -37,7 +37,7 @@ describe('CompanyDashboard', () => {
 
   const el = () => fixture.nativeElement as HTMLElement;
   const q = (s: string) => el().querySelector(s);
-  const total = (name: string) => q(`[data-total="${name}"]`)!.textContent!.trim();
+  const total = (name: string) => q(`[data-total="${name}"] [data-metric-value]`)!.textContent!.trim();
 
   it('shows nothing, and asks for nothing, to a user who cannot read the services', () => {
     setup('responsable', { services: [service('s1')] });
@@ -58,7 +58,7 @@ describe('CompanyDashboard', () => {
     expect(total('controls')).toBe('130');
     expect(total('risks')).toBe('15');
     expect(total('causes')).toBe('66');
-    expect(q('[data-hint="risks"]')!.textContent).toContain('HOME.DASHBOARD.RISKS_EVALUATED');
+    expect(el().querySelector('app-metric-card [data-metric-description]')).toBeNull();
   });
 
   it('invites a company with no services to create the first one, with a link to the same screen as "My services" (D89)', () => {
@@ -102,12 +102,15 @@ describe('CompanyDashboard', () => {
     expect(row.querySelector('[data-status]')).not.toBeNull();
   });
 
-  it('shows every KPI figure in one colour (the brand blue, white on the featured card) and keeps the data palette for the framework donuts only', () => {
+  it('draws every KPI as the same metric card (no featured one) with its icon in a circle of a data colour, and keeps the data palette for the donuts and icons only', () => {
     setup('admin_empresa', { services: [service('s1'), service('s2')] });
-    const classes = ['assets', 'frameworks', 'controls', 'risks', 'causes'].map((id) => q(`[data-total="${id}"]`)!.className);
-    classes.forEach((c) => expect(c).toContain('text-action'));
-    expect(classes.join(' ')).not.toMatch(/text-data-\d/);
-    expect(q('[data-total="services"]')!.className).toContain('text-white');
+    const cards = Array.from(el().querySelectorAll('app-metric-card'));
+    expect(cards.length).toBe(6);
+    cards.forEach((c) => {
+      expect(c.className).not.toContain('mk-surface-featured');
+      expect(c.querySelector('.mk-metric-icon')!.className).toMatch(/mk-metric-icon-data-\d/);
+      expect(c.querySelector('[data-metric-value]')!.className).toContain('text-ink');
+    });
     const stroke = (id: string) => q(`[data-service="${id}"] circle[stroke-dasharray]`)!.getAttribute('stroke');
     expect(stroke('s1')).toBe(stroke('s2'));
   });
@@ -115,7 +118,7 @@ describe('CompanyDashboard', () => {
   it('draws no icon of its own in the dashboard once it has loaded', () => {
     setup('admin_empresa', { services: [service('s1')] });
     // The previous/next arrows of the pagination and the arrow at the end of an openable row are controls, not decoration.
-    expect(Array.from(el().querySelectorAll('.material-symbols-rounded')).filter((i) => !i.closest('nav') && !i.hasAttribute('data-row-chevron'))).toEqual([]);
+    expect(Array.from(el().querySelectorAll('.material-symbols-rounded')).filter((i) => !i.closest('nav') && !i.closest('app-metric-card') && !i.hasAttribute('data-row-chevron'))).toEqual([]);
   });
 
   it('a framework without results says so and shows no percentage or verdict: not measured is not a zero', () => {

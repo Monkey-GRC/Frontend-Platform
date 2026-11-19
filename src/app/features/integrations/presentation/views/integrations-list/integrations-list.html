@@ -30,7 +30,7 @@
   <app-card tone="warn" class="mb-4" data-test-attention>
     <button type="button" class="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-ink" [attr.aria-expanded]="attentionOpen()" aria-controls="integrations-attention" (click)="toggleAttention()" data-test-attention-toggle>
       <span class="flex items-center gap-2">
-        <span class="material-symbols-rounded text-[20px] text-warn" aria-hidden="true">warning</span>
+        <span class="material-symbols-rounded text-[20px] text-warn-ink" aria-hidden="true">warning</span>
         {{ (attentionCount() === 1 ? 'INTEGRATIONS.ATTENTION.TITLE_ONE' : 'INTEGRATIONS.ATTENTION.TITLE_MANY') | translate: { count: attentionCount() } }}
       </span>
       <span class="material-symbols-rounded text-[20px] text-ink-muted" aria-hidden="true">{{ attentionOpen() ? 'expand_less' : 'expand_more' }}</span>

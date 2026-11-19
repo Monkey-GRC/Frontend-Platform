@@ -178,7 +178,27 @@
       "YES": "Yes",
       "NO": "No",
       "CREATED": "Created",
-      "SUBTITLE": "Account details and available actions."
+      "SUBTITLE": "Account details and available actions.",
+      "PROFILE": "Profile",
+      "SUMMARY": "Summary",
+      "GENERAL": "General information",
+      "ACTIONS": "Available actions",
+      "COPY_EMAIL": "Copy email",
+      "COPIED": "Email copied",
+      "WORKLOAD": {
+        "OWNED": "Controls they own",
+        "EXECUTED": "Controls they run",
+        "PROGRESS": "Progress of their controls",
+        "COVERAGE": "Coverage {{percent}} · {{measured}} of {{applicable}}",
+        "UNAVAILABLE": "No data yet"
+      },
+      "ACTION_DESC": {
+        "EDIT_NAME": "Correct this person’s first and last name.",
+        "RESEND_INVITATION": "Sends the invitation to the account’s email again.",
+        "RESET_MFA": "Ends their sessions; on their next sign-in they will set up the second factor again.",
+        "DEACTIVATE": "Ends their session at once and keeps them out until you reactivate them.",
+        "REACTIVATE": "Gives them access to their account again."
+      }
     },
     "ORG": {
       "TITLE": "Org chart",

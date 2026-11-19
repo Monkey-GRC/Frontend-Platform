@@ -29,7 +29,7 @@ describe('AuthPageLayoutComponent (shared auth shell)', () => {
   it('renders the projected content and the brand panel with its tagline', () => {
     const { el } = setup();
     expect(el.querySelector('[data-testid="projected"]')).not.toBeNull();
-    expect(el.querySelector('[data-testid="auth-brand-panel"]')?.classList).toContain('bg-primary-500');
+    expect(el.querySelector('[data-testid="auth-brand-panel"]')?.classList).toContain('bg-brand-panel');
     expect(el.querySelector('[data-testid="auth-tagline"]')?.textContent).toContain('AUTH.LAYOUT.TAGLINE');
   });
 

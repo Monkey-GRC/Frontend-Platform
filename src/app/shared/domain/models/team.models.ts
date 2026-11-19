@@ -1,4 +1,5 @@
 // contracts/gestion-usuarios.md (D96, D102, D104): el equipo de la empresa. El reparto por dimensión se retiró con D102 (MD-206).
+import type { Readiness } from './readiness.models';
 import type { UserRole } from '@core/domain/models/auth.models';
 
 export type TeamRole = Exclude<UserRole, 'admin_monkey'>;
@@ -48,6 +49,28 @@ export interface Invitation {
 /** La respuesta de crear a una persona: sus datos y el resultado del envío de su invitación. */
 export interface InvitedMember extends TeamMember {
   invitation: Invitation;
+}
+
+/** La carga de trabajo de una persona: un ítem de `GET /v1/team/workload` sin el `user` (contracts/gestion-usuarios.md). */
+export interface PersonWorkload {
+  owned_count: number;
+  executed_count: number;
+  progress: {
+    readiness: Readiness;
+    progress: { done: number; total: number };
+    coverage: { measured: number; applicable: number };
+  };
+}
+
+/** Un ítem de `GET /v1/team/workload`: la carga de una persona, con quién es. */
+export interface TeamWorkloadItem extends PersonWorkload {
+  user: { id: string; name: string | null; last_name: string | null; role: TeamRole };
+}
+
+/** Respuesta de `GET /v1/team/workload` (solo admin_empresa; sin paginación). */
+export interface TeamWorkloadResponse {
+  items: TeamWorkloadItem[];
+  unassigned_count: number;
 }
 
 export interface TeamPage {

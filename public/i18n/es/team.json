@@ -178,7 +178,27 @@
       "YES": "Sí",
       "NO": "No",
       "CREATED": "Creación",
-      "SUBTITLE": "Datos de su cuenta y acciones disponibles."
+      "SUBTITLE": "Datos de su cuenta y acciones disponibles.",
+      "PROFILE": "Perfil",
+      "SUMMARY": "Resumen",
+      "GENERAL": "Información general",
+      "ACTIONS": "Acciones disponibles",
+      "COPY_EMAIL": "Copiar correo",
+      "COPIED": "Correo copiado",
+      "WORKLOAD": {
+        "OWNED": "Controles a su cargo",
+        "EXECUTED": "Controles que ejecuta",
+        "PROGRESS": "Avance de sus controles",
+        "COVERAGE": "Cobertura {{percent}} · {{measured}} de {{applicable}}",
+        "UNAVAILABLE": "Aún sin datos"
+      },
+      "ACTION_DESC": {
+        "EDIT_NAME": "Corrige el nombre y el apellido de esta persona.",
+        "RESEND_INVITATION": "Envía de nuevo la invitación al correo de la cuenta.",
+        "RESET_MFA": "Cierra sus sesiones; en su próximo ingreso configurará el segundo factor otra vez.",
+        "DEACTIVATE": "Cierra su sesión al instante y le impide entrar hasta que la reactives.",
+        "REACTIVATE": "Le devuelve el acceso a su cuenta."
+      }
     },
     "ORG": {
       "TITLE": "Organigrama",

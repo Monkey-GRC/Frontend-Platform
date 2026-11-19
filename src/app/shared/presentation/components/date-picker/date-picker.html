@@ -35,7 +35,7 @@
       @for (y of years(); track y.year) {
       <button type="button" (click)="pickYear(y.year, y.disabled)" [disabled]="y.disabled" [attr.data-year]="y.year" [attr.aria-current]="y.current ? 'true' : null"
         class="h-11 rounded-control text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action/60 disabled:cursor-not-allowed disabled:text-ink-faint disabled:hover:bg-transparent"
-        [class]="y.current ? 'bg-action font-semibold text-white' : y.today ? 'font-semibold text-action ring-1 ring-action/50 enabled:hover:bg-tint' : 'text-ink enabled:hover:bg-canvas'">{{ y.year }}</button>
+        [class]="y.current ? 'bg-action font-semibold text-on-action' : y.today ? 'font-semibold text-action ring-1 ring-action/50 enabled:hover:bg-tint' : 'text-ink enabled:hover:bg-canvas'">{{ y.year }}</button>
       }
     </div>
     }
@@ -44,21 +44,21 @@
       @for (mo of months(); track mo.m) {
       <button type="button" (click)="pickMonth(mo.m, mo.disabled)" [disabled]="mo.disabled" [attr.data-month]="mo.m" [attr.aria-current]="mo.current ? 'true' : null"
         class="h-11 rounded-control text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action/60 disabled:cursor-not-allowed disabled:text-ink-faint disabled:hover:bg-transparent"
-        [class]="mo.current ? 'bg-action font-semibold text-white' : 'text-ink enabled:hover:bg-canvas'">{{ mo.label }}</button>
+        [class]="mo.current ? 'bg-action font-semibold text-on-action' : 'text-ink enabled:hover:bg-canvas'">{{ mo.label }}</button>
       }
     </div>
     }
     @default {
     <div #grid role="grid" class="grid grid-cols-7 gap-y-1 text-center">
       @for (w of weekdays(); track $index) {
-      <span class="py-1 text-[11px] font-medium uppercase text-ink-faint" role="columnheader">{{ w }}</span>
+      <span class="py-1 text-xs font-medium text-ink-faint" role="columnheader">{{ w }}</span>
       }
       @for (week of weeks(); track week[0].iso) {
       @for (c of week; track c.iso) {
       <button type="button" role="gridcell" data-day [attr.data-iso]="c.iso" (click)="pick(c)" [disabled]="c.disabled"
         [attr.tabindex]="c.iso === focused() ? 0 : -1" [attr.aria-selected]="c.selected" [attr.aria-current]="c.today ? 'date' : null"
         class="mx-auto flex h-10 w-10 items-center justify-center rounded-full text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action/60 disabled:cursor-not-allowed disabled:text-ink-faint disabled:hover:bg-transparent"
-        [class]="c.selected ? 'bg-action font-semibold text-white' : c.today ? 'font-semibold text-action ring-1 ring-action/50 enabled:hover:bg-tint' : c.inMonth ? 'text-ink enabled:hover:bg-canvas' : 'text-ink-faint enabled:hover:bg-canvas'">
+        [class]="c.selected ? 'bg-action font-semibold text-on-action' : c.today ? 'font-semibold text-action ring-1 ring-action/50 enabled:hover:bg-tint' : c.inMonth ? 'text-ink enabled:hover:bg-canvas' : 'text-ink-faint enabled:hover:bg-canvas'">
         {{ c.day }}
       </button>
       }

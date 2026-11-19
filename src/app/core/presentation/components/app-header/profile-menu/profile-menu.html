@@ -3,7 +3,7 @@
     <button type="button" (click)="toggle()" data-testid="profile-trigger" aria-haspopup="menu" [attr.aria-expanded]="open()"
       [attr.aria-label]="'SHELL.PROFILE.OPEN' | translate" [title]="displayName()"
       class="flex items-center gap-2.5 rounded-full p-1 pr-2 text-ink-faint transition hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-action/50">
-      <span class="flex h-10 w-10 items-center justify-center rounded-full bg-action text-sm font-semibold text-white" aria-hidden="true">{{ initials() }}</span>
+      <span class="flex h-10 w-10 items-center justify-center rounded-full bg-action text-sm font-semibold text-on-action" aria-hidden="true">{{ initials() }}</span>
       <span class="material-symbols-rounded text-[20px] leading-none transition-transform" [class.rotate-180]="open()" aria-hidden="true">expand_more</span>
     </button>
 

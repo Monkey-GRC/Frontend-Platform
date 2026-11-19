@@ -55,7 +55,7 @@ const TONES: Record<string, StatusTone> = {
                 <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
                   <div class="min-w-0 flex-1">
                     <p class="text-sm font-semibold leading-snug text-ink"><app-tag class="mr-2 align-middle" [text]="t.test_code" />{{ t.display_name }}</p>
-                    <p class="mt-1 text-xs font-medium uppercase tracking-wide text-ink-faint">{{ labels.of('COMPLIANCE.DIMENSION', t.dimension) }} · {{ t.kind }}</p>
+                    <p class="mt-1 text-xs font-medium text-ink-faint">{{ labels.of('COMPLIANCE.DIMENSION', t.dimension) }} · {{ t.kind }}</p>
                   </div>
                   <app-status-indicator [tone]="t.tone" [label]="labels.of('COMPLIANCE.TEST_STATE', t.state)" [attr.data-test-state]="t.state" />
                 </div>

@@ -4,7 +4,7 @@ import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
-import { Invitation, InviteDto, InvitedMember, TeamFilters, TeamMember, TeamPage, UpdateMemberDto } from '../models/team.models';
+import { Invitation, InviteDto, InvitedMember, TeamFilters, TeamMember, TeamPage, TeamWorkloadResponse, UpdateMemberDto } from '../models/team.models';
 
 // El equipo de la empresa (contracts/gestion-usuarios.md, D96, D102). Lo usan el administrador (todo el equipo) y el responsable (solo su equipo; el servidor lo acota):
 // errores y sesión ya los resuelven los interceptores globales.
@@ -21,6 +21,11 @@ export class TeamService {
     if (filters.groupId) params = params.set('group_id', filters.groupId);
     if (filters.isInternal !== null && filters.isInternal !== undefined) params = params.set('is_internal', filters.isInternal);
     return this.http.get<SuccessResponse<TeamPage>>(this.usersUrl, { params }).pipe(unwrapData());
+  }
+
+  /** La carga de trabajo de todo el equipo (solo admin_empresa; el resto recibe 403). */
+  workload(): Observable<TeamWorkloadResponse> {
+    return this.http.get<SuccessResponse<TeamWorkloadResponse>>(`${environment.apiUrl}/team/workload`).pipe(unwrapData());
   }
 
   /** Todo el equipo visible, para dibujar el organigrama (que no se pagina): pide páginas de 100 hasta tenerlo todo. Una empresa tiene pocas personas; el tope evita un ciclo largo. */

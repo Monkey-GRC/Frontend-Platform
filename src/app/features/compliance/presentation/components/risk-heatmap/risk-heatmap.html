@@ -18,7 +18,7 @@
               [class]="tone(l, i) + (isPicked(l, i) ? ' ring-2 ring-offset-1 ring-action' : '')"><span class="flex h-7 min-w-7 items-center justify-center rounded-control bg-surface px-1 text-sm font-semibold text-ink">{{ count(l, i) }}</span></button>
             } @else {
             <div role="gridcell" [attr.data-cell]="l + '-' + i" [attr.data-count]="0" [attr.aria-label]="label(l, i)"
-              class="flex h-10 w-10 items-center justify-center rounded-control border text-[11px] font-medium" [class]="tone(l, i)">{{ valueOf(l, i) }}</div>
+              class="flex h-10 w-10 items-center justify-center rounded-control border text-xs font-medium" [class]="tone(l, i)">{{ valueOf(l, i) }}</div>
             }
             }
           </div>

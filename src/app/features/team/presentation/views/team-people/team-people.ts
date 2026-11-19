@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { SessionService } from '@core/domain/services/session.service';
@@ -8,7 +9,7 @@ import { PageInfo } from '@shared/presentation/components/data-table/table-page'
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
-import { PersonCell } from '@shared/presentation/components/person-cell/person-cell';
+import { initialsOf, PersonCell } from '@shared/presentation/components/person-cell/person-cell';
 import { TableFilter, TableFilterOption } from '@shared/presentation/components/table-filter/table-filter';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { LocalDatePipe } from '@shared/presentation/pipes/local-date.pipe';
@@ -17,13 +18,14 @@ import { PageHeader } from '@shared/presentation/components/page-header/page-hea
 import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Group } from '@features/team/domain/models/group.models';
-import { Invitation, InvitedMember, TeamFilters, TeamMember, TeamRole, TeamStatus } from '@shared/domain/models/team.models';
+import { Invitation, InvitedMember, PersonWorkload, TeamFilters, TeamMember, TeamRole, TeamStatus } from '@shared/domain/models/team.models';
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { InviteActor, TeamInviteForm } from '../../components/team-invite-form/team-invite-form';
 import { isCompanyAdmin } from '@shared/domain/utils/roles';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { Badge } from '@shared/presentation/components/badge/badge';
+import { readinessLook } from '@shared/domain/utils/readiness-look';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
 
@@ -118,6 +120,20 @@ export class TeamPeopleView implements OnInit {
 
   /** La persona cuyo detalle está abierto (por su id: si la lista se vuelve a pedir, el panel muestra los datos nuevos). */
   readonly detailId = signal<string | null>(null);
+  /** La carga de trabajo de la persona abierta en el detalle (`GET /v1/team/workload`, el ítem de esa persona). `null` mientras no llega o no existe: el Resumen muestra «—». */
+  readonly workload = signal<PersonWorkload | null>(null);
+  private readonly workloadById = signal<ReadonlyMap<string, PersonWorkload>>(new Map());
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly syncWorkload = effect(() => {
+    const id = this.detailId();
+    this.workload.set((id && this.workloadById().get(id)) || null);
+  });
+  protected readonly readinessLook = readinessLook;
+
+  /** `done` sobre `total` como porcentaje entero; sin total, «—». El porcentaje no viaja en la API: lo deriva la pantalla. */
+  workloadPercent(done: number, total: number): string {
+    return total > 0 ? `${Math.round((done / total) * 100)} %` : '—';
+  }
   readonly detail = computed(() => this.members().find((m) => m.id === this.detailId()) ?? null);
 
   /** «Interno o externo» solo existe para un delegado: la columna aparece si la página trae alguno. */
@@ -134,6 +150,16 @@ export class TeamPeopleView implements OnInit {
   ngOnInit(): void {
     this.reloadGroups();
     this.load(true);
+    this.loadWorkload();
+  }
+
+  /** La carga de trabajo de todo el equipo, una sola vez y solo para el administrador; si falla, el Resumen no se muestra con datos y no hay error visible. */
+  private loadWorkload(): void {
+    if (!this.canManage()) return;
+    this.api.workload().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (r) => this.workloadById.set(new Map(r.items.map(({ user, ...w }) => [user.id, w]))),
+      error: () => this.workloadById.set(new Map()),
+    });
   }
 
   private reloadGroups(): void {
@@ -190,6 +216,21 @@ export class TeamPeopleView implements OnInit {
   /** An active person with a second factor can have it reset, except the company admin (it is not reset from here). */
   canResetMfa(m: TeamMember): boolean {
     return !!m.is_mfa_enabled && m.role !== ADMIN_ROLE;
+  }
+
+  /** Las iniciales del avatar grande del detalle: las del nombre y, sin nombre, las del correo. */
+  initials(m: TeamMember): string {
+    return initialsOf(this.personName(m));
+  }
+
+  /** Id de la persona cuyo correo se acaba de copiar (el botón lo dice un momento y vuelve a su icono). */
+  readonly copied = signal<string | null>(null);
+
+  copyEmail(m: TeamMember): void {
+    void navigator.clipboard?.writeText(m.email).then(() => {
+      this.copied.set(m.id);
+      setTimeout(() => this.copied.set(null), 2000);
+    });
   }
 
   isMe(m: TeamMember): boolean {

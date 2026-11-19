@@ -19,7 +19,7 @@ type Stage = 'loading' | 'error' | 'ready';
       @switch (stage()) {
         @case ('loading') { <app-skeleton-region><div class="space-y-2"><app-skeleton shape="block" height="3rem" /><app-skeleton shape="block" height="3rem" /><app-skeleton shape="block" height="3rem" /></div></app-skeleton-region> }
         @case ('error') {
-          <p class="text-sm text-bad">{{ 'INTEGRATIONS.PICK.LOAD_ERROR' | translate }}</p>
+          <p class="text-sm text-bad-ink">{{ 'INTEGRATIONS.PICK.LOAD_ERROR' | translate }}</p>
         }
         @default {
           @if (serviceList().length === 0) {
