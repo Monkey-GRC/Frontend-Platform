@@ -4,7 +4,7 @@
     "LOADING": "Loading",
     "LANGUAGE_SWITCHING": "Switching language…",
     "ERRORS": {
-      "MISSING_DATA": "The server response has no data"
+      "MISSING_DATA": "We did not receive the data. Reload the page."
     },
     "CHECK_CONNECTION": "Check your connection and try again.",
     "RETRY": "Retry",
@@ -21,7 +21,7 @@
     "TOAST": {
       "REGION": "Notices",
       "INFO": "Information",
-      "SUCCESS": "Success",
+      "SUCCESS": "Done",
       "WARNING": "Warning",
       "ERROR": "Error"
     },
@@ -37,7 +37,7 @@
       "TODAY": "Today",
       "CLEAR": "Clear"
     },
-    "AUTH_PROBLEM": "An authentication problem occurred. If the error persists, contact support.",
+    "AUTH_PROBLEM": "We could not validate your session. Sign out and sign in again; if it happens again, contact Monkey.",
     "SHOW_PASSWORD": "Show password",
     "HIDE_PASSWORD": "Hide password",
     "DOWNLOAD": "Download",
@@ -54,7 +54,7 @@
       "ACTIONS": "Actions",
       "SELECT_ALL": "Select all",
       "SELECT_ROW": "Select {{name}}",
-      "EMPTY_TITLE": "Nothing to show yet",
+      "EMPTY_TITLE": "No results",
       "GROUP_COUNT": "Items: {{count}}",
       "GROUP_COLLAPSE": "Collapse group {{name}}",
       "GROUP_EXPAND": "Expand group {{name}}"
@@ -75,7 +75,7 @@
       "SKIP_HELP": "You can skip this question.",
       "MULTI_EACH": "You can choose more than one option in each question.",
       "REVIEW": "Review",
-      "REVIEW_BODY_EDIT": "Tap “Edit” on anything you want to change.",
+      "REVIEW_BODY_EDIT": "Use “Edit” on anything you want to change.",
       "SAVING": "Saving…",
       "SAVE_CHANGES": "Save changes",
       "PROGRESS_SAVED": "Saved automatically in this browser."
@@ -85,7 +85,7 @@
       "EMAIL_INVALID": "Enter a valid email address."
     },
     "NOT_FOUND": {
-      "TITLE": "ERROR",
+      "TITLE": "Page not found",
       "MESSAGE": "We can't find the page you are looking for.",
       "BACK_HOME": "Back to home",
       "COPYRIGHT": "© {{year}} Monkey"
@@ -93,7 +93,6 @@
     "PASSWORD": {
       "NEW": "New password",
       "CONFIRM": "Confirm the new password",
-      "REQUIRED": "The password is required.",
       "MISMATCH": "The passwords do not match.",
       "GUIDE": {
         "MIN_LENGTH": "At least 12 characters",
@@ -113,7 +112,7 @@
     },
     "SECOND_FACTOR": {
       "CODE_LABEL": "Code from your authenticator app",
-      "USE_RECOVERY": "I don’t have my phone: use a recovery code",
+      "USE_RECOVERY": "I don't have my phone: use a recovery code",
       "USE_APP": "Use the code from my app",
       "RECOVERY_LABEL": "Recovery code",
       "RECOVERY_PLACEHOLDER": "XXXXX-XXXXX"
@@ -131,10 +130,16 @@
       },
       "HINT": {
         "READY": "Everything that applies is met.",
-        "ALMOST_READY": "Almost everything is met; only a few points remain.",
-        "NEEDS_WORK": "Several points still need to be resolved.",
+        "ALMOST_READY": "80 % or more of what was measured is met; a few controls remain.",
+        "NEEDS_WORK": "Less than 80 % of what was measured is met. Review the failing controls.",
         "NOT_MEASURED": "There are no results yet to determine whether it is met. This is not a failure."
       }
+    },
+    "DISCARD": {
+      "TITLE": "Discard your changes?",
+      "MESSAGE": "What you entered in this form has not been saved yet. If you leave now, it will be lost.",
+      "KEEP": "Keep editing",
+      "CONFIRM": "Discard changes"
     }
   },
   "PAGE_TITLE": {
@@ -159,7 +164,7 @@
     "TEAM_ORG": "Org chart",
     "MY_WORK": "My work",
     "ASSIGNMENT": "Assignment",
-    "RESPONSIBLES": "Responsibles",
+    "RESPONSIBLES": "Responsible roles",
     "SIGNIN": "Sign in",
     "MFA": "Two-step verification",
     "REGISTER": "Activate account",

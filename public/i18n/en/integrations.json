@@ -48,10 +48,10 @@
       "BACK": "Integrations",
       "SEARCH_PLACEHOLDER": "Search by name or description",
       "LOAD_ERROR_TITLE": "We could not load the catalog",
-      "EMPTY_TITLE": "No integrations available",
+      "EMPTY_TITLE": "No integrations available right now.",
       "NO_MATCH": "No integration matches your search.",
       "PURPOSE_HINT_MEASUREMENT": "They assess the platform configuration and feed the tests.",
-      "PURPOSE_HINT_WORKFLOW": "They help manage the compliance work.",
+      "PURPOSE_HINT_WORKFLOW": "They turn findings into tasks and track their progress.",
       "CONNECT": "Connect",
       "CONNECT_ARIA": "Connect {{name}}",
       "CONNECTED": "Connected",
@@ -82,7 +82,7 @@
       },
       "FEATURES_TITLE": "What you can do",
       "PREREQUISITES_TITLE": "Before you connect",
-      "SOON_TITLE": "We will publish this when the integration is available",
+      "SOON_TITLE": "We will publish its permissions and what it assesses when it is available.",
       "BACK_SERVICE": "Service connections"
     },
     "CONNECTIONS": {
@@ -125,7 +125,7 @@
     },
     "SECURITY": {
       "TITLE": "How Monkey protects the connection",
-      "EMPTY_TITLE": "There are no security measures to show yet"
+      "EMPTY_TITLE": "We will publish how this connection is protected when the integration is available."
     },
     "SECURITY_TOPIC": {
       "READ_ONLY": "Read-only",

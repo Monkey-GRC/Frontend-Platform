@@ -1,6 +1,6 @@
 {
   "TECHNICAL_CONTROL": {
-    "LOAD_ERROR": "No pudimos cargar esta pantalla. Revisa tu conexión e inténtalo de nuevo.",
+    "LOAD_ERROR": "No pudimos cargar las opciones de conexión. Revisa tu conexión e inténtalo de nuevo.",
     "CRUMB_SERVICE": "Servicio",
     "CRUMB_CONNECTION": "Conexión",
     "NEW_CONNECTION": "Nueva conexión",
@@ -65,10 +65,10 @@
       "SUBTITLE": "Elige a qué quieres conectarte. Al terminar, Monkey te muestra los activos que encontró.",
       "COMING_SOON": "Próximamente",
       "AVAILABLE": "Disponible",
-      "HOW_AGENT": "Instalas un programa ligero de Monkey en el equipo. No necesitas dar contraseñas.",
+      "HOW_AGENT": "Instalas la sonda de Monkey en el equipo. No necesitas dar contraseñas.",
       "BLOCKED_ARIA": "{{name}}, no disponible, próximamente",
       "SERVERS_TITLE": "Servidores, bases de datos y equipos",
-      "SERVERS_HINT": "Se conectan con la sonda y no son integraciones: siguen en las conexiones de cada servicio."
+      "SERVERS_HINT": "Se conectan instalando la sonda y se gestionan en las conexiones de cada servicio."
     },
     "DETAIL": {
       "LOAD_ERROR_TITLE": "No pudimos cargar esta conexión",
@@ -94,7 +94,7 @@
       "REMOVE_BODY": "Dejaremos de evaluarlo y no aparecerá en tu lista. Lo que ya medimos se conserva como historial. Si lo quieres de vuelta, tendrás que registrarlo otra vez.",
       "REMOVE_YES": "Sí, quitarlo",
       "AUTO_EVALUATION": "Evaluación automática",
-      "DEMO": "Modo demostración: la conexión se comprobó de forma simulada, no se está evaluando un activo real.",
+      "DEMO": "Modo demostración: la conexión se comprobó de forma simulada y no se evalúa un activo real. Contacta a Monkey para activar la comprobación real.",
       "HOW_OFTEN": "¿Cada cuánto quieres que se evalúe?",
       "CHANGE_FREQUENCY": "Cambiar frecuencia",
       "CHECK_AGAIN": "Volver a comprobar",
@@ -104,7 +104,9 @@
       "CONNECT_ERROR": "No pudimos conectar con tu cuenta.",
       "CHECK_DATA": "Revisa los datos y vuelve a intentarlo.",
       "STEP_ERROR": "No pudimos completar este paso. Inténtalo de nuevo.",
-      "RESUME_HINT": "Esta conexión quedó a medias. Continúa donde la dejaste."
+      "RESUME_HINT": "Esta conexión quedó a medias. Continúa donde la dejaste.",
+      "REMOVED": "Quitamos la conexión «{{name}}».",
+      "SCHEDULED": "Guardamos la frecuencia de evaluación."
     },
     "EDIT": {
       "TITLE": "Editar este activo",
@@ -113,36 +115,39 @@
       "IMPORTANCE_ARIA": "Importancia del activo",
       "ACCOUNT": "Número de tu cuenta de AWS",
       "ACCOUNT_GCP": "ID de tu proyecto de Google Cloud",
-      "ACCOUNT_GCP_HELP": "Lo ves en el selector de proyectos de la consola de Google Cloud. Es el ID, no el nombre ni el número. Si lo cambias, tendrás que volver a ejecutar el comando de alta.",
+      "ACCOUNT_GCP_HELP": "Lo ves en el selector de proyectos de la consola de Google Cloud. Es el ID, no el nombre ni el número. Si lo cambias, vuelve a ejecutar el comando de alta.",
+      "ACCOUNT_GCP_PLACEHOLDER": "mi-proyecto-123",
       "REGIONS": "Regiones que se evalúan",
       "REGIONS_ARIA": "Regiones de AWS",
       "ROLE": "El rol que creaste",
-      "ROLE_HELP": "Es el valor «RoleArn» de la pila en AWS. Cámbialo solo si creaste otro rol.",
+      "ROLE_HELP": "Es el valor «RoleArn» de la pestaña Salidas de la pila en AWS.",
       "KEYS_HELP": "Por seguridad no mostramos las llaves guardadas. Déjalas vacías para conservarlas, o pega las dos nuevas para reemplazarlas.",
       "KEY_ID_ARIA": "Identificador de la llave de acceso",
       "KEY_ID_PLACEHOLDER": "Identificador de la llave (AKIA…)",
       "SECRET": "Llave secreta",
       "CHANGES_CONNECTION": "Cambiaste lo que se evalúa, así que al guardar tendrás que comprobar la conexión otra vez. Lo que ya medimos se conserva.",
       "EVALUATE_SAVE_FIRST": "Guarda los cambios primero: así evaluamos con los datos nuevos.",
-      "SAVE_ERROR": "No pudimos guardar los cambios. Inténtalo de nuevo."
+      "SAVE_ERROR": "No pudimos guardar los cambios. Inténtalo de nuevo.",
+      "SAVED": "Guardamos los cambios de la conexión."
     },
     "PANEL": {
       "TITLE": "Da acceso de solo lectura a tu cuenta de AWS",
-      "INTRO": "Creas un rol que solo puede leer la configuración de tu cuenta. No compartes contraseñas ni llaves, y puedes borrar el rol cuando quieras.",
+      "INTRO": "Creas un rol que solo puede leer la configuración de tu cuenta. No compartes contraseñas ni llaves.",
       "DOWNLOAD": "Descargar la plantilla",
       "PASTE_VALUES": "Cuando AWS te pida los parámetros, pega estos dos valores:",
       "HINT_EXTERNAL_ID": "identificador externo",
       "HINT_PRINCIPAL": "identidad de Monkey",
       "COPIED": "Copiado",
       "COPY": "Copiar",
-      "MISSING_PRINCIPAL": "Monkey todavía no tiene configurada la identidad que asume el rol. Avísanos antes de continuar.",
+      "MISSING_PRINCIPAL": "Monkey aún no puede generar los datos del rol. Contacta a Monkey antes de continuar.",
       "ROLE_HELP": "Es el valor «RoleArn» de la pestaña Salidas de la pila en AWS.",
+      "ROLE_PLACEHOLDER": "arn:aws:iam::123456789012:role/MonkeyReadOnly",
       "SAVING_ROLE": "Guardando el rol…",
       "CHECKING": "Comprobando el acceso a tu cuenta de AWS…",
       "DOWNLOAD_ERROR": "No pudimos descargar la plantilla. Inténtalo de nuevo.",
       "ROLE_REQUIRED": "Pega el valor «RoleArn» que te dio AWS al crear la pila.",
       "SAVE_ROLE_ERROR": "No pudimos guardar el rol. Inténtalo de nuevo.",
-      "ACCESS_ERROR": "No pudimos acceder a tu cuenta.",
+      "ACCESS_ERROR": "No pudimos acceder a tu cuenta con ese rol. Revisa el «RoleArn» y vuelve a comprobar.",
       "CHECK_ERROR": "No pudimos completar la comprobación. Inténtalo de nuevo."
     },
     "FORM": {
@@ -164,7 +169,7 @@
     },
     "SERVER_FORM": {
       "TITLE": "Datos de tu servidor",
-      "NOTE": "Aquí solo nos dices cómo se llama tu servidor y qué sistema tiene. No pedimos contraseñas ni llaves: en el paso siguiente te damos un comando con la clave de este servidor, que se muestra una sola vez.",
+      "NOTE": "Solo te pedimos el nombre y el sistema del servidor. En el paso siguiente te damos un comando con su clave, que se muestra una sola vez.",
       "NAME_LABEL": "¿Cómo lo llamas?",
       "NAME_PLACEHOLDER": "Por ejemplo: Servidor de base de datos principal",
       "VERSION_LABEL": "¿Qué versión de {{name}} tiene?",
@@ -173,11 +178,12 @@
       "VERSION_HINT": "Elige la versión de tu servidor.",
       "VERSIONS_ERROR": "No pudimos cargar las versiones disponibles. Revisa tu conexión e inténtalo de nuevo.",
       "REGISTER": "Registrar servidor",
-      "REGISTER_ERROR": "No pudimos registrar el servidor. Inténtalo de nuevo."
+      "REGISTER_ERROR": "No pudimos registrar el servidor. Inténtalo de nuevo.",
+      "CREATED": "Registramos el servidor «{{name}}»."
     },
     "AGENT": {
       "TITLE": "Instalar la sonda de Monkey en este servidor",
-      "INTRO": "La sonda es un programa liviano que lee la configuración de tu servidor ({{version}}) y la envía a Monkey para evaluarla. Solo lee: no modifica nada.",
+      "INTRO": "La sonda es un programa que lee la configuración de tu servidor ({{version}}) y la envía a Monkey para evaluarla. Solo lee: no modifica nada.",
       "LOADING": "Revisando el estado de la instalación…",
       "BEFORE_TITLE": "Antes de empezar",
       "BEFORE_ADMIN_LINUX": "Entra al servidor como administrador: con el usuario root o con un usuario que pueda usar sudo.",
@@ -202,9 +208,9 @@
       "REGENERATE_CONFIRM": "Se crea una clave nueva y la anterior deja de servir. Si ya ejecutaste el comando anterior en el servidor, tendrás que ejecutar el nuevo.",
       "REGENERATE_YES": "Sí, generar uno nuevo",
       "NOT_READY": "El comando ya se mostró o caducó. Genera uno nuevo para continuar.",
-      "UNAVAILABLE": "Esta instalación de Monkey todavía no está lista para conectar servidores. Avísale a tu contacto en Monkey.",
+      "UNAVAILABLE": "La conexión de servidores aún no está disponible en tu cuenta. Contacta a Monkey para habilitarla.",
       "IN_PROGRESS": "Ya estamos preparando la clave de este servidor. Espera unos segundos.",
-      "WAITING_AUTO": "Lo buscamos solos cada pocos minutos: no tienes que hacer nada más. Cuando se conecte, este estado cambia solo.",
+      "WAITING_AUTO": "Lo comprobamos cada pocos minutos; el estado cambia solo cuando se conecte.",
       "CHECK_NOW": "Comprobar ahora",
       "CHECKING": "Comprobando…",
       "CHECK_IN_PROGRESS": "Ya estamos comprobando este servidor. En un momento verás el resultado.",
@@ -221,7 +227,7 @@
       "SEARCH_AGAIN": "Volver a buscar",
       "LOAD_ERROR": "No pudimos leer los activos de tu cuenta.",
       "DEMO_TITLE": "Modo demostración.",
-      "DEMO_BODY": "La conexión se comprobó de forma simulada, sin mirar tu cuenta, por eso no hay activos que mostrar. Con la comprobación real, aparecerán aquí.",
+      "DEMO_BODY": "La conexión se comprobó de forma simulada, sin mirar tu cuenta, por eso no hay activos que mostrar. Contacta a Monkey para activar la comprobación real; los activos aparecerán aquí.",
       "NOT_SCANNED": "Aún no hemos mirado tu cuenta. Al comprobar la conexión te mostramos aquí lo que encontramos.",
       "INCOMPLETE": "La lista puede estar incompleta: no pudimos leer {{services}}. Revisa que el rol tenga los permisos de solo lectura y vuelve a comprobar.",
       "EMPTY_ONE": "No encontramos servidores, bases de datos, almacenamiento ni funciones en la región que elegiste. Si esperabas ver algo, revisa las regiones en «Editar».",
@@ -299,7 +305,8 @@
       "TABLE": "Activos que la conexión reconoció en tu cuenta",
       "GROUP_IN": "En este servicio",
       "GROUP_OUT": "Fuera del servicio",
-      "DETAIL_SUBTITLE": "{{code}} · {{kind}}"
+      "DETAIL_SUBTITLE": "{{code}} · {{kind}}",
+      "SAVED": "Guardamos los activos del servicio: {{count}} incluidos."
     },
     "WIZARD": {
       "TITLE_GENERIC": "Conectar una plataforma",
@@ -331,7 +338,7 @@
           "TITLE": "Da acceso de solo lectura a Monkey",
           "SUBTITLE": "Ejecuta este comando en Cloud Shell, en el proyecto {{project}}.",
           "COMMAND": "Comando de alta",
-          "NO_COMMAND": "Monkey todavía no puede armar el comando para tu proyecto. Avísanos antes de continuar.",
+          "NO_COMMAND": "Monkey aún no puede generar el comando para tu proyecto. Contacta a Monkey antes de continuar.",
           "NO_KEYS": "El comando no incluye claves ni contraseñas, y puedes revocar el acceso cuando quieras desde tu proyecto.",
           "DONE": "Ya ejecuté el comando"
         },
@@ -361,7 +368,7 @@
         "TITLE": "¿Salir de la conexión?",
         "DISCARD": "Si sales ahora, se perderá lo que llevas de esta conexión.",
         "SAVED": "Tu avance está guardado. Podrás continuar esta conexión desde las conexiones del servicio.",
-        "STAY": "Continuar",
+        "STAY": "Seguir conectando",
         "EXIT": "Salir",
         "EXIT_DISCARD": "Salir sin guardar"
       },
@@ -390,7 +397,7 @@
         },
         "ACCESS": {
           "ROLE_TITLE": "Da acceso de solo lectura a Monkey",
-          "ROLE_SUBTITLE": "Crea en tu cuenta de AWS un rol que solo puede leer. Puedes borrarlo cuando quieras.",
+          "ROLE_SUBTITLE": "Crea en tu cuenta de AWS un rol que solo puede leer.",
           "NO_KEYS": "No compartes contraseñas ni llaves, y puedes borrar el rol cuando quieras.",
           "DONE": "Ya creé el rol",
           "KEYS_TITLE": "Pega la llave de acceso",

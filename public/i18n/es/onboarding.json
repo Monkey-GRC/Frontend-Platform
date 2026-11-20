@@ -9,7 +9,7 @@
       "MODEL": "Modelo de negocio",
       "INCORPORATION": "Constituida en",
       "CLIENTS": "Clientes en",
-      "MATURITY": "Nivel de cumplimiento",
+      "MATURITY": "Madurez en cumplimiento",
       "REGULATIONS": "Normas que te aplican"
     },
     "STEPS": {
@@ -21,13 +21,13 @@
     },
     "LOAD_ERROR_TITLE": "No pudimos cargar el formulario",
     "LOAD_ERROR_BODY": "Revisa tu conexión e inténtalo de nuevo. Lo que hayas escrito no se perdió.",
-    "S1_TITLE": "Contexto organizacional",
-    "S1_BODY": "Esta información define el alcance y las recomendaciones del programa de cumplimiento.",
+    "S1_TITLE": "Contexto de la empresa",
+    "S1_BODY": "Con esto ajustamos los controles y las recomendaciones a tu empresa.",
     "LEGAL_NAME": "Razón social",
     "LEGAL_NAME_HELP": "Monkey la registró al crear tu cuenta, por eso no se puede cambiar aquí.",
     "DESC_LABEL": "¿A qué se dedica tu empresa?",
     "DESC_PLACEHOLDER": "Por ejemplo: Desarrollamos software de facturación para pequeñas empresas en Latinoamérica.",
-    "DESC_ERROR": "Describe brevemente la actividad de la organización.",
+    "DESC_ERROR": "Escribe a qué se dedica tu empresa.",
     "DESC_HELP": "Una o dos frases son suficientes.",
     "S2_TITLE": "Tamaño de la organización",
     "S2_BODY": "Permite dimensionar el alcance del programa de cumplimiento.",
@@ -53,8 +53,8 @@
     "COUNTRY_HINT": "Elige al menos un país.",
     "S5_TITLE": "Madurez en cumplimiento",
     "S5_BODY": "Establece el punto de partida del programa de cumplimiento.",
-    "MATURITY_LABEL": "Nivel de madurez de la organización en cumplimiento",
-    "MATURITY_ARIA": "Nivel de cumplimiento",
+    "MATURITY_LABEL": "¿Qué tan madura está tu empresa en cumplimiento?",
+    "MATURITY_ARIA": "Madurez en cumplimiento",
     "REGULATIONS_LABEL": "¿Qué leyes o normas de protección de datos te aplican?",
     "REGULATIONS_HELP": "Elige todas las que apliquen. Si ninguna, elige «Ninguna».",
     "REGULATIONS_ARIA": "Regulaciones",
@@ -65,6 +65,7 @@
     "SAVE_ERROR": "No pudimos guardar tu información. Inténtalo de nuevo.",
     "FORBIDDEN_TITLE": "Esto lo completa el administrador",
     "FORBIDDEN_BODY": "El contexto de la empresa lo declara el administrador de tu empresa. Cuando lo haga, verás aquí lo que contó.",
-    "FORBIDDEN_CTA": "Volver al inicio"
+    "FORBIDDEN_CTA": "Volver al inicio",
+    "SAVED": "Guardamos el contexto de tu empresa."
   }
 }

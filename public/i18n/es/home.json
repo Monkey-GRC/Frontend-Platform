@@ -5,12 +5,12 @@
       "AUDITOR_BODY": "Revisa el cumplimiento de la empresa en solo lectura: controles, pruebas, evidencias y riesgos.",
       "AUDITOR_CTA": "Ver el cumplimiento"
     },
-    "START": "Comenzar",
+    "START": "Declarar el contexto de la empresa",
     "STEP_FIRST": "Primer paso",
-    "COMPANY_TITLE": "Contexto organizacional",
+    "COMPANY_TITLE": "Contexto de la empresa",
     "COMPANY_BODY": "Declara los datos de la organización: sector, tamaño, alcance geográfico y normas aplicables.",
     "DASHBOARD": {
-      "LOAD_ERROR": "No se pudo cargar el resumen de tu empresa.",
+      "LOAD_ERROR": "No pudimos cargar el resumen de tu empresa.",
       "NO_SERVICES_TITLE": "Aún no has creado ningún servicio",
       "NO_SERVICES_BODY": "Tu cumplimiento se mide por servicio. Crea el primero para empezar: se generan sus controles y sus riesgos.",
       "NO_SERVICES_CTA": "Crear un servicio",
@@ -25,7 +25,7 @@
       "NOT_MEASURED": "Aún sin resultados",
       "ATTENTION_TITLE": "Lo que requiere atención",
       "ATTENTION_EMPTY": "Ningún control incumple por ahora.",
-      "SEE_DETAILS": "Detalles completos",
+      "SEE_DETAILS": "Ver el cumplimiento del servicio",
       "ATTENTION_CAPTION": "Controles que no cumplen",
       "ATTENTION_COL": {
         "CODE": "Código",
@@ -35,7 +35,7 @@
     },
     "TEAM": {
       "TITLE": "Tu equipo",
-      "LOAD_ERROR": "No se pudo cargar tu equipo.",
+      "LOAD_ERROR": "No pudimos cargar tu equipo.",
       "EMPTY_TITLE": "Aún no hay personas en tu equipo",
       "EMPTY_BODY": "Cuando invites a alguien, verás aquí cuántas personas hay por rol.",
       "TOTAL": "Personas",
@@ -46,11 +46,11 @@
     },
     "ACCESS": {
       "TITLE": "Acceso y seguridad de cuentas",
-      "LOAD_ERROR": "No se pudo cargar el estado de las cuentas.",
+      "LOAD_ERROR": "No pudimos cargar el estado de las cuentas.",
       "EMPTY_TITLE": "Sin cuentas que revisar",
       "EMPTY_BODY": "Cuando haya personas en el equipo, verás aquí el estado de su acceso.",
       "NO_SECOND_FACTOR": "Sin segundo factor",
-      "ALL_PROTECTED": "Todo al día",
+      "ALL_PROTECTED": "Sin pendientes",
       "NEEDS_REVIEW": "Requiere revisión",
       "NO_RECENT_LOGIN": "Sin ingreso reciente",
       "BLOCKED": "Suspendidas o desactivadas",
