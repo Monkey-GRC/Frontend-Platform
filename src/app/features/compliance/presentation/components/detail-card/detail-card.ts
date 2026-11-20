@@ -16,7 +16,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         <ng-content select="[actions]" />
         <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-control text-ink-muted enabled:hover:bg-canvas disabled:cursor-not-allowed disabled:text-ink-faint"
           [disabled]="forceOpen()" tabindex="-1" aria-hidden="true" (click)="toggle()">
-          <span class="material-symbols-rounded text-[22px] leading-none transition-transform" [class.rotate-180]="isOpen()">expand_more</span>
+          <span class="material-symbols-rounded text-[24px] leading-none transition-transform" [class.rotate-180]="isOpen()">expand_more</span>
         </button>
       </div>
       @if (isOpen()) {

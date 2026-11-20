@@ -26,6 +26,7 @@ import { RiskService } from '@shared/domain/services/risk.service';
 import { EvaluationPeriodForm } from '../../components/evaluation-period-form/evaluation-period-form';
 import { RiskHeatmap } from '../../components/risk-heatmap/risk-heatmap';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready';
 type Tone = DonutTone;
@@ -66,6 +67,7 @@ export class OverviewView {
   private readonly catalogs = inject(CatalogService);
   private readonly language = inject(LanguageService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   readonly view = inject(ComplianceViewService);
   /** Lo que se comparte con el encabezado del servicio: el marco elegido y el período de su evaluación. */
@@ -101,7 +103,6 @@ export class OverviewView {
   /** Solo el administrador de la empresa declara el período (la API lo exige: 403 al resto). */
   readonly canEditPeriod = computed(() => this.view.canManage());
   readonly periodOpen = signal(false);
-  readonly notice = signal<string | null>(null);
 
   readonly measured = computed(() => (this.framework()?.readiness ?? 'not_measured') !== 'not_measured');
 
@@ -243,14 +244,13 @@ export class OverviewView {
   }
 
   openPeriod(): void {
-    this.notice.set(null);
     this.periodOpen.set(true);
   }
 
   /** Se guardó el período: se cierra el panel, se avisa y se vuelve a pedir el resumen (el motor ya puede medir). */
   onPeriodSaved(): void {
     this.periodOpen.set(false);
-    this.notice.set(this.translate.instant('COMPLIANCE.PERIOD.SAVED'));
+    this.toast.showSuccess(this.translate.instant('COMPLIANCE.PERIOD.SAVED'));
     this.load();
   }
 

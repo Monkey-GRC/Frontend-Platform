@@ -22,7 +22,7 @@
       <label for="edit-account" class="mb-1 block text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.EDIT.ACCOUNT_GCP' | translate }} <span class="text-bad-ink">*</span></label>
       <p class="mb-2 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.EDIT.ACCOUNT_GCP_HELP' | translate }}</p>
       <input id="edit-account" type="text" maxlength="30" autocomplete="off" spellcheck="false" [value]="accountId()"
-        (input)="setAccountId(targetValue($event))" placeholder="mi-proyecto-123"
+        (input)="setAccountId(targetValue($event))" [placeholder]="'TECHNICAL_CONTROL.EDIT.ACCOUNT_GCP_PLACEHOLDER' | translate"
         class="h-12 w-full rounded-control border border-line bg-surface px-4 font-mono text-sm text-ink focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20" />
       @if (fieldError('external_account_id'); as e) { <p class="mt-1.5 text-xs text-bad-ink">{{ e }}</p> }
     </div>
@@ -49,7 +49,7 @@
       <label for="edit-role" class="mb-1 block text-sm font-medium text-ink-muted">{{ 'TECHNICAL_CONTROL.EDIT.ROLE' | translate }}</label>
       <p class="mb-2 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.EDIT.ROLE_HELP' | translate }}</p>
       <input id="edit-role" type="text" autocomplete="off" spellcheck="false" [value]="roleArn()" (input)="roleArn.set(targetValue($event))"
-        placeholder="arn:aws:iam::123456789012:role/MonkeyReadOnly"
+        [placeholder]="'TECHNICAL_CONTROL.PANEL.ROLE_PLACEHOLDER' | translate"
         class="h-12 w-full rounded-control border bg-surface px-4 font-mono text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2"
         [class]="fieldError('role_arn') ? 'border-bad focus:ring-bad/20' : 'border-line focus:border-action focus:ring-action/20'" />
       @if (fieldError('role_arn'); as e) { <p class="mt-1.5 text-xs text-bad-ink">{{ e }}</p> }
@@ -93,9 +93,15 @@
       {{ 'TECHNICAL_CONTROL.CARD.EVALUATE_NOW' | translate }}
     </button>
     }
-    <button type="button" (click)="cancelled.emit()" [disabled]="saving()"
+    <button type="button" (click)="askCancel()" [disabled]="saving()"
       class="mk-btn-secondary">
       {{ 'COMMON.CANCEL' | translate }}
     </button>
   </div>
 </section>
+
+<!-- MD-485 · Cancelar con cambios sin guardar pregunta antes de descartarlos. -->
+@if (confirmingDiscard()) {
+<app-confirm-dialog titleKey="COMMON.DISCARD.TITLE" messageKey="COMMON.DISCARD.MESSAGE" cancelLabelKey="COMMON.DISCARD.KEEP" confirmLabelKey="COMMON.DISCARD.CONFIRM"
+  tone="danger" (cancelled)="confirmingDiscard.set(false)" (confirmed)="confirmingDiscard.set(false); cancelled.emit()" />
+}

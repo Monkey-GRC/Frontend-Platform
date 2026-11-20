@@ -5,18 +5,6 @@
     }
   </app-page-header>
 
-  @if (notice(); as n) {
-  @if (!detail() && !createOpen()) {
-  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status" data-test-groups-notice><span>{{ n }}</span>
-  </div>
-  }
-  }
-  @if (error(); as e) {
-  @if (!detail() && !createOpen()) {
-  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
-  </div>
-  }
-  }
 
   @if (!loaded()) {
   <app-data-table data-test-groups-loading captionKey="TEAM.GROUPS.TABLE_CAPTION" [columns]="columns" [rows]="[]" [rowKey]="rowKey" [loading]="true" />
@@ -50,7 +38,7 @@
 </section>
 
 <!-- Crear: el administrador un grupo de responsables o el equipo de un responsable; el responsable, el suyo (una sola vez, D104). Cada sección lleva su propia acción; el pie solo cierra. -->
-<app-form-modal [open]="createOpen()" [titleKey]="isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE'" [descriptionKey]="isAdmin() ? 'TEAM.GROUPS.NEW_SUBTITLE' : 'TEAM.GROUPS.CREATE_OWN_HELP'" [busy]="saving()" testId="group-create" (closed)="createOpen.set(false)">
+<app-form-modal [open]="createOpen()" [titleKey]="isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE'" [descriptionKey]="isAdmin() ? 'TEAM.GROUPS.NEW_SUBTITLE' : 'TEAM.GROUPS.CREATE_OWN_HELP'" [busy]="saving()" [guarded]="createDirty()" testId="group-create" (closed)="createOpen.set(false)">
   @if (createOpen()) {
   @if (error(); as e) {
   <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
@@ -94,13 +82,9 @@
 </app-form-modal>
 
 <!-- El detalle de un grupo: sus datos y sus personas; renombrarlo (administrador) es una acción del pie. -->
-<app-form-modal [open]="!!detail()" titleKey="TEAM.GROUPS.DETAIL_TITLE" descriptionKey="TEAM.GROUPS.DETAIL_SUBTITLE" cancelLabelKey="COMMON.CLOSE" size="wide" [busy]="saving()" testId="group-detail" (closed)="closeDetail()">
+<app-form-modal [open]="!!detail()" titleKey="TEAM.GROUPS.DETAIL_TITLE" descriptionKey="TEAM.GROUPS.DETAIL_SUBTITLE" cancelLabelKey="COMMON.CLOSE" size="wide" [busy]="saving()" [guarded]="renameDirty()" testId="group-detail" (closed)="closeDetail()">
   @if (detail(); as g) {
   <div [attr.data-test-group-detail]="g.id">
-    @if (notice(); as n) {
-    <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status" data-test-groups-notice><span>{{ n }}</span>
-    </div>
-    }
     @if (error(); as e) {
     <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
     </div>

@@ -10,7 +10,7 @@ import { formatBytes } from '@shared/domain/utils/file-validation';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { FileUpload } from '@shared/presentation/components/file-upload/file-upload';
-import { Modal } from '@shared/presentation/components/modal/modal';
+import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Badge } from '@shared/presentation/components/badge/badge';
 import { ControlEvidence as EvidenceSummary } from '@features/compliance/domain/models/control.models';
@@ -21,6 +21,7 @@ import { EvidenceService } from '@features/compliance/domain/services/evidence.s
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 // 'full' = las evidencias del contrato; 'summary' = el resumen que trae el detalle del control, porque el endpoint de evidencias aún no existe en el backend.
 type Stage = 'loading' | 'full' | 'summary' | 'error';
@@ -48,13 +49,14 @@ const TEST_KEY = '__test__';
 // Si el backend aún no tiene el endpoint (MD-126), muestra el resumen del detalle sin la subida, y se enciende solo cuando exista.
 @Component({
   selector: 'app-control-evidence',
-  imports: [Badge, TranslatePipe, FileUpload, NgTemplateOutlet, Modal, StatusIndicator, DataTable, TableCell, Tag, Skeleton, SkeletonRegion, Busy, BusyFields],
+  imports: [Badge, TranslatePipe, FileUpload, NgTemplateOutlet, FormModal, StatusIndicator, DataTable, TableCell, Tag, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './control-evidence.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ControlEvidence {
   private readonly api = inject(EvidenceService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
   private readonly view = inject(ComplianceViewService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -109,7 +111,6 @@ export class ControlEvidence {
   readonly uploadingFor = signal<string | null>(null);
   readonly file = signal<File | null>(null);
   readonly sending = signal(false);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly expanded = signal<ReadonlySet<string>>(new Set());
 
@@ -244,7 +245,7 @@ export class ControlEvidence {
         this.sending.set(false);
         this.uploadingFor.set(null);
         this.file.set(null);
-        this.notice.set(this.translate.instant('COMPLIANCE.EVIDENCE.UPLOADED'));
+        this.toast.showSuccess(this.translate.instant('COMPLIANCE.EVIDENCE.UPLOADED'));
         this.load();
         this.changed.emit();
       },
@@ -286,7 +287,6 @@ export class ControlEvidence {
   }
 
   private reset(): void {
-    this.notice.set(null);
     this.error.set(null);
   }
 }

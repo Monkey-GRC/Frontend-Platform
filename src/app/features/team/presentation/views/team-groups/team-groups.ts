@@ -19,6 +19,7 @@ import { GroupMembers } from '../../components/group-members/group-members';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { Select, SelectOption } from '@shared/presentation/components/select/select';
 import { Busy } from '@shared/presentation/directives/busy';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 const MAX_NAME = 100;
 
@@ -38,6 +39,7 @@ export class TeamGroupsView implements OnInit {
   private readonly groupApi = inject(GroupService);
   private readonly teamApi = inject(TeamService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly session = inject(SessionService);
 
   readonly actor = computed<TeamActor>(() => (isCompanyAdmin(this.session.user()?.role) ? 'admin_empresa' : 'responsable'));
@@ -51,7 +53,6 @@ export class TeamGroupsView implements OnInit {
 
   readonly maxName = MAX_NAME;
   readonly saving = signal(false);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly createOpen = signal(false);
   /** El grupo cuyo detalle está abierto (por su id: al volver a pedir los grupos, el panel muestra los datos nuevos). */
@@ -89,6 +90,20 @@ export class TeamGroupsView implements OnInit {
 
   readonly renamingId = signal<string | null>(null);
   readonly renameDraft = signal('');
+  /** El nombre de partida del equipo propio (para saber si la persona lo cambió). */
+  private readonly ownTeamDefault = signal('');
+
+  /** MD-485 · Hay algo escrito o elegido sin enviar en «Crear»: cerrar pide confirmar antes de descartarlo. */
+  readonly createDirty = computed(() =>
+    this.isAdmin()
+      ? !!(this.responsablesGroupName().trim() || this.teamName().trim() || this.teamLeaderId())
+      : this.ownTeamName().trim() !== this.ownTeamDefault().trim(),
+  );
+  /** MD-485 · Se está renombrando el grupo y el nombre escrito ya no es el que tenía. */
+  readonly renameDirty = computed(() => {
+    const current = this.groups().find((g) => g.id === this.renamingId());
+    return !!current && this.renameDraft().trim() !== current.name;
+  });
 
   readonly isAdmin = computed(() => this.actor() === 'admin_empresa');
   readonly teams = computed(() => this.groups().filter((g) => g.kind === 'team'));
@@ -118,7 +133,8 @@ export class TeamGroupsView implements OnInit {
     } else {
       // Un nombre de partida para el equipo propio; se puede cambiar antes de crearlo.
       const name = this.session.user()?.name?.trim();
-      this.ownTeamName.set(name ? this.translate.instant('TEAM.GROUPS.DEFAULT_TEAM_NAME', { name }) : '');
+      this.ownTeamDefault.set(name ? this.translate.instant('TEAM.GROUPS.DEFAULT_TEAM_NAME', { name }) : '');
+      this.ownTeamName.set(this.ownTeamDefault());
     }
   }
 
@@ -145,6 +161,11 @@ export class TeamGroupsView implements OnInit {
 
   openCreate(): void {
     this.reset();
+    // Cada apertura empieza de cero: lo descartado al cerrar no vuelve a aparecer.
+    this.responsablesGroupName.set('');
+    this.teamName.set('');
+    this.teamLeaderId.set('');
+    this.ownTeamName.set(this.ownTeamDefault());
     this.createOpen.set(true);
   }
 
@@ -198,7 +219,7 @@ export class TeamGroupsView implements OnInit {
         this.saving.set(false);
         done();
         this.createOpen.set(false);
-        this.notice.set(this.translate.instant('TEAM.GROUPS.NOTICE.CREATED', { name: group.name }));
+        this.toast.showSuccess(this.translate.instant('TEAM.GROUPS.NOTICE.CREATED', { name: group.name }));
         this.reload();
       },
       error: (e) => this.fail(e),
@@ -225,7 +246,7 @@ export class TeamGroupsView implements OnInit {
       next: (group) => {
         this.saving.set(false);
         this.renamingId.set(null);
-        this.notice.set(this.translate.instant('TEAM.GROUPS.NOTICE.RENAMED', { name: group.name }));
+        this.toast.showSuccess(this.translate.instant('TEAM.GROUPS.NOTICE.RENAMED', { name: group.name }));
         this.reload();
       },
       error: (e) => this.fail(e),
@@ -239,11 +260,14 @@ export class TeamGroupsView implements OnInit {
   /** `message` ya viene traducido por el backend (409: nombre repetido o reservado, el responsable ya tiene equipo; 403; 404). */
   private fail(e: unknown): void {
     this.saving.set(false);
-    this.error.set(apiErrorMessage(e, this.translate.instant('TEAM.ERROR.SAVE')));
+    // Dentro de un formulario (crear, detalle) el error queda junto a los campos; fuera, es un aviso pasajero (toast).
+    const fallback = this.translate.instant('TEAM.ERROR.SAVE');
+    const message = apiErrorMessage(e, fallback);
+    if (this.detail() || this.createOpen()) this.error.set(message);
+    else this.toast.showError(fallback, message === fallback ? '' : message);
   }
 
   private reset(): void {
-    this.notice.set(null);
     this.error.set(null);
   }
 }

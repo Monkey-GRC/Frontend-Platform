@@ -19,6 +19,7 @@ import { Select, SelectOption } from '@shared/presentation/components/select/sel
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready';
 // Quien ejecuta controles no se mueve sin confirmar (USER_HAS_ASSIGNMENTS trae cuántos).
@@ -43,6 +44,7 @@ export class TeamOrgChart implements OnInit {
   private readonly teamApi = inject(TeamService);
   private readonly groupApi = inject(GroupService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly session = inject(SessionService);
 
   readonly actor = input.required<TeamActor>();
@@ -59,8 +61,6 @@ export class TeamOrgChart implements OnInit {
   private readonly members = signal<TeamMember[]>([]);
   readonly showInactive = signal(false);
   readonly saving = signal(false);
-  readonly notice = signal<string | null>(null);
-  readonly error = signal<string | null>(null);
 
   readonly isAdmin = computed(() => isCompanyAdmin(this.actor()));
   /** Un responsable que mira se dibuja a sí mismo aunque aún no tenga equipo ni la lista lo traiga. */
@@ -157,7 +157,6 @@ export class TeamOrgChart implements OnInit {
 
   // ─── crear el equipo ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   startCreate(node: OrgResponsible): void {
-    this.reset();
     this.creatingFor.set(node.id);
     this.teamNameDraft.set(this.translate.instant('TEAM.ORG.DEFAULT_TEAM_NAME', { name: node.name }));
   }
@@ -172,13 +171,12 @@ export class TeamOrgChart implements OnInit {
     const dto = this.isAdmin() ? { name: this.teamNameDraft().trim(), leader_id: node.id } : { name: this.teamNameDraft().trim() };
     this.run(this.groupApi.create(dto), (g) => {
       this.creatingFor.set(null);
-      this.notice.set(this.translate.instant('TEAM.ORG.NOTICE.CREATED', { name: g.name }));
+      this.toast.showSuccess(this.translate.instant('TEAM.ORG.NOTICE.CREATED', { name: g.name }));
     });
   }
 
   // ─── renombrar el equipo ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   startRename(team: Group): void {
-    this.reset();
     this.renamingId.set(team.id);
     this.renameDraft.set(team.name);
   }
@@ -192,13 +190,12 @@ export class TeamOrgChart implements OnInit {
     if (!id || !this.canRename() || this.saving()) return;
     this.run(this.groupApi.rename(id, this.renameDraft().trim()), (g) => {
       this.renamingId.set(null);
-      this.notice.set(this.translate.instant('TEAM.ORG.NOTICE.RENAMED', { name: g.name }));
+      this.toast.showSuccess(this.translate.instant('TEAM.ORG.NOTICE.RENAMED', { name: g.name }));
     });
   }
 
   // ─── mover a un delegado de responsable ──────────────────────────────────────────────────────────────────────────────────────────────────────
   startMove(m: TeamMember): void {
-    this.reset();
     this.movingId.set(m.id);
     this.target.set('');
   }
@@ -229,7 +226,7 @@ export class TeamOrgChart implements OnInit {
         this.pending.set(null);
         this.movingId.set(null);
         this.target.set('');
-        this.notice.set(this.translate.instant('TEAM.ORG.NOTICE.MOVED', { name: this.personName(m) }));
+        this.toast.showSuccess(this.translate.instant('TEAM.ORG.NOTICE.MOVED', { name: this.personName(m) }));
       },
       (e) => {
         if (apiErrorCode(e) === 'USER_HAS_ASSIGNMENTS') {
@@ -240,7 +237,7 @@ export class TeamOrgChart implements OnInit {
         // El equipo de destino no existe o su responsable ya no está activo ni pendiente: el servidor responde 404.
         if (apiErrorCode(e) === 'NOT_FOUND') {
           this.pending.set(null);
-          this.error.set(this.translate.instant('TEAM.ORG.ERROR.MOVE_TARGET'));
+          this.toast.showError(this.translate.instant('TEAM.ORG.ERROR.MOVE_TARGET'));
           return true;
         }
         this.pending.set(null);
@@ -253,7 +250,6 @@ export class TeamOrgChart implements OnInit {
   /** `onError` devuelve `true` si ya manejó el error; si no, se muestra el mensaje que trae el servidor (ya traducido). */
   private run<T>(call: Observable<T>, done: (result: T) => void, onError?: (e: unknown) => boolean): void {
     this.saving.set(true);
-    this.reset();
     call.subscribe({
       next: (result) => {
         this.saving.set(false);
@@ -263,13 +259,13 @@ export class TeamOrgChart implements OnInit {
       },
       error: (e) => {
         this.saving.set(false);
-        if (!onError?.(e)) this.error.set(apiErrorMessage(e, this.translate.instant('TEAM.ERROR.SAVE')));
+        if (onError?.(e)) return;
+        // Un error de una acción es un aviso pasajero (toast): el título dice qué falló y el mensaje, lo que respondió el servidor.
+        const fallback = this.translate.instant('TEAM.ERROR.SAVE');
+        const message = apiErrorMessage(e, fallback);
+        this.toast.showError(fallback, message === fallback ? '' : message);
       },
     });
   }
 
-  private reset(): void {
-    this.notice.set(null);
-    this.error.set(null);
-  }
 }

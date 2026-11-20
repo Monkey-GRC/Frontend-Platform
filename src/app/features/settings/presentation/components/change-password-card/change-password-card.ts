@@ -11,6 +11,7 @@ import { SecondFactorAnswer, SecondFactorDialog } from '@shared/presentation/com
 import { SecurityService } from '@features/settings/domain/services/security.service';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 // Un código equivocado se corrige en el mismo modal; cualquier otro error (la contraseña actual, una repetida, demasiados cambios) manda a la persona de vuelta al formulario.
 const STAYS_IN_DIALOG = new Set(['MFA_CODE_INVALID', 'ACCOUNT_LOCKED']);
@@ -27,6 +28,7 @@ export class ChangePasswordCard {
   private readonly fb = inject(FormBuilder);
   private readonly security = inject(SecurityService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly session = inject(SessionService);
 
   readonly loading = signal(false);
@@ -96,6 +98,7 @@ export class ChangePasswordCard {
         this.loading.set(false);
         this.confirming.set(false);
         this.done.set(true);
+        this.toast.showSuccess(this.translate.instant('SETTINGS.SECURITY.PASSWORD.DONE'));
         this.form.reset();
       },
       error: (error) => {

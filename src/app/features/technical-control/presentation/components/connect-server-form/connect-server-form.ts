@@ -9,13 +9,15 @@ import { Select, SelectOption } from '@shared/presentation/components/select/sel
 import { Asset, NewAssetInput, Platform } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 
 // Declarar un servidor (D112): el cliente dice cómo se llama, qué sistema y qué versión tiene, y qué tan importante es. De la versión sale el comando de
 // instalación correcto, por eso es obligatoria. Aquí no se pide ninguna llave ni contraseña: la clave del servidor la entrega Monkey en el paso siguiente.
 // Las versiones salen del backend (`<sistema>_version`): la pantalla no tiene ninguna escrita.
 @Component({
   selector: 'app-connect-server-form',
-  imports: [OptionChips, Select, TranslatePipe],
+  imports: [OptionChips, Select, TranslatePipe, ConfirmDialog],
   templateUrl: './connect-server-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -24,6 +26,7 @@ export class ConnectServerForm {
   private readonly api = inject(TechnicalControlService);
   private readonly catalogs = inject(CatalogService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
 
   // El código de la categoría de conexión (p. ej. `ac_04`, servidores on-premise): lo trae la ruta del asistente.
@@ -51,6 +54,16 @@ export class ConnectServerForm {
   readonly versionOptions = computed<SelectOption[]>(() => this.versions().map((v) => ({ value: v.value, label: v.label })));
   readonly criticalityChips = computed<ChipOption[]>(() => this.criticalities().map((c) => ({ value: c.value, label: c.label })));
   readonly valid = computed(() => !!this.name().trim() && !!this.osVersion());
+  /** Algo escrito o elegido distinto de lo de partida (criticidad media, sin versión ni servicios extra). */
+  readonly dirty = computed(() => !!this.name().trim() || this.criticality() !== 'medium' || !!this.osVersion() || this.extraServiceIds().length > 0);
+
+  /** MD-485 · Cancelar: con cambios sin guardar, primero se pide confirmar que se descartan. */
+  readonly confirmingDiscard = signal(false);
+  askCancel(): void {
+    if (this.saving()) return;
+    if (this.dirty()) this.confirmingDiscard.set(true);
+    else this.cancelled.emit();
+  }
 
   constructor() {
     // El backend traduce las versiones: al cambiar el idioma se vuelven a pedir, sin tocar lo que el cliente ya escribió ni la versión que eligió.
@@ -104,6 +117,7 @@ export class ConnectServerForm {
     this.api.createAsset(input).subscribe({
       next: (asset) => {
         this.saving.set(false);
+        this.toast.showSuccess(this.translate.instant('TECHNICAL_CONTROL.SERVER_FORM.CREATED', { name: asset.name ?? '' }));
         this.created.emit(asset);
       },
       error: (error) => {

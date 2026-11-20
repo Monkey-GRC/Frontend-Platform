@@ -10,6 +10,8 @@ import { RiskService } from '@shared/domain/services/risk.service';
 import { targetValue, targetChecked } from '@shared/presentation/utils/event-target';
 import { Select } from '@shared/presentation/components/select/select';
 import { Busy } from '@shared/presentation/directives/busy';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { hasChanges } from '@shared/domain/utils/form-changes';
 
 export type RiskFormKind = 'risk' | 'cause';
 
@@ -27,6 +29,7 @@ export class RiskForm implements OnInit {
   protected readonly targetChecked = targetChecked;
   private readonly api = inject(RiskService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly catalogs = inject(CatalogService);
 
   readonly kind = input.required<RiskFormKind>();
@@ -54,6 +57,10 @@ export class RiskForm implements OnInit {
   readonly editing = computed(() => this.existing() !== null);
   readonly groups = computed(() => (this.kind() === 'risk' ? this.criteria() : this.categories()));
   private original: { name: string; description: string; group: string; impacts: string[] } | null = null;
+  private readonly start = signal<{ name: string; description: string; group: string; impacts: string[] }>({ name: '', description: '', group: '', impacts: [] });
+
+  /** MD-485 · Lo escrito o elegido ya no es lo de partida (vacío al crear, lo guardado al editar): cerrar pide confirmar antes de descartarlo. */
+  readonly changed = computed(() => hasChanges(this.start(), { name: this.name(), description: this.description(), group: this.group(), impacts: [...this.impacts()].sort() }));
 
   /** Al editar solo se puede guardar si algo cambió. */
   readonly canSave = computed(() => {
@@ -72,6 +79,7 @@ export class RiskForm implements OnInit {
     this.group.set(group);
     this.impacts.set(impacts);
     this.original = { name: e.name, description: e.description, group, impacts };
+    this.start.set({ ...this.original, impacts: [...impacts].sort() });
   }
 
   toggleImpact(value: string, on: boolean): void {
@@ -92,6 +100,8 @@ export class RiskForm implements OnInit {
     this.send().subscribe({
       next: (saved) => {
         this.sending.set(false);
+        const key = `COMPLIANCE.RISK_FORM.${this.existing() ? 'UPDATED' : 'CREATED'}_${this.kind() === 'risk' ? 'RISK' : 'CAUSE'}`;
+        this.toast.showSuccess(this.translate.instant(key, { name: this.name().trim() }));
         this.saved.emit(saved.id);
       },
       error: (e) => {

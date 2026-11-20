@@ -5,16 +5,6 @@
     }
   </app-page-header>
 
-  @if (notice(); as n) {
-  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status"><span>{{ n }}</span>
-  </div>
-  }
-  @if (error(); as e) {
-  @if (!addOpen()) {
-  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert"><span>{{ e }}</span>
-  </div>
-  }
-  }
 
   @switch (stage()) {
 
@@ -73,7 +63,7 @@
 </section>
 
 <!-- El alta vive en un drawer que abre «Agregar responsable»; el formulario se crea al abrirlo y se descarta al cerrar. -->
-<app-form-modal [open]="addOpen()" titleKey="COMPLIANCE.RESPONSIBLES.ADD" descriptionKey="COMPLIANCE.RESPONSIBLES.ADD_HINT" [busy]="saving()" testId="responsible-add" (closed)="closeAdd()">
+<app-form-modal [open]="addOpen()" titleKey="COMPLIANCE.RESPONSIBLES.ADD" descriptionKey="COMPLIANCE.RESPONSIBLES.ADD_HINT" [busy]="saving()" [guarded]="addDirty()" testId="responsible-add" (closed)="closeAdd()">
   @if (addOpen()) {
   <form id="responsible-add-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); add()" [attr.aria-label]="'COMPLIANCE.RESPONSIBLES.ADD' | translate">
     @if (error(); as e) {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked, viewChild } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
@@ -16,6 +16,7 @@ import { LinkPicker, PickerItem } from '../link-picker/link-picker';
 import { RiskAssessment } from '../risk-assessment/risk-assessment';
 import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -28,8 +29,13 @@ type Stage = 'loading' | 'error' | 'ready';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RiskDetailPanel {
+  private readonly assessment = viewChild(RiskAssessment);
+  /** MD-485 · Una evaluación o un tratamiento a medio escribir: cerrar el panel pide confirmar antes de descartarlo. */
+  readonly editing = computed(() => this.assessment()?.dirty() ?? false);
+
   private readonly api = inject(RiskService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
 
@@ -52,7 +58,6 @@ export class RiskDetailPanel {
   readonly stage = signal<Stage>('loading');
   readonly detail = signal<RiskDetail | null>(null);
   readonly saving = signal(false);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   readonly picking = signal(false);
@@ -142,7 +147,7 @@ export class RiskDetailPanel {
       next: () => {
         this.saving.set(false);
         done();
-        this.notice.set(this.translate.instant(noticeKey));
+        this.toast.showSuccess(this.translate.instant(noticeKey));
         this.load();
         this.changed.emit();
       },
@@ -160,7 +165,6 @@ export class RiskDetailPanel {
   }
 
   private reset(): void {
-    this.notice.set(null);
     this.error.set(null);
   }
 }

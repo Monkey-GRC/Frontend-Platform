@@ -15,6 +15,7 @@ import { RiskService } from '@shared/domain/services/risk.service';
 import { DetailCard } from '../detail-card/detail-card';
 import { LinkPicker, PickerItem } from '../link-picker/link-picker';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -30,6 +31,7 @@ export class CauseDetailPanel {
   private readonly api = inject(RiskService);
   private readonly controls = inject(ControlService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
 
@@ -57,7 +59,6 @@ export class CauseDetailPanel {
   readonly stage = signal<Stage>('loading');
   readonly detail = signal<Cause | null>(null);
   readonly saving = signal(false);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   readonly picking = signal(false);
@@ -144,7 +145,7 @@ export class CauseDetailPanel {
       next: () => {
         this.saving.set(false);
         done();
-        this.notice.set(this.translate.instant(noticeKey));
+        this.toast.showSuccess(this.translate.instant(noticeKey));
         this.load();
         this.changed.emit();
       },
@@ -162,7 +163,6 @@ export class CauseDetailPanel {
   }
 
   private reset(): void {
-    this.notice.set(null);
     this.error.set(null);
   }
 }

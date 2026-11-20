@@ -11,7 +11,7 @@ import { Busy } from '@shared/presentation/directives/busy';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button type="button" (click)="download()" [disabled]="disabled()" [appBusy]="downloading()" data-download class="mk-btn-secondary">
-      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">download</span>
+      <span class="material-symbols-rounded text-[20px]" aria-hidden="true">download</span>
       {{ 'TECHNICAL_CONTROL.PANEL.DOWNLOAD' | translate }}
     </button>
     @if (error(); as e) {

@@ -22,6 +22,8 @@ import { ControlTests } from '../control-tests/control-tests';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { hasChanges } from '@shared/domain/utils/form-changes';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -56,6 +58,7 @@ export class ControlDetailPanel {
   protected readonly labels = inject(EnumLabelService);
   private readonly api = inject(ControlService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   readonly view = inject(ComplianceViewService);
 
   readonly controlId = input.required<string>();
@@ -79,12 +82,23 @@ export class ControlDetailPanel {
   readonly mode = signal<Mode>('view');
   readonly saving = signal(false);
   readonly confirmingRetire = signal(false);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly fieldErrors = signal<Record<string, string>>({});
 
   readonly interpretationDraft = signal('');
   readonly dimensionsDraft = signal<DimensionDraft[]>([]);
+
+  /** MD-485 · La interpretación o las dimensiones a medio editar, distintas de lo guardado: cerrar el panel pide confirmar antes de descartarlas. */
+  readonly editing = computed(() => {
+    const d = this.detail();
+    if (!d) return false;
+    if (this.mode() === 'interpretation') return hasChanges(d.interpretation.text, this.interpretationDraft());
+    if (this.mode() === 'dimensions') {
+      const saved = d.dimensions.map((x) => ({ dimension: x.dimension, applies: x.applies, reason: x.reason_not_applicable ?? '' }));
+      return hasChanges(saved, this.dimensionsDraft());
+    }
+    return false;
+  });
 
   /** Las cinco dimensiones del control. Una que el detalle no trae no aplica (no hay prueba de esa dimensión). */
   protected readonly dimensionRow = computed(() => {
@@ -215,7 +229,7 @@ export class ControlDetailPanel {
         this.saving.set(false);
         this.detail.set(detail);
         this.mode.set('view');
-        this.notice.set(this.translate.instant('COMPLIANCE.DETAIL.SAVED'));
+        this.toast.showSuccess(this.translate.instant('COMPLIANCE.DETAIL.SAVED'));
         this.changed.emit();
       },
       error: (error) => this.failed(error),
@@ -230,7 +244,6 @@ export class ControlDetailPanel {
     this.error.set(apiErrorMessage(error, this.translate.instant('COMPLIANCE.DETAIL.SAVE_ERROR')));
   }
   private resetFeedback(): void {
-    this.notice.set(null);
     this.error.set(null);
     this.fieldErrors.set({});
   }

@@ -5,12 +5,6 @@
     }
   </app-page-header>
 
-  @if (notice(); as n) {
-  @if (!detail()) {
-  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status"><span>{{ n }}</span>
-  </div>
-  }
-  }
   @if (error(); as e) {
   @if (!detail()) {
   <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert"><span>{{ e }}</span>
@@ -112,14 +106,10 @@
 </app-form-modal>
 
 <!-- El detalle de una persona: con los datos que ya trae la lista (no hay endpoint de detalle) y las acciones que ya existen, como filas. El pie solo cierra. -->
-<app-form-modal [open]="!!detail()" titleKey="TEAM.DETAIL.TITLE" descriptionKey="TEAM.DETAIL.SUBTITLE" icon="person" [closeButton]="true" cancelLabelKey="COMMON.CLOSE" size="max" testId="person-detail" (closed)="closeDetail()">
+<app-form-modal [open]="!!detail()" titleKey="TEAM.DETAIL.TITLE" descriptionKey="TEAM.DETAIL.SUBTITLE" icon="person" [closeButton]="true" cancelLabelKey="COMMON.CLOSE" size="max" [guarded]="nameDirty()" testId="person-detail" (closed)="closeDetail()">
   @if (detail(); as m) {
   <div class="grid gap-3 lg:grid-cols-2" data-test-detail [attr.data-test-detail-email]="m.email">
 
-    @if (notice(); as n) {
-    <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok lg:col-span-2" role="status"><span>{{ n }}</span>
-    </div>
-    }
     @if (error(); as e) {
     <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad lg:col-span-2" role="alert"><span>{{ e }}</span>
     </div>
@@ -130,7 +120,7 @@
         <span class="flex size-16 shrink-0 items-center justify-center rounded-full bg-tint-strong text-xl font-semibold text-tint-ink" data-avatar aria-hidden="true">{{ initials(m) }}</span>
         <div class="min-w-0">
           <p class="break-words text-xl font-semibold text-ink" data-person-name>{{ personName(m) !== m.email ? personName(m) : ('TEAM.NO_NAME' | translate) }}@if (isMe(m)) {<span class="ml-2 text-sm font-normal text-ink-muted">{{ 'TEAM.YOU' | translate }}</span>}</p>
-          <p class="mt-1 flex items-start gap-1.5 text-sm text-ink-muted"><span class="material-symbols-rounded mt-px text-lg leading-none" aria-hidden="true">mail</span><span class="min-w-0 break-all">{{ m.email }}</span></p>
+          <p class="mt-1 flex items-start gap-1.5 text-sm text-ink-muted"><span class="material-symbols-rounded mt-px text-[20px] leading-none" aria-hidden="true">mail</span><span class="min-w-0 break-all">{{ m.email }}</span></p>
           <app-badge class="mt-2" size="sm" kind="status" [tone]="statusTone(m.status)">{{ ('TEAM.STATUS.' + m.status.toUpperCase()) | translate }}</app-badge>
         </div>
       </section>
@@ -138,7 +128,7 @@
       @if (canManage()) {
       <section class="grid min-w-0 rounded-card border border-line bg-surface sm:grid-cols-3 sm:divide-x max-sm:divide-y divide-line" [attr.aria-label]="'TEAM.DETAIL.SUMMARY' | translate" data-test-summary>
         <div class="flex min-w-0 flex-col items-center justify-center gap-1.5 px-3 py-4 text-center">
-          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-xl leading-none" aria-hidden="true">shield_person</span>{{ 'TEAM.DETAIL.WORKLOAD.OWNED' | translate }}</p>
+          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">shield_person</span>{{ 'TEAM.DETAIL.WORKLOAD.OWNED' | translate }}</p>
           @if (workload(); as w) {
           <p class="text-2xl font-semibold leading-8 tabular-nums text-ink" data-test-workload-owned>{{ w.owned_count }}</p>
           } @else {
@@ -146,7 +136,7 @@
           }
         </div>
         <div class="flex min-w-0 flex-col items-center justify-center gap-1.5 px-3 py-4 text-center">
-          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-xl leading-none" aria-hidden="true">task_alt</span>{{ 'TEAM.DETAIL.WORKLOAD.EXECUTED' | translate }}</p>
+          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">task_alt</span>{{ 'TEAM.DETAIL.WORKLOAD.EXECUTED' | translate }}</p>
           @if (workload(); as w) {
           <p class="text-2xl font-semibold leading-8 tabular-nums text-ink" data-test-workload-executed>{{ w.executed_count }}</p>
           } @else {
@@ -154,7 +144,7 @@
           }
         </div>
         <div class="flex min-w-0 flex-col items-center justify-center gap-1.5 px-3 py-4 text-center">
-          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-xl leading-none" aria-hidden="true">monitoring</span>{{ 'TEAM.DETAIL.WORKLOAD.PROGRESS' | translate }}</p>
+          <p class="flex items-center justify-center gap-1.5 whitespace-nowrap text-xs font-medium text-ink-muted"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">monitoring</span>{{ 'TEAM.DETAIL.WORKLOAD.PROGRESS' | translate }}</p>
           @if (workload(); as w) {
           @let look = readinessLook(w.progress.readiness);
           <p class="whitespace-nowrap text-2xl font-semibold leading-8 tabular-nums text-ink" data-test-workload-progress>{{ workloadPercent(w.progress.progress.done, w.progress.progress.total) }}</p>
@@ -169,13 +159,13 @@
 
     <!-- Información general -->
     <section class="flex flex-col rounded-card border border-line bg-surface" [class.lg:col-span-2]="!canManage()" aria-labelledby="person-general">
-      <h3 id="person-general" class="flex items-center gap-2 border-b border-line px-5 py-2.5 text-base font-semibold text-ink"><span class="material-symbols-rounded text-xl leading-none text-ink-muted" aria-hidden="true">info</span>{{ 'TEAM.DETAIL.GENERAL' | translate }}</h3>
+      <h3 id="person-general" class="flex items-center gap-2 border-b border-line px-5 py-2.5 text-base font-semibold text-ink"><span class="material-symbols-rounded text-[20px] leading-none text-ink-muted" aria-hidden="true">info</span>{{ 'TEAM.DETAIL.GENERAL' | translate }}</h3>
       <dl class="divide-y divide-line px-5 text-sm">
         <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
           <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.DETAIL.EMAIL' | translate }}</dt>
           <dd class="flex min-w-0 items-center gap-2 text-ink"><span class="min-w-0 break-all">{{ m.email }}</span>
             <button type="button" (click)="copyEmail(m)" [attr.aria-label]="(copied() === m.id ? 'TEAM.DETAIL.COPIED' : 'TEAM.DETAIL.COPY_EMAIL') | translate" data-test-copy-email
-              class="inline-flex size-8 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40"><span class="material-symbols-rounded text-lg leading-none" aria-hidden="true">{{ copied() === m.id ? 'check' : 'content_copy' }}</span></button>
+              class="inline-flex size-8 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">{{ copied() === m.id ? 'check' : 'content_copy' }}</span></button>
           </dd>
         </div>
         <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
@@ -200,15 +190,15 @@
         }
         <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
           <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.DETAIL.MFA' | translate }}</dt>
-          <dd class="flex items-center gap-2 text-ink"><span class="material-symbols-rounded text-xl leading-none" [class]="m.is_mfa_enabled ? 'text-ok-ink' : 'text-ink-muted'" aria-hidden="true">{{ m.is_mfa_enabled ? 'check_circle' : 'cancel' }}</span><span data-test-detail-mfa>{{ (m.is_mfa_enabled ? 'TEAM.DETAIL.YES' : 'TEAM.DETAIL.NO') | translate }}</span></dd>
+          <dd class="flex items-center gap-2 text-ink"><span class="material-symbols-rounded text-[20px] leading-none" [class]="m.is_mfa_enabled ? 'text-ok-ink' : 'text-ink-muted'" aria-hidden="true">{{ m.is_mfa_enabled ? 'check_circle' : 'cancel' }}</span><span data-test-detail-mfa>{{ (m.is_mfa_enabled ? 'TEAM.DETAIL.YES' : 'TEAM.DETAIL.NO') | translate }}</span></dd>
         </div>
         <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
           <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.COLUMNS.LAST_LOGIN' | translate }}</dt>
-          <dd class="flex items-center gap-2 tabular-nums text-ink"><span class="material-symbols-rounded text-xl leading-none text-ink-muted" aria-hidden="true">login</span><span data-test-last-login>{{ m.last_login_at ? (m.last_login_at | localDate) : ('TEAM.LIST.NEVER' | translate) }}</span></dd>
+          <dd class="flex items-center gap-2 tabular-nums text-ink"><span class="material-symbols-rounded text-[20px] leading-none text-ink-muted" aria-hidden="true">login</span><span data-test-last-login>{{ m.last_login_at ? (m.last_login_at | localDate) : ('TEAM.LIST.NEVER' | translate) }}</span></dd>
         </div>
         <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
           <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.DETAIL.CREATED' | translate }}</dt>
-          <dd class="flex items-center gap-2 tabular-nums text-ink"><span class="material-symbols-rounded text-xl leading-none text-ink-muted" aria-hidden="true">calendar_today</span>{{ m.created_at | localDate }}</dd>
+          <dd class="flex items-center gap-2 tabular-nums text-ink"><span class="material-symbols-rounded text-[20px] leading-none text-ink-muted" aria-hidden="true">calendar_today</span>{{ m.created_at | localDate }}</dd>
         </div>
       </dl>
     </section>
@@ -216,17 +206,17 @@
     <!-- Acciones disponibles: las mismas condiciones y confirmaciones de siempre -->
     @if (canManage()) {
     <section class="flex flex-col self-start rounded-card border border-line bg-surface" aria-labelledby="person-actions" data-test-actions>
-      <h3 id="person-actions" class="flex items-center gap-2 border-b border-line px-5 py-2.5 text-base font-semibold text-ink"><span class="material-symbols-rounded text-xl leading-none text-ink-muted" aria-hidden="true">bolt</span>{{ 'TEAM.DETAIL.ACTIONS' | translate }}</h3>
+      <h3 id="person-actions" class="flex items-center gap-2 border-b border-line px-5 py-2.5 text-base font-semibold text-ink"><span class="material-symbols-rounded text-[20px] leading-none text-ink-muted" aria-hidden="true">bolt</span>{{ 'TEAM.DETAIL.ACTIONS' | translate }}</h3>
       <ul class="divide-y divide-line">
         @if (nameEditing() !== m.id) {
         <li>
           <button type="button" (click)="startNameEdit(m)" [disabled]="saving()" data-test-edit-name-btn class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
-            <span class="material-symbols-rounded text-2xl leading-none text-ink-muted" aria-hidden="true">edit</span>
+            <span class="material-symbols-rounded text-[24px] leading-none text-ink-muted" aria-hidden="true">edit</span>
             <span class="min-w-0 flex-1">
               <span class="block text-sm font-semibold text-ink">{{ 'TEAM.ACTIONS.EDIT_NAME' | translate }}</span>
               <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.EDIT_NAME' | translate }}</span>
             </span>
-            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+            <span class="material-symbols-rounded text-[20px] leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
           </button>
         </li>
         }
@@ -234,12 +224,12 @@
         @if (m.status === 'pending') {
         <li>
           <button type="button" (click)="resend(m.id, m.email)" [disabled]="saving() && busyAction() !== 'resend'" [appBusy]="busyAction() === 'resend'" data-test-reissue class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
-            <span class="material-symbols-rounded text-2xl leading-none text-ink-muted" aria-hidden="true">forward_to_inbox</span>
+            <span class="material-symbols-rounded text-[24px] leading-none text-ink-muted" aria-hidden="true">forward_to_inbox</span>
             <span class="min-w-0 flex-1">
               <span class="block text-sm font-semibold text-ink">{{ 'TEAM.ACTIONS.RESEND_INVITATION' | translate }}</span>
               <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.RESEND_INVITATION' | translate }}</span>
             </span>
-            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+            <span class="material-symbols-rounded text-[20px] leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
           </button>
         </li>
         }
@@ -247,35 +237,35 @@
         @if (canResetMfa(m)) {
         <li>
           <button type="button" (click)="ask('reset_mfa', m)" [disabled]="saving()" data-test-reset-mfa class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
-            <span class="material-symbols-rounded text-2xl leading-none text-ink-muted" aria-hidden="true">lock_reset</span>
+            <span class="material-symbols-rounded text-[24px] leading-none text-ink-muted" aria-hidden="true">lock_reset</span>
             <span class="min-w-0 flex-1">
               <span class="block text-sm font-semibold text-ink">{{ 'TEAM.ACTIONS.RESET_MFA' | translate }}</span>
               <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.RESET_MFA' | translate }}</span>
             </span>
-            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+            <span class="material-symbols-rounded text-[20px] leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
           </button>
         </li>
         }
         <li>
           <button type="button" (click)="ask('deactivate', m)" [disabled]="saving()" data-test-deactivate class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
-            <span class="material-symbols-rounded text-2xl leading-none text-bad-ink" aria-hidden="true">person_off</span>
+            <span class="material-symbols-rounded text-[24px] leading-none text-bad-ink" aria-hidden="true">person_off</span>
             <span class="min-w-0 flex-1">
               <span class="block text-sm font-semibold text-bad-ink">{{ 'TEAM.ACTIONS.DEACTIVATE' | translate }}</span>
               <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.DEACTIVATE' | translate }}</span>
             </span>
-            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+            <span class="material-symbols-rounded text-[20px] leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
           </button>
         </li>
         }
         @if (m.status === 'inactive') {
         <li>
           <button type="button" (click)="reactivate(m)" [disabled]="saving() && busyAction() !== 'reactivate'" [appBusy]="busyAction() === 'reactivate'" data-test-reactivate class="flex w-full items-center gap-4 px-5 py-3 text-left transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed">
-            <span class="material-symbols-rounded text-2xl leading-none text-ink-muted" aria-hidden="true">how_to_reg</span>
+            <span class="material-symbols-rounded text-[24px] leading-none text-ink-muted" aria-hidden="true">how_to_reg</span>
             <span class="min-w-0 flex-1">
               <span class="block text-sm font-semibold text-ink">{{ 'TEAM.ACTIONS.REACTIVATE' | translate }}</span>
               <span class="block text-xs text-ink-muted">{{ 'TEAM.DETAIL.ACTION_DESC.REACTIVATE' | translate }}</span>
             </span>
-            <span class="material-symbols-rounded text-xl leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
+            <span class="material-symbols-rounded text-[20px] leading-none text-ink-faint" aria-hidden="true">chevron_right</span>
           </button>
         </li>
         }

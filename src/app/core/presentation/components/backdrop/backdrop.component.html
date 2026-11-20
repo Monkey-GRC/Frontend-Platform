@@ -1,7 +1,8 @@
 @if (isMobileOpen$ | async) {
+<!-- The menu is a drawer below xl (1280 px): the scrim covers the page up to that width, under the menu (`--z-menu-scrim` < `--z-menu`). -->
 <div
   role="presentation"
-  class="fixed inset-0 z-40 bg-scrim lg:hidden"
+  class="mk-backdrop-in fixed inset-0 z-(--z-menu-scrim) bg-scrim xl:hidden"
   (click)="closeSidebar()"
 ></div>
 }

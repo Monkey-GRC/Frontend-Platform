@@ -1,4 +1,7 @@
 <section class="w-full space-y-6 pb-10">
+  <!-- MD-485 · 6.3 A: el mismo título de página que el resto (y que el Inicio de Admin), con el nombre de la empresa debajo. -->
+  <app-page-header [title]="'PAGE_TITLE.HOME' | translate" [description]="session.company()?.name ?? null" />
+
   @if (pendingCompanyContext()) {
   <app-card>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

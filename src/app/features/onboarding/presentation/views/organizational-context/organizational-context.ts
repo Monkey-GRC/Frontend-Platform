@@ -25,6 +25,7 @@ import { targetValue } from '@shared/presentation/utils/event-target';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 interface Catalogs {
   size: CatalogOption[];
@@ -69,6 +70,7 @@ export class OrganizationalContextView implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
 
   readonly steps = STEPS;
@@ -258,6 +260,7 @@ export class OrganizationalContextView implements OnInit {
           if (this.userId) this.drafts.clear(this.userId);
           this.alreadySaved.set(true);
           this.savedSnapshot.set(JSON.stringify(this.draft()));
+          this.toast.showSuccess(this.translate.instant('ONBOARDING.SAVED'));
           // Se guarda y ya, sin pantalla de aviso. Primero se refresca la sesión (el siguiente paso lo calcula el backend): así Inicio nunca enseña por un instante el paso anterior.
           // La primera vez se sigue a Inicio; al editar, la persona se queda en la ficha de su empresa, ya con los cambios.
           this.auth.validate().subscribe(() => {

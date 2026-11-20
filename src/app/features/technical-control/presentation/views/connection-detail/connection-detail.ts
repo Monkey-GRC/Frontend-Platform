@@ -14,6 +14,7 @@ import { AssetCard } from '../../components/asset-card/asset-card';
 import { categoryLabel } from '@shared/domain/utils/category-label';
 import { platformsByCode } from '@shared/domain/utils/platform-label';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -31,6 +32,7 @@ export class ConnectionDetailView implements OnInit {
   private readonly services = inject(ServiceService);
   private readonly catalogs = inject(CatalogService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
 
   readonly stage = signal<Stage>('loading');
@@ -107,6 +109,7 @@ export class ConnectionDetailView implements OnInit {
   }
 
   onRemoved(): void {
+    this.toast.showSuccess(this.translate.instant('TECHNICAL_CONTROL.CARD.REMOVED', { name: this.asset()?.name ?? '' }));
     this.router.navigate(['/services', this.serviceId()]);
   }
 }

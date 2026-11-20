@@ -17,8 +17,8 @@ import { EmptyState } from '@shared/presentation/components/empty-state/empty-st
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { Badge } from '@shared/presentation/components/badge/badge';
-import { Busy } from '@shared/presentation/directives/busy';
-import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -26,7 +26,7 @@ type Stage = 'loading' | 'error' | 'ready';
 // actúan sobre lo seleccionado (ver, editar, eliminar uno o varios).
 @Component({
   selector: 'app-services-list',
-  imports: [Badge, PageHeader, RouterLink, TranslatePipe, DataTable, TableCell, TableToolbar, EmptyState, StatusIndicator, Tag, Busy, BusyFields],
+  imports: [ConfirmDialog, Badge, PageHeader, RouterLink, TranslatePipe, DataTable, TableCell, TableToolbar, EmptyState, StatusIndicator, Tag],
   templateUrl: './services-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -35,6 +35,7 @@ export class ServicesListView implements OnInit {
   private readonly catalogService = inject(CatalogService);
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
   readonly session = inject(SessionService);
 
@@ -49,7 +50,6 @@ export class ServicesListView implements OnInit {
   readonly selected = signal<ReadonlySet<string>>(new Set());
   readonly confirming = signal(false);
   readonly deleting = signal(false);
-  readonly notice = signal<{ kind: 'error' | 'ok'; text: string } | null>(null);
 
   readonly columns: TableColumn<ServiceListItem>[] = [
     { key: 'name', headerKey: 'SERVICES.LIST.COL_NAME' },
@@ -69,11 +69,10 @@ export class ServicesListView implements OnInit {
   readonly selectedItems = computed(() => this.items().filter((i) => this.selected().has(i.id)));
   readonly count = computed(() => this.selected().size);
 
-  confirmMessage(): string {
+  /** Clave y parámetros de la pregunta del diálogo de confirmación: uno con su nombre, varios con su número. */
+  confirmMessage(): { key: string; params: Record<string, unknown> } {
     const items = this.selectedItems();
-    return items.length === 1
-      ? this.translate.instant('SERVICES.LIST.CONFIRM_ONE', { name: items[0].name })
-      : this.translate.instant('SERVICES.LIST.CONFIRM_MANY', { count: items.length });
+    return items.length === 1 ? { key: 'SERVICES.LIST.CONFIRM_ONE', params: { name: items[0].name } } : { key: 'SERVICES.LIST.CONFIRM_MANY', params: { count: items.length } };
   }
 
   constructor() {
@@ -132,7 +131,6 @@ export class ServicesListView implements OnInit {
 
   // ---- acción sobre lo seleccionado: eliminar uno o varios (ver y editar se hacen desde el detalle del servicio) ----
   ask(): void {
-    this.notice.set(null);
     this.confirming.set(this.count() > 0);
   }
 
@@ -173,12 +171,13 @@ export class ServicesListView implements OnInit {
         const failed = results.filter((r) => r.error);
         const done = results.length - failed.length;
         const blocked = failed.filter((r) => apiErrorCode(r.error) === 'SERVICE_HAS_EVALUATIONS').map((r) => `«${r.item.name}»`);
-        const parts: string[] = [];
-        if (done > 0) parts.push(this.translate.instant(done === 1 ? 'SERVICES.LIST.DELETED_ONE' : 'SERVICES.LIST.DELETED_MANY', { count: done }));
-        if (blocked.length > 0) parts.push(this.translate.instant(blocked.length > 1 ? 'SERVICES.LIST.BLOCKED_MANY' : 'SERVICES.LIST.BLOCKED_ONE', { names: blocked.join(', ') }));
+        // Lo eliminado es un aviso de éxito; lo que no se pudo eliminar (con evaluaciones o un fallo) es un aviso de error aparte, con el motivo.
+        if (done > 0) this.toast.showSuccess(this.translate.instant(done === 1 ? 'SERVICES.LIST.DELETED_ONE' : 'SERVICES.LIST.DELETED_MANY', { count: done }));
+        const problems: string[] = [];
+        if (blocked.length > 0) problems.push(this.translate.instant(blocked.length > 1 ? 'SERVICES.LIST.BLOCKED_MANY' : 'SERVICES.LIST.BLOCKED_ONE', { names: blocked.join(', ') }));
         const other = failed.length - blocked.length;
-        if (other > 0) parts.push(this.translate.instant(other === 1 ? 'SERVICES.LIST.FAILED_ONE' : 'SERVICES.LIST.FAILED_MANY', { count: other }));
-        this.notice.set({ kind: failed.length > 0 ? 'error' : 'ok', text: parts.join(' ') });
+        if (other > 0) problems.push(this.translate.instant(other === 1 ? 'SERVICES.LIST.FAILED_ONE' : 'SERVICES.LIST.FAILED_MANY', { count: other }));
+        if (problems.length > 0) this.toast.showError(this.translate.instant('SERVICES.LIST.DELETE_FAILED_TITLE'), problems.join(' '));
         this.items.update((list) => list.filter((i) => !results.some((r) => !r.error && r.item.id === i.id)));
         this.total.update((t) => Math.max(0, t - done));
         this.selected.set(new Set());

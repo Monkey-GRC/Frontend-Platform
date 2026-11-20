@@ -21,6 +21,7 @@ import { ProviderLogo } from '@shared/presentation/components/provider-logo/prov
 import { Busy as BusyDirective } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
 import { Tag } from '@shared/presentation/components/tag/tag';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 const STATUS: Record<string, { label: string; tone: StatusTone }> = {
   pending: { label: 'TECHNICAL_CONTROL.STATUS.PENDING', tone: 'neutral' },
@@ -52,6 +53,7 @@ export class AssetCard implements OnInit {
   private readonly api = inject(TechnicalControlService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
 
@@ -146,6 +148,7 @@ export class AssetCard implements OnInit {
   onEdited(asset: Asset): void {
     this.editing.set(false);
     this.message.set(null);
+    this.toast.showSuccess(this.translate.instant('TECHNICAL_CONTROL.EDIT.SAVED'));
     this.changed.emit(asset);
   }
 
@@ -213,7 +216,10 @@ export class AssetCard implements OnInit {
     this.busy.set(kind);
     this.message.set(null);
     step().subscribe({
-      next: () => this.refresh(),
+      next: () => {
+        if (kind === 'schedule') this.toast.showSuccess(this.translate.instant('TECHNICAL_CONTROL.CARD.SCHEDULED'));
+        this.refresh();
+      },
       error: (error) => {
         this.message.set(this.explain(error));
         // Una validación fallida cambia el estado del sistema («failed»): se refleja de inmediato.

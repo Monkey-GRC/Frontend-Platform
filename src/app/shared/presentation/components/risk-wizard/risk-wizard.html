@@ -121,9 +121,8 @@
           <p class="font-semibold text-ink" data-wizard-position>{{ 'COMPLIANCE.RISK_WIZARD.POSITION' | translate: { current: index() + 1, total: risks().length } }}</p>
           <p class="text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_WIZARD.EVALUATED' | translate: { done: progress().evaluated, total: progress().total } }}</p>
         </div>
-        <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-tint-strong" role="progressbar" aria-valuemin="0" [attr.aria-valuemax]="progress().total" [attr.aria-valuenow]="progress().evaluated">
-          <div class="h-full rounded-full bg-action transition-all" [style.width.%]="progress().total ? (progress().evaluated / progress().total) * 100 : 0"></div>
-        </div>
+        <app-progress-line class="mt-1.5" variant="process" [value]="progress().total ? (progress().evaluated / progress().total) * 100 : 0"
+          [ariaLabel]="'COMPLIANCE.RISK_WIZARD.EVALUATED' | translate: { done: progress().evaluated, total: progress().total }" data-wizard-progress />
       </div>
 
       <!-- En pantallas chicas: una pastilla por riesgo -->
@@ -255,30 +254,27 @@
       </div>
 
       <!-- D93 · Este riesgo no aplica al servicio: se retira con su motivo. Sus causas y controles no se tocan. Va en un modal: es una decisión con consecuencias y el motivo queda guardado.
-           Esc o clic fuera cancelan, salvo mientras se envía (`dismissible`). -->
-      <app-modal [open]="removing()" [labelledBy]="'remove-title-' + risk.id" [dismissible]="!removingBusy()" size="lg" testId="wizard-remove" (dismissed)="cancelRemove()">
-        <div data-wizard-remove [appBusyFields]="removingBusy()">
-          <h2 class="text-lg font-semibold text-ink" [id]="'remove-title-' + risk.id">{{ 'COMPLIANCE.RISK_WIZARD.REMOVE_TITLE' | translate }}</h2>
-          <p class="mt-1 flex flex-wrap items-center gap-2 text-sm text-ink-muted"><app-tag [text]="risk.code" />{{ risk.name }}</p>
+           Esc, clic fuera o «Mejor lo evalúo» cancelan, salvo mientras se envía (`dismissible`; `busy` deja el motivo en solo lectura); con un motivo escrito, antes
+           se pide confirmar que se descarta (`guarded`, MD-485). -->
+      <app-form-modal [open]="removing()" titleKey="COMPLIANCE.RISK_WIZARD.REMOVE_TITLE" cancelLabelKey="COMPLIANCE.RISK_WIZARD.REMOVE_CANCEL" size="lg" testId="wizard-remove"
+        [dismissible]="!removingBusy()" [busy]="removingBusy()" [guarded]="!!reason().trim()" (closed)="cancelRemove()">
+        <div data-wizard-remove>
+          <p class="flex flex-wrap items-center gap-2 text-sm text-ink-muted"><app-tag [text]="risk.code" />{{ risk.name }}</p>
 
           <textarea rows="4" [value]="reason()" (input)="setReason(targetValue($event))" [maxLength]="reasonMax" data-wizard-reason
             [attr.aria-label]="'COMPLIANCE.RISK_WIZARD.REMOVE_TITLE' | translate" [placeholder]="'COMPLIANCE.RISK_WIZARD.REMOVE_PLACEHOLDER' | translate"
-            class="mt-5 w-full resize-none rounded-control border border-line bg-surface p-3 text-sm text-ink placeholder:text-ink-faint focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"></textarea>
+            class="mt-4 w-full resize-none rounded-control border border-line bg-surface p-3 text-sm text-ink placeholder:text-ink-faint focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"></textarea>
           <div class="mt-1.5 flex items-start justify-between gap-4 text-xs text-ink-muted">
             <span>{{ 'COMPLIANCE.RISK_WIZARD.REMOVE_HELP' | translate }}</span>
-            <span class="shrink-0 text-ink-faint">{{ reason().length }} / {{ reasonMax }}</span>
+            <span class="shrink-0 text-ink-faint tabular-nums">{{ reason().length }} / {{ reasonMax }}</span>
           </div>
 
           @if (removeError(); as e) {
           <p class="mt-3 p-2.5 text-sm mk-surface-state-bad text-ink" role="alert">{{ e }}</p>
           }
-
-          <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <button type="button" (click)="cancelRemove()" [disabled]="removingBusy()" data-wizard-remove-cancel class="mk-btn-secondary">{{ 'COMPLIANCE.RISK_WIZARD.REMOVE_CANCEL' | translate }}</button>
-            <button type="button" (click)="confirmRemove()" [disabled]="!reasonValid()" [appBusy]="removingBusy()" data-wizard-remove-confirm class="mk-btn-danger">{{ 'COMPLIANCE.RISK_WIZARD.REMOVE_CONFIRM' | translate }}</button>
-          </div>
         </div>
-      </app-modal>
+        <button actions type="button" (click)="confirmRemove()" [disabled]="!reasonValid()" [appBusy]="removingBusy()" data-wizard-remove-confirm class="mk-btn-danger">{{ 'COMPLIANCE.RISK_WIZARD.REMOVE_CONFIRM' | translate }}</button>
+      </app-form-modal>
     </div>
   </div>
   } @else {

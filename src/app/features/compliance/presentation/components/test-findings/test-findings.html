@@ -1,7 +1,7 @@
 <div class="mt-1">
   <button type="button" (click)="toggle()" [attr.aria-expanded]="stage() !== 'closed'" data-findings-toggle
     class="inline-flex items-center gap-1 text-sm font-medium text-action hover:underline">
-    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">{{ stage() === 'closed' ? 'build_circle' : 'expand_less' }}</span>
+    <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ stage() === 'closed' ? 'build_circle' : 'expand_less' }}</span>
     {{ (stage() === 'closed' ? 'COMPLIANCE.FINDINGS.OPEN' : 'COMPLIANCE.FINDINGS.CLOSE') | translate }}
   </button>
 
@@ -66,7 +66,7 @@
         </p>
         } @else if (rem.language === 'en') {
         <p class="mt-2 flex items-start gap-1 text-xs text-ink-muted" data-finding-original>
-          <span class="material-symbols-rounded text-[14px]" aria-hidden="true">translate</span>{{ 'COMPLIANCE.FINDINGS.ORIGINAL_NOTE' | translate }}
+          <span class="material-symbols-rounded text-[16px]" aria-hidden="true">translate</span>{{ 'COMPLIANCE.FINDINGS.ORIGINAL_NOTE' | translate }}
         </p>
         }
         } @else {

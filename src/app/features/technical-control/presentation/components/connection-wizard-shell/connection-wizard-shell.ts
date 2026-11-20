@@ -33,7 +33,7 @@ export const CONNECTION_STEPS: StepperItem[] = [
         <div class="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 px-4">
           <button type="button" (click)="closed.emit()" data-wizard-close [attr.aria-label]="closeLabelKey() | translate"
             class="flex size-10 shrink-0 items-center justify-center rounded-control text-ink-muted transition hover:bg-tint hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-action/40">
-            <span class="material-symbols-rounded text-[22px]" aria-hidden="true">close</span>
+            <span class="material-symbols-rounded text-[24px]" aria-hidden="true">close</span>
           </button>
           <h1 class="min-w-0 flex-1 truncate text-base font-semibold text-ink sm:text-lg" data-wizard-title>{{ titleKey() | translate: titleParams() }}</h1>
           <div class="shrink-0 text-sm"><ng-content select="[help]" /></div>
@@ -55,7 +55,7 @@ export const CONNECTION_STEPS: StepperItem[] = [
           <div class="mx-auto flex h-18 w-full max-w-2xl items-center justify-between gap-3 px-4">
             @if (showBack()) {
               <button type="button" (click)="back.emit()" [disabled]="busy()" data-wizard-back class="mk-btn-secondary">
-                <span class="material-symbols-rounded text-[18px]" aria-hidden="true">arrow_back</span>
+                <span class="material-symbols-rounded text-[20px]" aria-hidden="true">arrow_back</span>
                 {{ 'TECHNICAL_CONTROL.WIZARD.BACK' | translate }}
               </button>
             } @else {

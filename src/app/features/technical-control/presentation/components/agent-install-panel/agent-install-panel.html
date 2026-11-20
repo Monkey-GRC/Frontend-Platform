@@ -6,7 +6,7 @@
 
   @if (loading()) {
   <p class="mt-4 flex items-center gap-2 text-sm text-ink-muted" role="status">
-    <span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>
+    <span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>
     {{ 'TECHNICAL_CONTROL.AGENT.LOADING' | translate }}
   </p>
   }
@@ -35,11 +35,11 @@
     <p class="text-xs font-medium text-ink-faint">{{ 'TECHNICAL_CONTROL.AGENT.BEFORE_TITLE' | translate }}</p>
     <ul class="mt-2 space-y-2 text-sm text-ink-muted">
       <li class="flex gap-2">
-        <span class="material-symbols-rounded text-[18px] text-ink-faint" aria-hidden="true">admin_panel_settings</span>
+        <span class="material-symbols-rounded text-[20px] text-ink-faint" aria-hidden="true">admin_panel_settings</span>
         <span>{{ (s.os === 'windows' ? 'TECHNICAL_CONTROL.AGENT.BEFORE_ADMIN_WINDOWS' : 'TECHNICAL_CONTROL.AGENT.BEFORE_ADMIN_LINUX') | translate }}</span>
       </li>
       <li class="flex gap-2">
-        <span class="material-symbols-rounded text-[18px] text-ink-faint" aria-hidden="true">outbound</span>
+        <span class="material-symbols-rounded text-[20px] text-ink-faint" aria-hidden="true">outbound</span>
         <span>{{ 'TECHNICAL_CONTROL.AGENT.BEFORE_OUTBOUND' | translate: { host: s.requires_outbound.host, port: s.requires_outbound.port } }}</span>
       </li>
     </ul>
@@ -51,7 +51,7 @@
   <div class="mt-4">
     <p class="text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.AGENT.START_HELP' | translate }}</p>
     <button type="button" (click)="start()" [disabled]="busy() !== null" class="mk-btn mt-3">
-      @if (busy() === 'start') {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}
+      @if (busy() === 'start') {<span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>}
       {{ 'TECHNICAL_CONTROL.AGENT.START' | translate }}
     </button>
   </div>
@@ -59,7 +59,7 @@
 
   @case ('preparing') {
   <p class="mt-4 flex items-center gap-2 text-sm text-ink-muted" role="status" aria-live="polite">
-    <span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>
+    <span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>
     {{ 'TECHNICAL_CONTROL.AGENT.PREPARING' | translate }}
   </p>
   }
@@ -68,7 +68,7 @@
   <div class="mt-4">
     <p class="p-3 text-sm text-ink mk-surface-state-bad" role="alert">{{ s.failure_message || ('TECHNICAL_CONTROL.AGENT.ERROR' | translate) }}</p>
     <button type="button" (click)="start()" [disabled]="busy() !== null" class="mk-btn mt-3">
-      @if (busy() === 'start') {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}
+      @if (busy() === 'start') {<span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>}
       {{ 'TECHNICAL_CONTROL.AGENT.RETRY' | translate }}
     </button>
   </div>
@@ -81,7 +81,7 @@
       {{ 'TECHNICAL_CONTROL.AGENT.READY_WARNING' | translate }}@if (expiresAt(); as at) { {{ 'TECHNICAL_CONTROL.AGENT.READY_UNTIL' | translate: { time: at } }}}
     </p>
     <button type="button" (click)="showCommand()" [disabled]="busy() !== null" class="mk-btn mt-3">
-      @if (busy() === 'reveal') {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}
+      @if (busy() === 'reveal') {<span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>}
       {{ 'TECHNICAL_CONTROL.AGENT.SHOW' | translate }}
     </button>
   </div>
@@ -120,7 +120,7 @@
       } @else {
       <p class="text-xs font-medium text-ink-faint">{{ 'TECHNICAL_CONTROL.AGENT.OR_FILE' | translate: { shell: o.label } }}</p>
       <button type="button" (click)="download(o)" class="mk-btn-secondary mt-1">
-        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">download</span>
+        <span class="material-symbols-rounded text-[20px]" aria-hidden="true">download</span>
         {{ 'TECHNICAL_CONTROL.AGENT.DOWNLOAD' | translate: { file: o.filename } }}
       </button>
       }
@@ -132,7 +132,7 @@
   <!-- Esperando al servidor: Monkey lo busca solo; el cliente no tiene que hacer nada más -->
   @if (phase() === 'waiting') {
   <p class="mt-4 flex items-center gap-2 text-sm text-ink-muted" role="status" aria-live="polite" data-agent-waiting>
-    <span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>
+    <span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>
     {{ 'TECHNICAL_CONTROL.AGENT.WAITING' | translate }}
   </p>
   <p class="mt-2 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.AGENT.WAITING_AUTO' | translate }}</p>
@@ -151,7 +151,7 @@
     {{ 'TECHNICAL_CONTROL.AGENT.EXPIRED' | translate: { host: s.requires_outbound.host, port: s.requires_outbound.port } }}
   </p>
   <button type="button" (click)="checkNow()" [disabled]="busy() !== null" class="mk-btn mt-3" data-agent-check>
-    @if (busy() === 'check') {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}
+    @if (busy() === 'check') {<span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>}
     {{ (busy() === 'check' ? 'TECHNICAL_CONTROL.AGENT.CHECKING' : 'TECHNICAL_CONTROL.AGENT.CHECK_NOW') | translate }}
   </button>
   }
@@ -165,7 +165,7 @@
   <p class="mt-2 text-xs text-ink-faint">{{ 'TECHNICAL_CONTROL.AGENT.LAST_REVIEW' | translate: { when: when } }}</p>
   }
   <button type="button" (click)="checkNow()" [disabled]="busy() !== null" class="mk-btn-secondary mt-3" data-agent-check>
-    @if (busy() === 'check') {<span class="material-symbols-rounded animate-spin text-[18px]" aria-hidden="true">progress_activity</span>}
+    @if (busy() === 'check') {<span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>}
     {{ (busy() === 'check' ? 'TECHNICAL_CONTROL.AGENT.CHECKING' : 'TECHNICAL_CONTROL.AGENT.CHECK_NOW') | translate }}
   </button>
   }

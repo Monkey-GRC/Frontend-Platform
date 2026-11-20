@@ -44,9 +44,7 @@
     <div>
       <p class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.HEATMAP.SUMMARY' | translate }}</p>
       <p class="mt-1 text-ink" data-evaluated>{{ 'COMPLIANCE.HEATMAP.EVALUATED' | translate: { evaluated: evaluated().length, total: risks().length } }}</p>
-      <div class="mt-2 h-1.5 w-full overflow-hidden rounded-control bg-tint-strong" aria-hidden="true">
-        <div class="h-full rounded-control bg-action transition-all" [style.width.%]="risks().length ? (evaluated().length / risks().length) * 100 : 0"></div>
-      </div>
+      <app-progress-line class="mt-2" [value]="risks().length ? (evaluated().length / risks().length) * 100 : 0" />
       @if (notEvaluated() > 0) {
       <p class="mt-2 text-xs text-ink-muted" data-not-evaluated>{{ 'COMPLIANCE.HEATMAP.NOT_EVALUATED' | translate: { count: notEvaluated() } }}</p>
       }
@@ -99,6 +97,9 @@
     </ul>
     }
 
+    <!-- MD-485 · La nota «Matriz residual: aún no disponible» se oculta hasta que la matriz exista. -->
+    @if (residualAvailable) {
     <p class="mt-auto border-t border-line pt-4 text-xs text-ink-faint">{{ 'COMPLIANCE.HEATMAP.RESIDUAL_NOTE' | translate }}</p>
+    }
   </div>
 </div>

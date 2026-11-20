@@ -1,9 +1,5 @@
 <div class="flex flex-col gap-4">
 
-  @if (notice(); as n) {
-  <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-ok text-ink" role="status"><span>{{ n }}</span>
-  </div>
-  }
   @if (error(); as e) {
   <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ e }}</span>
   </div>

@@ -26,7 +26,7 @@ export interface BannerFramework {
       <div class="relative flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div class="min-w-0">
           <p class="text-xs font-semibold" data-banner-eyebrow>{{ eyebrow() }}</p>
-          <h1 class="mt-1 truncate text-3xl font-semibold leading-tight">{{ title() }}</h1>
+          <h1 class="mt-1 truncate text-2xl font-semibold leading-tight">{{ title() }}</h1>
           @if (service() || frameworks().length) {
             <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
               @if (service(); as name) {

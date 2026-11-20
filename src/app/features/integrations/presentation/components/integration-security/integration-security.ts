@@ -22,7 +22,7 @@ import { securityIcon } from '@features/integrations/domain/utils/integration-lo
           <li>
             <app-card class="h-full" data-test-security>
               <div class="flex items-start gap-3">
-                <span class="material-symbols-rounded text-[22px] text-action" aria-hidden="true" data-test-security-icon>{{ icon(s.topic) }}</span>
+                <span class="material-symbols-rounded text-[24px] text-action" aria-hidden="true" data-test-security-icon>{{ icon(s.topic) }}</span>
                 <div class="min-w-0">
                   <h3 class="text-sm font-semibold text-ink">{{ labels.of('INTEGRATIONS.SECURITY_TOPIC', s.topic) }}</h3>
                   <p class="mt-1 text-sm text-ink-muted">{{ s.text }}</p>

@@ -12,7 +12,8 @@ import { CatalogService } from '@shared/domain/services/catalog.service';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { Card } from '@shared/presentation/components/card/card';
 import { Stepper, StepperItem } from '@shared/presentation/components/stepper/stepper';
-import { Modal } from '@shared/presentation/components/modal/modal';
+import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
+import { ProgressLine } from '@shared/presentation/components/progress-line/progress-line';
 import { ChipOption, OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import {
   ALL_TRUST_CRITERIA,
@@ -34,6 +35,7 @@ import { Badge } from '@shared/presentation/components/badge/badge';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 interface Catalogs {
   type: CatalogOption[];
@@ -103,7 +105,7 @@ type SubserviceTextKey = 'service_provided' | 'responsibility';
 
 @Component({
   selector: 'app-service-form',
-  imports: [Badge, OptionChips, RouterLink, TranslatePipe, RiskWizard, EmptyState, Modal, Stepper, Card, Skeleton, SkeletonRegion, Busy, BusyFields],
+  imports: [Badge, OptionChips, RouterLink, TranslatePipe, RiskWizard, EmptyState, FormModal, ProgressLine, Stepper, Card, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './service-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -117,6 +119,7 @@ export class ServiceFormView implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
 
   readonly steps = STEPS;
@@ -468,6 +471,8 @@ export class ServiceFormView implements OnInit {
         if (this.userId) this.drafts.clear(this.userId);
         this.saved.set(service);
         this.systemFile.set(null);
+        // Al crear, la cadena sigue con los riesgos: el aviso confirma que el servicio ya existe. Al editar, la pantalla «Listo» ya lo dice.
+        if (creating) this.toast.showSuccess(this.translate.instant('SERVICES.FORM.CREATED', { name: service.name }));
         // Primero se refresca la sesión (el siguiente paso del onboarding lo calcula el backend) y
         // solo después se muestra «¡Listo!»: así Inicio nunca enseña por un instante el paso anterior.
         this.auth.validate().subscribe(() => {
