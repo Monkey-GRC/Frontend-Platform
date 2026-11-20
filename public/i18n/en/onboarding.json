@@ -9,7 +9,7 @@
       "MODEL": "Business model",
       "INCORPORATION": "Incorporated in",
       "CLIENTS": "Clients in",
-      "MATURITY": "Compliance level",
+      "MATURITY": "Compliance maturity",
       "REGULATIONS": "Regulations that apply to you"
     },
     "STEPS": {
@@ -21,13 +21,13 @@
     },
     "LOAD_ERROR_TITLE": "We couldn't load the form",
     "LOAD_ERROR_BODY": "Check your connection and try again. What you wrote wasn't lost.",
-    "S1_TITLE": "Organizational context",
-    "S1_BODY": "This information defines the scope and recommendations of the compliance program.",
+    "S1_TITLE": "Company context",
+    "S1_BODY": "We use this to fit controls and recommendations to your company.",
     "LEGAL_NAME": "Legal name",
     "LEGAL_NAME_HELP": "Monkey registered it when creating your account, so it can't be changed here.",
     "DESC_LABEL": "What does your company do?",
     "DESC_PLACEHOLDER": "For example: We develop billing software for small businesses in Latin America.",
-    "DESC_ERROR": "Briefly describe the organization's activity.",
+    "DESC_ERROR": "Write what your company does.",
     "DESC_HELP": "One or two sentences are enough.",
     "S2_TITLE": "Organization size",
     "S2_BODY": "It allows sizing the scope of the compliance program.",
@@ -53,8 +53,8 @@
     "COUNTRY_HINT": "Choose at least one country.",
     "S5_TITLE": "Compliance maturity",
     "S5_BODY": "It establishes the starting point of the compliance program.",
-    "MATURITY_LABEL": "The organization's compliance maturity level",
-    "MATURITY_ARIA": "Compliance level",
+    "MATURITY_LABEL": "How mature is your company in compliance?",
+    "MATURITY_ARIA": "Compliance maturity",
     "REGULATIONS_LABEL": "Which data protection laws or standards apply to you?",
     "REGULATIONS_HELP": "Choose all that apply. If none, choose “None”.",
     "REGULATIONS_ARIA": "Regulations",
@@ -62,9 +62,10 @@
     "REVIEW_TITLE": "Review",
     "REVIEW_BODY": "Check the details and save them. You can edit them later.",
     "SAVE_AND_CONTINUE": "Save and continue",
-    "SAVE_ERROR": "We couldn't save your information. Please try again.",
+    "SAVE_ERROR": "We couldn't save your information. Try again.",
     "FORBIDDEN_TITLE": "The administrator completes this",
     "FORBIDDEN_BODY": "Your company's context is declared by your company's administrator. Once they do, you'll see here what they described.",
-    "FORBIDDEN_CTA": "Back to home"
+    "FORBIDDEN_CTA": "Back to home",
+    "SAVED": "Your company context is saved."
   }
 }

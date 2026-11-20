@@ -1,6 +1,6 @@
 {
   "TECHNICAL_CONTROL": {
-    "LOAD_ERROR": "We couldn't load this screen. Check your connection and try again.",
+    "LOAD_ERROR": "We could not load the connection options. Check your connection and try again.",
     "CRUMB_SERVICE": "Service",
     "CRUMB_CONNECTION": "Connection",
     "NEW_CONNECTION": "New connection",
@@ -55,7 +55,7 @@
       "LAST_REVIEW": "Last automatic review: {{when}}",
       "COMPLETED": "Assessment completed.",
       "CANCELLED": "The assessment was cancelled. You can start it again.",
-      "FAILED": "We couldn't complete the assessment. Please try again."
+      "FAILED": "We couldn't complete the assessment. Try again."
     },
     "CONNECT": {
       "TITLE": "Connect {{name}}",
@@ -65,10 +65,10 @@
       "SUBTITLE": "Choose what you want to connect to. When you finish, Monkey shows you the assets it found.",
       "COMING_SOON": "Coming soon",
       "AVAILABLE": "Available",
-      "HOW_AGENT": "You install a lightweight Monkey program on the machine. You don't need to give any passwords.",
+      "HOW_AGENT": "You install the Monkey probe on the machine. No passwords needed.",
       "BLOCKED_ARIA": "{{name}}, not available, coming soon",
       "SERVERS_TITLE": "Servers, databases and devices",
-      "SERVERS_HINT": "They connect with the probe and are not integrations: they stay in each service's connections."
+      "SERVERS_HINT": "They connect by installing the probe and are managed in each service's connections."
     },
     "DETAIL": {
       "LOAD_ERROR_TITLE": "We couldn't load this connection",
@@ -94,17 +94,19 @@
       "REMOVE_BODY": "We will stop assessing it and it will no longer appear in your list. What we already measured is kept as history. If you want it back, you will have to register it again.",
       "REMOVE_YES": "Yes, remove it",
       "AUTO_EVALUATION": "Automatic assessment",
-      "DEMO": "Demo mode: the connection was checked in a simulated way, no real asset is being assessed.",
+      "DEMO": "Demo mode: the connection was checked in a simulated way and no real asset is being assessed. Contact Monkey to turn on real checks.",
       "HOW_OFTEN": "How often do you want it assessed?",
       "CHANGE_FREQUENCY": "Change frequency",
       "CHECK_AGAIN": "Check again",
       "CHECK_CONNECTION": "Check connection",
-      "REMOVE_ERROR": "We couldn't remove the asset. Please try again.",
-      "EVALUATE_ERROR": "We couldn't start the assessment. Please try again.",
+      "REMOVE_ERROR": "We couldn't remove the asset. Try again.",
+      "EVALUATE_ERROR": "We couldn't start the assessment. Try again.",
       "CONNECT_ERROR": "We couldn't connect to your account.",
       "CHECK_DATA": "Check the details and try again.",
-      "STEP_ERROR": "We couldn't complete this step. Please try again.",
-      "RESUME_HINT": "This connection was left half-way. Continue where you left off."
+      "STEP_ERROR": "We couldn't complete this step. Try again.",
+      "RESUME_HINT": "This connection was left half-way. Continue where you left off.",
+      "REMOVED": "Connection “{{name}}” removed.",
+      "SCHEDULED": "Evaluation frequency saved."
     },
     "EDIT": {
       "TITLE": "Edit this asset",
@@ -113,37 +115,40 @@
       "IMPORTANCE_ARIA": "Asset importance",
       "ACCOUNT": "Your AWS account number",
       "ACCOUNT_GCP": "Your Google Cloud project ID",
-      "ACCOUNT_GCP_HELP": "You see it in the project picker of the Google Cloud console. It is the ID, not the name or the number. If you change it, you will need to run the setup command again.",
+      "ACCOUNT_GCP_HELP": "You can see it in the project picker of the Google Cloud console. It is the ID, not the name or the number. If you change it, run the setup command again.",
+      "ACCOUNT_GCP_PLACEHOLDER": "my-project-123",
       "REGIONS": "Regions to assess",
       "REGIONS_ARIA": "AWS regions",
       "ROLE": "The role you created",
-      "ROLE_HELP": "It's the “RoleArn” value of the stack in AWS. Change it only if you created another role.",
+      "ROLE_HELP": "It's the “RoleArn” value in the Outputs tab of the stack in AWS.",
       "KEYS_HELP": "For security we don't show the saved keys. Leave them empty to keep them, or paste the two new ones to replace them.",
       "KEY_ID_ARIA": "Access key identifier",
       "KEY_ID_PLACEHOLDER": "Key identifier (AKIA…)",
       "SECRET": "Secret key",
       "CHANGES_CONNECTION": "You changed what is assessed, so after saving you will have to check the connection again. What we already measured is kept.",
       "EVALUATE_SAVE_FIRST": "Save your changes first so we evaluate with the new details.",
-      "SAVE_ERROR": "We couldn't save the changes. Please try again."
+      "SAVE_ERROR": "We couldn't save the changes. Try again.",
+      "SAVED": "Connection changes saved."
     },
     "PANEL": {
       "TITLE": "Give read-only access to your AWS account",
-      "INTRO": "You create a role that can only read your account's configuration. You don't share passwords or keys, and you can delete the role whenever you want.",
+      "INTRO": "You create a role that can only read your account's configuration. You don't share passwords or keys.",
       "DOWNLOAD": "Download the template",
       "PASTE_VALUES": "When AWS asks for the parameters, paste these two values:",
       "HINT_EXTERNAL_ID": "external identifier",
       "HINT_PRINCIPAL": "Monkey's identity",
       "COPIED": "Copied",
       "COPY": "Copy",
-      "MISSING_PRINCIPAL": "Monkey doesn't have the identity that assumes the role configured yet. Let us know before continuing.",
+      "MISSING_PRINCIPAL": "Monkey cannot generate the role details yet. Contact Monkey before continuing.",
       "ROLE_HELP": "It's the “RoleArn” value in the Outputs tab of the stack in AWS.",
+      "ROLE_PLACEHOLDER": "arn:aws:iam::123456789012:role/MonkeyReadOnly",
       "SAVING_ROLE": "Saving the role…",
       "CHECKING": "Checking access to your AWS account…",
-      "DOWNLOAD_ERROR": "We couldn't download the template. Please try again.",
+      "DOWNLOAD_ERROR": "We couldn't download the template. Try again.",
       "ROLE_REQUIRED": "Paste the “RoleArn” value AWS gave you when creating the stack.",
-      "SAVE_ROLE_ERROR": "We couldn't save the role. Please try again.",
-      "ACCESS_ERROR": "We couldn't access your account.",
-      "CHECK_ERROR": "We couldn't complete the check. Please try again."
+      "SAVE_ROLE_ERROR": "We couldn't save the role. Try again.",
+      "ACCESS_ERROR": "We could not access your account with that role. Check the “RoleArn” and check again.",
+      "CHECK_ERROR": "We couldn't complete the check. Try again."
     },
     "FORM": {
       "NAME_HINT": "Give it a name so you can recognize it later.",
@@ -160,11 +165,11 @@
       "ALSO_SUPPORTS_HELP": "This way you don't register it twice. It's optional.",
       "CHECK_MARKED": "Check the marked fields and try again.",
       "METHOD_NOT_APPLICABLE": "That connection type isn't available for this platform. Choose another one.",
-      "REGISTER_ERROR": "We couldn't register the asset. Please try again."
+      "REGISTER_ERROR": "We couldn't register the asset. Try again."
     },
     "SERVER_FORM": {
       "TITLE": "Your server's details",
-      "NOTE": "Here you only tell us your server's name and which system it runs. We don't ask for passwords or keys: in the next step we give you a command with this server's key, shown only once.",
+      "NOTE": "We only ask for the server name and system. Next we give you a command with its key, shown only once.",
       "NAME_LABEL": "What do you call it?",
       "NAME_PLACEHOLDER": "For example: Main database server",
       "VERSION_LABEL": "Which version of {{name}} does it run?",
@@ -173,11 +178,12 @@
       "VERSION_HINT": "Choose your server's version.",
       "VERSIONS_ERROR": "We couldn't load the available versions. Check your connection and try again.",
       "REGISTER": "Register server",
-      "REGISTER_ERROR": "We couldn't register the server. Try again."
+      "REGISTER_ERROR": "We couldn't register the server. Try again.",
+      "CREATED": "Server “{{name}}” registered."
     },
     "AGENT": {
       "TITLE": "Install the Monkey probe on this server",
-      "INTRO": "The probe is a lightweight program that reads your server's configuration ({{version}}) and sends it to Monkey to be assessed. It only reads: it changes nothing.",
+      "INTRO": "The probe is a program that reads your server's configuration ({{version}}) and sends it to Monkey to be assessed. It only reads: it changes nothing.",
       "LOADING": "Checking the installation status…",
       "BEFORE_TITLE": "Before you start",
       "BEFORE_ADMIN_LINUX": "Sign in to the server as an administrator: as root, or as a user who can use sudo.",
@@ -202,9 +208,9 @@
       "REGENERATE_CONFIRM": "A new key is created and the previous one stops working. If you already ran the previous command on the server, you'll need to run the new one.",
       "REGENERATE_YES": "Yes, generate a new one",
       "NOT_READY": "The command was already shown or has expired. Generate a new one to continue.",
-      "UNAVAILABLE": "This Monkey installation isn't ready to connect servers yet. Let your Monkey contact know.",
+      "UNAVAILABLE": "Server connections are not available in your account yet. Contact Monkey to enable them.",
       "IN_PROGRESS": "We're already preparing this server's key. Wait a few seconds.",
-      "WAITING_AUTO": "We look for it on our own every few minutes: you don't need to do anything else. When it connects, this status changes by itself.",
+      "WAITING_AUTO": "We check every few minutes; the status changes by itself when it connects.",
       "CHECK_NOW": "Check now",
       "CHECKING": "Checking…",
       "CHECK_IN_PROGRESS": "We're already checking this server. You'll see the result in a moment.",
@@ -221,7 +227,7 @@
       "SEARCH_AGAIN": "Search again",
       "LOAD_ERROR": "We couldn't read the assets of your account.",
       "DEMO_TITLE": "Demo mode.",
-      "DEMO_BODY": "The connection was checked in a simulated way, without looking at your account, so there are no assets to show. With the real check, they will appear here.",
+      "DEMO_BODY": "The connection was checked in a simulated way, without looking at your account, so there are no assets to show. Contact Monkey to turn on real checks; the assets will appear here.",
       "NOT_SCANNED": "We haven't looked at your account yet. When you check the connection, we'll show you here what we found.",
       "INCOMPLETE": "The list may be incomplete: we couldn't read {{services}}. Check that the role has read-only permissions and check again.",
       "EMPTY_ONE": "We didn't find servers, databases, storage or functions in the region you chose. If you expected to see something, review the regions in “Edit”.",
@@ -250,7 +256,7 @@
       "NOT_INCLUDED_IN_SERVICE": "Not included in this service",
       "REMOVE_FROM_SERVICE": "Remove from the service",
       "ADD_TO_SERVICE": "Include in the service",
-      "SAVE_ERROR": "We couldn't save the service's assets. Please try again.",
+      "SAVE_ERROR": "We couldn't save the service's assets. Try again.",
       "OS_UNKNOWN": "Operating system not identified",
       "ENGINE_UNKNOWN": "Engine not identified",
       "FUNCTION": "Function",
@@ -299,7 +305,8 @@
       "TABLE": "Assets the connection found in your account",
       "GROUP_IN": "In this service",
       "GROUP_OUT": "Outside the service",
-      "DETAIL_SUBTITLE": "{{code}} · {{kind}}"
+      "DETAIL_SUBTITLE": "{{code}} · {{kind}}",
+      "SAVED": "Service assets saved: {{count}} included."
     },
     "WIZARD": {
       "TITLE_GENERIC": "Connect a platform",
@@ -331,7 +338,7 @@
           "TITLE": "Give Monkey read-only access",
           "SUBTITLE": "Run this command in Cloud Shell, in the project {{project}}.",
           "COMMAND": "Setup command",
-          "NO_COMMAND": "Monkey cannot build the command for your project yet. Let us know before you continue.",
+          "NO_COMMAND": "Monkey cannot generate the command for your project yet. Contact Monkey before continuing.",
           "NO_KEYS": "The command includes no keys or passwords, and you can revoke the access any time from your project.",
           "DONE": "I ran the command"
         },
@@ -361,7 +368,7 @@
         "TITLE": "Leave the connection?",
         "DISCARD": "If you leave now, what you have so far on this connection will be lost.",
         "SAVED": "Your progress is saved. You can continue this connection from the service connections.",
-        "STAY": "Continue",
+        "STAY": "Keep connecting",
         "EXIT": "Leave",
         "EXIT_DISCARD": "Leave without saving"
       },
@@ -390,7 +397,7 @@
         },
         "ACCESS": {
           "ROLE_TITLE": "Give Monkey read-only access",
-          "ROLE_SUBTITLE": "Create a role in your AWS account that can only read. You can delete it whenever you want.",
+          "ROLE_SUBTITLE": "Create a role in your AWS account that can only read.",
           "NO_KEYS": "You share no passwords or keys, and you can delete the role whenever you want.",
           "DONE": "I created the role",
           "KEYS_TITLE": "Paste the access key",

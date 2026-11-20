@@ -1,10 +1,9 @@
 {
   "TEAM": {
-    "TITLE": "Team",
-    "INTRO": "Build your team and manage who has access. Each person gets an invitation by email to activate their account.",
-    "INTRO_OWN": "Here you see your team of delegates and can add more people. Each one gets an invitation by email to activate their account.",
+    "INTRO": "Invite your company's people and set their role. Each gets an email to activate their account.",
+    "INTRO_OWN": "Your delegates. Each person you invite gets an email to activate their account.",
     "YOU": "You",
-    "NO_NAME": "No name: fix it to identify them.",
+    "NO_NAME": "No name. Edit it to recognize this person.",
     "LOAD_ERROR": "We could not load the team.",
     "TABLE_CAPTION": "Team members",
     "EMPTY_TITLE": "There is nobody on the team yet",
@@ -25,7 +24,6 @@
       "STATUS": "Status",
       "GROUP": "Group",
       "AFFILIATION": "Internal or external",
-      "ALL": "All",
       "CLEAR": "Clear filters"
     },
     "LIST": {
@@ -33,8 +31,8 @@
       "NEVER": "Has not signed in yet"
     },
     "GROUPS": {
-      "INTRO_ADMIN": "Organize your people in groups. Owners live in a group of owners that you lead; each owner leads, when they want, a team of delegates.",
-      "INTRO_OWN": "Your team of delegates. Until you create it, you work alone; a delegate needs a team.",
+      "INTRO_ADMIN": "Owners form groups that you lead; each owner can lead a team of delegates.",
+      "INTRO_OWN": "Your team of delegates. Create it to invite delegates.",
       "KIND_RESPONSABLES": "Owners group",
       "KIND_TEAM": "Team of delegates",
       "RENAME": "Rename",
@@ -65,9 +63,9 @@
       "MOVE_CONFIRM_BODY": "They carry out {{count}} controls. If you move them, those controls will have no executor and will stay with their current owner.",
       "MOVE_CONFIRM": "Move anyway",
       "NOTICE": {
-        "CREATED": "Done, we created the group “{{name}}”.",
-        "RENAMED": "Done, the group is now called “{{name}}”.",
-        "MOVED": "Done, we moved {{name}} to another team."
+        "CREATED": "We created the group “{{name}}”.",
+        "RENAMED": "The group is now called “{{name}}”.",
+        "MOVED": "We moved {{name}} to another team."
       },
       "ERROR": {
         "MOVE_TARGET": "We could not move the person: the destination team does not exist or its owner is no longer active."
@@ -86,7 +84,7 @@
         "LEADER": "Leader",
         "MEMBERS": "People"
       },
-      "NEW_SUBTITLE": "Create a group of responsible people or the team of one of them.",
+      "NEW_SUBTITLE": "Create an owners group or the team of one of them.",
       "DETAIL_SUBTITLE": "Who leads the group and the people in it."
     },
     "ROLE": {
@@ -110,25 +108,23 @@
       "ALREADY_IN_TEAM": "There is already a user registered with that email: {{who}} ({{role}}).",
       "FIX_NAME": "Fix their name",
       "ROLE": "Role",
-      "SUBMIT": "Invite",
-      "OPEN": "Invite",
+      "SUBMIT": "Send invitation",
+      "OPEN": "Invite a person",
       "AFFILIATION": "Relationship with the company",
       "INTERNAL": "Internal",
       "EXTERNAL": "External",
-      "TEAM_LABEL": "Works with (responsible)",
-      "TEAM_PICK": "Choose a responsible",
+      "TEAM_LABEL": "Works with (owner)",
+      "TEAM_PICK": "Choose an owner",
       "TEAM_OPTION": "{{leader}} · {{team}}",
-      "RESPONSABLES_GROUP": "Owners group",
-      "RESPONSABLES_GROUP_DEFAULT": "Default",
-      "NO_TEAMS_ADMIN": "No responsible has a team yet. A delegate needs a responsible with a team: create one's team first from the org chart.",
-      "NO_TEAM_OWN": "You do not have a team yet. A delegate needs a team: create yours first from your org chart.",
+      "NO_TEAMS_ADMIN": "No owner has a team yet. Create one from the org chart to invite delegates.",
+      "NO_TEAM_OWN": "You do not have a team yet. Create it to invite delegates.",
       "GO_TO_GROUPS": "Go to the org chart",
       "HELP_ADMIN_EMPRESA": "An administrator manages the team, assigns the owner of each control and validates what is uploaded, like you.",
       "HELP_RESPONSABLE": "An owner is in charge of controls, reviews what their team uploads and splits the execution among their delegates.",
       "HELP_DELEGADO": "A delegate carries out the controls their owner assigns and uploads the evidence. Choose whether they are from your company or external.",
       "HELP_AUDITOR": "An auditor reviews everything in your company read-only and leaves observations.",
       "TEAM_NAME": "Team name (optional)",
-      "TEAM_NAME_HELP": "If you leave it empty it will be called «Team of» plus their name.",
+      "TEAM_NAME_HELP": "If you leave it empty it will be called “Team of” plus their name.",
       "SUBTITLE": "They will get an email to activate their account."
     },
     "INVITATION": {
@@ -153,18 +149,18 @@
       "RESET_MFA_BODY": "Their sessions are closed and, on their next sign-in, they will set up the second factor again. Use it only if they lost their phone and their recovery codes."
     },
     "NOTICE": {
-      "INVITED": "Done, we created the account.",
-      "CODE_REISSUED": "Done, we issued a new code. The previous one no longer works.",
-      "NAME_SAVED": "Done, we saved the name.",
-      "DEACTIVATED": "Done, we deactivated the account.",
-      "REACTIVATED": "Done, we reactivated the account.",
-      "MFA_RESET": "Done, we removed the second factor."
+      "INVITED": "We created the account.",
+      "CODE_REISSUED": "We issued a new code. The previous one no longer works.",
+      "NAME_SAVED": "We saved the name.",
+      "DEACTIVATED": "We deactivated the account.",
+      "REACTIVATED": "We reactivated the account.",
+      "MFA_RESET": "We removed the second factor."
     },
     "ERROR": {
-      "SAVE": "We could not save the change. Please try again.",
-      "USER_LIMIT": "You reached the maximum number of contracted users. Contact Monkey.",
-      "USER_LIMIT_COUNTS": "You reached the maximum number of contracted users ({{count}} of {{max}}). Contact Monkey.",
-      "NO_TEAM": "This owner does not have a team of delegates yet. Their team has to be created first.",
+      "SAVE": "We could not save the change. Try again.",
+      "USER_LIMIT": "You reached the contracted user limit. Deactivate an account or contact Monkey to increase it.",
+      "USER_LIMIT_COUNTS": "You reached the contracted user limit ({{count}} of {{max}}). Deactivate an account or contact Monkey to increase it.",
+      "NO_TEAM": "This owner has no team of delegates yet. Create it from the org chart.",
       "TEAM_NOT_CREATED": "The person was created, but we could not create their team. Create it from the org chart."
     },
     "PEOPLE": {
@@ -173,7 +169,7 @@
     "DETAIL": {
       "TITLE": "Person details",
       "EMAIL": "Email",
-      "RESPONSIBLE": "Responsible",
+      "RESPONSIBLE": "Owner",
       "MFA": "Second factor",
       "YES": "Yes",
       "NO": "No",
@@ -181,7 +177,7 @@
       "SUBTITLE": "Account details and available actions.",
       "PROFILE": "Profile",
       "SUMMARY": "Summary",
-      "GENERAL": "General information",
+      "GENERAL": "Account",
       "ACTIONS": "Available actions",
       "COPY_EMAIL": "Copy email",
       "COPIED": "Email copied",
@@ -193,8 +189,8 @@
         "UNAVAILABLE": "No data yet"
       },
       "ACTION_DESC": {
-        "EDIT_NAME": "Correct this person’s first and last name.",
-        "RESEND_INVITATION": "Sends the invitation to the account’s email again.",
+        "EDIT_NAME": "Correct this person's first and last name.",
+        "RESEND_INVITATION": "Sends the invitation to the account's email again.",
         "RESET_MFA": "Ends their sessions; on their next sign-in they will set up the second factor again.",
         "DEACTIVATE": "Ends their session at once and keeps them out until you reactivate them.",
         "REACTIVATE": "Gives them access to their account again."
@@ -202,45 +198,45 @@
     },
     "ORG": {
       "TITLE": "Org chart",
-      "INTRO_ADMIN": "Who reports to whom: administrators on top, each responsible's team of delegates below them, and auditors apart. Every responsible has a team with whatever name you like.",
-      "INTRO_OWN": "Your team: you as a responsible and the delegates who work with you.",
+      "INTRO_ADMIN": "Who reports to whom: administrators on top, each owner with their team of delegates, and auditors apart.",
+      "INTRO_OWN": "Your team: you as an owner and the delegates who work with you.",
       "SHOW_INACTIVE": "Show deactivated",
-      "EMPTY": "There is nobody on the team yet. Invite the first person from «People».",
+      "EMPTY": "There is nobody on the team yet. Invite the first person from “People”.",
       "ADMINS": "Administration",
-      "RESPONSIBLES": "Responsibles and their teams",
+      "RESPONSIBLES": "Owners and their teams",
       "AUDITORS": "Auditors",
       "AUDITORS_HELP": "Outside the chain: they read everything read-only and are not given controls.",
-      "ORPHANS": "Delegates with no responsible in sight",
-      "ORPHANS_HELP": "Their responsible is deactivated. Move them to another responsible from «People» when you need to.",
+      "ORPHANS": "Delegates whose owner is deactivated",
+      "ORPHANS_HELP": "Their owner is deactivated. Move them to another owner from “People” when you need to.",
       "DELEGATES_COUNT": "Delegates: {{count}}",
       "TEAM_OF": "Team:",
       "TEAM_NAME": "Team name",
       "RENAME": "Rename",
       "DEFAULT_TEAM_NAME": "{{name}}'s team",
       "NO_TEAM_ADMIN": "They have no team yet; without one, delegates cannot be assigned to them.",
-      "NO_TEAM_OWN": "You do not have a team yet. A delegate needs a team: create yours first from your org chart.",
+      "NO_TEAM_OWN": "You do not have a team yet. Create it to invite delegates.",
       "CREATE_TEAM": "Create their team",
       "CREATE_OWN_TEAM": "Create my team",
       "CREATE_TEAM_SAVE": "Create team",
       "NO_DELEGATES": "No delegates yet.",
-      "MOVE": "Change responsible",
-      "MOVE_TO": "New responsible",
-      "MOVE_PICK": "Choose a responsible",
+      "MOVE": "Change owner",
+      "MOVE_TO": "New owner",
+      "MOVE_PICK": "Choose an owner",
       "MOVE_SUBMIT": "Move",
-      "NO_DESTINATION": "There is no other responsible with a team to move them to.",
+      "NO_DESTINATION": "There is no other owner with a team to move them to.",
       "DESTINATION": "{{leader}} · {{team}}",
-      "MOVE_CONFIRM_TITLE": "Change {{name}}'s responsible?",
-      "MOVE_CONFIRM_BODY": "They run {{count}} controls. If you change them, those controls will have no executor and stay with their current responsible.",
+      "MOVE_CONFIRM_TITLE": "Change {{name}}'s owner?",
+      "MOVE_CONFIRM_BODY": "They run {{count}} controls. If you change them, those controls will have no executor and stay with their current owner.",
       "MOVE_CONFIRM": "Change anyway",
       "WORKLOAD": "Controls: {{count}}",
       "PROGRESS": "Progress: {{percent}} %",
       "NOTICE": {
-        "CREATED": "Done, we created the team «{{name}}».",
-        "RENAMED": "Done, the team is now called «{{name}}».",
-        "MOVED": "Done, we changed {{name}}'s responsible."
+        "CREATED": "We created the team “{{name}}”.",
+        "RENAMED": "The team is now called “{{name}}”.",
+        "MOVED": "We changed {{name}}'s owner."
       },
       "ERROR": {
-        "MOVE_TARGET": "We couldn't move the person: the destination team doesn't exist or its responsible is no longer active."
+        "MOVE_TARGET": "We could not move the person: the destination team does not exist or its owner is no longer active."
       },
       "HIDE": "Hide their team",
       "SHOW": "Show their team"

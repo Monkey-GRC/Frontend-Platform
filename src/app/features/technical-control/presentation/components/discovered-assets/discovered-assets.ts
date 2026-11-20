@@ -14,6 +14,7 @@ import { Badge } from '@shared/presentation/components/badge/badge';
 import { Asset, DiscoveredAsset, DiscoveredAssetsPage } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { Busy } from '@shared/presentation/directives/busy';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 const SERVICE_NAME: Record<string, string> = {
   ec2: 'TECHNICAL_CONTROL.ASSETS.SERVICE_NAME.EC2',
@@ -60,6 +61,7 @@ export class DiscoveredAssets {
   private readonly api = inject(TechnicalControlService);
   private readonly catalogs = inject(CatalogService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
 
   readonly asset = input.required<Asset>();
@@ -205,6 +207,7 @@ export class DiscoveredAssets {
       next: (r) => {
         this.saving.set(false);
         this.original.set(new Set(this.selected()));
+        this.toast.showSuccess(this.translate.instant('TECHNICAL_CONTROL.ASSETS.SAVED', { count: r.included }));
         this.page.update((p) => (p ? { ...p, included_count: r.included, items: p.items.map((a) => ({ ...a, in_service: this.selected().has(a.id) })) } : p));
       },
       error: (error) => {

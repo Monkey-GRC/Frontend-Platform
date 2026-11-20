@@ -19,6 +19,7 @@ import { targetValue } from '@shared/presentation/utils/event-target';
 import { Select } from '@shared/presentation/components/select/select';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -35,6 +36,7 @@ export class ResponsiblesView implements OnInit {
   protected readonly targetValue = targetValue;
   private readonly api = inject(ResponsibleService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
 
@@ -44,7 +46,6 @@ export class ResponsiblesView implements OnInit {
   readonly stage = signal<Stage>('loading');
   readonly items = signal<Responsible[]>([]);
   readonly saving = signal(false);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   // Tabla: la columna de acciones solo existe para quien administra.
@@ -60,6 +61,8 @@ export class ResponsiblesView implements OnInit {
   readonly addOpen = signal(false);
   readonly newType = signal('');
   readonly newName = signal('');
+  /** MD-485 · Hay un tipo elegido o un nombre escrito sin enviar: cerrar pide confirmar antes de descartarlo. */
+  readonly addDirty = computed(() => !!this.newType() || !!this.newName().trim());
   readonly canAdd = computed(() => !!this.newType() && !!this.newName().trim());
 
   // Cambio de persona y baja
@@ -139,20 +142,23 @@ export class ResponsiblesView implements OnInit {
       next: () => {
         this.saving.set(false);
         done();
-        this.notice.set(this.translate.instant(noticeKey));
+        this.toast.showSuccess(this.translate.instant(noticeKey));
         this.load();
       },
       // `message` ya viene traducido por el backend (409: ya existe, en uso, organización sin declarar; 422: campos).
       error: (e) => {
         this.saving.set(false);
         failed?.();
-        this.error.set(apiErrorMessage(e, this.translate.instant('COMPLIANCE.RESPONSIBLES.SAVE_ERROR')));
+        // En el formulario de alta el error queda junto a los campos; el de una acción de la tabla es un aviso pasajero (toast).
+        const fallback = this.translate.instant('COMPLIANCE.RESPONSIBLES.SAVE_ERROR');
+        const message = apiErrorMessage(e, fallback);
+        if (this.addOpen()) this.error.set(message);
+        else this.toast.showError(fallback, message === fallback ? '' : message);
       },
     });
   }
 
   private reset(): void {
-    this.notice.set(null);
     this.error.set(null);
   }
 }

@@ -34,9 +34,6 @@
   </div>
   }
 
-  @if (notice(); as n) {
-  <app-card tone="ok" role="status" data-notice><p class="text-sm text-ink">{{ n }}</p></app-card>
-  }
 
   @if (!evaluationDefined()) {
   <app-card tone="warn" role="note" data-not-defined>

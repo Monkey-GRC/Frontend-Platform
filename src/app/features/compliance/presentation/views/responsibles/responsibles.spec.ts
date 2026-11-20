@@ -8,6 +8,9 @@ import { Responsible } from '@shared/domain/models/risk.models';
 import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
 import { ResponsiblesView } from './responsibles';
 import { isSelect, optionValues, optionsText, pickOption } from '@shared/presentation/components/select/select.testing';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const CISO: Responsible = { id: 'p1', type: 'ciso', person_name: 'Marta Ruiz', is_in_use: true };
 const IT: Responsible = { id: 'p2', type: 'it', person_name: 'Andrés Pardo', is_in_use: false };
@@ -99,7 +102,7 @@ describe('ResponsiblesView', () => {
     click('[data-test-add]');
     expect(api.create).toHaveBeenCalledOnceWith('coo', 'Luisa Mejía');
     expect(api.list).toHaveBeenCalledTimes(2);
-    expect(text()).toContain('COMPLIANCE.RESPONSIBLES.CREATED');
+    expect(toastText()).toContain('COMPLIANCE.RESPONSIBLES.CREATED');
     expect(el().querySelector('app-form-modal [role="dialog"]')).toBeNull(); // the modal closes once saved
   });
 
@@ -186,5 +189,17 @@ describe('ResponsiblesView', () => {
     api.list.and.returnValue(of([CISO]));
     click('[data-test-retry]');
     expect(text()).toContain('Marta Ruiz');
+  });
+
+  it('guards the add form only with a type chosen or a name written (MD-485)', () => {
+    setup('admin_empresa');
+    const view = fixture.componentInstance;
+    view.openAdd();
+    fixture.detectChanges();
+    expect(view.addDirty()).toBeFalse();
+    view.newName.set('Ana Pérez');
+    expect(view.addDirty()).toBeTrue();
+    view.newName.set(' ');
+    expect(view.addDirty()).toBeFalse();
   });
 });

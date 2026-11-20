@@ -34,7 +34,7 @@ type Stage = 'loading' | 'error' | 'ready';
                   <button type="button" (click)="choose(s)" data-test-service
                     class="flex w-full items-center justify-between gap-3 rounded-control border border-line bg-surface px-4 py-3 text-left text-sm font-medium text-ink transition hover:border-action/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-action">
                     <span>{{ s.name }}</span>
-                    <span class="material-symbols-rounded text-[18px] text-ink-muted" aria-hidden="true">chevron_right</span>
+                    <span class="material-symbols-rounded text-[20px] text-ink-muted" aria-hidden="true">chevron_right</span>
                   </button>
                 </li>
               }

@@ -10,6 +10,9 @@ import { TeamService } from '@shared/domain/services/team.service';
 import { OrgWorkload } from '@features/team/domain/utils/team-org';
 import { TeamOrgChart } from './team-org-chart';
 import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const member = (id: string, role: TeamRole, name: string, over: Partial<TeamMember> = {}): TeamMember => ({
   id, email: `${id}@acme.co`, name, last_name: 'Pérez', role, status: 'active', is_mfa_enabled: true, last_login_at: null, created_at: '2026-10-01T00:00:00Z', ...over,
@@ -108,7 +111,7 @@ describe('TeamOrgChart', () => {
     click('[data-org-create-save]');
     expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Seguridad', leader_id: 'r1' });
     expect(changed).toBe(1);
-    expect(q('[data-org-notice]')).not.toBeNull();
+    expect(toastText()).toContain('TEAM.ORG.NOTICE');
   });
 
   it('the responsible creates their own team without a leader (it is them)', () => {
@@ -176,7 +179,7 @@ describe('TeamOrgChart', () => {
     click('[data-org-move]');
     type('[data-org-move-target]', 'g2');
     click('[data-org-move-save]');
-    expect(q('[data-org-error]')!.textContent).toContain('MOVE_TARGET');
+    expect(toastText()).toContain('MOVE_TARGET');
   });
 
   it('while the team loads shows a skeleton, and a retry if it fails', () => {

@@ -13,9 +13,9 @@
 
   @if (open()) {
   <!-- El fondo cierra el calendario al tocar fuera; en pantallas angostas, además, lo atenúa. -->
-  <div class="fixed inset-0 z-[100002] bg-scrim sm:bg-transparent" (click)="close()" aria-hidden="true" data-date-backdrop></div>
+  <div class="fixed inset-0 z-(--z-dialog) bg-scrim sm:bg-transparent" (click)="close()" aria-hidden="true" data-date-backdrop></div>
   <div role="dialog" aria-modal="true" [attr.aria-label]="monthLabel()" data-date-popover (keydown)="onKey($event)"
-    class="fixed z-[100003] w-[19rem] rounded-card border border-line bg-surface p-3 shadow-float max-sm:inset-x-4 max-sm:bottom-4 max-sm:w-auto"
+    class="fixed z-(--z-popover) w-[19rem] rounded-card border border-line bg-surface p-3 shadow-float max-sm:inset-x-4 max-sm:bottom-4 max-sm:w-auto"
     [style.top.px]="position()?.top ?? null" [style.left.px]="position()?.left ?? null">
     <div class="flex items-center justify-between gap-1 pb-2">
       <button type="button" (click)="shift(-1)" [attr.aria-label]="(mode() === 'days' ? 'COMMON.DATE_PICKER.PREV_MONTH' : mode() === 'months' ? 'COMMON.DATE_PICKER.PREV_YEAR' : 'COMMON.DATE_PICKER.PREV_YEARS') | translate" data-date-prev
@@ -23,7 +23,7 @@
       <!-- El título es un botón: del día lleva a los años y, de ahí, a los meses y a los días. -->
       <button type="button" (click)="titleClick()" data-date-month [attr.aria-label]="'COMMON.DATE_PICKER.CHOOSE_YEAR' | translate" aria-live="polite"
         class="inline-flex items-center gap-1 rounded-control px-2.5 py-1.5 text-sm font-semibold text-ink hover:bg-canvas">
-        {{ headerLabel() }}<span class="material-symbols-rounded text-[18px]" aria-hidden="true">{{ mode() === 'years' ? 'expand_less' : 'expand_more' }}</span>
+        {{ headerLabel() }}<span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ mode() === 'years' ? 'expand_less' : 'expand_more' }}</span>
       </button>
       <button type="button" (click)="shift(1)" [attr.aria-label]="(mode() === 'days' ? 'COMMON.DATE_PICKER.NEXT_MONTH' : mode() === 'months' ? 'COMMON.DATE_PICKER.NEXT_YEAR' : 'COMMON.DATE_PICKER.NEXT_YEARS') | translate" data-date-next
         class="rounded-control p-2 text-ink-muted hover:bg-canvas"><span class="material-symbols-rounded text-[20px]" aria-hidden="true">chevron_right</span></button>

@@ -8,6 +8,7 @@ import { COMPLIANCE_ROUTE, COMPLIANCE_SERVICE_PARAM } from '@features/compliance
 import { RiskListItem, RiskMatrixData } from '@shared/domain/models/risk.models';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { riskLevelHeat } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
+import { ProgressLine } from '@shared/presentation/components/progress-line/progress-line';
 import { Tag } from '@shared/presentation/components/tag/tag';
 
 interface Cell {
@@ -22,11 +23,13 @@ interface Cell {
 // dio a sus riesgos y las vacías quedan neutras. Los riesgos sin evaluar no están en la matriz: se cuentan aparte. La residual no está: espera los datos de la fórmula (P22, MD-151).
 @Component({
   selector: 'app-risk-heatmap',
-  imports: [Tag, TranslatePipe, RouterLink],
+  imports: [Tag, TranslatePipe, RouterLink, ProgressLine],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './risk-heatmap.html',
 })
 export class RiskHeatmap {
+  /** MD-485 · La matriz residual aún no existe: su nota no se muestra hasta entonces. */
+  readonly residualAvailable = false;
   private readonly translate = inject(TranslateService);
   private readonly catalogs = inject(CatalogService);
 

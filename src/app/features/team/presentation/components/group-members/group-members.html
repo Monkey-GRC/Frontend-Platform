@@ -1,8 +1,4 @@
 <div data-test-members>
-  @if (notice(); as n) {
-  <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-ok" role="status" data-test-members-notice><span>{{ n }}</span>
-  </div>
-  }
   @if (error(); as e) {
   <div class="mb-3 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-members-error><span>{{ e }}</span>
   </div>

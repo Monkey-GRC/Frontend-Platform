@@ -10,6 +10,9 @@ import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { TeamPeopleView } from './team-people';
 import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const member = (over: Partial<TeamMember>): TeamMember => ({
   id: 'u0', email: 'x@acme.co', name: 'Persona', last_name: 'Prueba', role: 'responsable', status: 'active', is_mfa_enabled: true, last_login_at: null, created_at: '2026-10-28T00:00:00Z', ...over,
@@ -377,7 +380,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       api.resendInvitation.and.returnValue(of({ delivery_status: 'sent', expires_at: '2026-11-13T10:00:00Z' }));
       click('[data-test-reissue]');
       expect(api.resendInvitation).toHaveBeenCalledWith('pen');
-      expect(q('[data-test-invitation]').getAttribute('data-status')).toBe('sent');
+      expect(toastText()).toContain('TEAM.INVITATION.SENT_TITLE');
     });
 
     it('reactivates a deactivated account', () => {
@@ -455,14 +458,12 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       type('[data-test-last-name]', 'Pérez');
       const callsBefore = api.list.calls.count();
       click('[data-test-invite]');
-      const box = q('[data-test-invitation]');
-      expect(box.getAttribute('data-status')).toBe('sent');
-      expect(box.textContent).toContain('TEAM.INVITATION.SENT_TITLE');
+      // Sent: a toast with the recipient (MD-485); the box with «Reenviar» is only for a failed email.
+      expect(el().querySelector('[data-test-invitation]')).toBeNull();
+      expect(toastText()).toContain('TEAM.INVITATION.SENT_TITLE');
       expect(el().querySelector('[data-test-resend]')).toBeNull();
       expect(el().querySelector('[data-test-code-value]')).toBeNull();
       expect(api.list.calls.count()).toBe(callsBefore + 1);
-      click('[data-test-invitation-dismiss]');
-      expect(el().querySelector('[data-test-invitation]')).toBeNull();
     });
 
     it('when the email did not go out, the account exists and the invitation can be resent from the notice', () => {
@@ -474,7 +475,8 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       api.resendInvitation.and.returnValue(of({ delivery_status: 'sent', expires_at: '2026-11-13T10:00:00Z' }));
       click('[data-test-resend]');
       expect(api.resendInvitation).toHaveBeenCalledWith('new');
-      expect(q('[data-test-invitation]').getAttribute('data-status')).toBe('sent');
+      expect(el().querySelector('[data-test-invitation]')).toBeNull();
+      expect(toastText()).toContain('TEAM.INVITATION.SENT_TITLE');
       expect(el().querySelector('[data-test-resend]')).toBeNull();
     });
 
@@ -521,22 +523,33 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       };
       const modalOpen = () => el().querySelector('[role="dialog"] app-team-invite-form') !== null;
 
-      it('does not discard a form with something typed: Esc and the background do nothing', () => {
+      const confirm = () => document.querySelector<HTMLElement>('[role="alertdialog"]');
+      const answer = (which: 'keep' | 'discard') => {
+        confirm()!.querySelector<HTMLButtonElement>(which === 'keep' ? '[data-cancel]' : '[data-confirm]')!.click();
+        fixture.detectChanges();
+      };
+
+      it('with something typed, Esc, the background and Cancel ask first; «Seguir editando» keeps what was written (MD-485)', () => {
         setup();
         click('[data-test-open-invite]');
         type('[data-test-email]', 'nuevo@acme.co');
-        esc();
-        expect(modalOpen()).toBeTrue();
-        backdrop('invite');
-        expect(modalOpen()).toBeTrue();
-        expect(q<HTMLInputElement>('[data-test-email]').value).toBe('nuevo@acme.co');
+        for (const close of [esc, () => backdrop('invite'), () => click('[data-testid="invite-cancel"]')]) {
+          close();
+          expect(modalOpen()).toBeTrue();
+          expect(confirm()).not.toBeNull();
+          answer('keep');
+          expect(confirm()).toBeNull();
+          expect(modalOpen()).toBeTrue();
+          expect(q<HTMLInputElement>('[data-test-email]').value).toBe('nuevo@acme.co');
+        }
       });
 
-      it('still closes with the close button even when the form is dirty', () => {
+      it('«Descartar cambios» closes the dirty form', () => {
         setup();
         click('[data-test-open-invite]');
         type('[data-test-email]', 'nuevo@acme.co');
-        click('[data-cancel]');
+        click('[data-testid="invite-cancel"]');
+        answer('discard');
         expect(el().querySelector('[role="dialog"]')).toBeNull();
       });
 

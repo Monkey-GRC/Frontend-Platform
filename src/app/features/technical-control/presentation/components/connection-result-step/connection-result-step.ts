@@ -11,7 +11,7 @@ import { Tag } from '@shared/presentation/components/tag/tag';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="text-center">
-      <span class="material-symbols-rounded text-[48px] text-ok-ink" aria-hidden="true">task_alt</span>
+      <span class="material-symbols-rounded text-[44px] text-ok-ink" aria-hidden="true">task_alt</span>
       <h2 class="mt-2 text-2xl font-semibold text-ink" data-result-title>{{ titleKey() | translate }}</h2>
       <p class="mt-2 text-sm text-ink-muted">{{ subtitleKey() | translate }}</p>
     </div>

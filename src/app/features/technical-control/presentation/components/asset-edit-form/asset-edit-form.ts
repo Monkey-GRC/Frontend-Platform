@@ -11,6 +11,7 @@ import { isGcpProjectId } from '@features/technical-control/domain/utils/gcp-val
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 
 const ACCOUNT_ID = /^\d{12}$/;
 
@@ -18,7 +19,7 @@ const ACCOUNT_ID = /^\d{12}$/;
 // Lo que cambia la conexión la devuelve a «pendiente» (lo que ya se comprobó no vale para lo nuevo) y se le avisa al cliente antes de guardar.
 @Component({
   selector: 'app-asset-edit-form',
-  imports: [OptionChips, TranslatePipe, Busy, BusyFields],
+  imports: [OptionChips, TranslatePipe, Busy, BusyFields, ConfirmDialog],
   templateUrl: './asset-edit-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -81,6 +82,14 @@ export class AssetEditForm implements OnInit {
   });
   readonly changesConnection = computed(() => ['external_account_id', 'regions', 'role_arn', 'credentials'].some((k) => k in this.patch()));
   readonly dirty = computed(() => Object.keys(this.patch()).length > 0);
+
+  /** MD-485 · Cancelar: con cambios sin guardar, primero se pide confirmar que se descartan. */
+  readonly confirmingDiscard = signal(false);
+  askCancel(): void {
+    if (this.saving()) return;
+    if (this.dirty()) this.confirmingDiscard.set(true);
+    else this.cancelled.emit();
+  }
   readonly valid = computed(() => {
     if (!this.name().trim()) return false;
     if (!this.isCloud()) return true;

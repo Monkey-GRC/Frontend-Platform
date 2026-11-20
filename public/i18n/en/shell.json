@@ -1,7 +1,6 @@
 {
   "SHELL": {
     "NAV": {
-      "SECTION_MENU": "Menu",
       "HOME": "Home",
       "MY_COMPANY": "My company",
       "COMPANY_CONTEXT": "Company context",
@@ -23,14 +22,12 @@
       "LOGO_ALT": "Monkey logo",
       "INTEGRATIONS": "Integrations"
     },
-    "COMING_SOON": "This section is under construction.",
+    "COMING_SOON": "This screen is not available yet. Meanwhile, your controls are in Compliance.",
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Search or type a command...",
       "LOGOUT": "Sign out",
-      "SETTINGS": "Settings"
-    },
-    "LANGUAGE": {
-      "SWITCH": "Change language"
+      "SETTINGS": "Settings",
+      "MORE": "More options"
     },
     "PROFILE": {
       "OPEN": "Open your profile menu",
@@ -43,8 +40,9 @@
       "SHORTCUTS": "Keyboard shortcuts",
       "SHORTCUT_SEARCH": "Search or type a command",
       "SHORTCUT_CLOSE": "Close menus and windows",
-      "CONTACT": "Contact support",
-      "CONTACT_HINT": "Tell us what you need"
-    }
+      "CONTACT": "Contact Monkey",
+      "CONTACT_HINT": "Tell Monkey what you need"
+    },
+    "SKIP_TO_CONTENT": "Skip to content"
   }
 }

@@ -48,10 +48,10 @@
       "BACK": "Integraciones",
       "SEARCH_PLACEHOLDER": "Buscar por nombre o descripción",
       "LOAD_ERROR_TITLE": "No pudimos cargar el catálogo",
-      "EMPTY_TITLE": "No hay integraciones disponibles",
+      "EMPTY_TITLE": "No hay integraciones disponibles por ahora.",
       "NO_MATCH": "Ninguna integración coincide con tu búsqueda.",
       "PURPOSE_HINT_MEASUREMENT": "Evalúan la configuración de la plataforma y alimentan las pruebas.",
-      "PURPOSE_HINT_WORKFLOW": "Ayudan a gestionar el trabajo de cumplimiento.",
+      "PURPOSE_HINT_WORKFLOW": "Convierten los hallazgos en tareas y siguen su avance.",
       "CONNECT": "Conectar",
       "CONNECT_ARIA": "Conectar {{name}}",
       "CONNECTED": "Conectada",
@@ -82,7 +82,7 @@
       },
       "FEATURES_TITLE": "Qué puedes hacer",
       "PREREQUISITES_TITLE": "Antes de conectar",
-      "SOON_TITLE": "Lo publicaremos cuando la integración esté disponible",
+      "SOON_TITLE": "Publicaremos sus permisos y lo que evalúa cuando esté disponible.",
       "BACK_SERVICE": "Conexiones del servicio"
     },
     "CONNECTIONS": {
@@ -125,7 +125,7 @@
     },
     "SECURITY": {
       "TITLE": "Cómo protege Monkey la conexión",
-      "EMPTY_TITLE": "Todavía no hay medidas de seguridad que mostrar"
+      "EMPTY_TITLE": "Publicaremos cómo se protege esta conexión cuando la integración esté disponible."
     },
     "SECURITY_TOPIC": {
       "READ_ONLY": "Solo lectura",

@@ -230,7 +230,12 @@ describe('RiskWizard (D89)', () => {
       confirm();
       expect(wizard.current()!.code).toBe('R002');
       expect(wizard.removeError()).toBe('Solo el administrador puede retirarlo.');
-      q<HTMLButtonElement>('[data-wizard-remove-cancel]')!.click();
+      q<HTMLButtonElement>('[data-testid="wizard-remove-cancel"]')!.click();
+      fixture.detectChanges();
+      // MD-485 · Hay un motivo escrito: antes de descartarlo se pide confirmar.
+      const discard = document.querySelector<HTMLElement>('[role="alertdialog"]')!;
+      expect(discard).not.toBeNull();
+      discard.querySelector<HTMLButtonElement>('[data-confirm]')!.click();
       fixture.detectChanges();
       expect(q('[data-wizard-remove]')).toBeNull();
       expect(wizard.removedCount()).toBe(0);

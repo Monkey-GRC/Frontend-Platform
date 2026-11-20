@@ -16,6 +16,8 @@ import { Select, SelectOption } from '@shared/presentation/components/select/sel
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { hasChanges } from '@shared/domain/utils/form-changes';
 
 // La evaluación 5×5 de un riesgo y su tratamiento (MD-123). Cada evaluación y cada decisión se AGREGA (nunca pisa la anterior) y el servidor calcula el valor y el
 // nivel: aquí solo se eligen probabilidad e impacto de 1 a 5. Evalúa y trata el administrador de la empresa; los demás roles leen. El historial se pide al abrirlo,
@@ -31,6 +33,7 @@ export class RiskAssessment {
   private readonly api = inject(RiskService);
   private readonly responsiblesApi = inject(ResponsibleService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
   readonly labels = inject(EnumLabelService);
 
@@ -58,7 +61,6 @@ export class RiskAssessment {
   });
 
   readonly saving = signal(false);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   // Evaluación
@@ -78,6 +80,18 @@ export class RiskAssessment {
   readonly responsibleOptions = computed<SelectOption[]>(() =>
     (this.responsibles() ?? []).map((r) => ({ value: r.id, label: this.labels.of('COMPLIANCE.RESPONSIBLE_TYPE', r.type) + (r.person_name ? ' · ' + r.person_name : '') })),
   );
+
+  /** MD-485 · Hay una evaluación o un tratamiento a medio escribir, distinto de lo guardado: el panel que lo aloja pide confirmar antes de cerrarse. */
+  readonly dirty = computed(() => {
+    const risk = this.risk();
+    if (this.evaluating() && (this.likelihood() !== risk.likelihood || this.impact() !== risk.impact)) return true;
+    if (!this.treating()) return false;
+    const current = risk.treatment;
+    return hasChanges(
+      { decision: current?.decision ?? '', responsible: current?.responsible?.id ?? '', due: '' },
+      { decision: this.decision(), responsible: this.responsibleId(), due: this.dueDate() },
+    );
+  });
 
   readonly canSaveEvaluation = computed(() => this.likelihood() !== null && this.impact() !== null);
   readonly canSaveTreatment = computed(() => !!this.decision() && !!this.responsibleId() && !!this.dueDate());
@@ -111,7 +125,7 @@ export class RiskAssessment {
         this.evaluating.set(false);
         this.history.set(null);
         this.historyOpen.set(false);
-        this.notice.set(this.translate.instant('COMPLIANCE.RISK_ASSESSMENT.EVALUATED'));
+        this.toast.showSuccess(this.translate.instant('COMPLIANCE.RISK_ASSESSMENT.EVALUATED'));
         this.changed.emit();
       },
       error: (e) => this.fail(e),
@@ -160,7 +174,7 @@ export class RiskAssessment {
       next: () => {
         this.saving.set(false);
         this.treating.set(false);
-        this.notice.set(this.translate.instant('COMPLIANCE.RISK_ASSESSMENT.TREATED'));
+        this.toast.showSuccess(this.translate.instant('COMPLIANCE.RISK_ASSESSMENT.TREATED'));
         this.changed.emit();
       },
       error: (e) => this.fail(e),
@@ -188,7 +202,6 @@ export class RiskAssessment {
   }
 
   private reset(): void {
-    this.notice.set(null);
     this.error.set(null);
   }
 }

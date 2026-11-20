@@ -7,6 +7,9 @@ import { ControlDetail } from '@features/compliance/domain/models/control.models
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlDetailPanel } from './control-detail-panel';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const DETAIL: ControlDetail = {
   id: 'c1',
@@ -145,7 +148,7 @@ describe('ControlDetailPanel', () => {
     expect(changed).toBe(1);
     expect(panel.mode()).toBe('view');
     expect(panel.detail()?.interpretation.text).toBe('Se revisa cada trimestre.');
-    expect(panel.notice()).not.toBeNull();
+    expect(toastText()).toContain('COMPLIANCE.DETAIL.SAVED');
   });
 
   it('does not send a dimension that does not apply without its reason', () => {
@@ -213,5 +216,20 @@ describe('ControlDetailPanel', () => {
     fixture.detectChanges();
     expect(panel.error()).toBe('Este control ya fue dado de baja.');
     expect(panel.confirmingRetire()).toBeFalse();
+  });
+
+  it('guards the drawer while the interpretation or the dimensions differ from what is saved (MD-485)', () => {
+    const panel = setup('admin_empresa');
+    expect(panel.editing()).toBeFalse();
+    panel.startInterpretation();
+    expect(panel.editing()).toBeFalse();
+    panel.interpretationDraft.set('Otra lectura del control.');
+    expect(panel.editing()).toBeTrue();
+    panel.cancelEdit();
+    expect(panel.editing()).toBeFalse();
+    panel.startDimensions();
+    expect(panel.editing()).toBeFalse();
+    panel.setReason(0, 'No aplica por ahora');
+    expect(panel.editing()).toBeTrue();
   });
 });

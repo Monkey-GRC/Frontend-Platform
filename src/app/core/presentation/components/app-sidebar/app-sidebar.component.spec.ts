@@ -279,7 +279,7 @@ describe('AppSidebarComponent · groups', () => {
       const style = getComputedStyle(panel(root, 'nav-group-equipo'));
       expect(style.transitionProperty).toContain('grid-template-rows');
       expect(style.transitionProperty).toContain('opacity');
-      expect(style.transitionDuration.split(', ').slice(0, 2)).toEqual(['0.2s', '0.16s']);
+      expect(style.transitionDuration.split(', ').slice(0, 2)).toEqual(['0.2s', '0.15s']);
       expect(style.transitionTimingFunction).toContain('cubic-bezier(0, 0, 0.2, 1)');
       const chevron = getComputedStyle(title(root, 'nav-group-equipo').querySelector('.menu-chevron-icon')!);
       expect(chevron.transitionDuration).toBe('0.2s');

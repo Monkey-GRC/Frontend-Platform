@@ -28,6 +28,8 @@ import { Badge } from '@shared/presentation/components/badge/badge';
 import { readinessLook } from '@shared/domain/utils/readiness-look';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { hasChanges } from '@shared/domain/utils/form-changes';
 
 type Stage = 'loading' | 'error' | 'ready';
 interface Pending { kind: 'deactivate' | 'reset_mfa'; member: TeamMember }
@@ -62,6 +64,8 @@ export class TeamPeopleView implements OnInit {
   private readonly api = inject(TeamService);
   private readonly groupApi = inject(GroupService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
+  private readonly localDate = new LocalDatePipe();
   private readonly session = inject(SessionService);
   readonly myId = computed(() => this.session.user()?.id);
 
@@ -105,7 +109,6 @@ export class TeamPeopleView implements OnInit {
   readonly saving = signal(false);
   // Cuál acción lanzada con un botón corre: solo ese botón muestra el ocupado; los demás quedan deshabilitados.
   readonly busyAction = signal<'resend' | 'reactivate' | null>(null);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly invitation = signal<SentInvitation | null>(null);
 
@@ -114,6 +117,11 @@ export class TeamPeopleView implements OnInit {
   readonly nameDraft = signal('');
   readonly lastNameDraft = signal('');
   readonly canSaveName = computed(() => !!this.nameDraft().trim() && !!this.lastNameDraft().trim());
+  /** MD-485 · Se está corrigiendo el nombre y lo escrito ya no es lo que tenía: cerrar el detalle pide confirmar. */
+  readonly nameDirty = computed(() => {
+    const m = this.detail();
+    return !!m && this.nameEditing() === m.id && hasChanges({ name: m.name, last_name: m.last_name }, { name: this.nameDraft(), last_name: this.lastNameDraft() });
+  });
 
   // Confirmaciones (desactivar, quitar el segundo factor)
   readonly confirming = signal<Pending | null>(null);
@@ -306,7 +314,6 @@ export class TeamPeopleView implements OnInit {
     this.inviteOpen.set(false);
     this.resetMessages();
     this.showInvitation(created.id, created.email, created.invitation);
-    this.notice.set(this.translate.instant('TEAM.NOTICE.INVITED'));
     this.refresh();
   }
 
@@ -325,15 +332,25 @@ export class TeamPeopleView implements OnInit {
   resend(id: string, email: string): void {
     if (this.saving()) return;
     this.busyAction.set('resend');
-    this.run(this.api.resendInvitation(id), 'TEAM.NOTICE.CODE_REISSUED', (invitation) => this.showInvitation(id, email, invitation));
+    // El aviso lo da `showInvitation`: «Enviamos la invitación a …» si el correo salió, o el recuadro con «Reenviar» si no salió.
+    this.run(this.api.resendInvitation(id), null, (invitation) => this.showInvitation(id, email, invitation));
   }
 
   dismissInvitation(): void {
     this.invitation.set(null);
   }
 
+  /** Si el correo salió, un aviso pasajero (toast) con el destinatario y el vencimiento del código; si no salió, el recuadro con «Reenviar», que se queda hasta cerrarlo (pide una acción). */
   private showInvitation(id: string, email: string, invitation: Invitation): void {
-    this.invitation.set({ id, email, status: invitation.delivery_status === 'failed' ? 'failed' : 'sent', expiresAt: invitation.expires_at });
+    if (invitation.delivery_status === 'failed') {
+      this.invitation.set({ id, email, status: 'failed', expiresAt: invitation.expires_at });
+      return;
+    }
+    this.invitation.set(null);
+    this.toast.showSuccess(
+      this.translate.instant('TEAM.INVITATION.SENT_TITLE', { email }),
+      this.translate.instant('TEAM.INVITATION.SENT_BODY', { date: this.localDate.transform(invitation.expires_at) }),
+    );
   }
 
   // ─── nombre ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -375,7 +392,7 @@ export class TeamPeopleView implements OnInit {
   }
 
   // ─── común ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  private run<T>(call: Observable<T>, noticeKey: string, done: (result: T) => void, failed?: () => void): void {
+  private run<T>(call: Observable<T>, noticeKey: string | null, done: (result: T) => void, failed?: () => void): void {
     this.saving.set(true);
     this.resetMessages();
     call.subscribe({
@@ -383,7 +400,7 @@ export class TeamPeopleView implements OnInit {
         this.saving.set(false);
         this.busyAction.set(null);
         done(result);
-        this.notice.set(this.translate.instant(noticeKey));
+        if (noticeKey) this.toast.showSuccess(this.translate.instant(noticeKey));
         this.refresh();
       },
       // `message` ya viene traducido por el backend (409: no activada, es el último administrador; 422: campos).
@@ -391,7 +408,11 @@ export class TeamPeopleView implements OnInit {
         this.saving.set(false);
         this.busyAction.set(null);
         failed?.();
-        this.error.set(apiErrorMessage(e, this.translate.instant('TEAM.ERROR.SAVE')));
+        // Dentro del detalle de una persona el error queda junto a sus acciones; en la lista es un aviso pasajero (toast) con lo que dijo el servidor.
+        const fallback = this.translate.instant('TEAM.ERROR.SAVE');
+        const message = apiErrorMessage(e, fallback);
+        if (this.detail()) this.error.set(message);
+        else this.toast.showError(fallback, message === fallback ? '' : message);
       },
     });
   }
@@ -412,7 +433,6 @@ export class TeamPeopleView implements OnInit {
   }
 
   private resetMessages(): void {
-    this.notice.set(null);
     this.error.set(null);
   }
 }

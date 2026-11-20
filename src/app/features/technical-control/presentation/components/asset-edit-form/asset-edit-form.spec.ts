@@ -63,6 +63,33 @@ describe('AssetEditForm · evaluar ahora', () => {
     expect(button()!.disabled).toBeTrue();
     expect(button()!.getAttribute('title')).toContain('EVALUATE_SAVE_FIRST');
   });
+
+  it('Cancel with changes asks before discarding them; without changes it cancels at once (MD-485)', () => {
+    open();
+    const form = fixture.componentInstance;
+    let cancelled = 0;
+    form.cancelled.subscribe(() => cancelled++);
+    const cancel = () => {
+      Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('button')).find((b) => b.textContent?.includes('COMMON.CANCEL'))!.click();
+      fixture.detectChanges();
+    };
+    const confirm = () => (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="alertdialog"]');
+    cancel();
+    expect(cancelled).toBe(1);
+    form.name.set('Cuenta AWS de producción');
+    fixture.detectChanges();
+    cancel();
+    expect(cancelled).toBe(1);
+    expect(confirm()).not.toBeNull();
+    confirm()!.querySelector<HTMLButtonElement>('[data-cancel]')!.click();
+    fixture.detectChanges();
+    expect(confirm()).toBeNull();
+    expect(form.name()).toBe('Cuenta AWS de producción');
+    cancel();
+    confirm()!.querySelector<HTMLButtonElement>('[data-confirm]')!.click();
+    fixture.detectChanges();
+    expect(cancelled).toBe(2);
+  });
 });
 
 // El formulario lo decide la plataforma/canal: una cuenta AWS pide 12 dígitos y regiones; un proyecto GCP, su ID y sin regiones (el backend da 422 si llegan).
@@ -111,4 +138,5 @@ describe('AssetEditForm · por plataforma', () => {
     c.setAccountId('1x');
     expect(c.valid()).toBeFalse();
   });
+
 });

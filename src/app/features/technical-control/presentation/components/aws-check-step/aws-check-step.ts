@@ -17,7 +17,7 @@ import { ConnectionProgress } from '../connection-progress/connection-progress';
       <div class="mt-8">
         <app-field labelKey="TECHNICAL_CONTROL.EDIT.ROLE" forId="aws-role-arn" hintKey="TECHNICAL_CONTROL.PANEL.ROLE_HELP" [errorKey]="roleError()">
           <input id="aws-role-arn" class="mk-input font-mono" type="text" autocomplete="off" spellcheck="false" aria-describedby="aws-role-arn-hint aws-role-arn-error" [disabled]="busy()"
-            [value]="roleArn()" (input)="roleArn.set(targetValue($event).trim())" placeholder="arn:aws:iam::123456789012:role/MonkeyReadOnly" [attr.aria-invalid]="roleError() ? 'true' : null" />
+            [value]="roleArn()" (input)="roleArn.set(targetValue($event).trim())" [placeholder]="'TECHNICAL_CONTROL.PANEL.ROLE_PLACEHOLDER' | translate" [attr.aria-invalid]="roleError() ? 'true' : null" />
         </app-field>
       </div>
     } @else {

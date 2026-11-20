@@ -4,7 +4,7 @@
     "LOADING": "Cargando",
     "LANGUAGE_SWITCHING": "Cambiando el idioma…",
     "ERRORS": {
-      "MISSING_DATA": "La respuesta del servidor no trae datos"
+      "MISSING_DATA": "No recibimos los datos. Recarga la página."
     },
     "CHECK_CONNECTION": "Revisa tu conexión e inténtalo de nuevo.",
     "RETRY": "Reintentar",
@@ -21,7 +21,7 @@
     "TOAST": {
       "REGION": "Avisos",
       "INFO": "Información",
-      "SUCCESS": "Correcto",
+      "SUCCESS": "Hecho",
       "WARNING": "Aviso",
       "ERROR": "Error"
     },
@@ -37,7 +37,7 @@
       "TODAY": "Hoy",
       "CLEAR": "Borrar"
     },
-    "AUTH_PROBLEM": "Ocurrió un problema de autenticación. Si el error persiste, contacta a soporte.",
+    "AUTH_PROBLEM": "No pudimos validar tu sesión. Cierra sesión y vuelve a entrar; si se repite, contacta a Monkey.",
     "SHOW_PASSWORD": "Mostrar contraseña",
     "HIDE_PASSWORD": "Ocultar contraseña",
     "DOWNLOAD": "Descargar",
@@ -54,7 +54,7 @@
       "ACTIONS": "Acciones",
       "SELECT_ALL": "Seleccionar todo",
       "SELECT_ROW": "Seleccionar {{name}}",
-      "EMPTY_TITLE": "No hay nada que mostrar todavía",
+      "EMPTY_TITLE": "Sin resultados",
       "GROUP_COUNT": "Elementos: {{count}}",
       "GROUP_COLLAPSE": "Contraer grupo {{name}}",
       "GROUP_EXPAND": "Desplegar grupo {{name}}"
@@ -75,7 +75,7 @@
       "SKIP_HELP": "Puedes saltarte esta pregunta.",
       "MULTI_EACH": "Puedes elegir más de una opción en cada pregunta.",
       "REVIEW": "Revisar",
-      "REVIEW_BODY_EDIT": "Toca «Editar» en lo que quieras cambiar.",
+      "REVIEW_BODY_EDIT": "Usa «Editar» en lo que quieras cambiar.",
       "SAVING": "Guardando…",
       "SAVE_CHANGES": "Guardar cambios",
       "PROGRESS_SAVED": "Se guarda automáticamente en este navegador."
@@ -85,7 +85,7 @@
       "EMAIL_INVALID": "Ingresa un correo válido."
     },
     "NOT_FOUND": {
-      "TITLE": "ERROR",
+      "TITLE": "Página no encontrada",
       "MESSAGE": "No encontramos la página que buscas.",
       "BACK_HOME": "Volver al inicio",
       "COPYRIGHT": "© {{year}} Monkey"
@@ -93,7 +93,6 @@
     "PASSWORD": {
       "NEW": "Contraseña nueva",
       "CONFIRM": "Confirma la contraseña nueva",
-      "REQUIRED": "La contraseña es obligatoria.",
       "MISMATCH": "Las contraseñas no coinciden.",
       "GUIDE": {
         "MIN_LENGTH": "Al menos 12 caracteres",
@@ -131,10 +130,16 @@
       },
       "HINT": {
         "READY": "Todo lo aplicable cumple.",
-        "ALMOST_READY": "Casi todo cumple; faltan pocos puntos.",
-        "NEEDS_WORK": "Hay varios puntos por resolver.",
+        "ALMOST_READY": "De lo medido cumple el 80 % o más; faltan pocos controles.",
+        "NEEDS_WORK": "De lo medido cumple menos del 80 %. Revisa los controles que fallan.",
         "NOT_MEASURED": "Aún no hay resultados para determinar si cumple. No es un incumplimiento."
       }
+    },
+    "DISCARD": {
+      "TITLE": "¿Descartar los cambios?",
+      "MESSAGE": "Lo que escribiste en este formulario aún no se ha guardado. Si sales ahora, se pierde.",
+      "KEEP": "Seguir editando",
+      "CONFIRM": "Descartar cambios"
     }
   },
   "PAGE_TITLE": {
@@ -159,7 +164,7 @@
     "TEAM_ORG": "Organigrama",
     "MY_WORK": "Mi trabajo",
     "ASSIGNMENT": "Asignación",
-    "RESPONSIBLES": "Responsables",
+    "RESPONSIBLES": "Cargos responsables",
     "SIGNIN": "Iniciar sesión",
     "MFA": "Verificación en dos pasos",
     "REGISTER": "Activar cuenta",

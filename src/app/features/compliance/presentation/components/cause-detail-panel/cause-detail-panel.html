@@ -14,7 +14,7 @@
     <p class="mt-1 text-sm text-ink-muted">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
     <button type="button" (click)="load()"
       class="mt-4 mk-btn">
-      <span class="material-symbols-rounded text-[18px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
+      <span class="material-symbols-rounded text-[20px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
     </button>
   </div>
   }
@@ -35,16 +35,12 @@
         <h3 class="text-2xl font-semibold leading-snug text-ink">{{ d.name }}</h3>
         @if (canRemove()) {
         <button type="button" (click)="edit.emit(d)" data-edit class="inline-flex shrink-0 items-center gap-1.5 pt-1.5 text-sm font-medium text-action hover:underline">
-          <span class="material-symbols-rounded text-[18px]" aria-hidden="true">edit</span>{{ 'COMPLIANCE.RISK_FORM.EDIT' | translate }}
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">edit</span>{{ 'COMPLIANCE.RISK_FORM.EDIT' | translate }}
         </button>
         }
       </div>
     </div>
 
-    @if (notice(); as n) {
-    <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-ok text-ink" role="status"><span>{{ n }}</span>
-    </div>
-    }
     @if (error(); as e) {
     <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ e }}</span>
     </div>
@@ -104,7 +100,7 @@
     @if (canRemove()) {
     <section class="border-t border-line pt-4" [attr.aria-label]="'COMPLIANCE.CAUSE_DETAIL.REMOVE' | translate">
       <button type="button" (click)="askRemove()" [disabled]="saving()" class="inline-flex items-center gap-1.5 text-sm font-medium text-bad-ink enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">
-        <span class="material-symbols-rounded text-[18px]" aria-hidden="true">delete</span>{{ 'COMPLIANCE.CAUSE_DETAIL.REMOVE' | translate }}
+        <span class="material-symbols-rounded text-[20px]" aria-hidden="true">delete</span>{{ 'COMPLIANCE.CAUSE_DETAIL.REMOVE' | translate }}
       </button>
       <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.CAUSE_DETAIL.REMOVE_HINT' | translate }}</p>
     </section>

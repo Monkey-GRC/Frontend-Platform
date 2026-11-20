@@ -7,6 +7,9 @@ import { ControlEvidence as Summary } from '@features/compliance/domain/models/c
 import { EvidenceRequirement, EvidenceSubmission } from '@features/compliance/domain/models/evidence.models';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlEvidence } from './control-evidence';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const person = { id: 'u1', name: 'Laura', last_name: 'Gómez' };
 const submission = (version: number, state: EvidenceSubmission['evidence_state'] = 'pending'): EvidenceSubmission => ({
@@ -94,7 +97,7 @@ describe('ControlEvidence', () => {
 
     expect(api.upload).toHaveBeenCalledWith('e2', file);
     expect(view.uploadingFor()).toBeNull();
-    expect(view.notice()).not.toBeNull();
+    expect(toastText()).toContain('COMPLIANCE.EVIDENCE.UPLOADED');
     expect(api.list).toHaveBeenCalledTimes(2);
     expect(changed).toBe(1);
   });
@@ -313,7 +316,7 @@ describe('ControlEvidence', () => {
       expect(api.uploadForTest).toHaveBeenCalledWith('c1', 'tid-1', file);
       expect(api.upload).not.toHaveBeenCalled();
       expect(view.uploadingFor()).toBeNull();
-      expect(view.notice()).not.toBeNull();
+      expect(toastText()).toContain('COMPLIANCE.EVIDENCE.UPLOADED');
       expect(api.listForTest).toHaveBeenCalledTimes(2); // la carga de la prueba y la recarga tras subir
       expect(changed).toBe(1);
     });

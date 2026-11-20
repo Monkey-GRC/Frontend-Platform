@@ -5,7 +5,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
-import { Modal } from '@shared/presentation/components/modal/modal';
+import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
+import { ProgressLine } from '@shared/presentation/components/progress-line/progress-line';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Busy } from '@shared/presentation/directives/busy';
@@ -20,6 +21,7 @@ import { RiskForm } from '../risk-form/risk-form';
 import { RiskLevelBadge, riskLevelHeat } from '../risk-level-badge/risk-level-badge';
 import { MatrixPosition, RiskMatrix } from '../risk-matrix/risk-matrix';
 import { targetValue } from '@shared/presentation/utils/event-target';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready' | 'done' | 'causes';
 
@@ -47,7 +49,7 @@ const byCode = (a: RiskListItem, b: RiskListItem) => a.code.localeCompare(b.code
 // También se puede agregar un riesgo propio y elegir sus causas. La pestaña Riesgos de Cumplimiento queda para ver y corregir esas calificaciones después.
 @Component({
   selector: 'app-risk-wizard',
-  imports: [NgTemplateOutlet, TranslatePipe, Skeleton, SkeletonRegion, Busy, BusyFields, Modal, Tag, RiskLevelBadge, RiskMatrix, RiskForm, RiskCausesPicker],
+  imports: [NgTemplateOutlet, TranslatePipe, Skeleton, SkeletonRegion, Busy, BusyFields, FormModal, ProgressLine, Tag, RiskLevelBadge, RiskMatrix, RiskForm, RiskCausesPicker],
   templateUrl: './risk-wizard.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -55,6 +57,7 @@ export class RiskWizard {
   protected readonly targetValue = targetValue;
   private readonly api = inject(RiskService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
 
@@ -188,6 +191,7 @@ export class RiskWizard {
     this.api.evaluate(risk.id, likelihood, impact).subscribe({
       next: (score) => {
         this.saving.set(false);
+        this.toast.showSuccess(this.translate.instant('COMPLIANCE.RISK_WIZARD.SAVED', { code: risk.code }));
         // El servidor calculó el valor y el nivel: se guardan tal cual en la lista.
         this.risks.update((list) =>
           list.map((r) => (r.id === risk.id ? { ...r, likelihood: score.likelihood, impact: score.impact, inherent_risk_value: score.inherent_risk_value, inherent_risk_level: score.inherent_risk_level } : r)),
@@ -231,6 +235,7 @@ export class RiskWizard {
     this.api.deactivateRisk(risk.id, this.reason().trim()).subscribe({
       next: () => {
         this.removingBusy.set(false);
+        this.toast.showSuccess(this.translate.instant('COMPLIANCE.RISK_WIZARD.REMOVED_NOTICE', { code: risk.code }));
         this.removedCount.update((n) => n + 1);
         const at = this.index();
         const rest = this.risks().filter((r) => r.id !== risk.id);
@@ -260,6 +265,7 @@ export class RiskWizard {
     this.api.reactivateRisk(risk.id).subscribe({
       next: () => {
         this.restoring.set(null);
+        this.toast.showSuccess(this.translate.instant('COMPLIANCE.RISK_WIZARD.RESTORED', { code: risk.code }));
         this.removedCount.update((n) => Math.max(0, n - 1));
         this.fetch(risk.id);
       },

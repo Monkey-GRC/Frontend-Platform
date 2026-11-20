@@ -1,7 +1,6 @@
 {
   "SHELL": {
     "NAV": {
-      "SECTION_MENU": "Menú",
       "HOME": "Inicio",
       "MY_COMPANY": "Mi empresa",
       "COMPANY_CONTEXT": "Contexto de la empresa",
@@ -23,14 +22,12 @@
       "LOGO_ALT": "Logotipo de Monkey",
       "INTEGRATIONS": "Integraciones"
     },
-    "COMING_SOON": "Sección en construcción.",
+    "COMING_SOON": "Esta pantalla aún no está disponible. Mientras tanto, tus controles están en Cumplimiento.",
     "HEADER": {
       "SEARCH_PLACEHOLDER": "Buscar o escribir un comando...",
       "LOGOUT": "Cerrar sesión",
-      "SETTINGS": "Ajustes"
-    },
-    "LANGUAGE": {
-      "SWITCH": "Cambiar idioma"
+      "SETTINGS": "Ajustes",
+      "MORE": "Más opciones"
     },
     "PROFILE": {
       "OPEN": "Abrir el menú de tu perfil",
@@ -43,8 +40,9 @@
       "SHORTCUTS": "Atajos de teclado",
       "SHORTCUT_SEARCH": "Buscar o escribir un comando",
       "SHORTCUT_CLOSE": "Cerrar menús y ventanas",
-      "CONTACT": "Contactar a soporte",
-      "CONTACT_HINT": "Cuéntanos qué necesitas"
-    }
+      "CONTACT": "Contactar a Monkey",
+      "CONTACT_HINT": "Cuéntale a Monkey qué necesitas"
+    },
+    "SKIP_TO_CONTENT": "Saltar al contenido"
   }
 }

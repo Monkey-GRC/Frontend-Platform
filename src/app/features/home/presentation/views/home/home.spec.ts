@@ -32,7 +32,7 @@ describe('Home (D89)', () => {
     expect(home.pendingCompanyContext()).toBeTrue();
     expect(home.onboarded()).toBeFalse();
     expect(el().querySelector('a[href="/onboarding"]')).not.toBeNull();
-    expect(el().querySelector('app-page-header')).toBeNull();
+    expect(el().querySelector('app-page-header h1')!.textContent).toContain('PAGE_TITLE.HOME'); // MD-485 · 6.3 A: el mismo título que el resto, sin saludo
   });
 
   it('does not push a non-admin to the onboarding form: the notice says the admin completes it', () => {
@@ -47,7 +47,7 @@ describe('Home (D89)', () => {
       const home = setup(next, ['organizational_context']);
       expect(home.onboarded()).toBeTrue();
       expect(home.pendingCompanyContext()).toBeFalse();
-      expect(el().querySelector('app-page-header')).toBeNull(); // sin saludo: la pantalla arranca en el contenido
+      expect(el().querySelector('app-page-header h1')!.textContent).toContain('PAGE_TITLE.HOME'); // MD-485 · 6.3 A: título «Inicio», sin saludo
       expect(el().querySelector('a[href="/onboarding"]')).toBeNull(); // sin tarjetas de «siguiente paso»
       expect(el().querySelector('a[href="/services/new"]')).toBeNull();
     }

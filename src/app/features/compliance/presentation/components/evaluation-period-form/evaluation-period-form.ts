@@ -42,6 +42,11 @@ export class EvaluationPeriodForm {
     return errors;
   });
   readonly errors = computed(() => ({ ...this.serverErrors(), ...this.localErrors() }));
+  /** MD-485 · Las fechas ya no son las que tenía el marco: cerrar pide confirmar antes de descartarlas. */
+  readonly changed = computed(() => {
+    const e = this.framework().evaluation;
+    return (this.start() || '') !== (e.period_start ?? '') || (this.end() || '') !== (e.period_end ?? '');
+  });
   readonly canSave = computed(() => !!this.start() && !!this.end() && Object.keys(this.localErrors()).length === 0);
 
   constructor() {

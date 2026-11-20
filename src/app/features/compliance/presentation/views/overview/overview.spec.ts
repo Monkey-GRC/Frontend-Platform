@@ -11,6 +11,9 @@ import { RiskService } from '@shared/domain/services/risk.service';
 import { RISK_MATRIX, provideCatalogStub } from '@shared/testing/catalog-options';
 import { OverviewView } from './overview';
 import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const DEFINED = { catalog_version: '3', period_start: '2026-01-01', period_end: '2026-12-31', cutoff_date: '2026-10-14', cutoff_frozen: false };
 const UNDEFINED = { catalog_version: null, period_start: null, period_end: null, cutoff_date: null, cutoff_frozen: null };
@@ -184,7 +187,7 @@ describe('OverviewView', () => {
       fixture.detectChanges();
       expect(view.periodOpen()).toBeFalse();
       expect(api.get).toHaveBeenCalledTimes(1);
-      expect(q('[data-notice]')!.textContent).toContain('COMPLIANCE.PERIOD.SAVED');
+      expect(toastText()).toContain('COMPLIANCE.PERIOD.SAVED');
     });
   });
 

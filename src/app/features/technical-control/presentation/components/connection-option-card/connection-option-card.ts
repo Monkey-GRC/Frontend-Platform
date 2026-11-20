@@ -18,7 +18,7 @@ import { optionIcon } from './option-icons';
       class="flex min-h-11 w-full flex-col gap-2 rounded-control border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-action/40"
       [class]="disabled() ? 'cursor-not-allowed border-dashed border-line bg-canvas' : selected() ? 'border-action bg-tint' : 'border-line bg-surface hover:border-action/60'">
       <span class="flex items-center gap-3">
-        <span class="material-symbols-rounded text-[22px]" [class]="selected() && !disabled() ? 'text-action' : 'text-ink-muted'" aria-hidden="true">{{ icon() }}</span>
+        <span class="material-symbols-rounded text-[24px]" [class]="selected() && !disabled() ? 'text-action' : 'text-ink-muted'" aria-hidden="true">{{ icon() }}</span>
         <span class="min-w-0 flex-1 text-sm font-semibold text-ink">{{ option().label }}</span>
         @if (selected() && !disabled()) {
           <span class="material-symbols-rounded text-[20px] text-action" aria-hidden="true">check_circle</span>

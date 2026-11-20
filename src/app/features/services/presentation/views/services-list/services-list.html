@@ -5,13 +5,6 @@
     }
   </app-page-header>
 
-  @if (notice(); as n) {
-  <div class="mb-4 flex items-start gap-2 rounded-control border px-3 py-2.5 text-sm" role="status"
-    [class]="n.kind === 'ok' ? 'border-line text-ink' : 'border-bad/40 text-bad-ink'">
-    <span class="material-symbols-rounded text-[18px]" [class]="n.kind === 'ok' ? 'text-ok-ink' : ''" aria-hidden="true">{{ n.kind === 'ok' ? 'check_circle' : 'error' }}</span>
-    <span>{{ n.text }}</span>
-  </div>
-  }
 
   @switch (stage()) {
 
@@ -35,7 +28,7 @@
   <!-- Una fila neutra: buscar y actualizar. Con algo seleccionado aparece la barra de selección. -->
   <app-table-toolbar searchPlaceholderKey="SERVICES.LIST.SEARCH_PLACEHOLDER" [query]="query()" (queryChange)="query.set($event)">
     <button actions type="button" (click)="load()" [attr.aria-label]="'SERVICES.LIST.REFRESH' | translate" [title]="'SERVICES.LIST.REFRESH' | translate" class="mk-btn-secondary w-10 !px-0">
-      <span class="material-symbols-rounded text-[18px]" aria-hidden="true">refresh</span>
+      <span class="material-symbols-rounded text-[20px]" aria-hidden="true">refresh</span>
     </button>
   </app-table-toolbar>
 
@@ -50,14 +43,11 @@
   }
 
   @if (confirming()) {
-  <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-control border border-bad/40 px-4 py-3" [appBusyFields]="deleting()" role="alertdialog" [attr.aria-label]="'SERVICES.LIST.CONFIRM_ARIA' | translate" data-test-confirm>
-    <p class="text-sm text-ink">{{ confirmMessage() }}</p>
-    <div class="flex items-center gap-4">
-      <button type="button" (click)="cancel()" [disabled]="deleting()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
-      <button type="button" (click)="remove()" [appBusy]="deleting()" [busyLabel]="'SERVICES.LIST.DELETING' | translate" data-test-confirm-yes class="text-sm font-semibold text-bad-ink enabled:hover:underline">{{ 'SERVICES.LIST.CONFIRM_YES' | translate }}</button>
-    </div>
-  </div>
+  @let ask = confirmMessage();
+  <app-confirm-dialog data-test-confirm titleKey="SERVICES.LIST.CONFIRM_ARIA" [messageKey]="ask.key" [messageParams]="ask.params" confirmLabelKey="SERVICES.LIST.CONFIRM_YES"
+    tone="danger" [busy]="deleting()" (confirmed)="remove()" (cancelled)="cancel()" />
   }
+
 
   <app-data-table captionKey="SERVICES.LIST.TABLE_CAPTION" [columns]="columns" [rows]="visible()" [rowKey]="rowKey" [selectable]="true" [selected]="selected()" [rowLabel]="rowName"
     (selectionChange)="select($event)">

@@ -72,7 +72,7 @@ describe('ServicesListView', () => {
     expect(q('[data-test-selection-bar]')!.textContent).toContain('SERVICES.LIST.SELECTED');
     click('[data-test-delete-selected]');
     expect(q('[data-test-confirm]')).not.toBeNull();
-    click('[data-test-confirm-yes]');
+    click('[data-test-confirm] [data-confirm]');
     expect(api.remove).toHaveBeenCalledOnceWith('s1');
     expect(el().querySelectorAll('tbody tr').length).toBe(1);
   });
@@ -83,7 +83,7 @@ describe('ServicesListView', () => {
     fixture.detectChanges();
     expect(api.remove).not.toHaveBeenCalled();
     expect(q('[data-test-confirm]')).not.toBeNull();
-    click('[data-test-confirm-yes]');
+    click('[data-test-confirm] [data-confirm]');
     expect(api.remove).toHaveBeenCalledOnceWith('s2');
   });
 
@@ -112,8 +112,8 @@ describe('ServicesListView', () => {
     api.remove.and.returnValue(pending);
     el().querySelectorAll<HTMLElement>('[data-test-delete-row]')[0].click();
     fixture.detectChanges();
-    click('[data-test-confirm-yes]');
-    const yes = q('[data-test-confirm-yes]') as HTMLButtonElement;
+    click('[data-test-confirm] [data-confirm]');
+    const yes = q('[data-test-confirm] [data-confirm]') as HTMLButtonElement;
     expect(yes.getAttribute('aria-busy')).toBe('true');
     expect(yes.getAttribute('aria-disabled')).toBe('true');
     expect(yes.hasAttribute('data-app-busy')).toBeTrue();
@@ -122,7 +122,7 @@ describe('ServicesListView', () => {
     pending.next(undefined);
     pending.complete();
     fixture.detectChanges();
-    expect(q('[data-test-confirm-yes]')).toBeNull();
+    expect(q('[data-test-confirm] [data-confirm]')).toBeNull();
   });
 
   it('filters by name and says when nothing matches', () => {

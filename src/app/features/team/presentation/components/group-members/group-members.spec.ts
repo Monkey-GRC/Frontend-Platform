@@ -7,6 +7,9 @@ import { TeamMember, TeamPage } from '@shared/domain/models/team.models';
 import { TeamService } from '@shared/domain/services/team.service';
 import { GroupMembers } from './group-members';
 import { optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const leader = (id: string, name: string) => ({ id, name, last_name: 'Gómez', role: 'responsable' });
 const TEAM_MARIA: Group = { id: 'team-maria', name: 'Equipo de María', kind: 'team', leader: leader('r1', 'María'), members_count: 2 };
@@ -104,7 +107,7 @@ describe('GroupMembers (MD-198, D102)', () => {
       pick('team-pedro');
       click('[data-test-move-confirm]');
       expect(api.update).toHaveBeenCalledOnceWith('dani', { group_id: 'team-pedro' });
-      expect(q('[data-test-members-notice]').textContent).toContain('TEAM.GROUPS.NOTICE.MOVED');
+      expect(toastText()).toContain('TEAM.GROUPS.NOTICE.MOVED');
       expect(moved).toBe(1);
       expect(el().querySelector('[data-test-move-target]')).toBeNull();
     });

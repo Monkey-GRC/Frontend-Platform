@@ -9,6 +9,7 @@ import { OnboardingDraftService } from '@features/onboarding/domain/services/onb
 import { OnboardingService } from '@features/onboarding/domain/services/onboarding.service';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { OrganizationalContext } from '@features/onboarding/domain/models/organizational-context.models';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 import { OrganizationalContextView } from './organizational-context';
 
 const EMPTY_CONTEXT = { id: null, name: 'ACME', description: null } as unknown as OrganizationalContext;
@@ -135,5 +136,41 @@ describe('OrganizationalContextView · guardar por primera vez', () => {
     fixture.componentInstance.save();
     await fixture.whenStable();
     expect(fixture.componentInstance.stage()).toBe('form');
+  });
+});
+
+// MD-485 · Un toast confirma una acción de la persona: nunca sale al abrir la pantalla, aunque el contexto ya estuviera guardado.
+describe('OrganizationalContextView · aviso de guardado', () => {
+  function setup(): ComponentFixture<OrganizationalContextView> {
+    const drafts = jasmine.createSpyObj<OnboardingDraftService>('OnboardingDraftService', ['load', 'save', 'clear']);
+    drafts.load.and.returnValue(null);
+    const saved = { ...EMPTY_CONTEXT, id: 'ctx-1' } as OrganizationalContext;
+    TestBed.configureTestingModule({
+      imports: [OrganizationalContextView],
+      providers: [
+        provideTranslateService({ fallbackLang: 'es' }),
+        provideRouter([]),
+        { provide: OnboardingService, useValue: { get: () => of(saved), save: () => of(saved) } },
+        { provide: OnboardingDraftService, useValue: drafts },
+        { provide: AuthService, useValue: { validate: () => of(true) } },
+        { provide: SessionService, useValue: { user: () => ({ id: 'u1' }), onboarding: () => null } },
+        { provide: CatalogService, useValue: { options: () => of([]), regulations: () => of([]) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(OrganizationalContextView);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('does not show a toast when the screen opens with a context already saved', () => {
+    setup();
+    expect(TestBed.inject(ToastService).toasts()).toEqual([]);
+  });
+
+  it('shows one success toast only after saving', () => {
+    const fixture = setup();
+    fixture.componentInstance.draft.update((d) => ({ ...d, description: 'Vendemos software contable', size: 'small', industry: 'tech', business_model: 'b2b', incorporation_countries: ['CO'], client_countries: ['CO'], compliance_maturity: 'initial', regulation_codes: ['SOC2'] }));
+    fixture.componentInstance.save();
+    expect(TestBed.inject(ToastService).toasts().map((t) => t.title)).toEqual(['ONBOARDING.SAVED']);
   });
 });

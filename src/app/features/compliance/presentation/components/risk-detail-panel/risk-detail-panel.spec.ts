@@ -8,6 +8,9 @@ import { Cause, RiskDetail } from '@shared/domain/models/risk.models';
 import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { RiskDetailPanel } from './risk-detail-panel';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const DETAIL: RiskDetail = {
   id: 'r1', service_id: 's1', code: 'R001', name: 'Acceso no autorizado', description: 'Personas acceden sin autorización.', trust_criterion: 'confidentiality',
@@ -96,7 +99,7 @@ describe('RiskDetailPanel', () => {
     panel.link('c2');
     expect(api.linkCause).toHaveBeenCalledWith('r1', 'c2');
     expect(panel.picking()).toBeFalse();
-    expect(panel.notice()).not.toBeNull();
+    expect(toastText()).not.toBe('');
     expect(api.getRisk).toHaveBeenCalledTimes(2);
     expect(changed).toBe(1);
   });

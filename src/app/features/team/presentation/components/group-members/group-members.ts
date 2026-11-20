@@ -12,6 +12,7 @@ import { targetValue } from '@shared/presentation/utils/event-target';
 import { Select, SelectOption } from '@shared/presentation/components/select/select';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 type Stage = 'loading' | 'error' | 'ready';
 // Quien ejecuta controles no se mueve sin confirmar: se guarda aquí hasta que el administrador diga que sí (USER_HAS_ASSIGNMENTS trae cuántos).
@@ -32,6 +33,7 @@ export class GroupMembers implements OnInit {
   protected readonly targetValue = targetValue;
   private readonly api = inject(TeamService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
 
   // Las personas del grupo en la lista compacta (la tabla única en su variante para paneles): la persona a un lado y «Mover» al otro.
   readonly columns: TableColumn<TeamMember>[] = [
@@ -52,7 +54,6 @@ export class GroupMembers implements OnInit {
   readonly members = signal<TeamMember[]>([]);
   readonly total = signal(0);
   readonly saving = signal(false);
-  readonly notice = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   /** El delegado que se está por mover y el equipo elegido como destino. */
@@ -130,7 +131,7 @@ export class GroupMembers implements OnInit {
         this.pending.set(null);
         this.movingId.set(null);
         this.target.set('');
-        this.notice.set(this.translate.instant('TEAM.GROUPS.NOTICE.MOVED', { name: this.personName(m) }));
+        this.toast.showSuccess(this.translate.instant('TEAM.GROUPS.NOTICE.MOVED', { name: this.personName(m) }));
         this.load();
         this.moved.emit();
       },
@@ -160,7 +161,6 @@ export class GroupMembers implements OnInit {
   }
 
   private reset(): void {
-    this.notice.set(null);
     this.error.set(null);
   }
 }

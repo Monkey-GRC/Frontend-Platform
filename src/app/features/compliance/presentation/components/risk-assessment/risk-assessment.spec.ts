@@ -1,4 +1,5 @@
 import { COMPLIANCE_OPTIONS, RISK_MATRIX, provideCatalogStub } from '@shared/testing/catalog-options';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
@@ -97,7 +98,7 @@ describe('RiskAssessment', () => {
     click('[data-test-save-evaluation]');
     expect(api.evaluate).toHaveBeenCalledOnceWith('r1', 3, 4);
     expect(changed).toBe(1);
-    expect(text()).toContain('COMPLIANCE.RISK_ASSESSMENT.EVALUATED');
+    expect(TestBed.inject(ToastService).toasts().map((t) => t.title)).toContain('COMPLIANCE.RISK_ASSESSMENT.EVALUATED');
   });
 
   it('shows where an evaluated risk falls on the matrix, painted with the level the server returned', () => {
@@ -170,7 +171,7 @@ describe('RiskAssessment', () => {
     click('[data-test-save-treatment]');
     expect(api.createTreatment).toHaveBeenCalledOnceWith('r1', { decision: 'mitigate', responsible_id: 'p1', due_date: '2099-12-15' });
     expect(changed).toBe(1);
-    expect(text()).toContain('COMPLIANCE.RISK_ASSESSMENT.TREATED');
+    expect(TestBed.inject(ToastService).toasts().map((t) => t.title)).toContain('COMPLIANCE.RISK_ASSESSMENT.TREATED');
   });
 
   it('asks to create a responsible role first when the organization has none', () => {
@@ -179,5 +180,20 @@ describe('RiskAssessment', () => {
     click('[data-test-start-treatment]');
     expect(el().querySelector('[data-test-no-responsibles]')).not.toBeNull();
     expect(el().querySelector('[data-test-save-treatment]')).toBeNull();
+  });
+
+  it('is dirty only while an evaluation or a treatment differs from what is saved (MD-485)', () => {
+    const view = setup(EVALUATED);
+    expect(view.dirty()).toBeFalse();
+    view.startEvaluation();
+    expect(view.dirty()).toBeFalse();
+    view.likelihood.set(5);
+    expect(view.dirty()).toBeTrue();
+    view.cancelEvaluation();
+    expect(view.dirty()).toBeFalse();
+    view.startTreatment();
+    expect(view.dirty()).toBeFalse();
+    view.dueDate.set('2026-12-31');
+    expect(view.dirty()).toBeTrue();
   });
 });
