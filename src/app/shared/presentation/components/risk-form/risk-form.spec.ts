@@ -124,4 +124,14 @@ describe('RiskForm', () => {
     save();
     expect(el().querySelector('[data-error="name"]')!.textContent).toContain('Demasiado largo.');
   });
+
+  it('guards only what differs from the start (MD-485): typed and erased back is not a change', async () => {
+    setup('risk');
+    const form = fixture.componentInstance;
+    expect(form.changed()).toBeFalse();
+    await type('name', 'Fuga de datos');
+    expect(form.changed()).toBeTrue();
+    await type('name', '  ');
+    expect(form.changed()).toBeFalse();
+  });
 });

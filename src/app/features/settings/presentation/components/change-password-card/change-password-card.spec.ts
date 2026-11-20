@@ -4,6 +4,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { Observable, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { SecurityService } from '@features/settings/domain/services/security.service';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 import { ChangePasswordCard } from './change-password-card';
 
 const CURRENT = 'Actual-Clave-2026!';
@@ -92,7 +93,7 @@ describe('ChangePasswordCard (SEG-14, D101)', () => {
     card().confirmChange({ code: '123456' });
     expect(security.changePassword).toHaveBeenCalledOnceWith({ current_password: CURRENT, new_password: NEXT, code: '123456' });
     fixture.detectChanges();
-    expect(q('change-password-done')).not.toBeNull();
+    expect(TestBed.inject(ToastService).toasts().map((t) => t.title)).toEqual(['SETTINGS.SECURITY.PASSWORD.DONE']);
     expect(q('factor-dialog')).toBeNull();
     expect(card().form.getRawValue()).toEqual({ current_password: '', password: '', password_confirmation: '' });
   });

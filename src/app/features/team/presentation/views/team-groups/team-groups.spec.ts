@@ -9,6 +9,9 @@ import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { TeamGroupsView } from './team-groups';
 import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+
+const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
 
 const leader = (id: string, name: string, role = 'responsable') => ({ id, name, last_name: 'Gómez', role });
 const RESPONSABLES: Group = { id: 'resp', name: 'Responsables', kind: 'responsables', leader: leader('a1', 'Ada', 'admin_empresa'), members_count: 3 };
@@ -123,7 +126,7 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
       type('[data-test-responsables-name]', '  Responsables - Servicio IA ');
       click('[data-test-create-responsables]');
       expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Responsables - Servicio IA' });
-      expect(q('[data-test-groups-notice]').textContent).toContain('TEAM.GROUPS.NOTICE.CREATED');
+      expect(toastText()).toContain('TEAM.GROUPS.NOTICE.CREATED');
       expect(el().querySelector('[role="dialog"]')).toBeNull(); // the form closes
       expect(reloads()).toBe(1);
     });
@@ -178,7 +181,7 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
       type('[data-test-rename-input]', ' Equipo A ');
       click('[data-test-rename-save]');
       expect(groupApi.rename).toHaveBeenCalledOnceWith('team-maria', 'Equipo A');
-      expect(q('[data-test-groups-notice]').textContent).toContain('TEAM.GROUPS.NOTICE.RENAMED');
+      expect(toastText()).toContain('TEAM.GROUPS.NOTICE.RENAMED');
       expect(el().querySelector('[data-test-rename-input]')).toBeNull();
       expect(reloads()).toBe(1);
     });
@@ -245,5 +248,23 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
       click('[data-test-create-own-submit]');
       expect(q('[data-test-groups-error]').textContent).toContain('solo puede liderar uno');
     });
+  });
+
+  it('guards «Crear» with something written and the rename with a different name, and starts «Crear» empty again (MD-485)', () => {
+    setup('admin_empresa', [RESPONSABLES]);
+    const view = fixture.componentInstance;
+    view.openCreate();
+    expect(view.createDirty()).toBeFalse();
+    view.teamName.set('Equipo de TI');
+    expect(view.createDirty()).toBeTrue();
+    view.createOpen.set(false);
+    view.openCreate();
+    expect(view.teamName()).toBe('');
+    expect(view.createDirty()).toBeFalse();
+    view.renamingId.set('resp');
+    view.renameDraft.set('Responsables');
+    expect(view.renameDirty()).toBeFalse();
+    view.renameDraft.set('Responsables 2026');
+    expect(view.renameDirty()).toBeTrue();
   });
 });

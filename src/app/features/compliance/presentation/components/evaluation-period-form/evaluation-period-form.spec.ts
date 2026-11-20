@@ -138,4 +138,11 @@ describe('EvaluationPeriodForm', () => {
     expect(closed).toHaveBeenCalledTimes(1);
     expect(api.setEvaluationPeriod).not.toHaveBeenCalled();
   });
+
+  it('guards only dates that differ from the ones the framework already has (MD-485)', () => {
+    const form = setup();
+    expect(form.changed()).toBeFalse();
+    form.start.set('2027-01-01');
+    expect(form.changed()).toBeTrue();
+  });
 });

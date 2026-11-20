@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { NavigationProgress } from './navigation-progress';
@@ -11,7 +12,7 @@ describe('NavigationProgress', () => {
     let release!: () => void;
     const slow = new Promise<void>((resolve) => (release = resolve));
     TestBed.configureTestingModule({
-      providers: [provideRouter([{ path: 'slow', component: Blank, canActivate: [() => slow.then(() => true)] }, { path: '', component: Blank }])],
+      providers: [provideTranslateService(), provideRouter([{ path: 'slow', component: Blank, canActivate: [() => slow.then(() => true)] }, { path: '', component: Blank }])],
     });
     const fixture = TestBed.createComponent(NavigationProgress);
     fixture.detectChanges();
