@@ -1,13 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { Tag } from '@shared/presentation/components/tag/tag';
+import { COMPLIANCE_ROUTE } from '@features/compliance/domain/models/compliance.models';
 import { bindInsight } from '@features/compliance/domain/services/compliance-context.service';
 import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 import { ControlListItem } from '@features/compliance/domain/models/control.models';
@@ -25,8 +29,7 @@ import { ControlService } from '@features/compliance/domain/services/control.ser
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
-
-type Stage = 'loading' | 'error' | 'ready';
+import { Stage } from '../../components/detail-panel-base/detail-panel-base';
 
 // La pestaña «Evidencias» de un servicio (MD-129): todo lo que los controles piden que se aporte, con su responsable y el estado de la última entrega,
 // para ver de un vistazo qué falta. Subir y descargar se hace en el panel del control (se abre con un clic en la fila), con el mismo componente de evidencia
@@ -45,6 +48,7 @@ export class EvidenceInboxView {
   private readonly language = inject(LanguageService);
   private readonly view = inject(ComplianceViewService);
   readonly labels = inject(EnumLabelService);
+  private readonly router = inject(Router);
 
   // El servicio activo lo elige el encabezado de Cumplimiento y se recuerda entre secciones (`ActiveComplianceService`).
   private readonly activeService = inject(ActiveComplianceService);
@@ -78,16 +82,16 @@ export class EvidenceInboxView {
   });
 
   readonly columns: TableColumn<EvidenceInboxRow>[] = [
-    { key: 'control', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_CONTROL' },
-    { key: 'evidence', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_EVIDENCE' },
-    { key: 'responsible', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_RESPONSIBLE' },
+    { key: 'control', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_CONTROL', skeleton: 'lines' },
+    { key: 'evidence', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_EVIDENCE', skeleton: 'lines' },
+    { key: 'responsible', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_RESPONSIBLE', skeleton: 'lines' },
     { key: 'state', headerKey: 'COMPLIANCE.EVIDENCE_INBOX.COLUMN_STATE', skeleton: 'badge' },
   ];
   readonly rowKey = (row: EvidenceInboxRow): string => row.requirement.id;
 
   constructor() {
     bindInsight(() => (this.stage() === 'ready' ? { kind: 'count', labelKey: 'COMPLIANCE.BANNER.EVIDENCE', count: this.rows().length } : null));
-    this.translate.onLangChange.subscribe(() => this.langTick.update((n) => n + 1));
+    this.translate.onLangChange.pipe(takeUntilDestroyed()).subscribe(() => this.langTick.update((n) => n + 1));
     effect(() => {
       this.serviceId();
       this.view.viewParam();
@@ -128,6 +132,11 @@ export class EvidenceInboxView {
     this.selected.set(row.control.id);
   }
 
+  /** Una causa del control abierto: se abre en Causas. */
+  openCause(id: string): void {
+    this.router.navigate(['/', COMPLIANCE_ROUTE, 'causas'], { queryParams: { abrir: id } });
+  }
+
   /** Se subió algo en el panel de un control: se vuelve a pedir solo la evidencia de ese control. */
   reload(controlId: string): void {
     this.api.list(controlId, this.view.viewParam()).subscribe({
@@ -156,7 +165,7 @@ export class EvidenceInboxView {
   lastDelivery(row: EvidenceInboxRow): string {
     const s = row.latest;
     if (!s) return '';
-    const date = new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'medium' }).format(new Date(s.submitted_at));
+    const date = formatLocalDate(s.submitted_at, this.language.current());
     return this.translate.instant('COMPLIANCE.EVIDENCE_INBOX.LAST_DELIVERY', { version: s.version, date });
   }
 }

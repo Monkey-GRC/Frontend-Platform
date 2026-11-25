@@ -1,34 +1,37 @@
 import { storedLanguage } from '@core/domain/services/language.service';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { Card } from '@shared/presentation/components/card/card';
 import { MetricCard } from '@shared/presentation/components/metric-card/metric-card';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
-import { PageInfo } from '@shared/presentation/components/data-table/table-page';
+import { PageInfo } from '@shared/domain/models/page-info.model';
 import { Donut, DonutTone } from '@shared/presentation/components/donut/donut';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { readinessLook } from '@shared/domain/utils/readiness-look';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
-import { COMPLIANCE_ROUTE } from '@features/compliance/domain/models/compliance.models';
+import { COMPLIANCE_ROUTE, DEFINE_PERIOD_PARAM } from '@features/compliance/domain/models/compliance.models';
 import { RiskListItem } from '@shared/domain/models/risk.models';
 import { FailingAffected, OverviewCategory, OverviewFailingControl, OverviewFramework, OverviewReadiness, RollupState } from '@features/compliance/domain/models/overview.models';
 import { ComplianceContextService } from '@features/compliance/domain/services/compliance-context.service';
 import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
 import { OverviewService } from '@features/compliance/domain/services/overview.service';
 import { RiskService } from '@shared/domain/services/risk.service';
+import { EvaluationPeriodHistory } from '../../components/evaluation-period-history/evaluation-period-history';
 import { EvaluationPeriodForm } from '../../components/evaluation-period-form/evaluation-period-form';
 import { RiskHeatmap } from '../../components/risk-heatmap/risk-heatmap';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { Stage } from '../../components/detail-panel-base/detail-panel-base';
 
-type Stage = 'loading' | 'error' | 'ready';
 type Tone = DonutTone;
 
 interface Banner {
@@ -56,7 +59,7 @@ const PAGE_SIZES = [10, 25, 50];
 // vencido nunca cuenta como cumplido, y sin resultados no se inventa ningún porcentaje. El cumplimiento se mide por servicio × marco; nunca hay un total de la empresa.
 @Component({
   selector: 'app-overview',
-  imports: [TranslatePipe, RouterLink, StatusIndicator, Tag, Card, MetricCard, Donut, EmptyState, DataTable, TableCell, RiskHeatmap, EvaluationPeriodForm, Skeleton, SkeletonRegion],
+  imports: [TranslatePipe, RouterLink, StatusIndicator, Tag, Card, MetricCard, Donut, EmptyState, DataTable, TableCell, RiskHeatmap, EvaluationPeriodForm, EvaluationPeriodHistory, Skeleton, SkeletonRegion],
   templateUrl: './overview.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -69,6 +72,8 @@ export class OverviewView {
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly query = toSignal(inject(ActivatedRoute).queryParamMap, { requireSync: true });
   readonly view = inject(ComplianceViewService);
   /** Lo que se comparte con el encabezado del servicio: el marco elegido y el período de su evaluación. */
   readonly context = inject(ComplianceContextService);
@@ -103,6 +108,8 @@ export class OverviewView {
   /** Solo el administrador de la empresa declara el período (la API lo exige: 403 al resto). */
   readonly canEditPeriod = computed(() => this.view.canManage());
   readonly periodOpen = signal(false);
+  /** El histórico de períodos lo piden el administrador y el auditor (la vista técnica); con el período aún sin definir no hay nada que listar. */
+  readonly showHistory = computed(() => this.view.isTechnicalView() && this.evaluationDefined());
 
   readonly measured = computed(() => (this.framework()?.readiness ?? 'not_measured') !== 'not_measured');
 
@@ -188,8 +195,8 @@ export class OverviewView {
     effect(() => {
       this.language.current();
       untracked(() => {
-        this.catalogs.options('trust_criterion').subscribe((o) => this.criteria.set(o));
-        this.catalogs.options('dimension').subscribe((o) => this.dimensions.set(o));
+        this.catalogs.options('trust_criterion').pipe(takeUntilDestroyed(this.destroyRef)).subscribe((o) => this.criteria.set(o));
+        this.catalogs.options('dimension').pipe(takeUntilDestroyed(this.destroyRef)).subscribe((o) => this.dimensions.set(o));
       });
     });
     effect(() => {
@@ -217,6 +224,20 @@ export class OverviewView {
     effect(() => {
       const b = this.banner();
       untracked(() => this.context.insight.set(b ? { kind: 'status', statusKey: b.titleKey, hintKey: b.bodyKey } : null));
+    });
+    // Un enlace del Inicio («Definir el período auditado») manda `?definir=<marco>`: con el resumen ya cargado se elige ese marco, se abre su formulario y el parámetro se quita.
+    effect(() => {
+      const code = this.query().get(DEFINE_PERIOD_PARAM);
+      const ready = this.stage() === 'ready';
+      const target = this.frameworks().find((f) => f.framework_code === code);
+      if (!code || !ready) return;
+      untracked(() => {
+        if (target && this.canEditPeriod()) {
+          this.context.selected.set(target.framework_code);
+          this.periodOpen.set(true);
+        }
+        this.router.navigate([], { queryParams: { [DEFINE_PERIOD_PARAM]: null }, queryParamsHandling: 'merge', replaceUrl: true });
+      });
     });
     // El período y el marco son de esta pestaña: al salir, el encabezado vuelve a estar sin ellos.
     this.destroyRef.onDestroy(() => this.context.clear());
@@ -293,8 +314,7 @@ export class OverviewView {
 
   /** Las fechas llegan como `AAAA-MM-DD`: se muestran en el idioma de la sesión, sin que la zona horaria las corra un día. */
   day(value: string | null): string {
-    if (!value) return '—';
-    return new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
+    return formatLocalDate(value, this.language.current(), { calendar: true }) || '—';
   }
 
   private toRow(f: OverviewFailingControl, category: OverviewCategory): AttentionRow {

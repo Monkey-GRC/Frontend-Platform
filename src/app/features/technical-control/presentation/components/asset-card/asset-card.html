@@ -17,19 +17,17 @@
     <div class="flex flex-wrap items-center gap-2">
       <app-status-indicator [tone]="status().tone" [labelKey]="status().label" />
       @if (canShowSetup()) {
-      <button type="button" (click)="showSetup.set(!showSetup())" [attr.aria-label]="(showSetup() ? 'TECHNICAL_CONTROL.CARD.HIDE_SETUP' : 'TECHNICAL_CONTROL.CARD.SHOW_SETUP') | translate" [title]="(showSetup() ? 'TECHNICAL_CONTROL.CARD.HIDE_SETUP' : 'TECHNICAL_CONTROL.CARD.SHOW_SETUP') | translate"
-        class="rounded-control p-2 text-ink-faint transition hover:bg-canvas">
-        <span class="material-symbols-rounded text-[20px]">{{ showSetup() ? 'visibility_off' : 'visibility' }}</span>
+      <!-- MD-499 · Acción = botón con texto (README §2): ver los datos de conexión es mostrar más, editar y quitar son acciones. -->
+      <button type="button" (click)="showSetup.set(!showSetup())" [attr.aria-expanded]="showSetup()" class="mk-btn-secondary-sm" data-toggle-setup>
+        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">{{ showSetup() ? 'visibility_off' : 'visibility' }}</span>{{ (showSetup() ? 'TECHNICAL_CONTROL.CARD.HIDE_SETUP' : 'TECHNICAL_CONTROL.CARD.SHOW_SETUP') | translate }}
       </button>
       }
       <button type="button" (click)="editing.set(!editing()); confirmingRemove.set(false)" [disabled]="removing()"
-        [attr.aria-label]="(editing() ? 'TECHNICAL_CONTROL.CARD.CLOSE_EDIT' : 'COMMON.EDIT') | translate" [title]="(editing() ? 'TECHNICAL_CONTROL.CARD.CLOSE_EDIT' : 'COMMON.EDIT') | translate"
-        class="rounded-control p-2 text-ink-faint transition enabled:hover:bg-canvas disabled:cursor-not-allowed disabled:text-ink-faint">
-        <span class="material-symbols-rounded text-[20px]">{{ editing() ? 'close' : 'edit' }}</span>
+        class="mk-btn-secondary-sm" data-toggle-edit>
+        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">{{ editing() ? 'close' : 'edit' }}</span>{{ (editing() ? 'TECHNICAL_CONTROL.CARD.CLOSE_EDIT' : 'COMMON.EDIT') | translate }}
       </button>
-      <button type="button" (click)="confirmingRemove.set(true); editing.set(false)" [disabled]="removing()" [attr.aria-label]="'COMMON.REMOVE' | translate" [title]="'COMMON.REMOVE' | translate"
-        class="rounded-control p-2 text-ink-faint transition enabled:hover:bg-canvas enabled:hover:text-bad-ink disabled:cursor-not-allowed disabled:text-ink-faint">
-        <span class="material-symbols-rounded text-[20px]">delete</span>
+      <button type="button" (click)="confirmingRemove.set(true); editing.set(false)" [disabled]="removing()" class="mk-btn-danger-sm" data-remove-asset>
+        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">delete</span>{{ 'COMMON.REMOVE' | translate }}
       </button>
     </div>
   </div>

@@ -24,6 +24,9 @@
             <app-status-indicator [tone]="verdictTone(f)" [labelKey]="v" data-verdict />
             }
           </div>
+          @if (!f.periodDefined) {
+          <a [routerLink]="definePeriodLink(f)" class="mk-link underline text-xs" data-define-period>{{ 'COMPLIANCE.PERIOD.DEFINE_STEP' | translate }}</a>
+          }
           @if (measured(f)) {
           <p class="text-xs text-ink-muted" data-coverage>{{ 'HOME.DASHBOARD.COVERAGE' | translate: { percent: pct(f.coverage.measured, f.coverage.applicable) } }}</p>
           } @else {
@@ -37,15 +40,15 @@
 
     <!-- Derecha: lo que tiene el servicio, en cuatro cuadros casi cuadrados -->
     <dl class="grid w-[11rem] shrink-0 grid-cols-2 gap-2">
-      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl tabular-nums font-semibold text-action">{{ service().assets }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'HOME.DASHBOARD.ASSETS' | translate }}</dt></div>
+      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl tabular-nums font-semibold text-action">{{ service().assets ?? '—' }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'HOME.DASHBOARD.ASSETS' | translate }}</dt></div>
       <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl tabular-nums font-semibold text-action">{{ service().controls }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'COMPLIANCE.GLOSSARY.CONTROLS' | translate }}</dt></div>
-      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl tabular-nums font-semibold text-action">{{ service().risks }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'COMPLIANCE.GLOSSARY.RISKS' | translate }}</dt></div>
-      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl tabular-nums font-semibold text-action">{{ service().causes }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'COMPLIANCE.GLOSSARY.CAUSES' | translate }}</dt></div>
+      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl tabular-nums font-semibold text-action">{{ service().risks ?? '—' }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'COMPLIANCE.GLOSSARY.RISKS' | translate }}</dt></div>
+      <div class="flex aspect-square flex-col items-center justify-center rounded-control bg-tint p-2 text-center"><dd class="text-2xl tabular-nums font-semibold text-action">{{ service().causes ?? '—' }}</dd><dt class="mt-1 truncate text-xs text-ink-muted">{{ 'COMPLIANCE.GLOSSARY.CAUSES' | translate }}</dt></div>
     </dl>
   </div>
 
-  <div class="mt-auto border-t border-line pt-3">
-    <a [routerLink]="link()" class="rounded-control text-sm font-medium text-action transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40">{{ 'HOME.DASHBOARD.SEE_DETAILS' | translate }}</a>
+  <div class="mt-auto border-t border-line pt-3" data-card-footer>
+    <a [routerLink]="link()" class="mk-link underline text-sm">{{ 'HOME.DASHBOARD.SEE_DETAILS' | translate }}</a>
   </div>
 </div>
 </app-card>

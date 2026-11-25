@@ -1,35 +1,43 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@core/domain/services/language.service';
-import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
-import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
+import { TranslatePipe } from '@ngx-translate/core';
+import { apiFieldErrors } from '@core/domain/utils/api-error';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
-import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { DetailModal } from '@shared/presentation/components/detail-modal/detail-modal';
+import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
+import { SearchField } from '@shared/presentation/components/search-field/search-field';
+import { ClientList, includesText } from '@shared/domain/utils/client-list';
+import { TabItem } from '@shared/presentation/components/tabs/tabs';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import type { UserRole } from '@core/domain/models/auth.models';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { Badge } from '@shared/presentation/components/badge/badge';
 import { readinessLook } from '@shared/domain/utils/readiness-look';
-import { EnumLabelService } from '@shared/domain/services/enum-label.service';
-import { controlStateTone } from '@features/compliance/domain/utils/control-state-look';
+import { CatalogService } from '@shared/domain/services/catalog.service';
+import type { CatalogOption } from '@shared/domain/models/catalog.models';
+import { ControlScore } from '../control-score/control-score';
 import { ControlDetail, ControlDimension, UpdateControlBody } from '@features/compliance/domain/models/control.models';
-import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { ControlEvidence } from '../control-evidence/control-evidence';
 import { DetailCard } from '../detail-card/detail-card';
+import { DetailPanelBase } from '../detail-panel-base/detail-panel-base';
 import { ControlTests } from '../control-tests/control-tests';
+import { ControlRequirements } from '../control-requirements/control-requirements';
+import { ControlPeriodicityForm } from '../control-periodicity-form/control-periodicity-form';
+import { LanguageService } from '@core/domain/services/language.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
+import { periodicityText, summarizePeriodicity } from '@features/compliance/domain/utils/control-v2-look';
+import { ControlPeriodView } from '../control-period/control-period';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
-import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 import { hasChanges } from '@shared/domain/utils/form-changes';
 
-type Stage = 'loading' | 'error' | 'ready';
-
-/** Las cinco dimensiones, siempre en este orden: la fila de dimensiones muestra todas, con ✓ las que aplican y ✗ las que no. */
-const DIMENSION_ORDER: ControlDimension[] = ['policy', 'server', 'database', 'app', 'cloud'];
 type Mode = 'view' | 'interpretation' | 'dimensions';
+
+/** Las pestañas del detalle (MD-499). `requirements` y `period` solo en la vista técnica; `period`, además, solo si el período auditado está definido. */
+type DetailTab = 'summary' | 'requirements' | 'evidence' | 'period';
 
 interface DimensionDraft {
   dimension: ControlDimension;
@@ -44,46 +52,43 @@ const INTERPRETATION_MAX = 4000;
 // Suben la evidencia el administrador de la empresa, el responsable (dueño) y el delegado (ejecutor), cada uno de lo suyo (D102); el auditor solo lee.
 const UPLOADING_ROLES: readonly UserRole[] = ['admin_empresa', 'responsable', 'delegado'];
 
-// El detalle de un control (MD-121), en un panel lateral. El administrador edita al instante y puede dar de baja (D96): el cambio se aplica y el avance se
+// El detalle de un control (MD-121), en el modal de detalle ancho con pestañas (MD-499; la pestaña abierta va en `?tab=`, la pone la lista). El administrador edita al instante y puede dar de baja (D96): el cambio se aplica y el avance se
 // recalcula. Los errores 422 se muestran bajo cada campo. El dueño y el ejecutor del control (D102) llegan con MD-202, cuando el Backend los exponga.
 @Component({
   selector: 'app-control-detail-panel',
-  imports: [Badge, FormsModule, TranslatePipe, SideDrawer, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlTests, DetailCard, Skeleton, SkeletonRegion, Busy, BusyFields],
+  imports: [Badge, ControlScore, FormsModule, TranslatePipe, DetailModal, DataTable, TableCell, SearchField, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlTests, ControlRequirements, ControlPeriodView, ControlPeriodicityForm, DetailCard, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './control-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ControlDetailPanel {
+export class ControlDetailPanel extends DetailPanelBase<ControlDetail, DetailTab> {
   protected readonly readinessLook = readinessLook;
-  protected readonly controlStateTone = controlStateTone;
-  protected readonly labels = inject(EnumLabelService);
   private readonly api = inject(ControlService);
-  private readonly translate = inject(TranslateService);
-  private readonly toast = inject(ToastService);
-  readonly view = inject(ComplianceViewService);
+  private readonly catalogs = inject(CatalogService);
+  private readonly language = inject(LanguageService);
+  protected readonly tabIds = ['summary', 'requirements', 'evidence', 'period'] as const;
+  protected readonly saveErrorKey = 'COMPLIANCE.DETAIL.SAVE_ERROR';
 
   readonly controlId = input.required<string>();
-  readonly closed = output<void>();
-  // El control cambió (se editó o se dio de baja): la lista se vuelve a pedir.
-  readonly changed = output<void>();
+  /** Una fila de la lista de causas: la vista abre esa causa en Causas. */
+  readonly openCause = output<string>();
 
   readonly maxInterpretation = INTERPRETATION_MAX;
-
-  private readonly language = inject(LanguageService);
-  readonly percentOf = percentOf;
-
-  /** «60 %» (o «—» sin total), en el idioma de la sesión. */
-  pct(part: number, total: number): string {
-    return formatPercent(percentOf(part, total), this.language.current());
-  }
-
-  readonly stage = signal<Stage>('loading');
-  readonly detail = signal<ControlDetail | null>(null);
+  /** Las nueve celdas de dimensiones del esqueleto de carga. */
+  protected readonly nineCells = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
   readonly mode = signal<Mode>('view');
-  readonly saving = signal(false);
-  readonly confirmingRetire = signal(false);
-  readonly error = signal<string | null>(null);
   readonly fieldErrors = signal<Record<string, string>>({});
+
+  /** Las pestañas que aplican a este control y a este rol: en la vista de negocio, solo Resumen y Evidencias (sin niveles ni requisitos). */
+  readonly tabs = computed<TabItem[]>(() => {
+    const d = this.ready();
+    if (!d) return [];
+    const items: TabItem[] = [{ id: 'summary', labelKey: 'COMPLIANCE.DETAIL_TABS.SUMMARY' }];
+    if (d.technical) items.push({ id: 'requirements', labelKey: 'COMPLIANCE.DETAIL_TABS.REQUIREMENTS', count: d.technical.requirements?.length ?? null });
+    items.push({ id: 'evidence', labelKey: 'COMPLIANCE.DETAIL_TABS.EVIDENCE' });
+    if (d.technical?.period) items.push({ id: 'period', labelKey: 'COMPLIANCE.DETAIL_TABS.PERIOD' });
+    return items;
+  });
 
   readonly interpretationDraft = signal('');
   readonly dimensionsDraft = signal<DimensionDraft[]>([]);
@@ -94,16 +99,25 @@ export class ControlDetailPanel {
     if (!d) return false;
     if (this.mode() === 'interpretation') return hasChanges(d.interpretation.text, this.interpretationDraft());
     if (this.mode() === 'dimensions') {
-      const saved = d.dimensions.map((x) => ({ dimension: x.dimension, applies: x.applies, reason: x.reason_not_applicable ?? '' }));
+      const saved = this.dimensionRow().map((x) => ({ dimension: x.dimension, applies: x.applies, reason: x.reason ?? '' }));
       return hasChanges(saved, this.dimensionsDraft());
     }
     return false;
   });
 
-  /** Las cinco dimensiones del control. Una que el detalle no trae no aplica (no hay prueba de esa dimensión). */
+  /** Las dimensiones con su orden y etiqueta, como las sirve el catálogo `dimension`. */
+  private readonly dimensionOptions = signal<CatalogOption[]>([]);
+
+  /** El texto de una dimensión: la etiqueta del catálogo; si aún no llegó, la de las traducciones de la app. */
+  protected dimLabel(dimension: string): string {
+    return this.dimensionOptions().find((o) => o.value === dimension)?.label ?? this.labels.of('COMPLIANCE.DIMENSION', dimension);
+  }
+
+  /** Todas las dimensiones del catálogo, con ✓ las que aplican y ✗ las que no. Una que el detalle no trae no aplica (no hay prueba de esa dimensión). */
   protected readonly dimensionRow = computed(() => {
     const byDimension = new Map((this.detail()?.dimensions ?? []).map((x) => [x.dimension, x]));
-    return DIMENSION_ORDER.map((dimension) => ({
+    const order = this.dimensionOptions().length ? this.dimensionOptions().map((o) => o.value) : [...byDimension.keys()];
+    return (order as ControlDimension[]).map((dimension) => ({
       dimension,
       applies: byDimension.get(dimension)?.applies ?? false,
       reason: byDimension.get(dimension)?.reason_not_applicable ?? null,
@@ -115,10 +129,29 @@ export class ControlDetailPanel {
     return role !== null && EDITING_ROLES.some((r) => r === role);
   });
 
+  /** Cambiar la periodicidad (G-10, D147): solo el administrador, y solo en un control del catálogo con requisitos (uno propio no los tiene). */
+  readonly canChangePeriodicity = computed(() => {
+    const d = this.ready();
+    return this.canEdit() && !!d && d.origin === 'catalog' && (d.technical?.requirements?.length ?? 0) > 0;
+  });
+  readonly periodicityOpen = signal(false);
+  protected readonly periodicity = computed(() => periodicityText(summarizePeriodicity(this.ready()?.technical?.requirements ?? []), this.labels));
+
+  onPeriodicitySaved(detail: ControlDetail): void {
+    this.detail.set(detail);
+    this.periodicityOpen.set(false);
+    this.toast.showSuccess(this.translate.instant('COMPLIANCE.PERIODICITY_CHANGE.SAVED'));
+    this.changed.emit();
+  }
+
+  /** Una marca de tiempo del backend, como fecha en el idioma de la sesión. */
+  protected day(iso: string): string {
+    return formatLocalDate(iso, this.language.current()) || iso;
+  }
+
   /** ¿La subida de evidencia va bajo las pruebas manuales? Solo si el detalle trae las pruebas y alguna es manual; si no, va aparte. */
   protected evidenceUnderTests(d: ControlDetail): boolean {
-    const dims = new Map(d.dimensions.map((x) => [x.dimension, x.type]));
-    return !!d.technical?.tests?.some((t) => dims.get(t.dimension) === 'manual');
+    return !!d.technical?.tests?.some((t) => t.accepts_evidence) || (d.evidence_tests?.length ?? 0) > 0;
   }
 
   readonly canUploadEvidence = computed(() => {
@@ -127,23 +160,38 @@ export class ControlDetailPanel {
   });
 
 
+  // Las causas del control: lista con buscador y paginación; cada fila abre esa causa en Causas.
+  protected readonly causeColumns: TableColumn<{ id: string; code: string; name: string | null }>[] = [
+    { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', class: 'w-28', skeleton: 'badge' },
+    { key: 'name', headerKey: 'COMPLIANCE.RISKS.COL_NAME', skeleton: 'lines' },
+  ];
+  protected readonly causeKey = (c: { id: string }) => c.id;
+  protected readonly causeLabel = (c: { code: string; name: string | null }) => [c.code, c.name].filter(Boolean).join(' ');
+  readonly causeList = new ClientList(
+    computed(() => this.ready()?.causes ?? []),
+    (c, q) => includesText(q, c.code, c.name),
+  );
+
   constructor() {
-    effect(() => {
-      this.controlId();
-      this.view.viewParam();
-      untracked(() => this.load());
-    });
+    super();
+    this.catalogs.options('dimension').pipe(takeUntilDestroyed()).subscribe((options) => this.dimensionOptions.set(options));
   }
 
-  load(): void {
-    this.stage.set('loading');
-    this.api.get(this.controlId(), this.view.viewParam()).subscribe({
-      next: (detail) => {
-        this.detail.set(detail);
-        this.stage.set('ready');
-      },
-      error: () => this.stage.set('error'),
-    });
+  protected override onRequest(): void {
+    super.onRequest();
+    this.mode.set('view');
+    this.interpretationDraft.set('');
+    this.dimensionsDraft.set([]);
+    this.periodicityOpen.set(false);
+    this.causeList.reset();
+  }
+
+  protected request() {
+    return this.api.get(this.controlId(), this.view.viewParam());
+  }
+
+  protected remove() {
+    return this.api.retire(this.controlId());
   }
 
   startInterpretation(): void {
@@ -154,9 +202,8 @@ export class ControlDetailPanel {
 
   startDimensions(): void {
     this.resetFeedback();
-    this.dimensionsDraft.set(
-      (this.detail()?.dimensions ?? []).map((d) => ({ dimension: d.dimension, applies: d.applies, reason: d.reason_not_applicable ?? '' })),
-    );
+    // Las 9 del catálogo: las que el detalle no trae (no tienen fila) salen «No aplica» y se activan desde aquí.
+    this.dimensionsDraft.set(this.dimensionRow().map((d) => ({ dimension: d.dimension, applies: d.applies, reason: d.reason ?? '' })));
     this.mode.set('dimensions');
   }
 
@@ -173,8 +220,15 @@ export class ControlDetailPanel {
     this.dimensionsDraft.update((list) => list.map((d, i) => (i === index ? { ...d, reason } : d)));
   }
 
-  /** ¿Se puede enviar? Una dimensión que no aplica exige su motivo (el backend lo vuelve a exigir). */
-  readonly dimensionsValid = computed(() => this.dimensionsDraft().every((d) => d.applies || d.reason.trim().length > 0));
+  /** Lo que cambió respecto de lo guardado: solo eso se envía (una dimensión sin fila que no se toca no exige motivo). */
+  private readonly changedDimensions = computed(() => {
+    const base = new Map(this.dimensionRow().map((x) => [x.dimension, x]));
+    return this.dimensionsDraft().filter((d) => {
+      const b = base.get(d.dimension);
+      return !b || d.applies !== b.applies || (!d.applies && d.reason.trim() !== (b.reason ?? '').trim());
+    });
+  });
+  readonly dimensionsValid = computed(() => this.changedDimensions().length > 0 && this.changedDimensions().every((d) => d.applies || d.reason.trim().length > 0));
   readonly interpretationValid = computed(() => {
     const text = this.interpretationDraft().trim();
     return text.length > 0 && text.length <= INTERPRETATION_MAX;
@@ -188,31 +242,11 @@ export class ControlDetailPanel {
   submitDimensions(): void {
     if (!this.dimensionsValid()) return;
     this.save({
-      dimensions: this.dimensionsDraft().map((d) => ({
+      dimensions: this.changedDimensions().map((d) => ({
         dimension: d.dimension,
         applies: d.applies,
         ...(d.applies ? {} : { reason_not_applicable: d.reason.trim() }),
       })),
-    });
-  }
-
-  askRetire(): void {
-    this.resetFeedback();
-    this.confirmingRetire.set(true);
-  }
-
-  confirmRetire(): void {
-    this.saving.set(true);
-    this.resetFeedback();
-    this.api.retire(this.controlId()).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.confirmingRetire.set(false);
-        // El control ya no existe para las listas: se avisa y se cierra el panel.
-        this.changed.emit();
-        this.closed.emit();
-      },
-      error: (error) => this.failed(error),
     });
   }
 
@@ -232,19 +266,17 @@ export class ControlDetailPanel {
         this.toast.showSuccess(this.translate.instant('COMPLIANCE.DETAIL.SAVED'));
         this.changed.emit();
       },
-      error: (error) => this.failed(error),
+      error: (error) => this.fail(error),
     });
   }
 
-  private failed(error: unknown): void {
-    this.saving.set(false);
-    this.confirmingRetire.set(false);
+  protected override fail(error: unknown): void {
     this.fieldErrors.set(Object.fromEntries(apiFieldErrors(error).map((f) => [f.field, f.message])));
-    // `message` ya viene traducido por el backend (también en 409: el control ya estaba dado de baja).
-    this.error.set(apiErrorMessage(error, this.translate.instant('COMPLIANCE.DETAIL.SAVE_ERROR')));
+    super.fail(error);
   }
-  private resetFeedback(): void {
-    this.error.set(null);
+
+  protected override resetFeedback(): void {
+    super.resetFeedback();
     this.fieldErrors.set({});
   }
 }

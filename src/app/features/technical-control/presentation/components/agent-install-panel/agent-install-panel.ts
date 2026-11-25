@@ -6,6 +6,7 @@ import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorCode, apiErrorMessage } from '@core/domain/utils/api-error';
 import { AgentInstallOption, AgentInstallReveal, AgentInstallState, Asset, Execution } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
 
 type Busy = 'start' | 'reveal' | 'regenerate' | 'check';
 
@@ -66,7 +67,7 @@ export class AgentInstallPanel implements OnInit {
   // «Última revisión»: la última lectura que Monkey guardó de este servidor, en el idioma de la sesión.
   readonly lastReview = computed(() => {
     const at = this.asset().agent?.last_sync_at ?? this.state()?.connection.last_sync_at;
-    return at ? new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(at)) : null;
+    return formatLocalDate(at, this.language.current(), { time: true }) || null;
   });
 
   ngOnInit(): void {

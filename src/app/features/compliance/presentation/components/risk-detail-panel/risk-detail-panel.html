@@ -1,10 +1,48 @@
-<app-side-drawer [open]="true" titleKey="COMPLIANCE.GLOSSARY.RISK" size="lg" [guarded]="editing()" (closed)="closed.emit()">
+<!-- El detalle de un riesgo en el panel lateral de ancho contenido (MD-499, `drawer-narrow`): cabecera fija con el nombre, el código y el nivel; Resumen en una
+     columna (descripción, impacto, tratamiento y la evaluación 5×5 con su resultado al lado de la matriz) y Causas; pie con «Cerrar» y «Editar». Las pestañas se
+     ocultan, no se destruyen: una evaluación a medio hacer no se pierde al cambiar. -->
+<app-detail-modal titleKey="COMPLIANCE.GLOSSARY.RISK" [heading]="ready()?.name ?? null" [tabs]="tabs()" [activeTab]="activeTab()" tabsLabelKey="COMPLIANCE.DETAIL_TABS.ARIA"
+  variant="drawer-narrow" [loading]="stage() === 'loading'" [loadingTabs]="2" [guarded]="editing()" testId="risk-detail" (activeTabChange)="selectTab($event)" (closed)="closed.emit()">
+
+  <!-- Cada bloque proyectado va en su propio @if con un solo elemento raíz: así Angular lo lleva a su lugar de la cabecera o del pie. -->
+  @if (ready(); as d) {
+  <div meta class="flex flex-wrap items-center gap-2">
+    <app-tag [text]="d.code" />
+    <app-risk-level-badge [level]="d.inherent_risk_level" />
+    @if (d.trust_criterion) {
+    <app-badge kind="attribute" [value]="d.trust_criterion">{{ labels.of('COMPLIANCE.RISK_CRITERION', d.trust_criterion) }}</app-badge>
+    }
+    @if (d.origin === 'own') {
+    <app-badge kind="attribute" value="own">{{ 'COMPLIANCE.RISKS.OWN' | translate }}</app-badge>
+    }
+  </div>
+  }
+  @if (ready() && canRemove()) {
+  <button actions type="button" (click)="editCurrent()" data-edit class="mk-btn-secondary">
+    <span class="material-symbols-rounded text-[20px]" aria-hidden="true">edit</span>{{ 'COMPLIANCE.RISK_FORM.EDIT' | translate }}
+  </button>
+  }
+
+  @if (ready() && canRemove()) {
+  <button footerStart type="button" (click)="askRemove()" [disabled]="saving()" [title]="'COMPLIANCE.RISK_DETAIL.REMOVE_HINT' | translate" class="mk-btn-danger-outline" data-remove>
+    <span class="material-symbols-rounded text-[20px]" aria-hidden="true">delete</span>{{ 'COMPLIANCE.RISK_DETAIL.REMOVE' | translate }}
+  </button>
+  }
 
   @switch (stage()) {
 
   @case ('loading') {
+  <!-- D116 · La forma del Resumen, en una columna: descripción, impacto, tratamiento y la matriz 5×5 con su resultado al lado. -->
   <app-skeleton-region>
-    <div class="flex flex-col gap-4"><app-skeleton shape="title" width="60%" /><app-skeleton shape="line" [lines]="3" /><app-skeleton shape="card" /><app-skeleton shape="card" /></div>
+    <div class="flex flex-col gap-8">
+      <app-skeleton shape="section" [lines]="3" />
+      <app-skeleton shape="section" [lines]="1" width="30%" />
+      <app-skeleton shape="section" [lines]="2" width="25%" />
+      <div>
+        <app-skeleton shape="section" [lines]="0" width="40%" />
+        <div class="mt-3 flex flex-wrap items-start gap-x-10 gap-y-4"><app-skeleton shape="block" width="15rem" height="15rem" /><div class="flex flex-1 basis-64 flex-col gap-3"><app-skeleton shape="badge" width="12rem" /><app-skeleton shape="line" width="6rem" /></div></div>
+      </div>
+    </div>
   </app-skeleton-region>
   }
 
@@ -14,120 +52,118 @@
     <p class="mt-1 text-sm text-ink-muted">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
     <button type="button" (click)="load()"
       class="mt-4 mk-btn">
-      <span class="material-symbols-rounded text-[20px]">refresh</span>{{ 'COMMON.RETRY' | translate }}
+      <span class="material-symbols-rounded text-[20px]" aria-hidden="true">refresh</span>{{ 'COMMON.RETRY' | translate }}
     </button>
   </div>
   }
 
   @default {
   @if (detail(); as d) {
-  <div class="flex flex-col gap-4">
 
-    <div>
-      <div class="flex flex-wrap items-center gap-2">
-        <app-tag [text]="d.code" />
-        <app-risk-level-badge [level]="d.inherent_risk_level" />
-        <app-badge kind="attribute" [value]="d.trust_criterion">{{ labels.of('COMPLIANCE.RISK_CRITERION', d.trust_criterion) }}</app-badge>
-        @if (d.origin === 'own') {
-        <app-badge kind="attribute" value="own">{{ 'COMPLIANCE.RISKS.OWN' | translate }}</app-badge>
+  @if (error(); as e) {
+  <div class="mb-5 flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ e }}</span>
+  </div>
+  }
+
+  <!-- Resumen, en una columna: qué es, qué puede afectar, cómo se trata y su evaluación 5×5 (matriz y nivel, MD-123) con el resultado al lado de la matriz. -->
+  <div [hidden]="activeTab() !== 'summary'" data-tab="summary">
+    <div class="flex flex-col gap-8">
+      <app-detail-card class="min-w-0" titleKey="COMPLIANCE.RISK_DETAIL.DESCRIPTION">
+        <p class="max-w-prose whitespace-pre-line text-pretty text-sm leading-relaxed text-ink-muted">{{ d.description }}</p>
+      </app-detail-card>
+
+      <app-detail-card class="min-w-0" titleKey="COMPLIANCE.RISK_DETAIL.POTENTIAL_IMPACT">
+        @if (d.potential_impact.length) {
+        <ul class="flex flex-wrap gap-2">
+          @for (impact of d.potential_impact; track impact) {
+          <li><app-badge kind="attribute" [value]="impact">{{ labels.of('COMPLIANCE.LOSS_TYPE', impact) }}</app-badge></li>
+          }
+        </ul>
+        } @else {
+        <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.RISK_DETAIL.NO_IMPACT' | translate }}</p>
         }
-      </div>
-      <div class="mt-3 flex items-start justify-between gap-3">
-        <h3 class="text-2xl font-semibold leading-snug text-ink">{{ d.name }}</h3>
-        @if (canRemove()) {
-        <button type="button" (click)="edit.emit(d)" data-edit class="inline-flex shrink-0 items-center gap-1.5 pt-1.5 text-sm font-medium text-action hover:underline">
-          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">edit</span>{{ 'COMPLIANCE.RISK_FORM.EDIT' | translate }}
-        </button>
-        }
-      </div>
+      </app-detail-card>
+
+      <app-risk-assessment [risk]="d" [canManage]="view.canManage()" (changed)="assessed()" />
     </div>
 
-    @if (error(); as e) {
-    <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ e }}</span>
+  </div>
+
+  <!-- Causas: el árbol del riesgo. El conteo va en la pestaña; aquí se busca (MD-499). Cada fila: la causa a la izquierda y sus controles como códigos a la derecha
+       (el nombre en el tooltip, «Obl.» si es obligatorio); la fila entera abre la causa. -->
+  <div [hidden]="activeTab() !== 'causes'" data-tab="causes">
+    <!-- El buscador va siempre arriba del título de la sección y a todo el ancho (MD-499). -->
+    @if (d.causes.length > 0) {
+    <div class="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+      <app-search-field class="block min-w-0 flex-1 basis-80" inputId="risk-causes-search" placeholderKey="COMPLIANCE.RISK_DETAIL.SEARCH_CAUSES" [value]="causeList.query()" (valueChange)="causeList.search($event)" data-causes-search />
+      <label class="flex shrink-0 items-center gap-2 text-sm text-ink">
+        <input type="checkbox" class="mk-checkbox" [checked]="onlyWithoutControls()" (change)="setOnlyWithout(targetChecked($event))" data-causes-without-controls />
+        {{ 'COMPLIANCE.RISK_DETAIL.ONLY_WITHOUT_CONTROLS' | translate }}
+      </label>
     </div>
     }
-
-    <app-detail-card titleKey="COMPLIANCE.RISK_DETAIL.DESCRIPTION">
-      <p class="whitespace-pre-line text-sm leading-relaxed text-ink-muted">{{ d.description }}</p>
-    </app-detail-card>
-
-    <app-detail-card titleKey="COMPLIANCE.RISK_DETAIL.POTENTIAL_IMPACT">
-      @if (d.potential_impact.length) {
-      <ul class="flex flex-wrap gap-2">
-        @for (impact of d.potential_impact; track impact) {
-        <li><app-badge kind="attribute" [value]="impact">{{ labels.of('COMPLIANCE.LOSS_TYPE', impact) }}</app-badge></li>
-        }
-      </ul>
-      } @else {
-      <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.RISK_DETAIL.NO_IMPACT' | translate }}</p>
-      }
-    </app-detail-card>
-
-    <!-- Evaluación 5×5 y tratamiento (MD-123) -->
-    <app-risk-assessment [risk]="d" [canManage]="view.canManage()" (changed)="assessed()" />
-
-    <!-- El árbol: causas del riesgo y, en cada una, los controles que la mitigan -->
     <app-detail-card titleKey="COMPLIANCE.GLOSSARY.CAUSES">
       @if (view.canManage() && !picking()) {
-      <button actions type="button" (click)="startLink()" [disabled]="saving()" class="inline-flex items-center gap-1 text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMPLIANCE.RISK_DETAIL.LINK_CAUSE' | translate }}
+      <button actions type="button" (click)="startLink()" [disabled]="saving()" class="mk-btn-secondary-sm">
+        <span class="material-symbols-rounded text-[16px]" aria-hidden="true">add_link</span>{{ 'COMPLIANCE.RISK_DETAIL.LINK_CAUSE' | translate }}
       </button>
       }
 
       @if (picking()) {
-      <div class="mb-3 rounded-control border border-line p-3">
+      <div class="mb-4 max-w-2xl rounded-control border border-line p-3">
         <app-link-picker labelKey="COMPLIANCE.RISK_DETAIL.PICK_CAUSE" [items]="candidates()" [busy]="saving()" (picked)="link($event)" (cancelled)="picking.set(false)" />
       </div>
       }
 
-      <p class="mb-3 text-xs font-medium text-ink-faint">{{ d.causes.length }}</p>
       @if (d.causes.length === 0) {
       <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.RISK_DETAIL.NO_CAUSES' | translate }}</p>
       } @else {
-      <app-data-table captionKey="COMPLIANCE.GLOSSARY.CAUSES" [compact]="true" [hideHeader]="true" [columns]="causeColumns" [rows]="d.causes" [rowKey]="causeKey">
+      <app-data-table captionKey="COMPLIANCE.GLOSSARY.CAUSES" [compact]="true" [columns]="causeColumns" [rows]="causeList.rows()" [rowKey]="causeKey" [page]="causeList.info()" [pageSizes]="[10, 25]"
+        [clickable]="true" [rowLabel]="causeLabel" emptyIcon="" emptyTitleKey="COMPLIANCE.RISK_DETAIL.NO_MATCH" (pageChange)="causeList.goTo($event)" (pageSizeChange)="causeList.resize($event)" (rowClick)="openCause.emit($event.id)" data-causes-table>
         <ng-template appCell="cause" let-c>
-          <p class="text-sm font-medium text-ink"><app-tag [text]="c.code" /> · {{ c.name }}</p>
+          <p class="text-sm font-medium text-ink"><app-tag [text]="c.code" />@if (c.name) { · {{ c.name }}}</p>
+          @if (c.failure_category) {
           <p class="mt-0.5 text-xs text-ink-muted">{{ labels.of('COMPLIANCE.FAILURE_CATEGORY', c.failure_category) }}</p>
+          }
+        </ng-template>
+        <ng-template appCell="controls" let-c>
           @if (c.controls.length === 0) {
-          <p class="mt-2 text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_DETAIL.NO_CONTROLS' | translate }}</p>
+          <p class="text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_DETAIL.NO_CONTROLS' | translate }}</p>
           } @else {
-          <ul class="mt-2 flex flex-col gap-1 pl-3">
-            @for (k of c.controls; track k.control_id) {
-            <li class="flex flex-wrap items-center gap-x-2 text-xs text-ink-muted">
-              <app-tag [text]="k.code" />
-              <span>{{ k.name }}</span>
-              <span>· {{ (k.is_mandatory ? 'COMPLIANCE.RISK_DETAIL.MANDATORY' : 'COMPLIANCE.RISK_DETAIL.OPTIONAL') | translate }}</span>
-              @if (k.effect) {<span>· {{ labels.of('COMPLIANCE.CAUSE_EFFECT', k.effect) }}</span>}
+          <ul class="flex flex-wrap items-center gap-1.5" [attr.aria-label]="'COMPLIANCE.CAUSE_DETAIL.MITIGATING_CONTROLS' | translate" data-cause-controls>
+            @for (k of visibleControls(c); track k.control_id) {
+            <li>
+              <app-badge kind="code" size="sm" [hint]="controlTitle(k)" data-control-chip>{{ k.code }}@if (k.is_mandatory) {<span class="ml-1 font-normal" aria-hidden="true">· {{ 'COMPLIANCE.RISK_DETAIL.MANDATORY_SHORT' | translate }}</span>}</app-badge>
+              <span class="sr-only">{{ controlTitle(k) }}</span>
+            </li>
+            }
+            @if (c.controls.length > CONTROLS_SHOWN) {
+            <li>
+              <button type="button" class="mk-link text-xs underline" [attr.aria-expanded]="isExpanded(c.id)" (click)="toggleControls(c.id)" data-more-controls>
+                {{ (isExpanded(c.id) ? 'COMPLIANCE.RISK_DETAIL.FEWER_CONTROLS' : 'COMPLIANCE.RISK_DETAIL.MORE_CONTROLS') | translate: { count: c.controls.length - CONTROLS_SHOWN } }}
+              </button>
             </li>
             }
           </ul>
           }
         </ng-template>
         <ng-template appCell="actions" let-c>
-          <span class="flex items-center justify-end gap-3">
-            <button type="button" (click)="openCause.emit(c.id)" class="text-xs font-medium text-action hover:underline">{{ 'COMPLIANCE.RISK_DETAIL.VIEW_CAUSE' | translate }}</button>
-            @if (view.canManage()) {
-            <button type="button" (click)="askUnlink(c)" [disabled]="saving()" class="text-xs font-medium text-bad-ink enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMPLIANCE.RISK_DETAIL.UNLINK' | translate }}</button>
-            }
-          </span>
+          @if (view.canManage()) {
+          <button type="button" (click)="askUnlink(c)" [disabled]="saving()" class="mk-btn-danger-sm">
+            <span class="material-symbols-rounded text-[16px]" aria-hidden="true">link_off</span>{{ 'COMPLIANCE.RISK_DETAIL.UNLINK' | translate }}
+          </button>
+          }
         </ng-template>
       </app-data-table>
       }
     </app-detail-card>
-
-    @if (canRemove()) {
-    <section class="border-t border-line pt-4" [attr.aria-label]="'COMPLIANCE.RISK_DETAIL.REMOVE' | translate">
-      <button type="button" (click)="askRemove()" [disabled]="saving()" class="inline-flex items-center gap-1.5 text-sm font-medium text-bad-ink enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">
-        <span class="material-symbols-rounded text-[20px]" aria-hidden="true">delete</span>{{ 'COMPLIANCE.RISK_DETAIL.REMOVE' | translate }}
-      </button>
-      <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_DETAIL.REMOVE_HINT' | translate }}</p>
-    </section>
-    }
   </div>
+
   }
   }
 
   }
-</app-side-drawer>
+</app-detail-modal>
 
 @if (confirmingRemove()) {
 <app-confirm-dialog titleKey="COMPLIANCE.RISK_DETAIL.REMOVE_CONFIRM_TITLE" messageKey="COMPLIANCE.RISK_DETAIL.REMOVE_CONFIRM_BODY" tone="danger"

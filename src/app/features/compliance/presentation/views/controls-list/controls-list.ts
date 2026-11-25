@@ -1,18 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { merge } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { READINESS_LEVELS, Readiness } from '@shared/domain/models/readiness.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
-import { PageInfo } from '@shared/presentation/components/data-table/table-page';
+import { PageInfo } from '@shared/domain/models/page-info.model';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { readinessLook } from '@shared/domain/utils/readiness-look';
+import { EnumLabelService } from '@shared/domain/services/enum-label.service';
+import { levelTone } from '@features/compliance/domain/utils/control-v2-look';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { Badge } from '@shared/presentation/components/badge/badge';
@@ -21,6 +23,8 @@ import { ActiveComplianceService } from '@features/compliance/domain/services/ac
 import { ControlListItem, TrustCriterion } from '@features/compliance/domain/models/control.models';
 import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
 import { ControlService } from '@features/compliance/domain/services/control.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { COMPLIANCE_ROUTE } from '@features/compliance/domain/models/compliance.models';
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
 
 type Stage = 'loading' | 'error' | 'ready';
@@ -39,6 +43,10 @@ const PAGE_SIZE = 25;
 })
 export class ControlsListView {
   protected readonly readinessLook = readinessLook;
+  protected readonly levelTone = levelTone;
+  protected readonly labels = inject(EnumLabelService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ControlService);
   private readonly catalogs = inject(CatalogService);
   private readonly translate = inject(TranslateService);
@@ -48,6 +56,11 @@ export class ControlsListView {
   // El servicio activo lo elige el encabezado de Cumplimiento y se recuerda entre secciones (`ActiveComplianceService`).
   private readonly activeService = inject(ActiveComplianceService);
   readonly serviceId = computed(() => this.activeService.serviceId() ?? '');
+
+  // El control abierto y su pestaña van en la dirección (`?abrir=<id>&tab=`): se puede compartir y «Atrás» lo cierra.
+  private readonly query = toSignal(this.route.queryParamMap, { requireSync: true });
+  readonly selected = computed(() => this.query().get('abrir'));
+  readonly tab = computed(() => this.query().get('tab'));
 
   readonly stage = signal<Stage>('loading');
   readonly rows = signal<ControlListItem[]>([]);
@@ -61,7 +74,6 @@ export class ControlsListView {
 
   // Los temas salen del catálogo del backend (traducidos según el idioma de la sesión); aquí no hay listas escritas a mano.
   private readonly trustOptions = signal<CatalogOption[]>([]);
-  readonly selected = signal<string | null>(null);
 
   // Una petición más nueva descarta la respuesta de una anterior (cambios rápidos de filtro o de página).
   private requestSeq = 0;
@@ -78,11 +90,11 @@ export class ControlsListView {
   ]);
 
   readonly columns = computed<TableColumn<ControlListItem>[]>(() => [
-    { key: 'code', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TECHNICAL' },
-    { key: 'name', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_NAME' },
+    { key: 'code', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TECHNICAL', skeleton: 'badges' },
+    { key: 'name', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_NAME', skeleton: 'lines' },
     { key: 'topics', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TOPIC', skeleton: 'badge' },
-    { key: 'status', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_STATUS', skeleton: 'badge' },
-    { key: 'counts', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_PROGRESS' },
+    { key: 'status', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_STATUS', skeleton: 'badges' },
+    { key: 'counts', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_PROGRESS', skeleton: 'progress' },
   ]);
 
   readonly percentOf = percentOf;
@@ -97,6 +109,8 @@ export class ControlsListView {
 
   private readonly translationsTick = signal(0);
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor() {
     // Con un filtro puesto el total es el del filtro, no el de los controles del servicio: no se publica.
     bindInsight(() => {
@@ -109,7 +123,7 @@ export class ControlsListView {
     // El backend traduce los catálogos: al cambiar el idioma se vuelven a pedir, sin recrear la pantalla ni perder los filtros.
     effect(() => {
       this.language.current();
-      untracked(() => this.catalogs.options('trust_criterion').subscribe((options) => this.trustOptions.set(options)));
+      untracked(() => this.catalogs.options('trust_criterion').pipe(takeUntilDestroyed(this.destroyRef)).subscribe((options) => this.trustOptions.set(options)));
     });
     // Mientras haya un servicio y un tipo de vista, se carga; cambiar de servicio recarga.
     effect(() => {
@@ -170,7 +184,20 @@ export class ControlsListView {
   }
 
   open(row: ControlListItem): void {
-    this.selected.set(row.id);
+    this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: row.id, tab: null }, queryParamsHandling: 'merge' });
+  }
+
+  closeDetail(): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: null, tab: null }, queryParamsHandling: 'merge', replaceUrl: true });
+  }
+
+  setTab(tab: string): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { tab: tab === 'summary' ? null : tab }, queryParamsHandling: 'merge', replaceUrl: true });
+  }
+
+  /** Una causa del control: se abre en Causas. */
+  openCause(id: string): void {
+    this.router.navigate(['/', COMPLIANCE_ROUTE, 'causas'], { queryParams: { abrir: id } });
   }
 
   /** Los temas del control: el valor estable (decide el color del badge) y su etiqueta traducida. */

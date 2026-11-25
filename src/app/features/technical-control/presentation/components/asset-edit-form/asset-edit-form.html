@@ -93,7 +93,7 @@
       {{ 'TECHNICAL_CONTROL.CARD.EVALUATE_NOW' | translate }}
     </button>
     }
-    <button type="button" (click)="askCancel()" [disabled]="saving()"
+    <button type="button" (click)="discardGuard.request()" [disabled]="saving()"
       class="mk-btn-secondary">
       {{ 'COMMON.CANCEL' | translate }}
     </button>
@@ -101,7 +101,4 @@
 </section>
 
 <!-- MD-485 · Cancelar con cambios sin guardar pregunta antes de descartarlos. -->
-@if (confirmingDiscard()) {
-<app-confirm-dialog titleKey="COMMON.DISCARD.TITLE" messageKey="COMMON.DISCARD.MESSAGE" cancelLabelKey="COMMON.DISCARD.KEEP" confirmLabelKey="COMMON.DISCARD.CONFIRM"
-  tone="danger" (cancelled)="confirmingDiscard.set(false)" (confirmed)="confirmingDiscard.set(false); cancelled.emit()" />
-}
+<app-discard-confirm [guard]="discardGuard" />

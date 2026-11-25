@@ -25,7 +25,7 @@ type Stage = 'loading' | 'error' | 'ready';
           @if (serviceList().length === 0) {
             <p class="text-sm text-ink-muted" data-test-no-services>
               {{ 'INTEGRATIONS.PICK.NO_SERVICES' | translate }}
-              <a routerLink="/services" class="font-medium text-action hover:underline" (click)="closed.emit()">{{ 'INTEGRATIONS.PICK.GO_SERVICES' | translate }}</a>
+              <a routerLink="/services" class="mk-link underline" (click)="closed.emit()">{{ 'INTEGRATIONS.PICK.GO_SERVICES' | translate }}</a>
             </p>
           } @else {
             <ul class="space-y-2">

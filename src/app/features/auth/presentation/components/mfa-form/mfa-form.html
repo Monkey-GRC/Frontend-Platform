@@ -102,7 +102,7 @@
         } @else {
         <div class="mt-6 flex flex-col items-center gap-2">
             <app-qr-code [value]="s.otpauth_uri" [label]="'AUTH.MFA.QR_ALT' | translate" />
-            <button type="button" (click)="qrRevealed.set(false)" class="inline-flex items-center gap-1 text-xs font-medium text-ink-muted hover:underline">{{ 'AUTH.MFA.QR_HIDE' | translate }}
+            <button type="button" (click)="qrRevealed.set(false)" class="mk-link inline-flex items-center gap-1 text-xs underline">{{ 'AUTH.MFA.QR_HIDE' | translate }}
             </button>
         </div>
         <div class="mt-5 rounded-control border border-line p-4">

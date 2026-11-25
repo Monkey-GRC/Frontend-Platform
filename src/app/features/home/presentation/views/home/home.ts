@@ -5,13 +5,12 @@ import { SessionService } from '@core/domain/services/session.service';
 import { canDeclareCompanyContext } from '@shared/domain/utils/roles';
 import { Card } from '@shared/presentation/components/card/card';
 import { CompanyDashboard } from '../../components/company-dashboard/company-dashboard';
-import { PageHeader } from '@shared/presentation/components/page-header/page-header';
 
 // Pantalla de llegada tras activar la cuenta o iniciar sesión. Es provisional: el dashboard de
 // 4 preguntas la reemplaza. Sin jerga ni porcentajes, como pide philosophy.md.
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, TranslatePipe, CompanyDashboard, Card, PageHeader],
+  imports: [RouterLink, TranslatePipe, CompanyDashboard, Card],
   templateUrl: './home.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

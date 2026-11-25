@@ -5,6 +5,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { map } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { formatBytes } from '@shared/domain/utils/file-validation';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
@@ -52,6 +53,8 @@ const TEST_KEY = '__test__';
   imports: [Badge, TranslatePipe, FileUpload, NgTemplateOutlet, FormModal, StatusIndicator, DataTable, TableCell, Tag, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './control-evidence.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // Bajo una prueba, el bloque ocupa el alto de la tarjeta (MD-499).
+  host: { '[class]': "embedded() ? 'flex flex-1 flex-col' : 'block'" },
 })
 export class ControlEvidence {
   private readonly api = inject(EvidenceService);
@@ -81,6 +84,8 @@ export class ControlEvidence {
   readonly embedded = input(false);
   /** D88 · La prueba documental bajo la que se pinta: solo se muestra lo que se entregó PARA ELLA en este control. */
   readonly testId = input<string | null>(null);
+  /** MD-499 · La prueba se cumple con evidencia solo mientras no hay integración conectada. */
+  readonly fallback = input(false);
   /** Solo los documentos que el catálogo sugiere para el control (sin prueba asignada). */
   readonly suggested = input(false);
   // Se subió algo: el control cambió de estado (la evidencia alimenta sus pruebas documentales).
@@ -95,7 +100,7 @@ export class ControlEvidence {
   readonly sharedWith = signal<{ id: string; code: string }[]>([]);
   readonly sharedCodes = computed(() => this.sharedWith().map((c) => c.code).join(', '));
   /** Una prueba documental (D88) tiene un solo lugar donde subir; las demás pruebas manuales, un requerimiento por control. */
-  readonly documentary = computed(() => !!this.testId() && this.dimension() === 'policy');
+  readonly documentary = computed(() => !!this.testId());
   readonly visible = computed(() => {
     const dimension = this.dimension();
     const testId = this.testId();
@@ -105,6 +110,8 @@ export class ControlEvidence {
   });
   /** Todo lo entregado para la prueba, la entrega más reciente primero. */
   readonly deliveries = computed(() => this.visible().flatMap((r) => r.submissions).sort((a, b) => b.submitted_at.localeCompare(a.submitted_at) || b.version - a.version));
+  /** Las entregas anteriores a la última, que se despliegan aparte. */
+  readonly olderDeliveries = computed(() => this.deliveries().slice(1));
   readonly suggestions = computed(() => suggestedEvidence(this.items(), this.dimension() ?? 'policy'));
 
   // Una subida abierta a la vez: sobre qué requerimiento (o la prueba), con qué archivo.
@@ -283,7 +290,7 @@ export class ControlEvidence {
   }
 
   date(iso: string): string {
-    return new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'medium' }).format(new Date(iso));
+    return formatLocalDate(iso, this.language.current());
   }
 
   private reset(): void {

@@ -44,11 +44,16 @@ export class RiskForm implements OnInit {
   readonly criteria = toSignal(this.catalogs.options('risk_criterion'), { initialValue: [] });
   readonly categories = toSignal(this.catalogs.options('failure_category'), { initialValue: [] });
   readonly losses = toSignal(this.catalogs.options('loss_type'), { initialValue: [] });
+  readonly causeOrigins = toSignal(this.catalogs.options('cause_origin'), { initialValue: [] });
+  readonly causeTypes = toSignal(this.catalogs.options('cause_type'), { initialValue: [] });
 
   readonly name = signal('');
   readonly description = signal('');
   readonly group = signal('');
   readonly impacts = signal<string[]>([]);
+  /** Clasificación de la causa (D129, opcional): `''` es «Sin clasificar». */
+  readonly causeOrigin = signal('');
+  readonly causeType = signal('');
 
   readonly sending = signal(false);
   readonly banner = signal<string | null>(null);
@@ -56,17 +61,22 @@ export class RiskForm implements OnInit {
 
   readonly editing = computed(() => this.existing() !== null);
   readonly groups = computed(() => (this.kind() === 'risk' ? this.criteria() : this.categories()));
-  private original: { name: string; description: string; group: string; impacts: string[] } | null = null;
-  private readonly start = signal<{ name: string; description: string; group: string; impacts: string[] }>({ name: '', description: '', group: '', impacts: [] });
+  /** La clasificación solo se pide en una causa propia: en una del catálogo se muestra como chips y no se edita (el backend responde 422). */
+  readonly classifiable = computed(() => {
+    const e = this.existing();
+    return this.kind() === 'cause' && !(e && 'origin' in e && e.origin === 'catalog');
+  });
+  private original: { name: string; description: string; group: string; impacts: string[]; causeOrigin: string; causeType: string } | null = null;
+  private readonly start = signal<{ name: string; description: string; group: string; impacts: string[]; causeOrigin: string; causeType: string }>({ name: '', description: '', group: '', impacts: [], causeOrigin: '', causeType: '' });
 
   /** MD-485 · Lo escrito o elegido ya no es lo de partida (vacío al crear, lo guardado al editar): cerrar pide confirmar antes de descartarlo. */
-  readonly changed = computed(() => hasChanges(this.start(), { name: this.name(), description: this.description(), group: this.group(), impacts: [...this.impacts()].sort() }));
+  readonly changed = computed(() => hasChanges(this.start(), { name: this.name(), description: this.description(), group: this.group(), impacts: [...this.impacts()].sort(), causeOrigin: this.causeOrigin(), causeType: this.causeType() }));
 
   /** Al editar solo se puede guardar si algo cambió. */
   readonly canSave = computed(() => {
     const o = this.original;
     if (!o) return true;
-    return this.name() !== o.name || this.description() !== o.description || this.group() !== o.group || this.impacts().join() !== o.impacts.join();
+    return this.name() !== o.name || this.description() !== o.description || this.group() !== o.group || this.impacts().join() !== o.impacts.join() || this.causeOrigin() !== o.causeOrigin || this.causeType() !== o.causeType;
   });
 
   ngOnInit(): void {
@@ -78,7 +88,11 @@ export class RiskForm implements OnInit {
     this.description.set(e.description);
     this.group.set(group);
     this.impacts.set(impacts);
-    this.original = { name: e.name, description: e.description, group, impacts };
+    const causeOrigin = 'cause_origin' in e ? (e.cause_origin ?? '') : '';
+    const causeType = 'cause_type' in e ? (e.cause_type ?? '') : '';
+    this.causeOrigin.set(causeOrigin);
+    this.causeType.set(causeType);
+    this.original = { name: e.name, description: e.description, group, impacts, causeOrigin, causeType };
     this.start.set({ ...this.original, impacts: [...impacts].sort() });
   }
 
@@ -124,7 +138,14 @@ export class RiskForm implements OnInit {
       const body = { ...base, trust_criterion: this.group(), potential_impact: this.impacts() };
       return existing ? this.api.updateRisk(existing.id, body) : this.api.createRisk(this.serviceId(), body);
     }
-    const body = { ...base, failure_category: this.group() };
+    // Solo lo cambiado: al crear, lo elegido; al editar, lo que difiere de lo guardado (`null` borra la clasificación).
+    const o = this.original;
+    const classification: { cause_origin?: string | null; cause_type?: string | null } = {};
+    if (this.classifiable()) {
+      if (this.causeOrigin() !== (o?.causeOrigin ?? '')) classification.cause_origin = this.causeOrigin() || null;
+      if (this.causeType() !== (o?.causeType ?? '')) classification.cause_type = this.causeType() || null;
+    }
+    const body = { ...base, failure_category: this.group(), ...classification };
     return existing ? this.api.updateCause(existing.id, body) : this.api.createCause(this.serviceId(), body);
   }
 }

@@ -44,7 +44,7 @@
         <li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2" data-test-attention-item>
           <span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-ink"><span class="font-medium">{{ a.integration.name }}</span><app-tag [text]="c.code" /><span>{{ c.name }}</span></span>
           @if (isAdmin() && link(c); as target) {
-          <a [routerLink]="target" class="text-sm font-medium text-action hover:underline" data-test-review>{{ 'INTEGRATIONS.ATTENTION.REVIEW' | translate }}</a>
+          <a [routerLink]="target" class="mk-link underline text-sm" data-test-review>{{ 'INTEGRATIONS.ATTENTION.REVIEW' | translate }}</a>
           }
         </li>
         }

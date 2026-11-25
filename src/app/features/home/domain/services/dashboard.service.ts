@@ -20,6 +20,7 @@ interface OverviewDto {
     readiness: string;
     progress: { done: number; total: number };
     coverage: { measured: number; applicable: number };
+    evaluation?: { period_start: string | null; period_end: string | null };
     categories: { failing_controls: { control_id: string; code: string; name: string }[] }[];
     technical?: { state: string };
   }[];
@@ -43,7 +44,11 @@ export class HomeDashboardService {
   private service(ref: ServiceRef, technical: boolean): Observable<DashboardServiceSummary> {
     const one = { page: 1, page_size: 1 };
     const total = (url: string, extra: Record<string, string | number | boolean> = {}) =>
-      this.page<unknown>(url, { ...one, ...extra }).pipe(map((p) => p.total), catchError(() => of(0)));
+      // Un conteo que no se pudo leer es «sin dato» (`null`, se muestra «—»), no un 0: ni si la llamada falla ni si no trae `total`.
+      this.page<unknown>(url, { ...one, ...extra }).pipe(
+        map((p) => (typeof p.total === 'number' && Number.isFinite(p.total) ? p.total : null)),
+        catchError(() => of(null)),
+      );
     return forkJoin({
       assets: total(`${this.base}/assets`, { service_id: ref.id }),
       risks: total(`${this.base}/services/${ref.id}/risks`),
@@ -54,6 +59,7 @@ export class HomeDashboardService {
       map(({ assets, risks, evaluated, causes, overview }) => {
         const frameworks: DashboardFramework[] = (overview?.frameworks ?? []).map((f) => ({
           code: f.framework_code, name: f.name, readiness: f.readiness, verdict: f.technical?.state ?? null, progress: f.progress, coverage: f.coverage,
+          periodDefined: !!f.evaluation?.period_start && !!f.evaluation?.period_end,
         }));
         const failing = new Map<string, DashboardAttention>();
         for (const f of overview?.frameworks ?? []) for (const c of f.categories) for (const x of c.failing_controls) failing.set(x.control_id, { controlId: x.control_id, code: x.code, name: x.name });

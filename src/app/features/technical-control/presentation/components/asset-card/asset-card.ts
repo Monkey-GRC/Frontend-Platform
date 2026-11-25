@@ -22,6 +22,7 @@ import { Busy as BusyDirective } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
 
 const STATUS: Record<string, { label: string; tone: StatusTone }> = {
   pending: { label: 'TECHNICAL_CONTROL.STATUS.PENDING', tone: 'neutral' },
@@ -130,9 +131,7 @@ export class AssetCard implements OnInit {
   // D105 · Lo único que se dice del «corte»: cuándo fue la última revisión automática terminada (fecha y hora). No hay una fecha que fijar ni congelar.
   readonly lastReview = computed(() => {
     const e = this.execution();
-    return e?.status === 'completed' && e.finished_at
-      ? new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'long', timeStyle: 'short' }).format(new Date(e.finished_at))
-      : null;
+    return e?.status === 'completed' ? formatLocalDate(e.finished_at, this.language.current(), { style: 'long', time: true }) || null : null;
   });
   readonly executionOpen = computed(() => ['queued', 'running'].includes(this.execution()?.status ?? ''));
 

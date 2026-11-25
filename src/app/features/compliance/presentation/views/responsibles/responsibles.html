@@ -25,8 +25,8 @@
       @if (editing() === r.id) {
       <form class="flex flex-wrap items-center gap-3" [appBusyFields]="saving()" (submit)="$event.preventDefault(); saveEdit()">
         <input type="text" data-test-edit-name maxlength="200" [value]="editName()" (input)="editName.set(targetValue($event))" [disabled]="saving()" [attr.aria-label]="'COMPLIANCE.RESPONSIBLES.PERSON' | translate" class="mk-input w-56" />
-        <button type="submit" [disabled]="!editName().trim()" [appBusy]="saving()" data-test-save-edit class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMPLIANCE.RESPONSIBLES.SAVE' | translate }}</button>
-        <button type="button" (click)="cancelEdit()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+        <button type="submit" [disabled]="!editName().trim()" [appBusy]="saving()" data-test-save-edit class="mk-btn-sm">{{ 'COMPLIANCE.RESPONSIBLES.SAVE' | translate }}</button>
+        <button type="button" (click)="cancelEdit()" [disabled]="saving()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
       </form>
       } @else {
       <span class="text-ink">{{ r.person_name ?? '—' }}</span>
@@ -44,7 +44,7 @@
     <ng-template appCell="actions" let-r>
       @if (view.canManage() && editing() !== r.id) {
       <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
-        <button type="button" (click)="startEdit(r)" [disabled]="saving()" data-test-edit class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMPLIANCE.RESPONSIBLES.CHANGE_PERSON' | translate }}</button>
+        <button type="button" (click)="startEdit(r)" [disabled]="saving()" data-test-edit class="mk-btn-secondary-sm">{{ 'COMPLIANCE.RESPONSIBLES.CHANGE_PERSON' | translate }}</button>
         <button type="button" (click)="askRemove(r)" [disabled]="saving() || r.is_in_use" [title]="r.is_in_use ? ('COMPLIANCE.RESPONSIBLES.IN_USE_HINT' | translate) : ''" data-test-remove
           class="text-sm font-medium text-bad-ink enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMPLIANCE.RESPONSIBLES.REMOVE' | translate }}</button>
       </div>

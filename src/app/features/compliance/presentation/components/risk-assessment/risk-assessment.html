@@ -1,70 +1,16 @@
-<div class="flex flex-col gap-4">
+<!-- MD-499 · Sin caja propia (`contents`): el tratamiento y la evaluación son secciones de la columna del detalle del riesgo, en ese orden (bajo la descripción y
+     el impacto). En la evaluación, el resultado y el historial van al lado de la matriz para aprovechar el ancho. -->
+<div class="contents">
 
   @if (error(); as e) {
   <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ e }}</span>
   </div>
   }
 
-  <!-- Evaluación 5×5 -->
-  <app-detail-card titleKey="COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE" [forceOpen]="evaluating()">
-      @if (canManage() && !evaluating()) {
-      <button actions type="button" (click)="startEvaluation()" [disabled]="saving()" data-test-start-evaluation class="inline-flex items-center gap-1 text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ (evaluated() ? 'COMPLIANCE.RISK_ASSESSMENT.RE_EVALUATE' : 'COMPLIANCE.RISK_ASSESSMENT.EVALUATE') | translate }}
-      </button>
-      }
-
-    @if (evaluated()) {
-    @if (!evaluating()) {
-    <div class="mt-3" data-test-position><app-risk-matrix [saved]="position()" /></div>
-    }
-    <div class="mt-2 flex flex-wrap items-center gap-3">
-      <app-risk-level-badge [level]="risk().inherent_risk_level" />
-      <span class="text-sm text-ink-muted" data-test-score>{{ 'COMPLIANCE.RISK_ASSESSMENT.SCORE' | translate: { likelihood: risk().likelihood, impact: risk().impact, value: risk().inherent_risk_value } }}</span>
-    </div>
-    } @else {
-    <p class="mt-2 text-sm text-ink-muted">{{ 'COMPLIANCE.RISK_ASSESSMENT.NOT_EVALUATED' | translate }}</p>
-    }
-
-    @if (evaluating()) {
-    <div class="mt-3 rounded-control border border-line p-3" [appBusyFields]="saving()">
-      <p class="mb-2 text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_ASSESSMENT.MATRIX_HINT' | translate }}</p>
-      <app-risk-matrix [editable]="true" [disabled]="saving()" [selected]="cell()" [saved]="position()" (picked)="onCell($event)" />
-      <p class="mt-2 text-sm text-ink" data-test-picked>
-        @if (cell(); as c) { {{ 'COMPLIANCE.RISK_ASSESSMENT.PICKED' | translate: { likelihood: c.likelihood, impact: c.impact } }} } @else { {{ 'COMPLIANCE.RISK_ASSESSMENT.PICK_PROMPT' | translate }} }
-      </p>
-      <div class="mt-3 flex items-center gap-3">
-        <button type="button" (click)="saveEvaluation()" [disabled]="!canSaveEvaluation()" [appBusy]="saving()" [busyLabel]="'COMPLIANCE.RISK_ASSESSMENT.SAVING' | translate" data-test-save-evaluation
-          class="h-9 mk-btn">{{ 'COMPLIANCE.RISK_ASSESSMENT.SAVE_EVALUATION' | translate }}</button>
-        <button type="button" (click)="cancelEvaluation()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
-      </div>
-    </div>
-    }
-
-    @if (evaluated()) {
-    <button type="button" data-test-history-toggle (click)="toggleHistory()" [attr.aria-expanded]="historyOpen()" class="mt-2 text-xs font-medium text-action hover:underline">
-      {{ (historyOpen() ? 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_HIDE' : 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_SHOW') | translate }}
-    </button>
-    @if (historyOpen()) {
-    @if (historyError()) {
-    <p class="mt-2 text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_ERROR' | translate }}</p>
-    } @else if (history(); as items) {
-    <ul class="mt-2 flex flex-col gap-1.5" data-test-history>
-      @for (h of items; track h.evaluated_at) {
-      <li class="rounded-control bg-canvas px-3 py-2 text-xs text-ink-muted">
-        {{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_ENTRY' | translate: { date: dateTime(h.evaluated_at), likelihood: h.likelihood, impact: h.impact, value: h.inherent_risk_value, level: labels.of('COMPLIANCE.RISK_LEVEL', h.inherent_risk_level) } }}
-        @if (fullName(h.evaluated_by); as who) {· {{ who }}}
-        @if (h.previous; as p) {<span class="text-ink-muted"> · {{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_BEFORE' | translate: { value: p.inherent_risk_value, level: labels.of('COMPLIANCE.RISK_LEVEL', p.inherent_risk_level) } }}</span>}
-      </li>
-      }
-    </ul>
-    }
-    }
-    }
-  </app-detail-card>
-
   <!-- Tratamiento -->
-  <app-detail-card titleKey="COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE" [forceOpen]="treating()">
+  <app-detail-card class="min-w-0" titleKey="COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE">
       @if (canManage() && !treating()) {
-      <button actions type="button" (click)="startTreatment()" [disabled]="saving()" data-test-start-treatment class="inline-flex items-center gap-1 text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ (risk().treatment ? 'COMPLIANCE.RISK_ASSESSMENT.CHANGE_TREATMENT' : 'COMPLIANCE.RISK_ASSESSMENT.DEFINE_TREATMENT') | translate }}
+      <button actions type="button" (click)="startTreatment()" [disabled]="saving()" data-test-start-treatment class="mk-btn-secondary-sm"><span class="material-symbols-rounded text-[16px]" aria-hidden="true">edit</span>{{ (risk().treatment ? 'COMPLIANCE.RISK_ASSESSMENT.CHANGE_TREATMENT' : 'COMPLIANCE.RISK_ASSESSMENT.DEFINE_TREATMENT') | translate }}
       </button>
       }
 
@@ -93,7 +39,7 @@
       <app-skeleton-region><div class="grid gap-3 sm:grid-cols-3"><app-skeleton shape="field" /><app-skeleton shape="field" /><app-skeleton shape="field" /></div></app-skeleton-region>
       } @else if (responsibles()?.length === 0) {
       <p class="text-sm text-ink-muted" data-test-no-responsibles>{{ 'COMPLIANCE.RISK_ASSESSMENT.NO_RESPONSIBLES' | translate }}</p>
-      <button type="button" (click)="cancelTreatment()" class="mt-3 text-sm font-medium text-ink-muted hover:underline">{{ 'COMMON.CANCEL' | translate }}</button>
+      <button type="button" (click)="cancelTreatment()" class="mk-btn-secondary-sm mt-3">{{ 'COMMON.CANCEL' | translate }}</button>
       } @else {
       <div class="grid gap-3 sm:grid-cols-3">
         <div class="flex flex-col gap-1 text-xs font-medium text-ink-muted">
@@ -112,11 +58,70 @@
       </div>
       <div class="mt-3 flex items-center gap-3">
         <button type="button" (click)="saveTreatment()" [disabled]="!canSaveTreatment()" [appBusy]="saving()" [busyLabel]="'COMPLIANCE.RISK_ASSESSMENT.SAVING' | translate" data-test-save-treatment
-          class="h-9 mk-btn">{{ 'COMPLIANCE.RISK_ASSESSMENT.SAVE_TREATMENT' | translate }}</button>
-        <button type="button" (click)="cancelTreatment()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+          class="mk-btn-sm">{{ 'COMPLIANCE.RISK_ASSESSMENT.SAVE_TREATMENT' | translate }}</button>
+        <button type="button" (click)="cancelTreatment()" [disabled]="saving()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
       </div>
       }
     </div>
     }
+  </app-detail-card>
+
+  <!-- Evaluación 5×5 -->
+  <app-detail-card class="min-w-0" titleKey="COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE">
+      @if (canManage() && !evaluating()) {
+      <button actions type="button" (click)="startEvaluation()" [disabled]="saving()" data-test-start-evaluation class="mk-btn-secondary-sm"><span class="material-symbols-rounded text-[16px]" aria-hidden="true">grid_on</span>{{ (evaluated() ? 'COMPLIANCE.RISK_ASSESSMENT.RE_EVALUATE' : 'COMPLIANCE.RISK_ASSESSMENT.EVALUATE') | translate }}
+      </button>
+      }
+
+    @if (evaluated()) {
+    <!-- La matriz a la izquierda; a su derecha, el resultado («Moderado · Probabilidad 3 × impacto 2 = 6») y el historial. -->
+    <div class="mt-3 flex flex-wrap items-start gap-x-10 gap-y-4">
+      @if (!evaluating()) {
+      <div data-test-position><app-risk-matrix [saved]="position()" /></div>
+      }
+      <div class="flex min-w-0 flex-1 basis-64 flex-col items-start gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <app-risk-level-badge [level]="risk().inherent_risk_level" />
+          <span class="text-sm text-ink-muted" data-test-score>{{ 'COMPLIANCE.RISK_ASSESSMENT.SCORE' | translate: { likelihood: risk().likelihood, impact: risk().impact, value: risk().inherent_risk_value } }}</span>
+        </div>
+        <button type="button" data-test-history-toggle (click)="toggleHistory()" [attr.aria-expanded]="historyOpen()" class="mk-link text-xs underline">
+          {{ (historyOpen() ? 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_HIDE' : 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_SHOW') | translate }}
+        </button>
+        @if (historyOpen()) {
+        @if (historyError()) {
+        <p class="text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_ERROR' | translate }}</p>
+        } @else if (history(); as items) {
+        <ul class="flex w-full flex-col gap-1.5" data-test-history>
+          @for (h of items; track h.evaluated_at) {
+          <li class="rounded-control bg-canvas px-3 py-2 text-xs text-ink-muted">
+            {{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_ENTRY' | translate: { date: dateTime(h.evaluated_at), likelihood: h.likelihood, impact: h.impact, value: h.inherent_risk_value, level: labels.of('COMPLIANCE.RISK_LEVEL', h.inherent_risk_level) } }}
+            @if (fullName(h.evaluated_by); as who) {· {{ who }}}
+            @if (h.previous; as p) {<span class="text-ink-muted"> · {{ 'COMPLIANCE.RISK_ASSESSMENT.HISTORY_BEFORE' | translate: { value: p.inherent_risk_value, level: labels.of('COMPLIANCE.RISK_LEVEL', p.inherent_risk_level) } }}</span>}
+          </li>
+          }
+        </ul>
+        }
+        }
+      </div>
+    </div>
+    } @else {
+    <p class="mt-2 text-sm text-ink-muted">{{ 'COMPLIANCE.RISK_ASSESSMENT.NOT_EVALUATED' | translate }}</p>
+    }
+
+    @if (evaluating()) {
+    <div class="mt-3 rounded-control border border-line p-3" [appBusyFields]="saving()">
+      <p class="mb-2 text-xs text-ink-muted">{{ 'COMPLIANCE.RISK_ASSESSMENT.MATRIX_HINT' | translate }}</p>
+      <app-risk-matrix [editable]="true" [disabled]="saving()" [selected]="cell()" [saved]="position()" (picked)="onCell($event)" />
+      <p class="mt-2 text-sm text-ink" data-test-picked>
+        @if (cell(); as c) { {{ 'COMPLIANCE.RISK_ASSESSMENT.PICKED' | translate: { likelihood: c.likelihood, impact: c.impact } }} } @else { {{ 'COMPLIANCE.RISK_ASSESSMENT.PICK_PROMPT' | translate }} }
+      </p>
+      <div class="mt-3 flex items-center gap-3">
+        <button type="button" (click)="saveEvaluation()" [disabled]="!canSaveEvaluation()" [appBusy]="saving()" [busyLabel]="'COMPLIANCE.RISK_ASSESSMENT.SAVING' | translate" data-test-save-evaluation
+          class="mk-btn-sm">{{ 'COMPLIANCE.RISK_ASSESSMENT.SAVE_EVALUATION' | translate }}</button>
+        <button type="button" (click)="cancelEvaluation()" [disabled]="saving()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
+      </div>
+    </div>
+    }
+
   </app-detail-card>
 </div>

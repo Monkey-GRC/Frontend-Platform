@@ -1,0 +1,35 @@
+<app-form-modal titleKey="COMPLIANCE.PERIODICITY_CHANGE.TITLE" descriptionKey="COMPLIANCE.PERIODICITY_CHANGE.SUBTITLE" [descriptionParams]="{ code: detail().code }" size="lg" [busy]="sending()" [guarded]="changed()" testId="periodicity-form" (closed)="closed.emit()">
+  <form id="periodicity-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
+
+    @if (banner(); as b) {
+    <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert" data-banner><span>{{ b }}</span></div>
+    }
+
+    <dl class="flex flex-wrap gap-x-10 gap-y-3">
+      <div class="flex flex-col gap-1">
+        <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.PERIODICITY_CHANGE.CURRENT' | translate }}</dt>
+        <dd class="text-sm font-medium text-ink" data-current>{{ text().current }}</dd>
+      </div>
+      <div class="flex flex-col gap-1">
+        <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.PERIODICITY_CHANGE.SUGGESTED' | translate }}</dt>
+        <dd class="text-sm font-medium text-ink" data-suggested>{{ text().suggested }}</dd>
+      </div>
+    </dl>
+
+    <app-field labelKey="COMPLIANCE.PERIODICITY_CHANGE.NEW" forId="periodicity">
+      <app-select inputId="periodicity" data-field="periodicity" [options]="selectOptions()" [value]="chosen()" emptyLabelKey="COMPLIANCE.PERIODICITY_CHANGE.USE_SUGGESTED"
+        [invalid]="!!errors()['periodicity']" [disabled]="sending()" (valueChange)="pick($event)" />
+      @if (errors()['periodicity']; as e) {<p class="mt-1.5 text-xs text-bad-ink" role="alert" data-error="periodicity">{{ e }}</p>}
+    </app-field>
+
+    <app-field labelKey="COMPLIANCE.PERIODICITY_CHANGE.JUSTIFICATION" forId="justification" hintKey="COMPLIANCE.PERIODICITY_CHANGE.JUSTIFICATION_HINT">
+      <textarea id="justification" rows="4" class="mk-textarea" data-field="justification" [ngModel]="justification()" [ngModelOptions]="{ standalone: true }" (ngModelChange)="justification.set($event)"
+        [attr.aria-invalid]="errors()['justification'] ? 'true' : null" aria-describedby="justification-hint"></textarea>
+      @if (errors()['justification']; as e) {<p class="mt-1.5 text-xs text-bad-ink" role="alert" data-error="justification">{{ e }}</p>}
+    </app-field>
+
+    <p class="mk-surface-state-warn p-3.5 text-sm text-ink" data-scope-note>{{ 'COMPLIANCE.PERIODICITY_CHANGE.SCOPE_NOTE' | translate }}</p>
+  </form>
+
+  <button actions type="submit" form="periodicity-form" [disabled]="!canSave()" [appBusy]="sending()" [busyLabel]="'COMPLIANCE.PERIODICITY_CHANGE.SAVING' | translate" data-save class="mk-btn">{{ 'COMPLIANCE.PERIODICITY_CHANGE.SAVE' | translate }}</button>
+</app-form-modal>

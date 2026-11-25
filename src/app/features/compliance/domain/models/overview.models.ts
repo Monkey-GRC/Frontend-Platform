@@ -31,9 +31,7 @@ export interface OverviewFailingControl {
 export interface OverviewTechnicalControl {
   control_id: string;
   control_code: string;
-  state: string;
   progress: OverviewRatio;
-  blocking_tests: { test_code: string; display_name: string; state: string }[];
 }
 
 export interface OverviewCategory {
@@ -53,6 +51,8 @@ export interface OverviewEvaluation {
   cutoff_date: string | null;
   /** `true` si la fecha de corte está congelada; `false` si es «hoy». Nulo si no hay período. */
   cutoff_frozen: boolean | null;
+  /** Los meses mínimos del período auditado del marco (PR-16; SOC 2: 6). `null` = sin mínimo. Llega aunque el período no esté definido. */
+  min_period_months?: number | null;
 }
 
 /** Lo que se manda para declarar el período de un marco (`PUT …/evaluation-period`, D87). `cutoff_date` en `null` = «hoy» (y descongela). */
@@ -69,6 +69,17 @@ export interface EvaluationPeriodResult {
   period_end: string;
   cutoff_date: string;
   cutoff_frozen: boolean;
+}
+
+/** Un período auditado de un servicio × marco (`GET …/evaluation-periods`, D145, D148): el abierto y los cerrados, que no cambian. */
+export interface EvaluationPeriodItem {
+  id: string;
+  status: 'open' | 'closed';
+  period_start: string;
+  period_end: string;
+  cutoff_date: string | null;
+  opened_by: 'user' | 'system';
+  closed_at: string | null;
 }
 
 export interface OverviewFramework {

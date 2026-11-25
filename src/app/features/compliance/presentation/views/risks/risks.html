@@ -41,7 +41,8 @@
     [groupBy]="groupKey" [groupLabel]="groupLabel()" (rowClick)="openCause($event.id)">
     <ng-template appCell="code" let-c><app-tag [text]="c.code" /></ng-template>
     <ng-template appCell="name" let-c>
-      <span class="block font-medium text-ink">{{ c.name }}</span>
+      <!-- Una causa v2 puede venir sin nombre: se muestra su descripción, en dos líneas como máximo. -->
+      <span class="block font-medium text-ink" [class.line-clamp-2]="!c.name">{{ c.name || c.description }}</span>
       <span class="block text-xs text-ink-muted">
         @if (c.origin === 'own') { {{ 'COMPLIANCE.RISKS.OWN' | translate }} · } {{ 'COMPLIANCE.RISKS.RISKS_COUNT' | translate: { count: c.risks.length } }} · {{ 'COMPLIANCE.RISKS.CONTROLS_COUNT' | translate: { count: c.controls.length } }}
       </span>
@@ -56,10 +57,10 @@
 </div>
 
 @if (selectedRisk(); as id) {
-<app-risk-detail-panel [riskId]="id" (closed)="closeRisk()" (changed)="refresh()" (openCause)="openCause($event)" (edit)="editItem($event)" />
+<app-risk-detail-panel [riskId]="id" [requestedTab]="tab()" (tabChange)="setTab($event)" (closed)="closeDetail()" (changed)="refresh()" (openCause)="openCause($event)" (edit)="editItem($event)" />
 }
 @if (selectedCause(); as id) {
-<app-cause-detail-panel [causeId]="id" (closed)="closeCause()" (changed)="refresh()" (openRisk)="openRisk($event)" (edit)="editItem($event)" />
+<app-cause-detail-panel [causeId]="id" [requestedTab]="tab()" (tabChange)="setTab($event)" (closed)="closeDetail()" (changed)="refresh()" (openRisk)="openRisk($event)" (openControl)="openControl($event)" (edit)="editItem($event)" />
 }
 @if (form(); as f) {
 <app-risk-form [kind]="section() === 'risks' ? 'risk' : 'cause'" [serviceId]="serviceId()" [existing]="f.existing" (saved)="onSaved($event)" (closed)="form.set(null)" />

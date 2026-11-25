@@ -11,7 +11,7 @@
     @case ('error') {
     <app-empty-state icon="" titleKey="TECHNICAL_CONTROL.DETAIL.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
       <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
-      <a action [routerLink]="['/services', serviceId()]" class="ml-3 text-sm font-medium text-action hover:underline">{{ 'TECHNICAL_CONTROL.DETAIL.BACK_TO_SERVICE' | translate }}</a>
+      <a action [routerLink]="['/services', serviceId()]" class="mk-link underline ml-3 text-sm">{{ 'TECHNICAL_CONTROL.DETAIL.BACK_TO_SERVICE' | translate }}</a>
     </app-empty-state>
     }
     @default {

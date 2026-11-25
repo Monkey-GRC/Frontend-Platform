@@ -5,7 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { SessionService } from '@core/domain/services/session.service';
-import { PageInfo } from '@shared/presentation/components/data-table/table-page';
+import { PageInfo } from '@shared/domain/models/page-info.model';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';

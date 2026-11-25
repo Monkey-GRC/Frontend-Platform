@@ -84,14 +84,14 @@
           <form class="flex flex-wrap items-center gap-3" [appBusyFields]="saving()" (submit)="$event.preventDefault(); saveRename()">
             <label class="sr-only" [for]="'rename-' + t.id">{{ 'TEAM.ORG.TEAM_NAME' | translate }}</label>
             <input [id]="'rename-' + t.id" type="text" maxlength="100" data-org-rename-input [value]="renameDraft()" (input)="renameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input min-w-0 flex-1" />
-            <button type="submit" [disabled]="!canRename()" [appBusy]="saving()" data-org-rename-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.SAVE' | translate }}</button>
-            <button type="button" (click)="cancelRename()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+            <button type="submit" [disabled]="!canRename()" [appBusy]="saving()" data-org-rename-save class="mk-btn-sm">{{ 'COMMON.SAVE' | translate }}</button>
+            <button type="button" (click)="cancelRename()" [disabled]="saving()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
           </form>
           } @else {
           <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span>{{ 'TEAM.ORG.TEAM_OF' | translate }} <span class="font-medium text-ink" data-org-team-name>{{ t.name }}</span></span>
             @if (isAdmin()) {
-            <button type="button" (click)="startRename(t)" data-org-rename class="text-sm font-medium text-action hover:underline">{{ 'TEAM.ORG.RENAME' | translate }}</button>
+            <button type="button" (click)="startRename(t)" data-org-rename class="mk-btn-secondary-sm">{{ 'TEAM.ORG.RENAME' | translate }}</button>
             }
           </p>
           }
@@ -100,13 +100,13 @@
           <form class="flex flex-wrap items-center gap-3" [appBusyFields]="saving()" (submit)="$event.preventDefault(); createTeam(r)">
             <label class="sr-only" [for]="'create-' + r.id">{{ 'TEAM.ORG.TEAM_NAME' | translate }}</label>
             <input [id]="'create-' + r.id" type="text" maxlength="100" data-org-create-input [value]="teamNameDraft()" (input)="teamNameDraft.set(targetValue($event))" [disabled]="saving()" class="mk-input min-w-0 flex-1" />
-            <button type="submit" [disabled]="!canCreateTeam()" [appBusy]="saving()" data-org-create-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ORG.CREATE_TEAM_SAVE' | translate }}</button>
-            <button type="button" (click)="cancelCreate()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+            <button type="submit" [disabled]="!canCreateTeam()" [appBusy]="saving()" data-org-create-save class="mk-btn-sm">{{ 'TEAM.ORG.CREATE_TEAM_SAVE' | translate }}</button>
+            <button type="button" (click)="cancelCreate()" [disabled]="saving()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
           </form>
           } @else {
           <p class="flex flex-wrap items-center gap-x-3 gap-y-1" data-org-no-team>
             <span>{{ (isAdmin() ? 'TEAM.ORG.NO_TEAM_ADMIN' : 'TEAM.ORG.NO_TEAM_OWN') | translate }}</span>
-            <button type="button" (click)="startCreate(r)" data-org-create class="text-sm font-medium text-action hover:underline">{{ (isAdmin() ? 'TEAM.ORG.CREATE_TEAM' : 'TEAM.ORG.CREATE_OWN_TEAM') | translate }}</button>
+            <button type="button" (click)="startCreate(r)" data-org-create class="mk-btn-secondary-sm">{{ (isAdmin() ? 'TEAM.ORG.CREATE_TEAM' : 'TEAM.ORG.CREATE_OWN_TEAM') | translate }}</button>
           </p>
           }
           }
@@ -120,7 +120,7 @@
             <div class="flex flex-wrap items-start justify-between gap-3">
               <ng-container [ngTemplateOutlet]="person" [ngTemplateOutletContext]="{ $implicit: d }" />
               @if (isAdmin() && d.status !== 'inactive' && movingId() !== d.id) {
-              <button type="button" (click)="startMove(d)" data-org-move class="text-sm font-medium text-action hover:underline">{{ 'TEAM.ORG.MOVE' | translate }}</button>
+              <button type="button" (click)="startMove(d)" data-org-move class="mk-btn-secondary-sm">{{ 'TEAM.ORG.MOVE' | translate }}</button>
               }
             </div>
             @if (movingId() === d.id) {
@@ -129,12 +129,12 @@
               @if (options.length) {
               <label class="sr-only" [for]="'move-' + d.id">{{ 'TEAM.ORG.MOVE_TO' | translate }}</label>
               <app-select [inputId]="'move-' + d.id" data-org-move-target class="min-w-0 flex-1" [options]="options" [value]="target()" [disabled]="saving()" placeholderKey="TEAM.ORG.MOVE_PICK" (valueChange)="target.set($event)" />
-              <button type="button" (click)="move(d)" [disabled]="!target()" [appBusy]="saving()" data-org-move-save class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.ORG.MOVE_SUBMIT' | translate }}</button>
+              <button type="button" (click)="move(d)" [disabled]="!target()" [appBusy]="saving()" data-org-move-save class="mk-btn-sm">{{ 'TEAM.ORG.MOVE_SUBMIT' | translate }}</button>
               } @else {
               <span class="text-sm text-ink-muted">{{ 'TEAM.ORG.NO_DESTINATION' | translate }}</span>
               }
               }
-              <button type="button" (click)="cancelMove()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+              <button type="button" (click)="cancelMove()" [disabled]="saving()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
             </div>
             }
           </li>

@@ -10,14 +10,14 @@ import { Asset, NewAssetInput, Platform } from '@shared/domain/models/technical-
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
-import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
+import { DiscardConfirm, DiscardGuard } from '@shared/presentation/components/discard-confirm/discard-confirm';
 
 // Declarar un servidor (D112): el cliente dice cómo se llama, qué sistema y qué versión tiene, y qué tan importante es. De la versión sale el comando de
 // instalación correcto, por eso es obligatoria. Aquí no se pide ninguna llave ni contraseña: la clave del servidor la entrega Monkey en el paso siguiente.
 // Las versiones salen del backend (`<sistema>_version`): la pantalla no tiene ninguna escrita.
 @Component({
   selector: 'app-connect-server-form',
-  imports: [OptionChips, Select, TranslatePipe, ConfirmDialog],
+  imports: [OptionChips, Select, TranslatePipe, DiscardConfirm],
   templateUrl: './connect-server-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -58,12 +58,7 @@ export class ConnectServerForm {
   readonly dirty = computed(() => !!this.name().trim() || this.criticality() !== 'medium' || !!this.osVersion() || this.extraServiceIds().length > 0);
 
   /** MD-485 · Cancelar: con cambios sin guardar, primero se pide confirmar que se descartan. */
-  readonly confirmingDiscard = signal(false);
-  askCancel(): void {
-    if (this.saving()) return;
-    if (this.dirty()) this.confirmingDiscard.set(true);
-    else this.cancelled.emit();
-  }
+  protected readonly discardGuard = new DiscardGuard({ open: () => true, canClose: () => !this.saving(), guarded: this.dirty, close: () => this.cancelled.emit() });
 
   constructor() {
     // El backend traduce las versiones: al cambiar el idioma se vuelven a pedir, sin tocar lo que el cliente ya escribió ni la versión que eligió.

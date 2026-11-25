@@ -29,6 +29,21 @@
       @if (errors()[groupField()]; as e) {<span class="text-xs font-normal text-bad-ink" data-error="group">{{ e }}</span>}
     </div>
 
+    @if (classifiable()) {
+    <div class="flex flex-col gap-1.5 text-sm font-medium text-ink">
+      <label for="risk-form-origin">{{ 'COMPLIANCE.RISK_FORM.CAUSE_ORIGIN' | translate }}</label>
+      <app-select inputId="risk-form-origin" data-field="cause_origin" class="font-normal" [options]="causeOrigins()" [value]="causeOrigin()" [invalid]="!!errors()['cause_origin']" emptyLabelKey="COMPLIANCE.RISK_FORM.UNCLASSIFIED" placeholderKey="COMPLIANCE.RISK_FORM.UNCLASSIFIED" (valueChange)="causeOrigin.set($event)" />
+      <span class="text-xs font-normal text-ink-muted">{{ 'COMPLIANCE.RISK_FORM.CAUSE_ORIGIN_HINT' | translate }}</span>
+      @if (errors()['cause_origin']; as e) {<span class="text-xs font-normal text-bad-ink" data-error="cause_origin">{{ e }}</span>}
+    </div>
+    <div class="flex flex-col gap-1.5 text-sm font-medium text-ink">
+      <label for="risk-form-type">{{ 'COMPLIANCE.RISK_FORM.CAUSE_TYPE' | translate }}</label>
+      <app-select inputId="risk-form-type" data-field="cause_type" class="font-normal" [options]="causeTypes()" [value]="causeType()" [invalid]="!!errors()['cause_type']" emptyLabelKey="COMPLIANCE.RISK_FORM.UNCLASSIFIED" placeholderKey="COMPLIANCE.RISK_FORM.UNCLASSIFIED" (valueChange)="causeType.set($event)" />
+      <span class="text-xs font-normal text-ink-muted">{{ 'COMPLIANCE.RISK_FORM.CAUSE_TYPE_HINT' | translate }}</span>
+      @if (errors()['cause_type']; as e) {<span class="text-xs font-normal text-bad-ink" data-error="cause_type">{{ e }}</span>}
+    </div>
+    }
+
     @if (kind() === 'risk') {
     <fieldset class="flex flex-col gap-2 border-t border-line pt-4">
       <legend class="mb-1 text-sm font-medium text-ink">{{ 'COMPLIANCE.RISK_FORM.IMPACT' | translate }}</legend>

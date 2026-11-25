@@ -10,6 +10,8 @@ export interface DashboardFramework {
   verdict: string | null;
   progress: { done: number; total: number };
   coverage: { measured: number; applicable: number };
+  /** ¿Ya se definió el período auditado? Sin él el marco queda «Sin medir» y el paso del onboarding «Definir su período auditado» sigue pendiente. */
+  periodDefined: boolean;
 }
 
 export interface DashboardAttention {
@@ -22,12 +24,13 @@ export interface DashboardServiceSummary {
   id: string;
   name: string;
   frameworks: DashboardFramework[];
-  assets: number;
+  /** Conteos del servicio; `null` si no se pudieron leer (la llamada falló o no trajo `total`): se muestra «—», nunca un 0 inventado ni NaN. */
+  assets: number | null;
   /** Los controles del servicio: el mayor total entre sus marcos (un control compartido cuenta una vez). */
   controls: number;
-  risks: number;
-  risksEvaluated: number;
-  causes: number;
+  risks: number | null;
+  risksEvaluated: number | null;
+  causes: number | null;
   failing: DashboardAttention[];
 }
 

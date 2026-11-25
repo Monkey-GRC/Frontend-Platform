@@ -21,7 +21,7 @@
     <app-table-filter filters data-test-filter-kind labelKey="TEAM.GROUPS.COLUMNS.KIND" [options]="kindOptions" [value]="kindFilter()" (valueChange)="setKindFilter($event)" />
     }
     @if (hasFilters()) {
-    <button filters type="button" (click)="clearFilters()" class="h-10 text-sm font-medium text-action hover:underline">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
+    <button filters type="button" (click)="clearFilters()" class="mk-btn-secondary">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
     }
   </app-table-toolbar>
 

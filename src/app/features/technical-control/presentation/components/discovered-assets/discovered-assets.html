@@ -55,7 +55,7 @@
   <app-data-table captionKey="TECHNICAL_CONTROL.ASSETS.TABLE" [columns]="columns" [rows]="visible()" [rowKey]="assetKey" [rowLabel]="assetLabel"
     stackBelow="2xl" [selectable]="true" [selected]="selected()" (selectionChange)="onSelection($event)" [groupBy]="groupFn()" [groupLabel]="groupLabel" emptyIcon="" emptyTitleKey="TECHNICAL_CONTROL.ASSETS.NO_MATCH">
     <ng-template appCell="name" let-a>
-      <button type="button" (click)="detail.set(a)" class="block max-w-full truncate text-left font-medium text-action hover:underline" [title]="a.name ?? ''">{{ a.name ?? a.code }}</button>
+      <button type="button" (click)="detail.set(a)" class="mk-link underline block max-w-full truncate text-left" [title]="a.name ?? ''">{{ a.name ?? a.code }}</button>
       <div class="mt-1"><app-tag [text]="a.code" /></div>
     </ng-template>
     <ng-template appCell="identifier" let-a><span class="text-xs">{{ identifier(a) || '—' }}</span></ng-template>
@@ -101,16 +101,24 @@
   }
   }
 
-  <!-- Detalle de un activo (panel lateral) -->
-  <app-side-drawer [open]="!!detail()" titleKey="TECHNICAL_CONTROL.ASSETS.DETAIL_OF" [titleParams]="{ name: detail()?.name ?? detail()?.code ?? '' }" subtitleKey="TECHNICAL_CONTROL.ASSETS.DETAIL_SUBTITLE"
-    [subtitleParams]="{ code: detail()?.code ?? '', kind: kindLabel(detail()?.kind ?? '') }" (closed)="detail.set(null)">
+  <!-- Detalle de un activo: el modal de detalle, estrecho y de tamaño fijo, con «Cerrar» y «Agregar/Quitar del servicio» en el pie (MD-499); sin pestañas, porque es corto. -->
+  <app-detail-modal [open]="!!detail()" titleKey="TECHNICAL_CONTROL.ASSETS.DETAIL_OF" [heading]="detail()?.name ?? detail()?.code ?? null" variant="compact"
+    testId="asset-detail" (closed)="detail.set(null)">
     @if (detail(); as d) {
-    <div class="space-y-4">
-      <dl class="space-y-4">
-        <div><dt class="text-xs font-medium text-ink-faint">{{ 'TECHNICAL_CONTROL.ASSETS.REGION' | translate }}</dt><dd class="mt-1 text-xs text-ink">{{ d.region ?? ('TECHNICAL_CONTROL.ASSETS.GLOBAL' | translate) }}</dd></div>
-        <div><dt class="text-xs font-medium text-ink-faint">{{ 'TECHNICAL_CONTROL.ASSETS.IMPORTANCE' | translate }}</dt><dd class="mt-1 text-ink">{{ criticalityLabel(d.criticality) }}</dd></div>
+    <p meta class="text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.ASSETS.DETAIL_SUBTITLE' | translate: { code: d.code, kind: kindLabel(d.kind) } }}</p>
+    }
+    @if (detail(); as d) {
+    <button actions type="button" (click)="toggle(d.id)" class="mk-btn-secondary" data-asset-toggle>
+      {{ (selected().has(d.id) ? 'TECHNICAL_CONTROL.ASSETS.REMOVE_FROM_SERVICE' : 'TECHNICAL_CONTROL.ASSETS.ADD_TO_SERVICE') | translate }}
+    </button>
+    }
+    @if (detail(); as d) {
+    <div class="flex flex-col gap-5">
+      <dl class="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+        <div><dt class="text-xs font-medium text-ink-faint">{{ 'TECHNICAL_CONTROL.ASSETS.REGION' | translate }}</dt><dd class="mt-1 text-sm text-ink">{{ d.region ?? ('TECHNICAL_CONTROL.ASSETS.GLOBAL' | translate) }}</dd></div>
+        <div><dt class="text-xs font-medium text-ink-faint">{{ 'TECHNICAL_CONTROL.ASSETS.IMPORTANCE' | translate }}</dt><dd class="mt-1 text-sm text-ink">{{ criticalityLabel(d.criticality) }}</dd></div>
         @for (r of detailRows(d); track r.label) {
-        <div><dt class="text-xs font-medium text-ink-faint">{{ r.label }}</dt><dd class="mt-1 break-all text-ink">{{ r.value }}</dd></div>
+        <div class="min-w-0"><dt class="text-xs font-medium text-ink-faint">{{ r.label }}</dt><dd class="mt-1 break-all text-sm text-ink">{{ r.value }}</dd></div>
         }
       </dl>
       <div>
@@ -119,15 +127,10 @@
         <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1">
           @for (t of d.tags; track t) { <app-tag [text]="t" /> }
         </div>
-        } @else { <p class="mt-1 text-ink-muted">{{ 'TECHNICAL_CONTROL.ASSETS.NO_TAGS' | translate }}</p> }
+        } @else { <p class="mt-1 text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.ASSETS.NO_TAGS' | translate }}</p> }
       </div>
-      <p class="border-t border-line pt-4 text-ink-muted">{{ (selected().has(d.id) ? 'TECHNICAL_CONTROL.ASSETS.INCLUDED_IN_SERVICE' : 'TECHNICAL_CONTROL.ASSETS.NOT_INCLUDED_IN_SERVICE') | translate }}</p>
+      <p class="border-t border-line pt-4 text-sm text-ink-muted" data-asset-inclusion>{{ (selected().has(d.id) ? 'TECHNICAL_CONTROL.ASSETS.INCLUDED_IN_SERVICE' : 'TECHNICAL_CONTROL.ASSETS.NOT_INCLUDED_IN_SERVICE') | translate }}</p>
     </div>
     }
-    @if (detail(); as d) {
-    <button actions type="button" (click)="toggle(d.id)" class="mk-btn-secondary">
-      {{ (selected().has(d.id) ? 'TECHNICAL_CONTROL.ASSETS.REMOVE_FROM_SERVICE' : 'TECHNICAL_CONTROL.ASSETS.ADD_TO_SERVICE') | translate }}
-    </button>
-    }
-  </app-side-drawer>
+  </app-detail-modal>
 </section>
