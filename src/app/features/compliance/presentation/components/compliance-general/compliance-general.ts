@@ -53,11 +53,11 @@ interface Row {
             <ng-template appCell="progress" let-r>
               @if (r.framework; as f) {
                 <div class="min-w-[12rem]">
-                  <p class="text-sm font-medium text-ink" data-progress>{{ 'COMPLIANCE.CONTROLS.PROGRESS_VALUE' | translate: { percent: pct(f.progress.done, f.progress.total), done: f.progress.done, total: f.progress.total } }}</p>
+                  <p class="text-sm font-medium tabular-nums text-ink" data-progress>{{ 'COMPLIANCE.CONTROLS.PROGRESS_VALUE' | translate: { percent: pct(f.progress.done, f.progress.total), done: f.progress.done, total: f.progress.total } }}</p>
                   <div class="mt-1 h-1 w-full overflow-hidden rounded-full bg-tint-strong" aria-hidden="true">
                     <div class="h-full rounded-full bg-action" [style.width.%]="percentOf(f.progress.done, f.progress.total) ?? 0"></div>
                   </div>
-                  <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.CONTROLS.COVERAGE' | translate: { percent: pct(f.coverage.measured, f.coverage.applicable), measured: f.coverage.measured, applicable: f.coverage.applicable } }}</p>
+                  <p class="mt-1 text-xs tabular-nums text-ink-muted" data-coverage>{{ 'COMPLIANCE.CONTROLS.COVERAGE_SHORT' | translate: { percent: pct(f.coverage.measured, f.coverage.applicable) } }}</p>
                 </div>
               }
             </ng-template>

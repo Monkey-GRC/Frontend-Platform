@@ -7,21 +7,19 @@ import { DetailCard } from './detail-card';
   selector: 'app-host',
   imports: [DetailCard],
   template: `
-    <app-detail-card titleKey="COMPLIANCE.DETAIL.INTERPRETATION" [startOpen]="startOpen()" [forceOpen]="force()">
+    <app-detail-card titleKey="COMPLIANCE.DETAIL.INTERPRETATION" [count]="count()">
       <button actions type="button" data-action>Editar</button>
       <p data-body>contenido</p>
     </app-detail-card>
   `,
 })
 class Host {
-  readonly startOpen = signal(true);
-  readonly force = signal(false);
+  readonly count = signal<number | null>(null);
 }
 
 describe('DetailCard', () => {
   let fixture: ComponentFixture<Host>;
   const el = () => fixture.nativeElement as HTMLElement;
-  const toggle = () => el().querySelector<HTMLButtonElement>('button[aria-expanded]')!;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [Host], providers: [provideTranslateService()] });
@@ -29,30 +27,20 @@ describe('DetailCard', () => {
     fixture.detectChanges();
   });
 
-  it('starts open, shows the projected actions and no decorative icon, and closes on click', () => {
+  it('is a section labelled by its title, with the actions at the right and the content always visible, without a box or a decorative icon', () => {
+    const section = el().querySelector('section')!;
+    expect(el().querySelector('#' + section.getAttribute('aria-labelledby'))!.textContent).toContain('COMPLIANCE.DETAIL.INTERPRETATION');
     expect(el().querySelector('[data-body]')).not.toBeNull();
     expect(el().querySelector('[data-action]')).not.toBeNull();
     expect(el().querySelector('.rounded-full')).toBeNull();
-    toggle().click();
-    fixture.detectChanges();
-    expect(el().querySelector('[data-body]')).toBeNull();
-    expect(toggle().getAttribute('aria-expanded')).toBe('false');
+    expect(section.className).not.toContain('border ');
+    expect(el().querySelector('[aria-expanded]')).toBeNull();
   });
 
-  it('can start closed', () => {
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ imports: [Host], providers: [provideTranslateService()] });
-    fixture = TestBed.createComponent(Host);
-    fixture.componentInstance.startOpen.set(false);
+  it('shows how many items it lists only when it is told', () => {
+    expect(el().querySelector('[data-section-count]')).toBeNull();
+    fixture.componentInstance.count.set(3);
     fixture.detectChanges();
-    expect(el().querySelector('[data-body]')).toBeNull();
-  });
-
-  it('stays open while it is being edited', () => {
-    toggle().click();
-    fixture.componentInstance.force.set(true);
-    fixture.detectChanges();
-    expect(el().querySelector('[data-body]')).not.toBeNull();
-    expect(toggle().disabled).toBeTrue();
+    expect(el().querySelector('[data-section-count]')!.textContent).toBe('3');
   });
 });

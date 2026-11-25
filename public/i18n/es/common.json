@@ -62,7 +62,9 @@
     "SELECT": {
       "COUNT": "{{count}} seleccionados",
       "NO_OPTIONS": "No hay opciones",
-      "NONE": "Sin elegir"
+      "NONE": "Sin elegir",
+      "SEARCH": "Buscar",
+      "NO_MATCH": "Nada coincide con la búsqueda"
     },
     "FILE": {
       "DROP_OR_CLICK": "Arrastra un archivo aquí o haz clic para elegirlo",
@@ -140,7 +142,10 @@
       "MESSAGE": "Lo que escribiste en este formulario aún no se ha guardado. Si sales ahora, se pierde.",
       "KEEP": "Seguir editando",
       "CONFIRM": "Descartar cambios"
-    }
+    },
+    "SHOW_MORE": "Ver más",
+    "SHOW_LESS": "Ver menos",
+    "UNLINK": "Desvincular"
   },
   "PAGE_TITLE": {
     "HOME": "Inicio",

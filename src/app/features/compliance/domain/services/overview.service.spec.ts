@@ -41,4 +41,15 @@ describe('OverviewService', () => {
     req.flush({ statusCode: 200, message: 'ok', data });
     expect(got).toEqual(data);
   });
+
+  it('asks for the evaluation periods of a service and framework with a GET, no params, and unwraps them (D145)', () => {
+    let got: unknown;
+    service.listEvaluationPeriods('s1', 'soc2').subscribe((r) => (got = r));
+    const req = http.expectOne((r) => r.url.endsWith('/services/s1/frameworks/soc2/evaluation-periods'));
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.keys()).toEqual([]);
+    const data = [{ id: 'p1', status: 'closed', period_start: '2025-01-01', period_end: '2025-12-31', cutoff_date: null, opened_by: 'system', closed_at: '2026-01-01T00:00:00Z' }];
+    req.flush({ statusCode: 200, message: 'ok', data });
+    expect(got).toEqual(data);
+  });
 });

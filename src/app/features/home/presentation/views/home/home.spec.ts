@@ -32,7 +32,8 @@ describe('Home (D89)', () => {
     expect(home.pendingCompanyContext()).toBeTrue();
     expect(home.onboarded()).toBeFalse();
     expect(el().querySelector('a[href="/onboarding"]')).not.toBeNull();
-    expect(el().querySelector('app-page-header h1')!.textContent).toContain('PAGE_TITLE.HOME'); // MD-485 · 6.3 A: el mismo título que el resto, sin saludo
+    expect(el().querySelector('app-page-header')).toBeNull(); // MD-499: sin encabezado visible; el título queda para lectores de pantalla
+    expect(el().querySelector('h1.sr-only')!.textContent).toContain('PAGE_TITLE.HOME');
   });
 
   it('does not push a non-admin to the onboarding form: the notice says the admin completes it', () => {
@@ -47,7 +48,7 @@ describe('Home (D89)', () => {
       const home = setup(next, ['organizational_context']);
       expect(home.onboarded()).toBeTrue();
       expect(home.pendingCompanyContext()).toBeFalse();
-      expect(el().querySelector('app-page-header h1')!.textContent).toContain('PAGE_TITLE.HOME'); // MD-485 · 6.3 A: título «Inicio», sin saludo
+      expect(el().querySelector('h1.sr-only')!.textContent).toContain('PAGE_TITLE.HOME'); // MD-499: sin encabezado visible
       expect(el().querySelector('a[href="/onboarding"]')).toBeNull(); // sin tarjetas de «siguiente paso»
       expect(el().querySelector('a[href="/services/new"]')).toBeNull();
     }

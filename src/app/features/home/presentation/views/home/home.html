@@ -1,6 +1,6 @@
 <section class="w-full space-y-6 pb-10">
-  <!-- MD-485 · 6.3 A: el mismo título de página que el resto (y que el Inicio de Admin), con el nombre de la empresa debajo. -->
-  <app-page-header [title]="'PAGE_TITLE.HOME' | translate" [description]="session.company()?.name ?? null" />
+  <!-- MD-499 (Rod): sin encabezado visible; la vista empieza en «Tu empresa». El título queda para lectores de pantalla (una página siempre tiene su h1). -->
+  <h1 class="sr-only">{{ 'PAGE_TITLE.HOME' | translate }}</h1>
 
   @if (pendingCompanyContext()) {
   <app-card>

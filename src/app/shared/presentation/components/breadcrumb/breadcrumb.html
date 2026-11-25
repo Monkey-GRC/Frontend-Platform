@@ -4,7 +4,7 @@
     <li class="flex items-center gap-1">
       @if (!last && c.link) {
       <a [routerLink]="c.link"
-        class="rounded-control font-medium hover:text-action hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-action">{{ c.label }}</a>
+        class="mk-link underline hover:text-action focus:outline-none">{{ c.label }}</a>
       } @else {
       <span [attr.aria-current]="last ? 'page' : null" [class]="last ? 'font-semibold text-ink' : ''">{{ c.label }}</span>
       }

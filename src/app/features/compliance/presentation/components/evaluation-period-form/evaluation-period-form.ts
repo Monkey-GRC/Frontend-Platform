@@ -6,10 +6,13 @@ import { FormModal } from '@shared/presentation/components/form-modal/form-modal
 import { OverviewFramework } from '@features/compliance/domain/models/overview.models';
 import { OverviewService } from '@features/compliance/domain/services/overview.service';
 import { Busy } from '@shared/presentation/directives/busy';
+import { LanguageService } from '@core/domain/services/language.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
+import { earliestPeriodEnd, periodProblem } from '@features/compliance/domain/utils/evaluation-period';
 
-// El período auditado de un marco del servicio y, si se quiere, su fecha de corte congelada (D87, MD-168). Sin período el motor no mide. Las fechas son días (`AAAA-MM-DD`):
-// inicio y fin pueden ser el mismo día (SOC 2 Tipo I). La fecha de corte sin congelar es siempre «hoy»; congelarla no borra evidencia ni resultados. Lo mismo que el servidor
-// valida (orden, dentro del período, no futura) se avisa aquí para no hacer esperar a quien se equivoca, pero manda el servidor.
+// El período auditado de un marco del servicio (D87, MD-168, D145). Sin período el motor no mide y el marco queda «Sin medir». Las fechas son días (`AAAA-MM-DD`). Solo Tipo II:
+// el fin es posterior al inicio y, en SOC 2, el período dura como mínimo 6 meses; al terminar, el siguiente se abre solo y este queda en el histórico. Lo que el servidor valida
+// (`period.invalid_range`, `period.too_short`) se avisa aquí para no hacer esperar a quien se equivoca, pero manda el servidor.
 @Component({
   selector: 'app-evaluation-period-form',
   imports: [TranslatePipe, FormModal, DatePicker, Busy],
@@ -19,6 +22,7 @@ import { Busy } from '@shared/presentation/directives/busy';
 export class EvaluationPeriodForm {
   private readonly api = inject(OverviewService);
   private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
 
   readonly serviceId = input.required<string>();
   readonly framework = input.required<OverviewFramework>();
@@ -33,12 +37,18 @@ export class EvaluationPeriodForm {
   readonly banner = signal<string | null>(null);
   private readonly serverErrors = signal<Record<string, string>>({});
 
+  /** Los meses mínimos del marco (SOC 2: 6) o `null`: la explicación del formulario los nombra. */
+  readonly minMonths = computed(() => this.framework().evaluation.min_period_months ?? null);
+
   /** Lo que ya se sabe mal sin preguntarle al servidor. */
   private readonly localErrors = computed<Record<string, string>>(() => {
     const errors: Record<string, string> = {};
-    const start = this.start();
-    const end = this.end();
-    if (start && end && end < start) errors['period_end'] = this.translate.instant('COMPLIANCE.PERIOD.ERR_RANGE');
+    const problem = periodProblem(this.minMonths(), this.start(), this.end());
+    if (problem === 'range') errors['period_end'] = this.translate.instant('COMPLIANCE.PERIOD.ERR_RANGE');
+    if (problem === 'too_short') {
+      const months = this.minMonths() ?? 0;
+      errors['period_end'] = this.translate.instant('COMPLIANCE.PERIOD.ERR_TOO_SHORT', { months, date: this.day(earliestPeriodEnd(this.start(), months)) });
+    }
     return errors;
   });
   readonly errors = computed(() => ({ ...this.serverErrors(), ...this.localErrors() }));
@@ -58,6 +68,10 @@ export class EvaluationPeriodForm {
         this.end.set(e.period_end ?? '');
       });
     });
+  }
+
+  private day(value: string): string {
+    return formatLocalDate(value, this.language.current(), { calendar: true, style: 'long' });
   }
 
   save(): void {

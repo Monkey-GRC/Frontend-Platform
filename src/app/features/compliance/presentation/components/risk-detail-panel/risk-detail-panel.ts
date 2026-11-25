@@ -1,90 +1,113 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked, viewChild } from '@angular/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observable } from 'rxjs';
-import { apiErrorMessage } from '@core/domain/utils/api-error';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
+import { map } from 'rxjs';
 import { ConfirmDialog } from '@shared/presentation/components/confirm-dialog/confirm-dialog';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { Badge } from '@shared/presentation/components/badge/badge';
 import { Tag } from '@shared/presentation/components/tag/tag';
-import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { DetailModal } from '@shared/presentation/components/detail-modal/detail-modal';
+import { ClientList, includesText } from '@shared/domain/utils/client-list';
+import { SearchField } from '@shared/presentation/components/search-field/search-field';
+import { targetChecked } from '@shared/presentation/utils/event-target';
+import { TabItem } from '@shared/presentation/components/tabs/tabs';
 import { RiskCauseNode, RiskDetail } from '@shared/domain/models/risk.models';
-import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
-import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { RiskService } from '@shared/domain/services/risk.service';
 import { DetailCard } from '../detail-card/detail-card';
-import { LinkPicker, PickerItem } from '../link-picker/link-picker';
+import { actionsColumn, LinkedDetailPanelBase } from '../detail-panel-base/detail-panel-base';
+import { LinkPicker } from '../link-picker/link-picker';
 import { RiskAssessment } from '../risk-assessment/risk-assessment';
 import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
-import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
-type Stage = 'loading' | 'error' | 'ready';
+type DetailTab = 'summary' | 'causes';
 
-// El detalle de un riesgo (MD-124): su descripción, el impacto potencial, y el árbol de causas con los controles que las mitigan. El administrador de la
+// El detalle de un riesgo (MD-124), en el modal de detalle ancho con pestañas (MD-499; la pestaña abierta va en `?tab=`, la pone la lista): su descripción, el impacto potencial, y el árbol de causas con los controles que las mitigan. El administrador de la
 // empresa puede vincular y quitar causas y dar de baja un riesgo propio; el resto de roles solo lee. La evaluación 5×5 y el tratamiento los trae `app-risk-assessment` (MD-123).
 @Component({
   selector: 'app-risk-detail-panel',
-  imports: [Badge, TranslatePipe, SideDrawer, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailCard, Skeleton, SkeletonRegion],
+  imports: [Badge, TranslatePipe, DetailModal, SearchField, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailCard, Skeleton, SkeletonRegion],
   templateUrl: './risk-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RiskDetailPanel {
+export class RiskDetailPanel extends LinkedDetailPanelBase<RiskDetail, DetailTab, RiskCauseNode> {
   private readonly assessment = viewChild(RiskAssessment);
   /** MD-485 · Una evaluación o un tratamiento a medio escribir: cerrar el panel pide confirmar antes de descartarlo. */
   readonly editing = computed(() => this.assessment()?.dirty() ?? false);
 
   private readonly api = inject(RiskService);
-  private readonly translate = inject(TranslateService);
-  private readonly toast = inject(ToastService);
-  readonly view = inject(ComplianceViewService);
-  readonly labels = inject(EnumLabelService);
+  protected readonly tabIds = ['summary', 'causes'] as const;
+  protected readonly saveErrorKey = 'COMPLIANCE.RISK_DETAIL.SAVE_ERROR';
+  protected readonly noticeKeys = { linked: 'COMPLIANCE.RISK_DETAIL.LINKED', unlinked: 'COMPLIANCE.RISK_DETAIL.UNLINKED' };
 
   // Las causas del riesgo: una lista compacta (la tabla única en su variante para paneles) con la causa y sus controles a un lado y las acciones al otro.
   readonly causeColumns: TableColumn<RiskCauseNode>[] = [
     { key: 'cause', headerKey: 'COMPLIANCE.GLOSSARY.CAUSES' },
-    { key: 'actions', headerKey: 'COMMON.TABLE.ACTIONS', align: 'right', srOnlyHeader: true },
+    { key: 'controls', headerKey: 'COMPLIANCE.CAUSE_DETAIL.MITIGATING_CONTROLS', class: 'w-2/5' },
+    actionsColumn(),
   ];
   readonly causeKey = (c: RiskCauseNode) => c.id;
+  /** Cuántos controles de una causa se ven sin desplegar; el resto, con «+K más». */
+  protected readonly CONTROLS_SHOWN = 4;
+  readonly onlyWithoutControls = signal(false);
+  private readonly expandedCauses = signal<ReadonlySet<string>>(new Set());
+  protected readonly targetChecked = targetChecked;
+
+  /** Las causas con buscador (código o texto de la causa o de sus controles), el filtro «solo sin controles» y paginación. */
+  readonly causeList = new ClientList<RiskCauseNode>(
+    computed(() => this.detail()?.causes ?? []),
+    (c, q) => (!this.onlyWithoutControls() || c.controls.length === 0) && (includesText(q, c.code, c.name) || c.controls.some((k) => includesText(q, k.code, k.name))),
+  );
+
+  protected setOnlyWithout(value: boolean): void {
+    this.onlyWithoutControls.set(value);
+    this.causeList.restart();
+  }
+
+  protected isExpanded(causeId: string): boolean {
+    return this.expandedCauses().has(causeId);
+  }
+
+  protected toggleControls(causeId: string): void {
+    this.expandedCauses.update((set) => {
+      const next = new Set(set);
+      if (!next.delete(causeId)) next.add(causeId);
+      return next;
+    });
+  }
+
+  protected visibleControls(c: RiskCauseNode): RiskCauseNode['controls'] {
+    return this.isExpanded(c.id) ? c.controls : c.controls.slice(0, this.CONTROLS_SHOWN);
+  }
+
+  /** El nombre del control y si es obligatorio u opcional, y su efecto: el tooltip del código y el texto para lectores de pantalla. */
+  protected controlTitle(k: RiskCauseNode['controls'][number]): string {
+    const parts = [`${k.code} · ${k.name}`, this.translate.instant(k.is_mandatory ? 'COMPLIANCE.RISK_DETAIL.MANDATORY' : 'COMPLIANCE.RISK_DETAIL.OPTIONAL')];
+    if (k.effect) parts.push(this.labels.of('COMPLIANCE.CAUSE_EFFECT', k.effect));
+    return parts.join(' · ');
+  }
+
+  /** El nombre accesible de cada fila, que abre la causa: su código y, si tiene, su nombre. */
+  readonly causeLabel = (c: RiskCauseNode) => [c.code, c.name].filter(Boolean).join(' · ');
 
   readonly riskId = input.required<string>();
-  readonly closed = output<void>();
-  // El riesgo cambió (un vínculo nuevo o quitado, o una baja): la lista se vuelve a pedir.
-  readonly changed = output<void>();
   readonly openCause = output<string>();
   /** Se pidió editar este riesgo propio: la vista abre el formulario. */
   readonly edit = output<RiskDetail>();
 
+  /** Resumen y Causas, con cuántas hay (MD-499). */
+  readonly tabs = computed<TabItem[]>(() => {
+    const d = this.ready();
+    if (!d) return [];
+    return [
+      { id: 'summary', labelKey: 'COMPLIANCE.DETAIL_TABS.SUMMARY' },
+      { id: 'causes', labelKey: 'COMPLIANCE.DETAIL_TABS.CAUSES', count: d.causes.length },
+    ];
+  });
 
-  readonly stage = signal<Stage>('loading');
-  readonly detail = signal<RiskDetail | null>(null);
-  readonly saving = signal(false);
-  readonly error = signal<string | null>(null);
-
-  readonly picking = signal(false);
-  readonly candidates = signal<PickerItem[]>([]);
-  readonly confirmingRemove = signal(false);
-  readonly unlinking = signal<RiskCauseNode | null>(null);
-
-  /** Dar de baja es solo de un riesgo propio; los del catálogo no se quitan desde la pantalla. */
-  readonly canRemove = computed(() => this.view.canManage() && this.detail()?.origin === 'own');
-
-  constructor() {
-    effect(() => {
-      this.riskId();
-      this.view.viewParam();
-      untracked(() => this.load());
-    });
-  }
-
-  load(): void {
-    this.stage.set('loading');
-    this.api.getRisk(this.riskId(), this.view.viewParam()).subscribe({
-      next: (detail) => {
-        this.detail.set(detail);
-        this.stage.set('ready');
-      },
-      error: () => this.stage.set('error'),
-    });
+  /** «Editar» de la cabecera: la vista abre el formulario con este elemento. */
+  editCurrent(): void {
+    const d = this.detail();
+    if (d) this.edit.emit(d);
   }
 
   /** Se evaluó o se trató el riesgo: el detalle y la lista se vuelven a pedir. */
@@ -93,78 +116,33 @@ export class RiskDetailPanel {
     this.changed.emit();
   }
 
-  startLink(): void {
-    const d = this.detail();
-    if (!d) return;
-    this.reset();
-    this.picking.set(true);
-    const linked = new Set(d.causes.map((c) => c.id));
-    this.api.listAllCauses(d.service_id, this.view.viewParam()).subscribe({
-      next: (all) => this.candidates.set(all.filter((c) => c.is_active && !linked.has(c.id)).map((c) => ({ id: c.id, label: `${c.code} · ${c.name}` }))),
-      error: () => this.fail(null),
-    });
+  protected override onRequest(): void {
+    super.onRequest();
+    this.onlyWithoutControls.set(false);
+    this.expandedCauses.set(new Set());
+    this.causeList.reset();
   }
 
-  link(causeId: string): void {
-    this.run(this.api.linkCause(this.riskId(), causeId), 'COMPLIANCE.RISK_DETAIL.LINKED', () => this.picking.set(false));
+  protected request() {
+    return this.api.getRisk(this.riskId(), this.view.viewParam());
   }
 
-  askUnlink(cause: RiskCauseNode): void {
-    this.reset();
-    this.unlinking.set(cause);
+  protected remove() {
+    return this.api.deactivateRisk(this.riskId());
   }
 
-  confirmUnlink(): void {
-    const cause = this.unlinking();
-    if (!cause) return;
-    this.run(this.api.unlinkCause(this.riskId(), cause.id), 'COMPLIANCE.RISK_DETAIL.UNLINKED', () => this.unlinking.set(null));
+  protected candidatesFor(risk: RiskDetail) {
+    const linked = new Set(risk.causes.map((c) => c.id));
+    return this.api.listAllCauses(risk.service_id, this.view.viewParam()).pipe(
+      map((all) => all.filter((c) => c.is_active && !linked.has(c.id)).map((c) => ({ id: c.id, label: `${c.code} · ${c.name}` }))),
+    );
   }
 
-  askRemove(): void {
-    this.reset();
-    this.confirmingRemove.set(true);
+  protected linkCall(causeId: string) {
+    return this.api.linkCause(this.riskId(), causeId);
   }
 
-  confirmRemove(): void {
-    this.saving.set(true);
-    this.api.deactivateRisk(this.riskId()).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.changed.emit();
-        this.closed.emit();
-      },
-      error: (e) => {
-        this.confirmingRemove.set(false);
-        this.fail(e);
-      },
-    });
-  }
-
-  private run(call: Observable<unknown>, noticeKey: string, done: () => void): void {
-    this.saving.set(true);
-    this.reset();
-    call.subscribe({
-      next: () => {
-        this.saving.set(false);
-        done();
-        this.toast.showSuccess(this.translate.instant(noticeKey));
-        this.load();
-        this.changed.emit();
-      },
-      error: (e) => {
-        this.unlinking.set(null);
-        this.fail(e);
-      },
-    });
-  }
-
-  private fail(error: unknown): void {
-    this.saving.set(false);
-    // `message` ya viene traducido por el backend (409: vínculo repetido, riesgo dado de baja…).
-    this.error.set(apiErrorMessage(error, this.translate.instant('COMPLIANCE.RISK_DETAIL.SAVE_ERROR')));
-  }
-
-  private reset(): void {
-    this.error.set(null);
+  protected unlinkCall(cause: RiskCauseNode) {
+    return this.api.unlinkCause(this.riskId(), cause.id);
   }
 }

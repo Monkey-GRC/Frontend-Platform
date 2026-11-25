@@ -11,7 +11,7 @@ import { CompanyDashboard } from './company-dashboard';
 import { pickOption } from '@shared/presentation/components/select/select.testing';
 
 const framework = (patch: Partial<DashboardFramework> = {}): DashboardFramework => ({
-  code: 'soc2', name: 'SOC 2', readiness: 'needs_work', verdict: 'non_compliant', progress: { done: 20, total: 50 }, coverage: { measured: 40, applicable: 50 }, ...patch,
+  code: 'soc2', name: 'SOC 2', readiness: 'needs_work', verdict: 'non_compliant', progress: { done: 20, total: 50 }, coverage: { measured: 40, applicable: 50 }, periodDefined: true, ...patch,
 });
 const service = (id: string, patch: Partial<DashboardServiceSummary> = {}): DashboardServiceSummary => ({
   id, name: `Servicio ${id}`, frameworks: [framework()], assets: 5, controls: 50, risks: 10, risksEvaluated: 4, causes: 56, failing: [{ controlId: `${id}-k1`, code: 'IAC-12', name: 'Accesos' }], ...patch,
@@ -48,6 +48,14 @@ describe('CompanyDashboard', () => {
   it('asks for the technical view for the company admin', () => {
     setup('admin_empresa', { services: [service('s1')] });
     expect(api.load).toHaveBeenCalledWith(true);
+  });
+
+  it('a count without data shows «—», in the company total and in the card of the service, never NaN or a partial sum', () => {
+    setup('admin_empresa', { services: [service('s1', { assets: null }), service('s2', { assets: 3 })] });
+    expect(total('assets')).toBe('—');
+    expect(total('risks')).toBe('20');
+    expect(q('[data-total="assets"]')!.textContent).not.toContain('NaN');
+    expect(q('app-service-card dd')!.textContent!.trim()).toBe('—');
   });
 
   it('adds up what the company has across its services', () => {
@@ -107,9 +115,8 @@ describe('CompanyDashboard', () => {
     const cards = Array.from(el().querySelectorAll('app-metric-card'));
     expect(cards.length).toBe(6);
     cards.forEach((c) => {
-      expect(c.className).not.toContain('mk-surface-featured');
-      expect(c.querySelector('.mk-metric-icon')!.className).toMatch(/mk-metric-icon-data-\d/);
-      expect(c.querySelector('[data-metric-value]')!.className).toContain('text-ink');
+      expect(c.getAttribute('data-color')).toMatch(/^data-\d$/);
+      expect(c.querySelector('[data-metric-value]')).not.toBeNull();
     });
     const stroke = (id: string) => q(`[data-service="${id}"] circle[stroke-dasharray]`)!.getAttribute('stroke');
     expect(stroke('s1')).toBe(stroke('s2'));
@@ -121,13 +128,23 @@ describe('CompanyDashboard', () => {
     expect(Array.from(el().querySelectorAll('.material-symbols-rounded')).filter((i) => !i.closest('nav') && !i.closest('app-metric-card') && !i.hasAttribute('data-row-chevron'))).toEqual([]);
   });
 
+  it('a framework with no period defined offers the onboarding step «Definir el período auditado», pointing at that service and framework; with the period defined it does not', () => {
+    setup('admin_empresa', { services: [service('s1', { frameworks: [framework({ readiness: 'not_measured', periodDefined: false })] })] });
+    const link = q('[data-framework="soc2"] [data-define-period]') as HTMLAnchorElement;
+    expect(link.textContent).toContain('COMPLIANCE.PERIOD.DEFINE_STEP');
+    expect(link.getAttribute('href')).toBe('/cumplimiento/resumen?servicio=s1&definir=soc2');
+    TestBed.resetTestingModule();
+    setup('admin_empresa', { services: [service('s1', { frameworks: [framework({ periodDefined: true })] })] });
+    expect(q('[data-define-period]')).toBeNull();
+  });
+
   it('a framework without results says so and shows no percentage or verdict: not measured is not a zero', () => {
     setup('admin_empresa', { services: [service('s1', { frameworks: [framework({ readiness: 'not_measured', verdict: 'evaluating', progress: { done: 0, total: 50 }, coverage: { measured: 0, applicable: 50 } })] })] });
     const row = q('[data-framework="soc2"]')!;
     expect(row.querySelector('[data-not-measured]')).not.toBeNull();
     const donut = row.querySelector('app-donut[data-progress]')!;
     expect(donut.querySelector('circle[stroke-dasharray]')).toBeNull();
-    expect(donut.textContent!.trim()).toBe('');
+    expect(donut.textContent!.trim()).toBe('—'); // MD-499: el centro dice «—», nunca un 0 % ni un anillo mudo
     expect(donut.getAttribute('aria-label')).toContain('COMMON.READINESS.LABEL.NOT_MEASURED');
     expect(row.querySelector('[data-coverage]')).toBeNull();
     expect(row.querySelector('[data-verdict]')).toBeNull();
@@ -291,8 +308,8 @@ describe('CompanyDashboard', () => {
       setup('admin_empresa', { services: [service('s1')] }, people);
       const footers = ['[data-service] a', '[data-team] a', '[data-access] a'].map((s) => q(s)!.parentElement!);
       for (const f of footers) {
-        expect(f.className).toContain('mt-auto');
-        expect(f.className).toContain('border-t');
+        expect(f.hasAttribute('data-card-footer')).toBeTrue();
+        expect(f.parentElement!.lastElementChild).toBe(f);
       }
       expect(new Set(footers.map((f) => f.className)).size).toBe(1);
     });

@@ -36,8 +36,8 @@
   <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-control border border-line px-4 py-2.5" data-test-selection-bar>
     <p class="text-sm text-ink">{{ 'SERVICES.LIST.SELECTED' | translate: { count: count() } }}</p>
     <div class="flex items-center gap-4">
-      <button type="button" (click)="clearSelection()" [disabled]="deleting()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'SERVICES.LIST.CLEAR_SELECTION' | translate }}</button>
-      <button type="button" (click)="ask()" [disabled]="deleting()" data-test-delete-selected class="text-sm font-medium text-bad-ink enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.DELETE' | translate }} ({{ count() }})</button>
+      <button type="button" (click)="clearSelection()" [disabled]="deleting()" class="mk-btn-secondary-sm">{{ 'SERVICES.LIST.CLEAR_SELECTION' | translate }}</button>
+      <button type="button" (click)="ask()" [disabled]="deleting()" data-test-delete-selected class="mk-btn-danger-sm">{{ 'COMMON.DELETE' | translate }} ({{ count() }})</button>
     </div>
   </div>
   }
@@ -53,7 +53,7 @@
     (selectionChange)="select($event)">
 
     <ng-template appCell="name" let-item>
-      <a [routerLink]="['/services', item.id]" class="font-medium text-action hover:underline">{{ item.name }}</a>
+      <a [routerLink]="['/services', item.id]" class="mk-link underline">{{ item.name }}</a>
     </ng-template>
 
     <ng-template appCell="type" let-item><app-badge kind="attribute" [value]="item.type">{{ typeLabel(item.type) }}</app-badge></ng-template>
@@ -87,8 +87,8 @@
 
     <ng-template appCell="actions" let-item>
       <div class="flex items-center justify-end gap-4">
-        <a [routerLink]="['/services', item.id, 'edit']" class="text-sm font-medium text-action hover:underline">{{ 'COMMON.EDIT' | translate }}</a>
-        <button type="button" (click)="askOne(item)" [disabled]="deleting()" data-test-delete-row class="text-sm font-medium text-bad-ink enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.DELETE' | translate }}</button>
+        <a [routerLink]="['/services', item.id, 'edit']" class="mk-btn-secondary-sm">{{ 'COMMON.EDIT' | translate }}</a>
+        <button type="button" (click)="askOne(item)" [disabled]="deleting()" data-test-delete-row class="mk-btn-danger-sm">{{ 'COMMON.DELETE' | translate }}</button>
       </div>
     </ng-template>
 

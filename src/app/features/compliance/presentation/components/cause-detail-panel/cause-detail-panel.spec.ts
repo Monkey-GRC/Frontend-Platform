@@ -1,7 +1,8 @@
+import { provideRouter } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { ControlListItem } from '@features/compliance/domain/models/control.models';
 import { Cause } from '@shared/domain/models/risk.models';
@@ -33,7 +34,7 @@ describe('CauseDetailPanel', () => {
     controls.listAll.and.returnValue(of([control('k1', 'IAC-12', 'Gestión de accesos'), control('k2', 'MON-3', 'Monitoreo continuo')]));
     TestBed.configureTestingModule({
       imports: [CauseDetailPanel],
-      providers: [provideTranslateService(), { provide: RiskService, useValue: api }, { provide: ControlService, useValue: controls }],
+      providers: [provideTranslateService(), provideRouter([]), { provide: RiskService, useValue: api }, { provide: ControlService, useValue: controls }],
     });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(CauseDetailPanel);
@@ -44,11 +45,64 @@ describe('CauseDetailPanel', () => {
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
+  it('ignores a slow answer that arrives after a newer load (MD-499)', () => {
+    const panel = setup('admin_empresa');
+    const slow = new Subject<NonNullable<ReturnType<typeof panel.detail>>>();
+    const current = panel.detail()!;
+    api.getCause.and.returnValues(slow as never, of({ ...current, code: 'NEW-1' }) as never);
+    panel.load();
+    panel.load();
+    slow.next({ ...current, code: 'OLD-9' });
+    expect(panel.detail()!.code).toBe('NEW-1');
+  });
+
+  it('forgets the search, the page, the picker and the confirmations of the previous cause when another one is opened', () => {
+    const panel = setup('admin_empresa', OWN);
+    panel.riskList.search('x');
+    panel.controlList.goTo(2);
+    panel.startLink();
+    panel.askRemove();
+    panel.askUnlink(OWN.controls[0]);
+    expect(panel.picking()).toBeTrue();
+    api.getCause.and.returnValue(of(DETAIL));
+    fixture.componentRef.setInput('causeId', 'c1');
+    fixture.detectChanges();
+    expect(panel.riskList.query()).toBe('');
+    expect(panel.controlList.page()).toBe(1);
+    expect(panel.picking()).toBeFalse();
+    expect(panel.candidates()).toEqual([]);
+    expect(panel.unlinking()).toBeNull();
+    expect(panel.confirmingRemove()).toBeFalse();
+  });
+
+  it('keeps the picker open when only the same cause is refreshed with load()', () => {
+    const panel = setup('admin_empresa', OWN);
+    panel.startLink();
+    panel.load();
+    expect(panel.picking()).toBeTrue();
+  });
+
   it('shows the cause with the risks it originates and the controls that mitigate it, with their codes', () => {
     setup('admin_empresa');
     expect(text()).toContain('F007');
     expect(text()).toContain('R001');
     expect(text()).toContain('IAC-12');
+  });
+
+  it('titles a cause without a name with its code and its classification, shows the classification as chips once, and never an empty chip (MD-499)', () => {
+    const panel = setup('admin_empresa', { ...DETAIL, name: '', failure_category: '', cause_origin: 'internal', cause_type: 'human' });
+    const el = fixture.nativeElement as HTMLElement;
+    const title = el.querySelector('[data-detail-title]')!.textContent ?? '';
+    expect(title).toContain('COMPLIANCE.CAUSE_DETAIL.TITLE_FALLBACK');
+    // Sin traducciones cargadas, la etiqueta del enum es su valor: «Causa F001 · internal · human».
+    expect(title).toContain(' · internal · human');
+    expect(title).not.toContain('Siguen activas.');
+    expect(el.querySelectorAll('[data-cause-classification] app-badge').length).toBe(2);
+    expect(el.querySelector('header app-badge[value=""]')).toBeNull();
+    TestBed.resetTestingModule();
+    setup('admin_empresa', { ...DETAIL, name: '', cause_origin: null, cause_type: null });
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-cause-classification]')).toBeNull();
+    expect(panel).toBeTruthy();
   });
 
   it('lets only the company admin link and remove controls', () => {

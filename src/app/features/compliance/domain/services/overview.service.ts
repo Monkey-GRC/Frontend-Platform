@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
-import { ComplianceOverview, EvaluationPeriodBody, EvaluationPeriodResult } from '../models/overview.models';
+import { ComplianceOverview, EvaluationPeriodBody, EvaluationPeriodItem, EvaluationPeriodResult } from '../models/overview.models';
 
 // El resumen de cumplimiento de un servicio. `view` es `technical` solo para auditor y administrador de la empresa (`ComplianceViewService.viewParam`).
 @Injectable({ providedIn: 'root' })
@@ -20,5 +20,10 @@ export class OverviewService {
   /** Declara (o cambia) el período auditado de un marco del servicio y, si se manda `cutoff_date`, congela la fecha de corte (D87, MD-168). Solo el administrador de la empresa. */
   setEvaluationPeriod(serviceId: string, frameworkCode: string, body: EvaluationPeriodBody): Observable<EvaluationPeriodResult> {
     return this.http.put<SuccessResponse<EvaluationPeriodResult>>(`${this.base}/services/${serviceId}/frameworks/${frameworkCode}/evaluation-period`, body).pipe(unwrapData());
+  }
+
+  /** El histórico de períodos de un marco: el abierto y los cerrados, del más reciente al más antiguo. Solo el administrador de la empresa y el auditor (D145). */
+  listEvaluationPeriods(serviceId: string, frameworkCode: string): Observable<EvaluationPeriodItem[]> {
+    return this.http.get<SuccessResponse<EvaluationPeriodItem[]>>(`${this.base}/services/${serviceId}/frameworks/${frameworkCode}/evaluation-periods`).pipe(unwrapData());
   }
 }

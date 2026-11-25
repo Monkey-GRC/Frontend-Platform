@@ -20,11 +20,13 @@ import { CauseDetailPanel } from '../../components/cause-detail-panel/cause-deta
 import { RiskDetailPanel } from '../../components/risk-detail-panel/risk-detail-panel';
 import { RiskForm } from '@shared/presentation/components/risk-form/risk-form';
 import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
+import { Stage } from '../../components/detail-panel-base/detail-panel-base';
 
-type Stage = 'loading' | 'error' | 'ready';
 type Section = 'risks' | 'causes';
 
 const ALL = 'all';
+// The group of what has no value in the grouping field (a v2 cause without type or category).
+const UNCLASSIFIED = 'unclassified';
 
 interface Group<T> {
   key: string;
@@ -56,44 +58,54 @@ export class RisksView {
   private readonly data = toSignal(this.route.data, { requireSync: true });
   readonly section = computed<Section>(() => (this.data()['section'] === 'causes' ? 'causes' : 'risks'));
 
-  // `?abrir=<id>` abre directamente el drawer de esa causa o riesgo (se usa al saltar de una pestaña a la otra).
+  // `?abrir=<id>` abre el detalle de ese riesgo o causa (también al saltar de una pestaña a la otra) y `?tab=` su pestaña: se puede compartir y «Atrás» lo cierra.
   private readonly queryParams = toSignal(this.route.queryParamMap, { requireSync: true });
+  readonly tab = computed(() => this.queryParams().get('tab'));
 
   readonly stage = signal<Stage>('loading');
   readonly risks = signal<RiskListItem[]>([]);
   readonly causes = signal<Cause[]>([]);
 
-  readonly query = signal('');
-  readonly group = signal<string | null>(null);
-
   readonly selectedRisk = signal<string | null>(null);
   readonly selectedCause = signal<string | null>(null);
+
+  readonly query = signal('');
+  readonly group = signal<string | null>(null);
 
   /** El formulario abierto: uno nuevo (existing: null) o la edición de un riesgo o causa propios. Solo el administrador de la empresa. */
   readonly form = signal<{ existing: RiskDetail | Cause | null } | null>(null);
 
   private requestSeq = 0;
 
-  private readonly groupPrefix = computed(() => (this.section() === 'risks' ? 'COMPLIANCE.RISK_CRITERION' : 'COMPLIANCE.FAILURE_CATEGORY'));
-  private readonly groupOf = (item: RiskListItem | Cause): string => ('trust_criterion' in item ? item.trust_criterion : item.failure_category);
+  // Riesgos: por criterio. Causas: por tipo de causa (clasificación v2, D129) si alguna lo trae; si no, por categoría de falla. Lo que no tiene valor va a
+  // «Sin clasificar». Con un solo grupo la tabla no pinta filas de grupo (`data-table`) ni hay chips: el total ya está en el banner (MD-499).
+  private readonly causeField = computed<'cause_type' | 'failure_category'>(() => (this.causes().some((c) => !!c.cause_type) ? 'cause_type' : 'failure_category'));
+  private readonly groupPrefix = computed(() =>
+    this.section() === 'risks' ? 'COMPLIANCE.RISK_CRITERION' : this.causeField() === 'cause_type' ? 'COMPLIANCE.CAUSE_TYPE' : 'COMPLIANCE.FAILURE_CATEGORY',
+  );
+  private readonly groupOf = (item: RiskListItem | Cause): string =>
+    ('trust_criterion' in item ? item.trust_criterion : (this.causeField() === 'cause_type' ? item.cause_type : item.failure_category)) || UNCLASSIFIED;
+  private readonly groupText = (key: string): string =>
+    key === UNCLASSIFIED ? this.labels.of('COMPLIANCE.RISKS', 'UNCLASSIFIED') : this.labels.of(this.groupPrefix(), key);
 
   readonly current = computed<(RiskListItem | Cause)[]>(() => (this.section() === 'risks' ? this.risks() : this.causes()));
 
   /** Los grupos que existen en los datos, con su texto, ordenados por texto. */
   private readonly groupKeys = computed(() => {
     const keys = [...new Set(this.current().map((i) => this.groupOf(i)))];
-    return keys.sort((a, b) => this.labels.of(this.groupPrefix(), a).localeCompare(this.labels.of(this.groupPrefix(), b), storedLanguage()));
+    // «Sin clasificar» va al final.
+    return keys.sort((a, b) => (a === UNCLASSIFIED ? 1 : b === UNCLASSIFIED ? -1 : this.groupText(a).localeCompare(this.groupText(b), storedLanguage())));
   });
 
   readonly chips = computed(() => [
     { value: ALL, label: this.labels.of('COMPLIANCE.RISKS', 'ALL') },
-    ...this.groupKeys().map((k) => ({ value: k, label: this.labels.of(this.groupPrefix(), k) })),
+    ...this.groupKeys().map((k) => ({ value: k, label: this.groupText(k) })),
   ]);
 
   private readonly filtered = computed(() => {
     const q = this.query().trim().toLowerCase();
     const g = this.group();
-    return this.current().filter((i) => (!g || this.groupOf(i) === g) && (!q || i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)));
+    return this.current().filter((i) => (!g || this.groupOf(i) === g) && (!q || this.textOf(i).toLowerCase().includes(q) || i.code.toLowerCase().includes(q)));
   });
 
   readonly riskGroups = computed<Group<RiskListItem>[]>(() => this.grouped(this.filtered() as RiskListItem[]));
@@ -104,20 +116,23 @@ export class RisksView {
   readonly causeRows = computed(() => this.causeGroups().flatMap((g) => g.items));
 
   protected readonly riskColumns: TableColumn<RiskListItem>[] = [
-    { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', class: 'w-28' },
-    { key: 'name', headerKey: 'COMPLIANCE.RISKS.COL_NAME' },
-    { key: 'level', headerKey: 'COMPLIANCE.RISKS.COL_LEVEL', class: 'w-40', skeleton: 'badge' },
+    { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', skeleton: 'badge' },
+    { key: 'name', headerKey: 'COMPLIANCE.RISKS.COL_NAME', skeleton: 'lines' },
+    { key: 'level', headerKey: 'COMPLIANCE.RISKS.COL_LEVEL', skeleton: 'badge' },
   ];
   protected readonly causeColumns: TableColumn<Cause>[] = [
-    { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', class: 'w-28' },
-    { key: 'name', headerKey: 'COMPLIANCE.RISKS.COL_NAME' },
+    { key: 'code', headerKey: 'COMPLIANCE.RISKS.COL_CODE', skeleton: 'badge' },
+    { key: 'name', headerKey: 'COMPLIANCE.RISKS.COL_NAME', skeleton: 'lines' },
   ];
   protected readonly byId = (item: RiskListItem | Cause): string => item.id;
-  protected readonly rowLabel = (item: RiskListItem | Cause): string => `${item.code} ${item.name}`;
+  protected readonly rowLabel = (item: RiskListItem | Cause): string => `${item.code} ${this.textOf(item)}`;
+  /** El nombre, o la descripción de una causa v2 que llega sin nombre. */
+  private readonly textOf = (item: RiskListItem | Cause): string => item.name || ('description' in item ? item.description : '') || '';
   protected readonly groupKey = (item: RiskListItem | Cause): string => this.groupOf(item);
+  // Se recalcula cuando cambia el campo del grupo (riesgos o causas, tipo o categoría), así la tabla vuelve a pedir los títulos.
   protected readonly groupLabel = computed(() => {
     const prefix = this.groupPrefix();
-    return (key: string): string => this.labels.of(prefix, key);
+    return (key: string): string => (key === UNCLASSIFIED ? this.labels.of('COMPLIANCE.RISKS', 'UNCLASSIFIED') : this.labels.of(prefix, key));
   });
   protected readonly emptyTitleKey = computed(() =>
     this.hasFilters() ? 'COMPLIANCE.RISKS.EMPTY_FILTERED_TITLE' : this.section() === 'risks' ? 'COMPLIANCE.RISKS.EMPTY_RISKS_TITLE' : 'COMPLIANCE.RISKS.EMPTY_CAUSES_TITLE',
@@ -135,11 +150,14 @@ export class RisksView {
       this.view.viewParam();
       untracked(() => this.load());
     });
-    // Llegar con `?abrir=` abre ese elemento en la pestaña que corresponde.
+    // El detalle abierto es el de la dirección: se abre, cambia o se cierra con ella.
     effect(() => {
       const id = this.queryParams().get('abrir');
-      if (!id) return;
-      untracked(() => (this.section() === 'risks' ? this.selectedRisk.set(id) : this.selectedCause.set(id)));
+      const risks = this.section() === 'risks';
+      untracked(() => {
+        this.selectedRisk.set(risks ? id : null);
+        this.selectedCause.set(risks ? null : id);
+      });
     });
   }
 
@@ -183,14 +201,19 @@ export class RisksView {
 
   /** Abre un riesgo: aquí mismo si estamos en Riesgos, o saltando a esa pestaña si venimos de una causa. */
   openRisk(id: string): void {
-    if (this.section() === 'risks') this.selectedRisk.set(id);
+    if (this.section() === 'risks') this.show(id);
     else this.jump('riesgos', id);
   }
 
   /** Abre una causa: aquí mismo si estamos en Causas, o saltando a esa pestaña si venimos de un riesgo. */
   openCause(id: string): void {
-    if (this.section() === 'causes') this.selectedCause.set(id);
+    if (this.section() === 'causes') this.show(id);
     else this.jump('causas', id);
+  }
+
+  /** Un control de la causa: se abre en Controles. */
+  openControl(id: string): void {
+    this.router.navigate(['/', COMPLIANCE_ROUTE, 'controles'], { queryParams: { abrir: id } });
   }
 
   newItem(): void {
@@ -205,26 +228,23 @@ export class RisksView {
   onSaved(id: string): void {
     this.form.set(null);
     this.refresh();
-    if (this.section() === 'risks') this.selectedRisk.set(id);
-    else this.selectedCause.set(id);
+    this.show(id);
   }
 
-  closeRisk(): void {
-    this.selectedRisk.set(null);
-    this.clearOpenParam();
+  closeDetail(): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: null, tab: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
-  closeCause(): void {
-    this.selectedCause.set(null);
-    this.clearOpenParam();
+  setTab(tab: string): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { tab: tab === 'summary' ? null : tab }, queryParamsHandling: 'merge', replaceUrl: true });
+  }
+
+  private show(id: string): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: id, tab: null }, queryParamsHandling: 'merge' });
   }
 
   private jump(tab: 'riesgos' | 'causas', id: string): void {
     this.router.navigate(['/', COMPLIANCE_ROUTE, tab], { queryParams: { abrir: id } });
-  }
-
-  private clearOpenParam(): void {
-    if (this.queryParams().get('abrir')) this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   // Solo se pide lo que la pestaña muestra: riesgos en Riesgos, causas en Causas.
@@ -238,14 +258,13 @@ export class RisksView {
   }
 
   private grouped<T extends RiskListItem | Cause>(items: T[]): Group<T>[] {
-    const prefix = this.groupPrefix();
     const by = new Map<string, T[]>();
     for (const i of items) {
       const k = this.groupOf(i);
       by.set(k, [...(by.get(k) ?? []), i]);
     }
     return [...by.entries()]
-      .map(([key, list]) => ({ key, label: this.labels.of(prefix, key), items: list.sort((a, b) => a.code.localeCompare(b.code, storedLanguage(), { numeric: true })) }))
-      .sort((a, b) => a.label.localeCompare(b.label, storedLanguage()));
+      .map(([key, list]) => ({ key, label: this.groupText(key), items: list.sort((a, b) => a.code.localeCompare(b.code, storedLanguage(), { numeric: true })) }))
+      .sort((a, b) => (a.key === UNCLASSIFIED ? 1 : b.key === UNCLASSIFIED ? -1 : a.label.localeCompare(b.label, storedLanguage())));
   }
 }

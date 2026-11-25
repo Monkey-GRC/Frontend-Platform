@@ -1,8 +1,9 @@
+import { provideRouter } from '@angular/router';
 import { provideCatalogStub } from '@shared/testing/catalog-options';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { Cause, RiskDetail } from '@shared/domain/models/risk.models';
 import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
@@ -29,7 +30,7 @@ describe('RiskDetailPanel', () => {
     api = jasmine.createSpyObj<RiskService>('RiskService', ['getRisk', 'listAllCauses', 'linkCause', 'unlinkCause', 'deactivateRisk']);
     api.getRisk.and.returnValue(of(detail));
     api.listAllCauses.and.returnValue(of([cause('c1'), cause('c2'), cause('c3', false)]));
-    TestBed.configureTestingModule({ imports: [RiskDetailPanel], providers: [provideCatalogStub(), provideTranslateService(), { provide: RiskService, useValue: api }, { provide: ResponsibleService, useValue: jasmine.createSpyObj<ResponsibleService>('ResponsibleService', ['list']) }] });
+    TestBed.configureTestingModule({ imports: [RiskDetailPanel], providers: [provideCatalogStub(), provideTranslateService(), provideRouter([]), { provide: RiskService, useValue: api }, { provide: ResponsibleService, useValue: jasmine.createSpyObj<ResponsibleService>('ResponsibleService', ['list']) }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(RiskDetailPanel);
     fixture.componentRef.setInput('riskId', detail.id);
@@ -38,6 +39,36 @@ describe('RiskDetailPanel', () => {
   }
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+  it('ignores a slow answer that arrives after a newer load (MD-499)', () => {
+    const panel = setup('admin_empresa');
+    const slow = new Subject<NonNullable<ReturnType<typeof panel.detail>>>();
+    const current = panel.detail()!;
+    api.getRisk.and.returnValues(slow as never, of({ ...current, code: 'NEW-1' }) as never);
+    panel.load();
+    panel.load();
+    slow.next({ ...current, code: 'OLD-9' });
+    expect(panel.detail()!.code).toBe('NEW-1');
+  });
+
+  it('forgets the search, the filter, the expanded causes and the picker of the previous risk when another one is opened', () => {
+    const panel = setup('admin_empresa', OWN);
+    panel.causeList.search('x');
+    panel.causeList.goTo(2);
+    (panel as unknown as { setOnlyWithout(v: boolean): void }).setOnlyWithout(true);
+    (panel as unknown as { toggleControls(id: string): void }).toggleControls('c1');
+    panel.startLink();
+    panel.askRemove();
+    api.getRisk.and.returnValue(of(DETAIL));
+    fixture.componentRef.setInput('riskId', 'r1');
+    fixture.detectChanges();
+    expect(panel.causeList.query()).toBe('');
+    expect(panel.causeList.page()).toBe(1);
+    expect(panel.onlyWithoutControls()).toBeFalse();
+    expect((panel as unknown as { isExpanded(id: string): boolean }).isExpanded('c1')).toBeFalse();
+    expect(panel.picking()).toBeFalse();
+    expect(panel.confirmingRemove()).toBeFalse();
+  });
 
   it('shows the risk with its code, its causes, the controls that mitigate them and the control code', () => {
     setup('admin_empresa');

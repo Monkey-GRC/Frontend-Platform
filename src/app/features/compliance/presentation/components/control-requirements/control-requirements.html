@@ -1,0 +1,84 @@
+<div class="flex flex-col gap-4">
+  @if (rows().length === 0) {
+  <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.REQS.NONE' | translate }}</p>
+  } @else {
+  <p class="text-sm text-ink" data-test-req-summary>{{ 'COMPLIANCE.REQS.SUMMARY' | translate: { compliant: summary().compliant, applicable: summary().applicable, missing: summary().missing } }}</p>
+  <app-search-field class="block w-full" inputId="control-reqs-search" placeholderKey="COMPLIANCE.REQS.SEARCH" [value]="list.query()" (valueChange)="list.search($event)" data-reqs-search />
+  @if (statusChips().length > 2) {
+  <app-option-chips [compact]="true" [options]="statusChips()" [selected]="[status() ?? 'all']" labelKey="COMPLIANCE.REQS.FILTER_STATUS" (picked)="pickStatus($event)" />
+  }
+  <app-data-table captionKey="COMPLIANCE.REQS.TITLE" [columns]="columns" [rows]="list.rows()" [rowKey]="rowKey" [page]="list.info()" [pageSizes]="[10, 25]"
+    emptyIcon="" emptyTitleKey="COMPLIANCE.REQS.NO_MATCH" (pageChange)="list.goTo($event)" (pageSizeChange)="list.resize($event)">
+    <ng-template appCell="requirement" let-r>
+      <div [attr.data-requirement]="r.code" [attr.data-status]="r.status">
+        <p class="text-sm font-semibold leading-snug text-ink"><app-tag class="mr-2 align-middle" [text]="r.code" />{{ r.text }}</p>
+        <p class="mt-1 text-xs text-ink-muted">
+          {{ 'COMPLIANCE.REQS.PERIODICITY' | translate: { value: labels.of('COMPLIANCE.PERIODICITY', r.periodicity) } }}
+          @if (r.periodicity_source === 'client') {
+          · {{ 'COMPLIANCE.REQS.PERIODICITY_CLIENT' | translate: { suggested: labels.of('COMPLIANCE.PERIODICITY', r.suggested_periodicity) } }}
+          }
+        </p>
+      </div>
+    </ng-template>
+    <ng-template appCell="status" let-r>
+      <app-status-indicator [tone]="statusTone(r.status)" [label]="labels.of('COMPLIANCE.REQUIREMENT_STATUS', r.status)" />
+    </ng-template>
+    <ng-template appCell="tests" let-r>
+      @if (r.tests.length) {
+      <ul class="flex flex-col gap-3">
+        @for (t of r.tests; track t.test_id) {
+        <li [attr.data-test]="t.test_code">
+          <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+            <p class="min-w-0 flex-1 text-sm font-medium text-ink"><app-tag class="mr-2 align-middle" [text]="t.test_code" />{{ t.display_name }}</p>
+            <app-status-indicator [tone]="statusTone(t.status)" [label]="labels.of('COMPLIANCE.TEST_STATUS', t.status)" />
+          </div>
+          @if (t.window_end) {
+          <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.REQS.WINDOW_END' | translate: { date: date(t.window_end) } }}@if (t.alert_at) { · {{ 'COMPLIANCE.REQS.ALERT_AT' | translate: { date: date(t.alert_at) } }}}</p>
+          }
+          @if (t.asset_coverage; as ac) {
+          <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.REQS.ASSET_COVERAGE' | translate: { with_result: ac.with_result, in_scope: ac.in_scope } }}</p>
+          }
+
+          @if (t.checks; as c) {
+          <p class="mt-1 text-xs text-ink-muted" data-direct-summary>{{ 'COMPLIANCE.REQS.CHECKS_SUMMARY' | translate: { pass: c.direct_pass, fail: c.direct_fail, exception: c.direct_exception, no_data: c.no_data } }}</p>
+          }
+
+          @for (g of t.groups; track g.role) {
+          <div class="mt-2 rounded-control bg-tint-strong px-3 py-2" [attr.data-role]="g.role">
+            <p class="text-xs font-semibold text-ink">{{ labels.of('COMPLIANCE.CHECK_ROLE', g.role) }}</p>
+            <p class="text-xs text-ink-muted">{{ 'COMPLIANCE.CHECK_ROLE_HINT.' + g.role.toUpperCase() | translate }}</p>
+            <ul class="mt-1.5 flex flex-col gap-1.5">
+              @for (l of g.links; track l.kind + ':' + (l.check?.id ?? l.module) + ':' + (l.owner?.control_code ?? '')) {
+              <li class="text-xs text-ink">
+                <span class="font-medium">{{ l.kind === 'check' ? l.check?.title : ('COMPLIANCE.CHECK_MODULE.' + moduleKey(l.module).toUpperCase() | translate) }}</span>
+                @if (l.owner; as o) {
+                <span class="mt-0.5 flex flex-wrap items-center gap-1.5 text-ink-muted">
+                  {{ 'COMPLIANCE.REQS.OWNER' | translate }}
+                  <app-tag [text]="o.control_code" />
+                  @if (o.control_id && o.test_status) {
+                  <app-status-indicator [tone]="statusTone(o.test_status)" [label]="labels.of('COMPLIANCE.TEST_STATUS', o.test_status)" />
+                  } @else {
+                  <span>{{ 'COMPLIANCE.REQS.OWNER_OUT_OF_SCOPE' | translate }}</span>
+                  }
+                </span>
+                } @else if (g.role === 'complementary' && l.failing_assets !== null) {
+                <span class="mt-0.5 block text-ink-muted">{{ (l.failing_assets > 0 ? 'COMPLIANCE.REQS.FAILING_ASSETS' : 'COMPLIANCE.REQS.NOT_FAILING') | translate: { count: l.failing_assets } }}</span>
+                }
+              </li>
+              }
+            </ul>
+          </div>
+          }
+        </li>
+        }
+      </ul>
+      }
+    </ng-template>
+    @if (status() || list.searching()) {
+    <app-empty-state tableEmpty icon="" titleKey="COMPLIANCE.REQS.NO_MATCH">
+      <button action type="button" (click)="clearFilters()" class="mk-btn-secondary">{{ 'COMPLIANCE.CONTROLS.CLEAR_FILTERS' | translate }}</button>
+    </app-empty-state>
+    }
+  </app-data-table>
+  }
+</div>

@@ -10,7 +10,7 @@ import { MetricCard, MetricColor } from '@shared/presentation/components/metric-
 import { DonutColor } from '@shared/presentation/components/donut/donut';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
-import { PageInfo } from '@shared/presentation/components/data-table/table-page';
+import { PageInfo } from '@shared/domain/models/page-info.model';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { Dashboard, DashboardAttention, DashboardFramework, DashboardServiceSummary } from '@features/home/domain/models/dashboard.models';
 import { HomeDashboardService } from '@features/home/domain/services/dashboard.service';
@@ -56,12 +56,12 @@ export class CompanyDashboard {
     const frameworks = new Set(s.flatMap((x) => x.frameworks.map((f) => f.code)));
     return {
       services: s.length,
-      assets: s.reduce((n, x) => n + x.assets, 0),
+      assets: sumOf(s.map((x) => x.assets)),
       frameworks: frameworks.size,
       controls: s.reduce((n, x) => n + x.controls, 0),
-      risks: s.reduce((n, x) => n + x.risks, 0),
-      risksEvaluated: s.reduce((n, x) => n + x.risksEvaluated, 0),
-      causes: s.reduce((n, x) => n + x.causes, 0),
+      risks: sumOf(s.map((x) => x.risks)),
+      risksEvaluated: sumOf(s.map((x) => x.risksEvaluated)),
+      causes: sumOf(s.map((x) => x.causes)),
     };
   });
 
@@ -70,11 +70,11 @@ export class CompanyDashboard {
     const t = this.totals();
     return [
       { id: 'services', icon: 'dns', color: 'data-1' as MetricColor, value: t.services, labelKey: 'HOME.DASHBOARD.SERVICES' },
-      { id: 'assets', icon: 'inventory_2', color: 'data-2' as MetricColor, value: t.assets, labelKey: 'HOME.DASHBOARD.ASSETS' },
+      { id: 'assets', icon: 'inventory_2', color: 'data-2' as MetricColor, value: t.assets ?? NO_DATA, labelKey: 'HOME.DASHBOARD.ASSETS' },
       { id: 'frameworks', icon: 'verified_user', color: 'data-3' as MetricColor, value: t.frameworks, labelKey: 'HOME.DASHBOARD.FRAMEWORKS' },
       { id: 'controls', icon: 'fact_check', color: 'data-4' as MetricColor, value: t.controls, labelKey: 'COMPLIANCE.GLOSSARY.CONTROLS' },
-      { id: 'risks', icon: 'crisis_alert', color: 'data-5' as MetricColor, value: t.risks, labelKey: 'COMPLIANCE.GLOSSARY.RISKS' },
-      { id: 'causes', icon: 'account_tree', color: 'data-1' as MetricColor, value: t.causes, labelKey: 'COMPLIANCE.GLOSSARY.CAUSES' },
+      { id: 'risks', icon: 'crisis_alert', color: 'data-5' as MetricColor, value: t.risks ?? NO_DATA, labelKey: 'COMPLIANCE.GLOSSARY.RISKS' },
+      { id: 'causes', icon: 'account_tree', color: 'data-1' as MetricColor, value: t.causes ?? NO_DATA, labelKey: 'COMPLIANCE.GLOSSARY.CAUSES' },
     ];
   });
 
@@ -166,4 +166,12 @@ export class CompanyDashboard {
   openControls(a: Attention): void {
     void this.router.navigate(['/cumplimiento', 'controles'], { queryParams: { servicio: a.serviceId } });
   }
+}
+
+/** Lo que se muestra en una cifra sin dato. */
+const NO_DATA = '—';
+
+/** La suma de la empresa; `null` (sin dato) si algún servicio no la pudo leer: una suma parcial parecería el total. */
+function sumOf(values: (number | null)[]): number | null {
+  return values.some((v) => v === null) ? null : values.reduce<number>((n, v) => n + (v ?? 0), 0);
 }

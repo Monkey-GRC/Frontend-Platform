@@ -25,8 +25,8 @@ let nextId = 0;
       <app-select [inputId]="id + '-select'" [ariaLabelKey]="labelKey()" [options]="options()" [value]="selected() ?? ''" [disabled]="options().length === 0" [placeholderKey]="options().length ? 'COMPLIANCE.LINK.PLACEHOLDER' : 'COMPLIANCE.LINK.NOTHING_TO_LINK'" (valueChange)="selected.set($event || null)" />
       <div class="flex items-center gap-3">
         <button type="button" (click)="confirm()" [disabled]="!selected()" [appBusy]="busy()"
-          class="h-9 shadow mk-btn">{{ 'COMPLIANCE.LINK.LINK' | translate }}</button>
-        <button type="button" (click)="cancelled.emit()" [disabled]="busy()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+          class="mk-btn-sm">{{ 'COMPLIANCE.LINK.LINK' | translate }}</button>
+        <button type="button" (click)="cancelled.emit()" [disabled]="busy()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
       </div>
     </div>
   `,

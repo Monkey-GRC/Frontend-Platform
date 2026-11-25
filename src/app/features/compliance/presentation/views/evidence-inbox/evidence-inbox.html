@@ -58,9 +58,10 @@
   </app-data-table>
 </div>
 
-@if (selected(); as id) {
-<app-control-detail-panel [controlId]="id" (closed)="selected.set(null)" (changed)="reload(id)" />
-}
 }
 
+}
+
+@if (selected(); as id) {
+<app-control-detail-panel [controlId]="id" (closed)="selected.set(null)" (openCause)="openCause($event)" (changed)="reload(id)" />
 }

@@ -15,7 +15,6 @@
     },
     "SHELL": {
       "TITLE": "Compliance",
-      "TECHNICAL_VIEW": "Technical view",
       "FRAMEWORKS": "Frameworks of the service",
       "SERVICE": "Service",
       "GENERAL": "All services"
@@ -96,8 +95,8 @@
       "NO_FRAMEWORK": "No framework contracted"
     },
     "CONTROLS": {
-      "FILTER_TOPIC": "Category",
-      "FILTER_STATUS": "Status",
+      "FILTER_TOPIC": "Control category",
+      "FILTER_STATUS": "Control status",
       "ALL_TOPICS": "All categories",
       "ALL_STATUSES": "All statuses",
       "TABLE_CAPTION": "Controls of the service",
@@ -108,10 +107,10 @@
       "COLUMN_TECHNICAL": "Code",
       "OWN": "Custom",
       "AWAITING_APPROVAL": "Awaiting approval",
-      "PROGRESS": "Progress {{percent}} ({{done}} of {{total}})",
       "PROGRESS_LABEL": "Progress",
       "PROGRESS_VALUE": "{{percent}} · {{done}} of {{total}}",
       "COVERAGE": "Coverage {{percent}} ({{measured}} of {{applicable}} measured)",
+      "COVERAGE_SHORT": "Coverage {{percent}}",
       "LOAD_ERROR_TITLE": "The controls could not be loaded",
       "EMPTY_TITLE": "There are no controls yet",
       "EMPTY_BODY": "They are generated when the service gets a contracted framework. Edit the service to choose one.",
@@ -124,7 +123,11 @@
       "SERVER": "Server",
       "DATABASE": "Database",
       "APP": "Application",
-      "CLOUD": "Cloud"
+      "CLOUD": "Cloud",
+      "NETWORK": "Network",
+      "ENDPOINT": "Endpoint",
+      "PHYSICAL": "Physical and environmental",
+      "PROCESS": "Process"
     },
     "RESPONSIBLE_TYPE": {
       "COO": "COO",
@@ -135,12 +138,12 @@
       "ASSET_OWNER": "Asset owner"
     },
     "EVIDENCE_STATUS": {
-      "COMPLIANT": "compliant",
-      "NON_COMPLIANT": "non-compliant",
-      "PENDING": "awaiting review",
-      "IN_REVIEW": "in review",
-      "EXPIRED": "expired",
-      "NOT_APPLICABLE": "not applicable"
+      "COMPLIANT": "Compliant",
+      "NON_COMPLIANT": "Non-compliant",
+      "PENDING": "Awaiting review",
+      "IN_REVIEW": "In review",
+      "EXPIRED": "Expired",
+      "NOT_APPLICABLE": "Not applicable"
     },
     "DETAIL": {
       "LOAD_ERROR_TITLE": "The control could not be loaded",
@@ -158,17 +161,17 @@
       "FAILING": "Where it fails",
       "TECH_REQUIREMENTS": "Requirements",
       "TECH_FOCUS": "Points of focus",
-      "TECH_STATE": "Control state",
       "RETIRE": "Retire",
       "RETIRE_HINT": "It is retired now: it stops counting toward compliance and disappears from the lists. The history is kept.",
       "RETIRE_CONFIRM_TITLE": "Retire this control?",
       "RETIRE_CONFIRM_BODY": "It will stop counting toward compliance immediately and the service progress may change. Tests, evidence and evaluations already done are kept.",
-      "SAVED": "We saved the control changes."
+      "SAVED": "We saved the control changes.",
+      "LEVEL": "Level {{value}} · {{label}}"
     },
     "RISKS": {
       "ALL": "All",
       "SEARCH": "Search by code or name",
-      "FILTER_CRITERION": "Criterion",
+      "FILTER_CRITERION": "Trust criterion",
       "FILTER_CATEGORY": "Failure category",
       "LOAD_ERROR_TITLE": "The risks could not be loaded",
       "EMPTY_RISKS_TITLE": "There are no risks yet",
@@ -186,16 +189,8 @@
       "TABLE_CAUSES": "Causes of the service, grouped by failure category",
       "COL_CODE": "Code",
       "COL_NAME": "Name",
-      "COL_LEVEL": "Risk level"
-    },
-    "CONTROL_STATE": {
-      "EFFECTIVE": "Effective",
-      "INEFFECTIVE": "Not effective",
-      "EXPIRED": "Expired",
-      "ERROR": "Error",
-      "INCOMPLETE": "Incomplete",
-      "EVALUATING": "Evaluating",
-      "NO_TESTS": "No tests"
+      "COL_LEVEL": "Risk level",
+      "UNCLASSIFIED": "Unclassified"
     },
     "RISK_LEVEL": {
       "LOW": "Low",
@@ -270,7 +265,12 @@
       "CREATED_RISK": "Risk “{{name}}” created.",
       "UPDATED_RISK": "Changes to risk “{{name}}” saved.",
       "CREATED_CAUSE": "Cause “{{name}}” created.",
-      "UPDATED_CAUSE": "Changes to cause “{{name}}” saved."
+      "UPDATED_CAUSE": "Changes to cause “{{name}}” saved.",
+      "CAUSE_ORIGIN": "Origin",
+      "CAUSE_ORIGIN_HINT": "Optional. Whether the cause arises inside the organization (internal) or outside it (external).",
+      "CAUSE_TYPE": "Cause type",
+      "CAUSE_TYPE_HINT": "Optional. The nature of the cause, for example human, process or technology.",
+      "UNCLASSIFIED": "Unclassified"
     },
     "RISK_DETAIL": {
       "LOAD_ERROR_TITLE": "The risk could not be loaded",
@@ -282,7 +282,6 @@
       "PICK_CAUSE": "Cause that originates this risk",
       "LINKED": "Cause linked.",
       "UNLINKED": "Cause unlinked.",
-      "VIEW_CAUSE": "View cause",
       "UNLINK": "Remove",
       "UNLINK_CONFIRM_TITLE": "Remove the cause \"{{name}}\" from this risk?",
       "UNLINK_CONFIRM_BODY": "Only the link is removed: neither the risk nor the cause is deleted.",
@@ -294,7 +293,13 @@
       "REMOVE_HINT": "It stops appearing in the lists; its history and evaluations are kept.",
       "REMOVE_CONFIRM_TITLE": "Retire this risk?",
       "REMOVE_CONFIRM_BODY": "It will stop appearing in the lists. Its history and evaluations are kept.",
-      "REMOVE_CONFIRM": "Retire"
+      "REMOVE_CONFIRM": "Retire",
+      "SEARCH_CAUSES": "Search by code or text of the cause or its controls",
+      "ONLY_WITHOUT_CONTROLS": "Only causes without controls",
+      "NO_MATCH": "No cause matches the search.",
+      "MANDATORY_SHORT": "Req.",
+      "MORE_CONTROLS": "+{{count}} more",
+      "FEWER_CONTROLS": "Show less"
     },
     "RISK_ASSESSMENT": {
       "EVALUATION_TITLE": "Risk evaluation",
@@ -373,7 +378,7 @@
       "TABLE": "Exclusions of the service",
       "COL_TEST": "Test and asset",
       "COL_STATUS": "Status",
-      "FILTER": "Status",
+      "FILTER": "Exclusion status",
       "ALL": "All",
       "EMPTY": "This service has no exclusions.",
       "EMPTY_FILTER": "There are no exclusions with that status.",
@@ -395,7 +400,6 @@
       "DESCRIPTION": "Description",
       "RISKS_ORIGINATED": "Risks it originates",
       "NO_RISKS": "This cause does not originate any risk.",
-      "VIEW_RISK": "View risk",
       "MITIGATING_CONTROLS": "Controls that mitigate it",
       "LINK_CONTROL": "Link a control",
       "PICK_CONTROL": "Control that mitigates this cause",
@@ -409,7 +413,12 @@
       "REMOVE_HINT": "It stops appearing in the lists; its history is kept.",
       "REMOVE_CONFIRM_TITLE": "Retire this cause?",
       "REMOVE_CONFIRM_BODY": "It will stop appearing in the lists. Its history is kept.",
-      "REMOVE_CONFIRM": "Retire"
+      "REMOVE_CONFIRM": "Retire",
+      "TITLE_FALLBACK": "Cause {{code}}",
+      "CONTROL_KIND": "Kind of link",
+      "CLASSIFICATION": "Classification",
+      "SEARCH": "Search by code or text",
+      "NO_MATCH": "Nothing matches the search."
     },
     "EVIDENCE": {
       "REQUIRED_TITLE": "Required evidence",
@@ -439,7 +448,6 @@
       "LOAD_ERROR": "The evidence could not be loaded.",
       "SUMMARY_NOTE": "Evidence delivery for this control is not available yet.",
       "TEST_NOTE": "Read what this test asks for and upload your document. Your company administrator will validate it.",
-      "NONE_FOR_TEST": "You have not uploaded evidence for this test yet.",
       "SUGGESTED_TITLE": "Documents the catalog suggests for this control",
       "SUGGESTED_NOTE": "They are a guide: evidence is uploaded under each test.",
       "FOR_TEST": "Backs test {{code}}",
@@ -449,25 +457,45 @@
       "PREVIEW_REFRESH": "Request a new link",
       "PREVIEW_EXPIRES": "For security, the link for this preview lasts 5 minutes. If it stops showing, request a new one.",
       "SHARED_WITH": "This test also applies to: {{codes}}. What you upload here counts for all those controls.",
-      "FROM_CONTROL": "Control {{code}}"
+      "FROM_CONTROL": "Control {{code}}",
+      "BLOCK_TITLE": "Evidence",
+      "FALLBACK_TAG": "No integration connected",
+      "FALLBACK_NOTE": "Until you connect the integration, upload the evidence this test asks for.",
+      "NOT_UPLOADED": "Not uploaded",
+      "NOTHING_REQUIRED": "Nothing to upload",
+      "EXPECTED": "The document this test asks for is missing."
     },
     "PERIOD": {
       "TITLE": "Evaluation period",
       "SUBTITLE": "{{name}}: the dates the evaluation covers. Without them everything shows as “Not measured”.",
       "START": "Period start",
       "END": "Period end",
-      "SINGLE_DAY_HINT": "If the evaluation is for a single date (SOC 2 Type I), use the same day for the start and the end.",
       "SAVE": "Save",
       "SAVING": "Saving…",
       "SAVED": "Period saved. Compliance of this service can now be measured.",
       "SAVE_ERROR": "The period could not be saved. Try again.",
-      "ERR_RANGE": "The end cannot be before the start.",
+      "ERR_RANGE": "The end must be after the start.",
       "DEFINE": "Set the period",
       "EDIT": "Change period",
-      "ASK_ADMIN": "Ask the company administrator to set it."
+      "ASK_ADMIN": "Ask the company administrator to set it.",
+      "TYPE_II": "The period is always type II: it covers a span of time, not a single date.",
+      "MIN_MONTHS": "In this framework it lasts at least {{months}} months.",
+      "AUTO_NEXT": "When it ends, the next one opens by itself with the same length, and this one stays in the history.",
+      "ERR_TOO_SHORT": "The period lasts at least {{months}} months: the end cannot be before {{date}}.",
+      "HISTORY_TITLE": "Audited periods",
+      "HISTORY_INTRO": "Periods that have ended stay here and do not change.",
+      "HISTORY_CAPTION": "Closed audited periods of this framework",
+      "HISTORY_COL_PERIOD": "Period",
+      "HISTORY_COL_OPENED": "Opened by",
+      "HISTORY_COL_CLOSED": "Closed on",
+      "OPENED_BY_USER": "Someone in your organization",
+      "OPENED_BY_SYSTEM": "Monkey, automatically",
+      "HISTORY_ERROR": "We could not load the period history.",
+      "HISTORY_RETRY": "Retry",
+      "DEFINE_STEP": "Define the audited period"
     },
     "EVIDENCE_INBOX": {
-      "FILTER": "Show",
+      "FILTER": "Evidence status",
       "ALL": "All ({{count}})",
       "MISSING": "Not delivered ({{count}})",
       "TO_REVIEW": "To review ({{count}})",
@@ -488,7 +516,6 @@
       "SHOW_ALL": "Show all"
     },
     "REQUIRES": {
-      "TITLE": "What this control requires",
       "INTRO": "The tests that verify this control and the evidence each one requires."
     },
     "RISK_WIZARD": {
@@ -593,7 +620,14 @@
       "NONE": "This control has no tests assigned.",
       "COUNT_ONLY": "This control is verified with {{count}} tests.",
       "SHOW_MORE": "Show full description",
-      "SHOW_LESS": "Hide description"
+      "SHOW_LESS": "Hide description",
+      "HOW_TITLE": "How it is met",
+      "HOW_AUTOMATED": "The automatic evaluation checks it on the connected assets of the service. There is nothing to upload.",
+      "HOW_NO_UPLOAD": "This test does not ask for a document to be uploaded in this control.",
+      "FINDINGS_TITLE": "What failed",
+      "FINDINGS_TEXT": "The automatic evaluation found assets that do not comply.",
+      "SEARCH": "Search a test or its code",
+      "NO_MATCH": "No test matches your search"
     },
     "FINDINGS": {
       "OPEN": "See what failed and how to fix it",
@@ -619,18 +653,6 @@
         "INFORMATIONAL": "Informational"
       }
     },
-    "TEST_STATE": {
-      "COMPLIANT": "Compliant",
-      "NON_COMPLIANT": "Non-compliant",
-      "PENDING": "Pending",
-      "EVALUATING": "Evaluating",
-      "IN_REVIEW": "In review",
-      "EXPIRED": "Expired",
-      "ERROR": "Error",
-      "NO_ASSETS": "No assets",
-      "NOT_APPLICABLE": "Not applicable",
-      "DEACTIVATED": "Deactivated"
-    },
     "CONTROL_TYPE": {
       "MANUAL": "Manual",
       "AUTOMATED": "Automated",
@@ -643,6 +665,156 @@
       "CONTROLS": "Service controls: {{count}}",
       "EVIDENCE": "Evidence requested: {{count}}",
       "EXCLUSIONS": "Exclusions: {{count}}"
+    },
+    "CONTROL_LEVEL": {
+      "NOT_EVALUATED": "Not evaluated",
+      "INEFFECTIVE": "Ineffective",
+      "WEAK": "Weak",
+      "PARTIAL": "Partial",
+      "ADEQUATE": "Adequate",
+      "SOLID": "Solid"
+    },
+    "REQUIREMENT_STATUS": {
+      "COMPLIANT": "Compliant",
+      "NON_COMPLIANT": "Non-compliant",
+      "PENDING": "Pending",
+      "EXPIRED": "Expired",
+      "NOT_APPLICABLE": "Not applicable"
+    },
+    "TEST_STATUS": {
+      "PENDING": "Pending",
+      "CORRECT": "Correct",
+      "OBSERVATION": "Observation",
+      "EXCEPTION": "Exception",
+      "NOT_APPLICABLE": "Not applicable",
+      "EXPIRED": "Expired"
+    },
+    "PERIODICITY": {
+      "PERMANENT": "Permanent",
+      "DAILY": "Daily",
+      "WEEKLY": "Weekly",
+      "MONTHLY": "Monthly",
+      "BIMONTHLY": "Bimonthly",
+      "QUARTERLY": "Quarterly",
+      "SEMIANNUAL": "Semiannual",
+      "ANNUAL": "Annual",
+      "ON_DEMAND": "When required"
+    },
+    "CHECK_ROLE": {
+      "DIRECT": "Direct",
+      "COMPLEMENTARY": "Complementary",
+      "DEPENDENCY": "Dependency"
+    },
+    "CHECK_ROLE_HINT": {
+      "DIRECT": "Decides whether the test passes.",
+      "COMPLEMENTARY": "If it fails, the test is left as Observation; if it passes, it is supporting evidence.",
+      "DEPENDENCY": "Takes the conclusion of the owning control, without running again."
+    },
+    "CHECK_MODULE": {
+      "VULNERABILITIES": "Vulnerabilities",
+      "SCORE": "Global score",
+      "OTHER": "Other module"
+    },
+    "REQS": {
+      "TITLE": "Control requirements",
+      "INTRO": "Each requirement (for example IAC-12-L2) is measured by its tests. The control complies when its requirements comply; anything pending does not count as met.",
+      "NONE": "This control has no applicable requirements yet.",
+      "SUMMARY": "{{compliant}} of {{applicable}} requirements comply; {{missing}} missing.",
+      "PERIODICITY": "Periodicity: {{value}}",
+      "PERIODICITY_CLIENT": "adjusted by your organization (suggested: {{suggested}})",
+      "WINDOW_END": "The current window closes on {{date}}",
+      "ALERT_AT": "notice on {{date}}",
+      "ASSET_COVERAGE": "Assets with a result: {{with_result}} of {{in_scope}} in scope",
+      "OWNER": "Owning control:",
+      "OWNER_OUT_OF_SCOPE": "Not in the scope of this service",
+      "CHECKS_SUMMARY": "Direct: pass {{pass}} · fail {{fail}} · with exception {{exception}} · no data {{no_data}} (assets)",
+      "PERIOD_TITLE": "Audited period",
+      "PERIOD_WINDOWS": "Closed windows with evidence: {{with_evidence}} of {{total}}. The current window does not count.",
+      "PERIOD_MISSING": "Closed windows without valid evidence: {{count}}",
+      "PERIOD_RANGE": "from {{from}} to {{to}}",
+      "FAILING_ASSETS": "{{count}} assets fail",
+      "NOT_FAILING": "No asset fails",
+      "PERIOD_INTRO": "How the control stands in the open audited period. Only windows that have already closed count; the header shows the status as of today.",
+      "PERIOD_LEVEL": "Level in the period",
+      "PERIOD_WINDOWS_TITLE": "Closed windows",
+      "PERIOD_NONE_MISSING": "Every closed window of the period has valid evidence.",
+      "PERIOD_COL_REQUIREMENT": "Requirement",
+      "PERIOD_COL_WINDOW": "Window without evidence",
+      "PERIOD_WINDOWS_VALUE": "{{with_evidence}} of {{total}} with valid evidence",
+      "SEARCH": "Search a requirement, its code or one of its tests",
+      "FILTER_STATUS": "Filter by status",
+      "COL_REQUIREMENT": "Requirement",
+      "COL_STATUS": "Status",
+      "COL_TESTS": "Tests",
+      "NO_MATCH": "No requirement matches your search",
+      "ALL": "All"
+    },
+    "SCORE": {
+      "C_PERCENT": "C%",
+      "LEVEL_TITLE": "Readiness level",
+      "LEVEL": "Level {{value}} of 5 · {{label}}",
+      "NO_REQUIREMENTS": "No applicable requirements",
+      "NOT_MEASURED": "Not measured yet",
+      "ARIA": "{{kind}} {{percent}}. Status: {{state}}. {{level}}. {{coverage}}",
+      "COVERAGE_TITLE": "Coverage",
+      "STATUS_TITLE": "Status",
+      "COVERAGE_DETAIL": "{{measured}} of {{applicable}} measured",
+      "REQUIREMENTS_MET": "{{done}} of {{total}} requirements met",
+      "NEXT_WINDOW": "Next window closes: {{date}}"
+    },
+    "DETAIL_TABS": {
+      "ARIA": "Detail sections",
+      "SUMMARY": "Summary",
+      "REQUIREMENTS": "Requirements and tests",
+      "EVIDENCE": "Evidence",
+      "PERIOD": "Period",
+      "CAUSES": "Causes",
+      "CONTROLS": "Mitigating controls"
+    },
+    "CAUSE_ORIGIN": {
+      "INTERNAL": "Internal",
+      "EXTERNAL": "External"
+    },
+    "CAUSE_TYPE": {
+      "HUMAN": "Human (people)",
+      "PROCESSES": "Processes and methods",
+      "INFORMATION": "Information and data",
+      "MEASUREMENT": "Measurement and monitoring",
+      "TECHNOLOGY": "Technology (systems)",
+      "PHYSICAL_INFRASTRUCTURE": "Physical infrastructure and assets",
+      "CRIMINAL_SECURITY": "Criminal and security",
+      "THIRD_PARTIES": "Third parties and supply chain",
+      "LEGAL_REGULATORY": "Legal and regulatory",
+      "ENVIRONMENTAL": "Environmental / natural",
+      "ORGANIZATIONAL_GOVERNANCE": "Organizational and governance",
+      "INTERNAL_FINANCIAL": "Internal financial",
+      "STRATEGIC": "Strategic",
+      "EXTERNAL_TECHNOLOGY": "External technology",
+      "CLIMATE": "Climate (physical and transition)",
+      "BIOLOGICAL": "Biological / public health",
+      "POLITICAL": "Political and geopolitical",
+      "ECONOMIC": "Economic and market"
+    },
+    "PERIODICITY_CHANGE": {
+      "SECTION": "Periodicity",
+      "OPEN": "Change periodicity",
+      "TITLE": "Change the periodicity",
+      "SUBTITLE": "Control {{code}}: how often it runs and is evidenced.",
+      "CURRENT": "Current periodicity",
+      "SUGGESTED": "Suggested by the catalog",
+      "NEW": "New periodicity",
+      "USE_SUGGESTED": "Use the suggested one",
+      "JUSTIFICATION": "Justification",
+      "JUSTIFICATION_HINT": "Required. It is kept in the audit trail next to the previous and the new value.",
+      "SCOPE_NOTE": "It applies to all the requirements of this control. Monkey immediately recalculates the control's windows and level.",
+      "SAVE": "Save",
+      "SAVING": "Saving…",
+      "SAVED": "Periodicity updated. Windows and level have been recalculated.",
+      "SAVE_ERROR": "We could not change the periodicity. Try again.",
+      "ERR_MAX": "The justification can have at most {{max}} characters.",
+      "LAST": "Last change",
+      "LAST_VALUE": "{{value}}, on {{date}}",
+      "LAST_REASON": "Justification: {{reason}}"
     }
   }
 }

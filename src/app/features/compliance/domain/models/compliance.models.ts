@@ -3,6 +3,8 @@
 // encabezado y se recuerda entre secciones (`ActiveComplianceService`). Un enlace que lleva a un servicio concreto lo manda en `?servicio=<id>`.
 export const COMPLIANCE_ROUTE = 'cumplimiento';
 export const COMPLIANCE_SERVICE_PARAM = 'servicio';
+// Un enlace que lleva a definir el período auditado de un marco lo manda en `?definir=<código del marco>` (paso «Medir un marco» del onboarding, Inicio).
+export const DEFINE_PERIOD_PARAM = 'definir';
 
 // Las secciones del módulo, en el orden del recorrido GRC: un riesgo se origina en causas, las causas se mitigan con controles y los controles se
 // demuestran con evidencias. Los textos son claves de traducción (vocabulario de D80). El menú (`navigation.config.ts`) usa las mismas rutas y claves.

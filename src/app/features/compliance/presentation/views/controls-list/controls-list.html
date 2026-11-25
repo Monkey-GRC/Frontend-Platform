@@ -51,16 +51,19 @@
     <ng-template appCell="status" let-row>
       @let look = readinessLook(row.readiness);
       <app-status-indicator [tone]="look.tone" [labelKey]="look.labelKey" [hintKey]="look.hintKey" [attr.data-status]="look.level" />
+      @if (row.technical?.level; as level) {
+      <app-status-indicator class="ml-1" [tone]="levelTone(level)" [label]="('COMPLIANCE.DETAIL.LEVEL' | translate: { value: row.technical?.level_value ?? 0, label: labels.of('COMPLIANCE.CONTROL_LEVEL', level) })" data-test-level />
+      }
     </ng-template>
 
-    <!-- Cumplimiento y cobertura: dos porcentajes con sus conteos, siempre juntos y junto al estado (D80). El de cumplimiento informa, no decide. -->
+    <!-- Avance y cobertura, siempre juntos y junto al estado (D80): el avance con su conteo y su barra; debajo, la cobertura en porcentaje, sin repetir conteos. El avance informa, no decide. -->
     <ng-template appCell="counts" let-row>
       <div class="min-w-[11rem] text-sm text-ink">
-        <p class="font-medium text-ink">{{ 'COMPLIANCE.CONTROLS.PROGRESS' | translate: { percent: pct(row.progress.done, row.progress.total), done: row.progress.done, total: row.progress.total } }}</p>
+        <p class="font-medium tabular-nums text-ink" data-progress>{{ 'COMPLIANCE.CONTROLS.PROGRESS_VALUE' | translate: { percent: pct(row.progress.done, row.progress.total), done: row.progress.done, total: row.progress.total } }}</p>
         <div class="mt-1 h-1 w-full overflow-hidden rounded-full bg-tint-strong" aria-hidden="true">
           <div class="h-full rounded-full bg-action" [style.width.%]="percentOf(row.progress.done, row.progress.total) ?? 0"></div>
         </div>
-        <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.CONTROLS.COVERAGE' | translate: { percent: pct(row.coverage.measured, row.coverage.applicable), measured: row.coverage.measured, applicable: row.coverage.applicable } }}</p>
+        <p class="mt-1 text-xs tabular-nums text-ink-muted" data-coverage>{{ 'COMPLIANCE.CONTROLS.COVERAGE_SHORT' | translate: { percent: pct(row.coverage.measured, row.coverage.applicable) } }}</p>
       </div>
     </ng-template>
 
@@ -73,7 +76,7 @@
 </div>
 
 @if (selected(); as id) {
-<app-control-detail-panel [controlId]="id" (closed)="selected.set(null)" (changed)="load()" />
+<app-control-detail-panel [controlId]="id" [requestedTab]="tab()" (tabChange)="setTab($event)" (closed)="closeDetail()" (openCause)="openCause($event)" (changed)="load()" />
 }
 }
 

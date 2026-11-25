@@ -4,8 +4,8 @@ import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
-import { PageInfo } from '@shared/presentation/components/data-table/table-page';
-import { ControlDetail, ControlFilters, ControlListItem, ControlsPageDto, UpdateControlBody } from '../models/control.models';
+import { PageInfo } from '@shared/domain/models/page-info.model';
+import { ControlDetail, ControlFilters, ControlListItem, ControlsPageDto, UpdateControlBody, UpdatePeriodicityBody } from '../models/control.models';
 
 export interface ControlsPage {
   items: ControlListItem[];
@@ -50,6 +50,12 @@ export class ControlService {
   update(id: string, body: UpdateControlBody, view?: 'technical'): Observable<ControlDetail> {
     const params = view ? new HttpParams().set('view', view) : undefined;
     return this.http.patch<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}`, body, { params }).pipe(unwrapData());
+  }
+
+  /** Cambia la periodicidad de todos los requisitos del control (solo el administrador de la empresa, D147). Responde con el detalle ya recalculado. */
+  setPeriodicity(id: string, body: UpdatePeriodicityBody, view?: 'technical'): Observable<ControlDetail> {
+    const params = view ? new HttpParams().set('view', view) : undefined;
+    return this.http.put<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}/periodicity`, body, { params }).pipe(unwrapData());
   }
 
   /** Da de baja el control (no lo borra): deja de contar y el histórico se conserva. */

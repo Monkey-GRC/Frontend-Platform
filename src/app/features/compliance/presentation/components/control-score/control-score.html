@@ -1,0 +1,59 @@
+@let lk = look();
+@let tech = technical();
+@let level = tech?.level;
+@let state = lk.labelKey | translate;
+@let coverageText = ('COMPLIANCE.CONTROLS.COVERAGE' | translate: { percent: coveragePercent(), measured: coverage().measured, applicable: coverage().applicable });
+@let levelText = level ? ('COMPLIANCE.SCORE.LEVEL' | translate: { value: tech?.level_value ?? 0, label: labels.of('COMPLIANCE.CONTROL_LEVEL', level) }) : '';
+<!-- La cabecera del detalle en columnas iguales a todo el ancho, separadas por líneas finas (Rod): estado (con el avance: cuántos requisitos cumplen), nivel y
+     cobertura (3 en la vista técnica; 2 en la de negocio, sin nivel). El detalle del estado sale del mismo avance que pinta la dona. Sin columna de «Requisitos»: repetía el avance (MD-499). Todas con la misma jerarquía:
+     etiqueta pequeña arriba, el valor destacado y el detalle debajo. Se mide el ancho del panel, no el de la pantalla (consulta de contenedor): en fila desde
+     42 rem; si el panel es más estrecho, de a dos, así nada se corta. -->
+<div class="@container">
+<div class="-mx-5 grid grid-cols-2" [class]="cells().length === 3 ? '@2xl:grid-cols-3' : ''" data-test-score>
+  @for (cell of cells(); track cell; let i = $index) {
+  <div class="flex min-w-0 flex-col gap-1 px-5 py-1" [class]="dividers(i)" [attr.data-score-cell]="cell">
+    @switch (cell) {
+    @case ('status') {
+    <div class="flex items-center gap-3">
+      <app-donut [value]="percent()" [text]="percent() === null ? '' : percentText()" [tone]="donutTone()" [size]="64"
+        [ariaLabel]="('COMPLIANCE.SCORE.ARIA' | translate: { kind: ((tech ? 'COMPLIANCE.SCORE.C_PERCENT' : 'COMPLIANCE.CONTROLS.PROGRESS_LABEL') | translate), percent: percent() === null ? '—' : percentText(), state: state, level: levelText, coverage: coverageText })" />
+      <div class="flex min-w-0 flex-col items-start gap-1">
+        <p class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.SCORE.STATUS_TITLE' | translate }}</p>
+        <app-status-indicator [tone]="lk.tone" [labelKey]="lk.labelKey" [hintKey]="lk.hintKey" [attr.data-status]="lk.level" />
+        @if (progress().total === 0) {
+        <p class="text-xs text-ink-muted" data-test-no-requirements>{{ (tech ? 'COMPLIANCE.SCORE.NO_REQUIREMENTS' : 'COMPLIANCE.SCORE.NOT_MEASURED') | translate }}</p>
+        } @else {
+        <p class="text-xs tabular-nums text-ink-muted" data-test-requirements>{{ 'COMPLIANCE.SCORE.REQUIREMENTS_MET' | translate: { done: progress().done, total: progress().total } }}</p>
+        }
+        @if (nextWindow(); as next) {
+        <p class="text-xs text-ink-muted" data-test-next-window>{{ 'COMPLIANCE.SCORE.NEXT_WINDOW' | translate: { date: next } }}</p>
+        }
+      </div>
+    </div>
+    }
+    @case ('level') {
+    <div class="flex flex-col gap-1" data-test-level>
+      <p class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.SCORE.LEVEL_TITLE' | translate }}</p>
+      <p class="text-sm font-semibold tabular-nums text-ink">{{ levelText }}</p>
+      <ol class="flex h-3 w-full max-w-48 items-center gap-1" aria-hidden="true">
+        @for (n of scale; track n) {
+        <li class="h-2 flex-1 rounded-full"
+          [class]="n <= (tech?.level_value ?? 0) ? fill() : 'bg-tint-strong'"
+          [class.h-3]="n === tech?.level_value"
+          [attr.data-current]="n === tech?.level_value"></li>
+        }
+      </ol>
+    </div>
+    }
+    @case ('coverage') {
+    <div class="flex flex-col gap-1" data-test-coverage>
+      <p class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.SCORE.COVERAGE_TITLE' | translate }}</p>
+      <p class="text-sm font-semibold tabular-nums text-ink">{{ coveragePercent() }}</p>
+      <p class="text-xs tabular-nums text-ink-muted">{{ 'COMPLIANCE.SCORE.COVERAGE_DETAIL' | translate: { measured: coverage().measured, applicable: coverage().applicable } }}</p>
+    </div>
+    }
+    }
+  </div>
+  }
+</div>
+</div>

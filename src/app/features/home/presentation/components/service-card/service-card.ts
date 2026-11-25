@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { RouterLink, UrlTree } from '@angular/router';
+import { Router, RouterLink, UrlTree } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
@@ -22,6 +22,7 @@ export class ServiceCard {
   protected readonly readinessLook = readinessLook;
   private readonly language = inject(LanguageService);
   private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
 
   readonly service = input.required<DashboardServiceSummary>();
   readonly link = input.required<string[] | UrlTree>();
@@ -64,6 +65,11 @@ export class ServiceCard {
       ? this.translate.instant('HOME.DASHBOARD.PROGRESS', { percent: this.pct(f.progress.done, f.progress.total) })
       : this.translate.instant('COMMON.READINESS.LABEL.NOT_MEASURED');
     return `${f.name}: ${value}`;
+  }
+
+  /** El paso «Medir un marco → Definir su período auditado»: lleva al Resumen del servicio con el formulario de ese marco abierto. */
+  definePeriodLink(f: DashboardFramework): UrlTree {
+    return this.router.createUrlTree(['/cumplimiento', 'resumen'], { queryParams: { servicio: this.service().id, definir: f.code } });
   }
 
   progressValue(f: DashboardFramework): number {

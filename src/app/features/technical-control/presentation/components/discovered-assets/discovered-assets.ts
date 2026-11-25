@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
@@ -6,7 +7,7 @@ import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
-import { SideDrawer } from '@shared/presentation/components/side-drawer/side-drawer';
+import { DetailModal } from '@shared/presentation/components/detail-modal/detail-modal';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { Tag } from '@shared/presentation/components/tag/tag';
@@ -15,6 +16,7 @@ import { Asset, DiscoveredAsset, DiscoveredAssetsPage } from '@shared/domain/mod
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { Busy } from '@shared/presentation/directives/busy';
 import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
 
 const SERVICE_NAME: Record<string, string> = {
   ec2: 'TECHNICAL_CONTROL.ASSETS.SERVICE_NAME.EC2',
@@ -53,7 +55,7 @@ const ATTRIBUTE_LABEL: Record<string, string> = {
 // cliente marca cuáles son de ESTE servicio; los demás quedan fuera de lo que se mide.
 @Component({
   selector: 'app-discovered-assets',
-  imports: [Badge, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, SideDrawer, Tag, Busy],
+  imports: [Badge, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, DetailModal, Tag, Busy],
   templateUrl: './discovered-assets.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -63,6 +65,7 @@ export class DiscoveredAssets {
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly asset = input.required<Asset>();
   readonly serviceId = input.required<string>();
@@ -162,8 +165,8 @@ export class DiscoveredAssets {
   }
 
   private loadCatalogs(): void {
-    this.catalogs.options('resource_kind').subscribe((o) => this.kinds.set(o));
-    this.catalogs.options('asset_criticality').subscribe((o) => this.criticalities.set(o));
+    this.catalogs.options('resource_kind').pipe(takeUntilDestroyed(this.destroyRef)).subscribe((o) => this.kinds.set(o));
+    this.catalogs.options('asset_criticality').pipe(takeUntilDestroyed(this.destroyRef)).subscribe((o) => this.criticalities.set(o));
   }
 
   load(): void {
@@ -282,8 +285,7 @@ export class DiscoveredAssets {
     if (typeof value === 'boolean') return this.translate.instant(value ? 'TECHNICAL_CONTROL.ASSETS.YES' : 'TECHNICAL_CONTROL.ASSETS.NO');
     if (key === 'state' || key === 'status') return this.stateLabel(String(value));
     if (key === 'launched_at' || key === 'created_at' || key === 'last_modified') {
-      const d = new Date(String(value));
-      return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString(this.language.current(), { dateStyle: 'medium', timeStyle: 'short' });
+      return formatLocalDate(String(value), this.language.current(), { time: true }) || String(value);
     }
     return String(value);
   }

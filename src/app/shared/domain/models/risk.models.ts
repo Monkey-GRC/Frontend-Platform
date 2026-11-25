@@ -65,6 +65,9 @@ export interface Cause {
   description: string;
   failure_category: string;
   origin: RiskOrigin;
+  // Clasificación v2 (D129, MD-499; enums `cause_origin` y `cause_type` de contracts/enums/catalogo-maestro.md). `null` o ausente si la causa no la tiene.
+  cause_origin?: string | null;
+  cause_type?: string | null;
   is_active: boolean;
   risks: CauseRiskRef[];
   controls: ControlLink[];
@@ -83,6 +86,9 @@ export interface CauseInput {
   name: string;
   description: string;
   failure_category: string;
+  // Clasificación v2 opcional (D129): se manda solo si cambió; `null` la borra. Solo en una causa propia.
+  cause_origin?: string | null;
+  cause_type?: string | null;
 }
 
 /** Una casilla de la matriz 5×5 con su valor (probabilidad × impacto) y el nivel que le da el servidor (`GET /risk-matrix`). */

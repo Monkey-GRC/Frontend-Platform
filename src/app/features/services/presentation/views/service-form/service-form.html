@@ -475,7 +475,7 @@
           <p class="mb-2 flex items-center gap-2 rounded-control bg-canvas p-3 text-sm text-ink-muted">
             <span class="min-w-0 flex-1 truncate">{{ 'SERVICES.FORM.ALREADY_SAVED' | translate: { name: saved } }}</span>
             @if (editing()) {
-            <button type="button" (click)="downloadExistingFile()" class="text-xs font-medium text-action hover:underline">{{ 'COMMON.DOWNLOAD' | translate }}</button>
+            <button type="button" (click)="downloadExistingFile()" class="mk-btn-secondary-sm">{{ 'COMMON.DOWNLOAD' | translate }}</button>
             }
           </p>
           }
@@ -515,7 +515,7 @@
             <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
               {{ 'SERVICES.FORM.REVIEW_SERVICE' | translate }}
             </h2>
-            <button type="button" (click)="goTo(0)" class="text-sm font-medium text-action hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
+            <button type="button" (click)="goTo(0)" class="mk-btn-secondary-sm">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
@@ -536,7 +536,7 @@
             <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
               {{ 'SERVICES.FORM.REVIEW_CLIENTS' | translate }}
             </h2>
-            <button type="button" (click)="goTo(1)" class="text-sm font-medium text-action hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
+            <button type="button" (click)="goTo(1)" class="mk-btn-secondary-sm">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div>
@@ -558,7 +558,7 @@
             <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
               {{ 'SERVICES.FORM.STEPS.DATA' | translate }}
             </h2>
-            <button type="button" (click)="goTo(2)" class="text-sm font-medium text-action hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
+            <button type="button" (click)="goTo(2)" class="mk-btn-secondary-sm">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div>
@@ -588,7 +588,7 @@
             <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
               {{ 'SERVICES.FORM.STEPS.FRAMEWORK' | translate }}
             </h2>
-            <button type="button" (click)="goTo(3)" class="text-sm font-medium text-action hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
+            <button type="button" (click)="goTo(3)" class="mk-btn-secondary-sm">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div>
@@ -614,7 +614,7 @@
             <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
               {{ 'SERVICES.FORM.STEPS.PROVIDERS' | translate }}
             </h2>
-            <button type="button" (click)="goTo(4)" class="text-sm font-medium text-action hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
+            <button type="button" (click)="goTo(4)" class="mk-btn-secondary-sm">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           <div>
@@ -632,7 +632,7 @@
             <h2 class="flex items-center gap-2.5 text-sm font-semibold text-ink">
               {{ 'SERVICES.FORM.STEPS.COMPLIANCE' | translate }}
             </h2>
-            <button type="button" (click)="goTo(5)" class="text-sm font-medium text-action hover:underline">{{ 'COMMON.EDIT' | translate }}</button>
+            <button type="button" (click)="goTo(5)" class="mk-btn-secondary-sm">{{ 'COMMON.EDIT' | translate }}</button>
           </header>
           <dl class="grid gap-x-6 gap-y-3.5 p-4 sm:grid-cols-2">
           @if (draft().previous_certification) {

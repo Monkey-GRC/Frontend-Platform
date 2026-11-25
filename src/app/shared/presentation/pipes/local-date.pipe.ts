@@ -1,15 +1,16 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { LanguageService } from '@core/domain/services/language.service';
+import { DateInput, DateStyle, formatLocalDate } from '@shared/domain/utils/date-format';
 
-/** Formatea una fecha en el idioma activo de la interfaz. Impuro: debe reaccionar al cambio de idioma. */
+/**
+ * Formatea una fecha en el idioma activo de la interfaz (`formatLocalDate`, con el formateador cacheado). Impuro: debe reaccionar al cambio de idioma.
+ * `calendar` en verdadero para un día `AAAA-MM-DD` (período, ventana, vencimiento): se muestra en UTC y la zona horaria no lo corre un día.
+ */
 @Pipe({ name: 'localDate', pure: false })
 export class LocalDatePipe implements PipeTransform {
   private readonly language = inject(LanguageService);
 
-  transform(value: string | number | Date | null | undefined, dateStyle: 'short' | 'medium' | 'long' | 'full' = 'medium', withTime = false): string {
-    if (value === null || value === undefined || value === '') return '';
-    const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-    return new Intl.DateTimeFormat(this.language.current(), withTime ? { dateStyle, timeStyle: 'short' } : { dateStyle }).format(date);
+  transform(value: DateInput, dateStyle: DateStyle = 'medium', withTime = false, calendar = false): string {
+    return formatLocalDate(value, this.language.current(), { style: dateStyle, time: withTime, calendar });
   }
 }

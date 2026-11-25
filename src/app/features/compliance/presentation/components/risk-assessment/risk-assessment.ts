@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CatalogService } from '@shared/domain/services/catalog.service';
@@ -26,6 +27,8 @@ import { hasChanges } from '@shared/domain/utils/form-changes';
   selector: 'app-risk-assessment',
   imports: [TranslatePipe, RiskLevelBadge, RiskMatrix, DetailCard, Select, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './risk-assessment.html',
+  // Sin caja propia: sus dos secciones se colocan en la rejilla del detalle del riesgo (MD-499).
+  host: { class: 'contents' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RiskAssessment {
@@ -187,12 +190,12 @@ export class RiskAssessment {
 
   /** Una fecha con hora (UTC) en el formato del idioma. */
   dateTime(iso: string): string {
-    return new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'medium' }).format(new Date(iso));
+    return formatLocalDate(iso, this.language.current());
   }
 
   /** `AAAA-MM-DD` es un día, sin hora ni zona: se muestra tal día en UTC para que no corra por la zona horaria. */
   day(value: string): string {
-    return new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
+    return formatLocalDate(value, this.language.current(), { calendar: true });
   }
 
   private fail(error: unknown): void {

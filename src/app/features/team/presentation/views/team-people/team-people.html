@@ -22,9 +22,9 @@
     </p>
     <div class="mt-2 flex flex-wrap items-center gap-4">
       @if (inv.status === 'failed' && canManage()) {
-      <button type="button" (click)="resend(inv.id, inv.email)" [appBusy]="busyAction() === 'resend'" data-test-resend class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.INVITATION.RESEND' | translate }}</button>
+      <button type="button" (click)="resend(inv.id, inv.email)" [appBusy]="busyAction() === 'resend'" data-test-resend class="mk-btn-secondary-sm">{{ 'TEAM.INVITATION.RESEND' | translate }}</button>
       }
-      <button type="button" (click)="dismissInvitation()" data-test-invitation-dismiss class="text-sm font-medium text-ink-muted hover:underline">{{ 'TEAM.INVITATION.DISMISS' | translate }}</button>
+      <button type="button" (click)="dismissInvitation()" data-test-invitation-dismiss class="mk-btn-secondary-sm">{{ 'TEAM.INVITATION.DISMISS' | translate }}</button>
     </div>
   </div>
   }
@@ -43,7 +43,7 @@
     <app-table-filter filters data-test-filter-group labelKey="TEAM.FILTERS.GROUP" [options]="groupOptions()" [value]="groupFilter()" (valueChange)="setFilter('group', $event)" />
     <app-table-filter filters data-test-filter-affiliation labelKey="TEAM.FILTERS.AFFILIATION" [options]="affiliationOptions" [value]="affiliationFilter()" (valueChange)="setFilter('affiliation', $event)" />
     @if (hasFilters()) {
-    <button filters type="button" (click)="clearFilters()" data-test-clear-filters class="h-10 text-sm font-medium text-action hover:underline">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
+    <button filters type="button" (click)="clearFilters()" data-test-clear-filters class="mk-btn-secondary">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
     }
   </app-table-toolbar>
 
@@ -86,7 +86,7 @@
 
     @if (hasFilters()) {
     <app-empty-state tableEmpty icon="" titleKey="TEAM.EMPTY_FILTERED_TITLE" descriptionKey="TEAM.EMPTY_FILTERED_BODY">
-      <button action type="button" (click)="clearFilters()" class="text-sm font-medium text-action hover:underline">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
+      <button action type="button" (click)="clearFilters()" class="mk-btn-secondary-sm">{{ 'TEAM.FILTERS.CLEAR' | translate }}</button>
     </app-empty-state>
     }
   </app-data-table>
@@ -164,7 +164,7 @@
         <div class="grid grid-cols-[minmax(5.5rem,7rem)_1fr] items-center gap-x-3 py-2">
           <dt class="text-xs font-medium text-ink-muted">{{ 'TEAM.DETAIL.EMAIL' | translate }}</dt>
           <dd class="flex min-w-0 items-center gap-2 text-ink"><span class="min-w-0 break-all">{{ m.email }}</span>
-            <button type="button" (click)="copyEmail(m)" [attr.aria-label]="(copied() === m.id ? 'TEAM.DETAIL.COPIED' : 'TEAM.DETAIL.COPY_EMAIL') | translate" data-test-copy-email
+            <button type="button" (click)="copyEmail(m)" [attr.aria-label]="(copied() === m.id ? 'TEAM.DETAIL.COPIED' : 'TEAM.DETAIL.COPY_EMAIL') | translate" [title]="(copied() === m.id ? 'TEAM.DETAIL.COPIED' : 'TEAM.DETAIL.COPY_EMAIL') | translate" data-test-copy-email
               class="inline-flex size-8 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">{{ copied() === m.id ? 'check' : 'content_copy' }}</span></button>
           </dd>
         </div>

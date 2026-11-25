@@ -15,7 +15,6 @@
     },
     "SHELL": {
       "TITLE": "Cumplimiento",
-      "TECHNICAL_VIEW": "Vista técnica",
       "FRAMEWORKS": "Marcos del servicio",
       "SERVICE": "Servicio",
       "GENERAL": "Todos los servicios"
@@ -96,8 +95,8 @@
       "NO_FRAMEWORK": "Sin marco contratado"
     },
     "CONTROLS": {
-      "FILTER_TOPIC": "Categoría",
-      "FILTER_STATUS": "Estado",
+      "FILTER_TOPIC": "Categoría del control",
+      "FILTER_STATUS": "Estado del control",
       "ALL_TOPICS": "Todas las categorías",
       "ALL_STATUSES": "Todos los estados",
       "TABLE_CAPTION": "Controles del servicio",
@@ -108,10 +107,10 @@
       "COLUMN_TECHNICAL": "Código",
       "OWN": "Propio",
       "AWAITING_APPROVAL": "Pendiente de aprobación",
-      "PROGRESS": "Avance {{percent}} ({{done}} de {{total}})",
       "PROGRESS_LABEL": "Avance",
       "PROGRESS_VALUE": "{{percent}} · {{done}} de {{total}}",
       "COVERAGE": "Cobertura {{percent}} ({{measured}} de {{applicable}} medidos)",
+      "COVERAGE_SHORT": "Cobertura {{percent}}",
       "LOAD_ERROR_TITLE": "No se pudieron cargar los controles",
       "EMPTY_TITLE": "Aún no hay controles",
       "EMPTY_BODY": "Se generan al elegir un marco contratado para el servicio. Edita el servicio para elegirlo.",
@@ -124,7 +123,11 @@
       "SERVER": "Servidor",
       "DATABASE": "Base de datos",
       "APP": "Aplicación",
-      "CLOUD": "Nube"
+      "CLOUD": "Nube",
+      "NETWORK": "Red",
+      "ENDPOINT": "Endpoint",
+      "PHYSICAL": "Físico y ambiental",
+      "PROCESS": "Proceso"
     },
     "RESPONSIBLE_TYPE": {
       "COO": "COO",
@@ -135,12 +138,12 @@
       "ASSET_OWNER": "Propietario del activo"
     },
     "EVIDENCE_STATUS": {
-      "COMPLIANT": "cumple",
-      "NON_COMPLIANT": "no cumple",
-      "PENDING": "pendiente de revisión",
-      "IN_REVIEW": "en revisión",
-      "EXPIRED": "vencida",
-      "NOT_APPLICABLE": "no aplica"
+      "COMPLIANT": "Cumple",
+      "NON_COMPLIANT": "No cumple",
+      "PENDING": "Pendiente de revisión",
+      "IN_REVIEW": "En revisión",
+      "EXPIRED": "Vencida",
+      "NOT_APPLICABLE": "No aplica"
     },
     "DETAIL": {
       "LOAD_ERROR_TITLE": "No pudimos cargar el control",
@@ -158,17 +161,17 @@
       "FAILING": "Dónde falla",
       "TECH_REQUIREMENTS": "Requisitos",
       "TECH_FOCUS": "Puntos de enfoque",
-      "TECH_STATE": "Estado del control",
       "RETIRE": "Dar de baja",
       "RETIRE_HINT": "Se da de baja ahora: deja de contar para el cumplimiento y de verse en las listas. El historial se conserva.",
       "RETIRE_CONFIRM_TITLE": "¿Dar de baja este control?",
       "RETIRE_CONFIRM_BODY": "Dejará de contar para el cumplimiento de inmediato y el avance del servicio puede cambiar. Las pruebas, evidencias y evaluaciones ya hechas se conservan.",
-      "SAVED": "Guardamos los cambios del control."
+      "SAVED": "Guardamos los cambios del control.",
+      "LEVEL": "Nivel {{value}} · {{label}}"
     },
     "RISKS": {
       "ALL": "Todos",
       "SEARCH": "Buscar por código o nombre",
-      "FILTER_CRITERION": "Criterio",
+      "FILTER_CRITERION": "Criterio de confianza",
       "FILTER_CATEGORY": "Categoría de falla",
       "LOAD_ERROR_TITLE": "No se pudieron cargar los riesgos",
       "EMPTY_RISKS_TITLE": "Aún no hay riesgos",
@@ -186,16 +189,8 @@
       "TABLE_CAUSES": "Causas del servicio, agrupadas por categoría de falla",
       "COL_CODE": "Código",
       "COL_NAME": "Nombre",
-      "COL_LEVEL": "Nivel de riesgo"
-    },
-    "CONTROL_STATE": {
-      "EFFECTIVE": "Efectivo",
-      "INEFFECTIVE": "No efectivo",
-      "EXPIRED": "Vencido",
-      "ERROR": "Error",
-      "INCOMPLETE": "Incompleto",
-      "EVALUATING": "En evaluación",
-      "NO_TESTS": "Sin tests"
+      "COL_LEVEL": "Nivel de riesgo",
+      "UNCLASSIFIED": "Sin clasificar"
     },
     "RISK_LEVEL": {
       "LOW": "Bajo",
@@ -270,7 +265,12 @@
       "CREATED_RISK": "Creamos el riesgo «{{name}}».",
       "UPDATED_RISK": "Guardamos los cambios del riesgo «{{name}}».",
       "CREATED_CAUSE": "Creamos la causa «{{name}}».",
-      "UPDATED_CAUSE": "Guardamos los cambios de la causa «{{name}}»."
+      "UPDATED_CAUSE": "Guardamos los cambios de la causa «{{name}}».",
+      "CAUSE_ORIGIN": "Origen",
+      "CAUSE_ORIGIN_HINT": "Opcional. Si la causa nace dentro de la organización (interno) o fuera de ella (externo).",
+      "CAUSE_TYPE": "Tipo de causa",
+      "CAUSE_TYPE_HINT": "Opcional. La naturaleza de la causa, por ejemplo humana, de procesos o tecnológica.",
+      "UNCLASSIFIED": "Sin clasificar"
     },
     "RISK_DETAIL": {
       "LOAD_ERROR_TITLE": "No pudimos cargar el riesgo",
@@ -282,7 +282,6 @@
       "PICK_CAUSE": "Causa que origina este riesgo",
       "LINKED": "Causa vinculada.",
       "UNLINKED": "Causa desvinculada.",
-      "VIEW_CAUSE": "Ver causa",
       "UNLINK": "Quitar",
       "UNLINK_CONFIRM_TITLE": "¿Quitar la causa «{{name}}» de este riesgo?",
       "UNLINK_CONFIRM_BODY": "Solo se elimina el vínculo: ni el riesgo ni la causa se borran.",
@@ -294,7 +293,13 @@
       "REMOVE_HINT": "Deja de aparecer en las listas; su historial y sus evaluaciones se conservan.",
       "REMOVE_CONFIRM_TITLE": "¿Dar de baja este riesgo?",
       "REMOVE_CONFIRM_BODY": "Dejará de aparecer en las listas. Su historial y sus evaluaciones se conservan.",
-      "REMOVE_CONFIRM": "Dar de baja"
+      "REMOVE_CONFIRM": "Dar de baja",
+      "SEARCH_CAUSES": "Buscar por código o texto de la causa o de sus controles",
+      "ONLY_WITHOUT_CONTROLS": "Solo causas sin controles",
+      "NO_MATCH": "Ninguna causa coincide con la búsqueda.",
+      "MANDATORY_SHORT": "Obl.",
+      "MORE_CONTROLS": "+{{count}} más",
+      "FEWER_CONTROLS": "Ver menos"
     },
     "RISK_ASSESSMENT": {
       "EVALUATION_TITLE": "Evaluación del riesgo",
@@ -373,7 +378,7 @@
       "TABLE": "Exclusiones del servicio",
       "COL_TEST": "Prueba y activo",
       "COL_STATUS": "Estado",
-      "FILTER": "Estado",
+      "FILTER": "Estado de la exclusión",
       "ALL": "Todas",
       "EMPTY": "Este servicio no tiene exclusiones.",
       "EMPTY_FILTER": "No hay exclusiones con ese estado.",
@@ -395,7 +400,6 @@
       "DESCRIPTION": "Descripción",
       "RISKS_ORIGINATED": "Riesgos que origina",
       "NO_RISKS": "Esta causa no origina ningún riesgo.",
-      "VIEW_RISK": "Ver riesgo",
       "MITIGATING_CONTROLS": "Controles que la mitigan",
       "LINK_CONTROL": "Vincular un control",
       "PICK_CONTROL": "Control que mitiga esta causa",
@@ -409,7 +413,12 @@
       "REMOVE_HINT": "Deja de aparecer en las listas; su historial se conserva.",
       "REMOVE_CONFIRM_TITLE": "¿Dar de baja esta causa?",
       "REMOVE_CONFIRM_BODY": "Dejará de aparecer en las listas. Su historial se conserva.",
-      "REMOVE_CONFIRM": "Dar de baja"
+      "REMOVE_CONFIRM": "Dar de baja",
+      "TITLE_FALLBACK": "Causa {{code}}",
+      "CONTROL_KIND": "Tipo de vínculo",
+      "CLASSIFICATION": "Clasificación",
+      "SEARCH": "Buscar por código o texto",
+      "NO_MATCH": "Nada coincide con la búsqueda."
     },
     "EVIDENCE": {
       "REQUIRED_TITLE": "Evidencias requeridas",
@@ -439,7 +448,6 @@
       "LOAD_ERROR": "No se pudieron cargar las evidencias.",
       "SUMMARY_NOTE": "La entrega de evidencias de este control aún no está disponible.",
       "TEST_NOTE": "Lee lo que pide esta prueba y sube tu documento. El administrador de tu empresa lo validará.",
-      "NONE_FOR_TEST": "Aún no has subido evidencia para esta prueba.",
       "SUGGESTED_TITLE": "Documentos que sugiere el catálogo para este control",
       "SUGGESTED_NOTE": "Son una guía: la evidencia se sube bajo cada prueba.",
       "FOR_TEST": "Respalda la prueba {{code}}",
@@ -449,25 +457,45 @@
       "PREVIEW_REFRESH": "Pedir otro enlace",
       "PREVIEW_EXPIRES": "Por seguridad, el enlace de esta vista dura 5 minutos. Si deja de verse, pide otro.",
       "SHARED_WITH": "Esta prueba también aplica a: {{codes}}. Lo que subas aquí vale para todos esos controles.",
-      "FROM_CONTROL": "Control {{code}}"
+      "FROM_CONTROL": "Control {{code}}",
+      "BLOCK_TITLE": "Evidencia",
+      "FALLBACK_TAG": "Sin integración conectada",
+      "FALLBACK_NOTE": "Mientras no conectes la integración, sube la evidencia que pide esta prueba.",
+      "NOT_UPLOADED": "Sin subir",
+      "NOTHING_REQUIRED": "Nada que subir",
+      "EXPECTED": "Falta el documento que pide esta prueba."
     },
     "PERIOD": {
       "TITLE": "Período de la evaluación",
       "SUBTITLE": "{{name}}: las fechas que cubre la evaluación. Sin ellas todo sale «Sin medir».",
       "START": "Inicio del período",
       "END": "Fin del período",
-      "SINGLE_DAY_HINT": "Si la evaluación es de una sola fecha (SOC 2 Tipo I), pon el mismo día en el inicio y en el fin.",
       "SAVE": "Guardar",
       "SAVING": "Guardando…",
       "SAVED": "Período guardado. Ya se puede medir el cumplimiento de este servicio.",
       "SAVE_ERROR": "No pudimos guardar el período. Inténtalo de nuevo.",
-      "ERR_RANGE": "El fin no puede ser anterior al inicio.",
+      "ERR_RANGE": "El fin debe ser posterior al inicio.",
       "DEFINE": "Definir el período",
       "EDIT": "Cambiar período",
-      "ASK_ADMIN": "Pídele al administrador de la empresa que lo defina."
+      "ASK_ADMIN": "Pídele al administrador de la empresa que lo defina.",
+      "TYPE_II": "El período es siempre de tipo II: cubre un tiempo, no una sola fecha.",
+      "MIN_MONTHS": "En este marco dura como mínimo {{months}} meses.",
+      "AUTO_NEXT": "Cuando termine, se abre el siguiente solo, con la misma duración, y este queda en el histórico.",
+      "ERR_TOO_SHORT": "El período dura como mínimo {{months}} meses: el fin no puede ser antes del {{date}}.",
+      "HISTORY_TITLE": "Períodos auditados",
+      "HISTORY_INTRO": "Los períodos que ya terminaron quedan aquí y no cambian.",
+      "HISTORY_CAPTION": "Períodos auditados cerrados de este marco",
+      "HISTORY_COL_PERIOD": "Período",
+      "HISTORY_COL_OPENED": "Lo abrió",
+      "HISTORY_COL_CLOSED": "Cerrado el",
+      "OPENED_BY_USER": "Una persona de tu organización",
+      "OPENED_BY_SYSTEM": "Monkey, automáticamente",
+      "HISTORY_ERROR": "No pudimos cargar el histórico de períodos.",
+      "HISTORY_RETRY": "Reintentar",
+      "DEFINE_STEP": "Definir el período auditado"
     },
     "EVIDENCE_INBOX": {
-      "FILTER": "Mostrar",
+      "FILTER": "Estado de la evidencia",
       "ALL": "Todas ({{count}})",
       "MISSING": "Sin entregar ({{count}})",
       "TO_REVIEW": "Por revisar ({{count}})",
@@ -488,7 +516,6 @@
       "SHOW_ALL": "Ver todas"
     },
     "REQUIRES": {
-      "TITLE": "Lo que pide este control",
       "INTRO": "Las pruebas que verifican este control y la evidencia que pide cada una."
     },
     "RISK_WIZARD": {
@@ -593,7 +620,14 @@
       "NONE": "Este control no tiene pruebas asignadas.",
       "COUNT_ONLY": "Este control se verifica con {{count}} pruebas.",
       "SHOW_MORE": "Ver la descripción completa",
-      "SHOW_LESS": "Ocultar la descripción"
+      "SHOW_LESS": "Ocultar la descripción",
+      "HOW_TITLE": "Cómo se cumple",
+      "HOW_AUTOMATED": "La comprueba la evaluación automática sobre los activos conectados del servicio. No hay nada que subir.",
+      "HOW_NO_UPLOAD": "Esta prueba no pide subir un documento en este control.",
+      "FINDINGS_TITLE": "Qué falló",
+      "FINDINGS_TEXT": "La evaluación automática encontró activos que no cumplen.",
+      "SEARCH": "Buscar una prueba o su código",
+      "NO_MATCH": "Ninguna prueba coincide con lo que buscas"
     },
     "FINDINGS": {
       "OPEN": "Ver qué falló y cómo corregirlo",
@@ -619,18 +653,6 @@
         "INFORMATIONAL": "Informativa"
       }
     },
-    "TEST_STATE": {
-      "COMPLIANT": "Cumple",
-      "NON_COMPLIANT": "No cumple",
-      "PENDING": "Pendiente",
-      "EVALUATING": "En evaluación",
-      "IN_REVIEW": "En revisión",
-      "EXPIRED": "Vencida",
-      "ERROR": "Error",
-      "NO_ASSETS": "Sin activos",
-      "NOT_APPLICABLE": "No aplica",
-      "DEACTIVATED": "Desactivada"
-    },
     "CONTROL_TYPE": {
       "MANUAL": "Manual",
       "AUTOMATED": "Automática",
@@ -643,6 +665,156 @@
       "CONTROLS": "Controles del servicio: {{count}}",
       "EVIDENCE": "Evidencias solicitadas: {{count}}",
       "EXCLUSIONS": "Exclusiones: {{count}}"
+    },
+    "CONTROL_LEVEL": {
+      "NOT_EVALUATED": "No evaluado",
+      "INEFFECTIVE": "Ineficaz",
+      "WEAK": "Débil",
+      "PARTIAL": "Parcial",
+      "ADEQUATE": "Adecuado",
+      "SOLID": "Sólido"
+    },
+    "REQUIREMENT_STATUS": {
+      "COMPLIANT": "Cumple",
+      "NON_COMPLIANT": "No cumple",
+      "PENDING": "Pendiente",
+      "EXPIRED": "Vencido",
+      "NOT_APPLICABLE": "No aplica"
+    },
+    "TEST_STATUS": {
+      "PENDING": "Pendiente",
+      "CORRECT": "Correcto",
+      "OBSERVATION": "Observación",
+      "EXCEPTION": "Excepción",
+      "NOT_APPLICABLE": "No aplica",
+      "EXPIRED": "Vencido"
+    },
+    "PERIODICITY": {
+      "PERMANENT": "Permanente",
+      "DAILY": "Diario",
+      "WEEKLY": "Semanal",
+      "MONTHLY": "Mensual",
+      "BIMONTHLY": "Bimensual",
+      "QUARTERLY": "Trimestral",
+      "SEMIANNUAL": "Semestral",
+      "ANNUAL": "Anual",
+      "ON_DEMAND": "Cuando sea requerido"
+    },
+    "CHECK_ROLE": {
+      "DIRECT": "Directo",
+      "COMPLEMENTARY": "Complementario",
+      "DEPENDENCY": "Dependencia"
+    },
+    "CHECK_ROLE_HINT": {
+      "DIRECT": "Decide si la prueba cumple.",
+      "COMPLEMENTARY": "Si falla, la prueba queda en Observación; si pasa, es evidencia de apoyo.",
+      "DEPENDENCY": "Toma la conclusión del control dueño, sin volver a ejecutarse."
+    },
+    "CHECK_MODULE": {
+      "VULNERABILITIES": "Vulnerabilidades",
+      "SCORE": "Puntaje global",
+      "OTHER": "Otro módulo"
+    },
+    "REQS": {
+      "TITLE": "Requisitos del control",
+      "INTRO": "Cada requisito (por ejemplo IAC-12-L2) se mide con sus pruebas. El control cumple cuando sus requisitos cumplen; lo pendiente no cuenta como cumplido.",
+      "NONE": "Este control no tiene requisitos aplicables todavía.",
+      "SUMMARY": "Cumplen {{compliant}} de {{applicable}} requisitos; faltan {{missing}}.",
+      "PERIODICITY": "Periodicidad: {{value}}",
+      "PERIODICITY_CLIENT": "ajustada por tu organización (sugerida: {{suggested}})",
+      "WINDOW_END": "La ventana actual cierra el {{date}}",
+      "ALERT_AT": "aviso el {{date}}",
+      "ASSET_COVERAGE": "Activos con resultado: {{with_result}} de {{in_scope}} en alcance",
+      "OWNER": "Control dueño:",
+      "OWNER_OUT_OF_SCOPE": "No está en el alcance de este servicio",
+      "CHECKS_SUMMARY": "Directos: cumplen {{pass}} · fallan {{fail}} · con excepción {{exception}} · sin datos {{no_data}} (activos)",
+      "PERIOD_TITLE": "Período auditado",
+      "PERIOD_WINDOWS": "Ventanas cerradas con evidencia: {{with_evidence}} de {{total}}. La ventana vigente no cuenta.",
+      "PERIOD_MISSING": "Ventanas cerradas sin evidencia válida: {{count}}",
+      "PERIOD_RANGE": "del {{from}} al {{to}}",
+      "FAILING_ASSETS": "{{count}} activos fallan",
+      "NOT_FAILING": "Ningún activo falla",
+      "PERIOD_INTRO": "Cómo queda el control en el período auditado abierto. Solo cuentan las ventanas ya cerradas; la cabecera muestra el estado a la fecha.",
+      "PERIOD_LEVEL": "Nivel en el período",
+      "PERIOD_WINDOWS_TITLE": "Ventanas cerradas",
+      "PERIOD_NONE_MISSING": "Todas las ventanas cerradas del período tienen evidencia válida.",
+      "PERIOD_COL_REQUIREMENT": "Requisito",
+      "PERIOD_COL_WINDOW": "Ventana sin evidencia",
+      "PERIOD_WINDOWS_VALUE": "{{with_evidence}} de {{total}} con evidencia válida",
+      "SEARCH": "Buscar un requisito, su código o una de sus pruebas",
+      "FILTER_STATUS": "Filtrar por estado",
+      "COL_REQUIREMENT": "Requisito",
+      "COL_STATUS": "Estado",
+      "COL_TESTS": "Pruebas",
+      "NO_MATCH": "Ningún requisito coincide con lo que buscas",
+      "ALL": "Todos"
+    },
+    "SCORE": {
+      "C_PERCENT": "C%",
+      "LEVEL_TITLE": "Nivel de preparación",
+      "LEVEL": "Nivel {{value}} de 5 · {{label}}",
+      "NO_REQUIREMENTS": "Sin requisitos aplicables",
+      "NOT_MEASURED": "Sin medir todavía",
+      "ARIA": "{{kind}} {{percent}}. Estado: {{state}}. {{level}}. {{coverage}}",
+      "COVERAGE_TITLE": "Cobertura",
+      "STATUS_TITLE": "Estado",
+      "COVERAGE_DETAIL": "{{measured}} de {{applicable}} medidos",
+      "REQUIREMENTS_MET": "{{done}} de {{total}} requisitos cumplen",
+      "NEXT_WINDOW": "Próximo cierre de ventana: {{date}}"
+    },
+    "DETAIL_TABS": {
+      "ARIA": "Secciones del detalle",
+      "SUMMARY": "Resumen",
+      "REQUIREMENTS": "Requisitos y pruebas",
+      "EVIDENCE": "Evidencias",
+      "PERIOD": "Período",
+      "CAUSES": "Causas",
+      "CONTROLS": "Controles que la mitigan"
+    },
+    "CAUSE_ORIGIN": {
+      "INTERNAL": "Interno",
+      "EXTERNAL": "Externo"
+    },
+    "CAUSE_TYPE": {
+      "HUMAN": "Humano (personas)",
+      "PROCESSES": "Procesos y métodos",
+      "INFORMATION": "Información y datos",
+      "MEASUREMENT": "Medición y monitoreo",
+      "TECHNOLOGY": "Tecnológico (sistemas)",
+      "PHYSICAL_INFRASTRUCTURE": "Infraestructura física y activos",
+      "CRIMINAL_SECURITY": "Delictivo y de seguridad",
+      "THIRD_PARTIES": "Terceros y cadena de suministro",
+      "LEGAL_REGULATORY": "Legal y regulatorio",
+      "ENVIRONMENTAL": "Ambiental / natural",
+      "ORGANIZATIONAL_GOVERNANCE": "Organizacional y gobierno",
+      "INTERNAL_FINANCIAL": "Financiero interno",
+      "STRATEGIC": "Estratégico",
+      "EXTERNAL_TECHNOLOGY": "Tecnológico externo",
+      "CLIMATE": "Climático (físico y de transición)",
+      "BIOLOGICAL": "Biológico / salud pública",
+      "POLITICAL": "Político y geopolítico",
+      "ECONOMIC": "Económico y de mercado"
+    },
+    "PERIODICITY_CHANGE": {
+      "SECTION": "Periodicidad",
+      "OPEN": "Cambiar periodicidad",
+      "TITLE": "Cambiar la periodicidad",
+      "SUBTITLE": "Control {{code}}: cada cuánto se ejecuta y se evidencia.",
+      "CURRENT": "Periodicidad actual",
+      "SUGGESTED": "Sugerida por el catálogo",
+      "NEW": "Nueva periodicidad",
+      "USE_SUGGESTED": "Usar la sugerida",
+      "JUSTIFICATION": "Justificación",
+      "JUSTIFICATION_HINT": "Obligatoria. Queda en el rastro de auditoría junto al valor anterior y el nuevo.",
+      "SCOPE_NOTE": "Se aplica a todos los requisitos de este control. Monkey recalcula de inmediato las ventanas y el nivel del control.",
+      "SAVE": "Guardar",
+      "SAVING": "Guardando…",
+      "SAVED": "Periodicidad actualizada. Ya se recalcularon las ventanas y el nivel.",
+      "SAVE_ERROR": "No pudimos cambiar la periodicidad. Inténtalo de nuevo.",
+      "ERR_MAX": "La justificación admite como máximo {{max}} caracteres.",
+      "LAST": "Último cambio",
+      "LAST_VALUE": "{{value}}, el {{date}}",
+      "LAST_REASON": "Justificación: {{reason}}"
     }
   }
 }

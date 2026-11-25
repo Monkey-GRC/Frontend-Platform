@@ -36,8 +36,8 @@
             <label for="member-move-target">{{ 'TEAM.GROUPS.MOVE_TO' | translate }}</label>
             <app-select inputId="member-move-target" data-test-move-target class="min-w-64" [options]="destinationOptions()" [value]="target()" [disabled]="saving()" placeholderKey="TEAM.GROUPS.MOVE_PICK" (valueChange)="target.set($event)" />
           </div>
-          <button type="button" (click)="move(m)" [disabled]="!target()" [appBusy]="saving()" data-test-move-confirm class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.MOVE_SUBMIT' | translate }}</button>
-          <button type="button" (click)="cancelMove()" [disabled]="saving()" class="text-sm font-medium text-ink-muted enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'COMMON.CANCEL' | translate }}</button>
+          <button type="button" (click)="move(m)" [disabled]="!target()" [appBusy]="saving()" data-test-move-confirm class="mk-btn-sm">{{ 'TEAM.GROUPS.MOVE_SUBMIT' | translate }}</button>
+          <button type="button" (click)="cancelMove()" [disabled]="saving()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
         </div>
         }
       </div>
@@ -45,7 +45,7 @@
     <ng-template appCell="actions" let-m>
       @if (canMove() && isDelegate(m) && m.status !== 'inactive' && movingId() !== m.id) {
       @if (destinations().length > 0) {
-      <button type="button" (click)="startMove(m)" [disabled]="saving()" data-test-move class="text-sm font-medium text-action enabled:hover:underline disabled:cursor-not-allowed disabled:text-ink-faint">{{ 'TEAM.GROUPS.MOVE' | translate }}</button>
+      <button type="button" (click)="startMove(m)" [disabled]="saving()" data-test-move class="mk-btn-secondary-sm">{{ 'TEAM.GROUPS.MOVE' | translate }}</button>
       } @else {
       <span class="text-xs text-ink-muted" data-test-no-destination>{{ 'TEAM.GROUPS.NO_DESTINATION' | translate }}</span>
       }

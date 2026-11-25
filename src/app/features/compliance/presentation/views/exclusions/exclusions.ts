@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '@core/domain/services/language.service';
+import { formatLocalDate } from '@shared/domain/utils/date-format';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
@@ -99,6 +100,6 @@ export class ExclusionsView implements OnInit {
 
   /** `AAAA-MM-DD` es un día, sin hora ni zona: se muestra ese día en UTC para que no corra por la zona horaria. */
   day(value: string): string {
-    return new Intl.DateTimeFormat(this.language.current(), { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
+    return formatLocalDate(value, this.language.current(), { calendar: true });
   }
 }

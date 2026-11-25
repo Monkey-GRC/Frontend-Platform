@@ -38,7 +38,7 @@ import { connectionLink, connectionTone } from '@features/integrations/domain/ut
                 <dd class="flex flex-wrap gap-x-3 text-ink">
                   @for (s of c.services; track s.id) {
                     @if (isAdmin()) {
-                      <a [routerLink]="link(c, s.id)" class="font-medium text-action hover:underline" data-test-service-link>{{ s.name }}</a>
+                      <a [routerLink]="link(c, s.id)" class="mk-link underline" data-test-service-link>{{ s.name }}</a>
                     } @else {
                       <span>{{ s.name }}</span>
                     }
