@@ -10,9 +10,9 @@ const DIMENSIONS: ControlDimensionDetail[] = [
   { dimension: 'server', applies: true, type: 'automated', reason_not_applicable: null },
 ];
 const TESTS: ControlTest[] = [
-  { test_id: 'id-srv-1', test_code: 'T-SRV-001', display_name: 'Evaluación de configuración de servidores', dimension: 'server', state: 'no_assets' },
-  { test_id: 'id-doc-2', test_code: 'T-DOC-002', display_name: 'Validación de la ejecución de la revisión', dimension: 'policy', state: 'pending' },
-  { test_id: 'id-doc-1', test_code: 'T-DOC-001', display_name: 'Revisión de diseño y vigencia de la política', dimension: 'policy', state: 'compliant' },
+  { test_id: 'id-srv-1', test_code: 'T-SRV-001', display_name: 'Evaluación de configuración de servidores', dimension: 'server', status: 'pending', accepts_evidence: false, evidence_fallback: false },
+  { test_id: 'id-doc-2', test_code: 'T-DOC-002', display_name: 'Validación de la ejecución de la revisión', dimension: 'policy', status: 'pending', accepts_evidence: true, evidence_fallback: false },
+  { test_id: 'id-doc-1', test_code: 'T-DOC-001', display_name: 'Revisión de diseño y vigencia de la política', dimension: 'policy', status: 'correct', accepts_evidence: true, evidence_fallback: false },
 ];
 
 @Component({
@@ -36,7 +36,7 @@ describe('ControlTests', () => {
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('es', {
       COMPLIANCE: {
-        TEST_STATE: { COMPLIANT: 'Cumple', NON_COMPLIANT: 'No cumple', PENDING: 'Pendiente', NO_ASSETS: 'Sin activos' },
+        TEST_STATUS: { CORRECT: 'Cumple', EXCEPTION: 'No cumple', PENDING: 'Pendiente', NOT_APPLICABLE: 'No aplica' },
         CONTROL_TYPE: { MANUAL: 'Manual', AUTOMATED: 'Automática' },
         DIMENSION: { POLICY: 'Política / Documental', SERVER: 'Servidor' },
       },
@@ -54,7 +54,7 @@ describe('ControlTests', () => {
     const el = render(TESTS);
     expect(el.textContent).toContain('T-DOC-001');
     expect(el.textContent).toContain('Revisión de diseño y vigencia de la política');
-    expect(el.querySelector('[data-test-state="compliant"]')!.textContent).toContain('Cumple');
+    expect(el.querySelector('[data-test-state="correct"]')!.textContent).toContain('Cumple');
     expect(el.querySelectorAll('tbody tr').length).toBe(3);
   });
 
@@ -65,10 +65,10 @@ describe('ControlTests', () => {
     expect(rows.find((r) => r.includes('T-SRV-001'))).toContain('Automática');
   });
 
-  it('shows a test with no connected assets as such, not as a failure', () => {
+  it('shows a pending test as pending, not as a failure', () => {
     const el = render(TESTS);
-    const none = el.querySelector('[data-test-state="no_assets"]')!;
-    expect(none.textContent).toContain('Sin activos');
+    const none = el.querySelector('[data-test-state="pending"]')!;
+    expect(none.textContent).toContain('Pendiente');
     expect(none.className).not.toContain('bg-red');
   });
 
@@ -93,8 +93,8 @@ describe('ControlTests', () => {
   });
 
   it('offers what failed and how to fix it only under an automatic test that does not comply, and only when it knows the control (D90)', () => {
-    const cloud: ControlTest = { test_id: 'id-cld-1', test_code: 'T-CLD-001', display_name: 'Acceso público', dimension: 'cloud', state: 'non_compliant' };
-    const passing: ControlTest = { ...cloud, test_id: 'id-cld-2', test_code: 'T-CLD-002', state: 'compliant' };
+    const cloud: ControlTest = { test_id: 'id-cld-1', test_code: 'T-CLD-001', display_name: 'Acceso público', dimension: 'cloud', status: 'exception', accepts_evidence: false, evidence_fallback: false };
+    const passing: ControlTest = { ...cloud, test_id: 'id-cld-2', test_code: 'T-CLD-002', status: 'correct', accepts_evidence: false, evidence_fallback: false };
     const withControl = (id: string | null, tests: ControlTest[] = [cloud, passing, TESTS[0]]) => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({ imports: [ControlTests], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: FindingService, useValue: {} }] });
@@ -112,8 +112,8 @@ describe('ControlTests', () => {
     expect(withControl(null).querySelector('app-test-findings')).toBeNull();
 
     // D112 · Una prueba de servidores que no cumple también dice qué falló y cómo corregirlo; una documental no.
-    const server: ControlTest = { test_id: 'id-srv-9', test_code: 'T-SRV-009', display_name: 'Configuración de servidores', dimension: 'server', state: 'non_compliant' };
-    const manual: ControlTest = { test_id: 'id-doc-9', test_code: 'T-DOC-009', display_name: 'Revisión de política', dimension: 'policy', state: 'non_compliant' };
+    const server: ControlTest = { test_id: 'id-srv-9', test_code: 'T-SRV-009', display_name: 'Configuración de servidores', dimension: 'server', status: 'exception', accepts_evidence: false, evidence_fallback: false };
+    const manual: ControlTest = { test_id: 'id-doc-9', test_code: 'T-DOC-009', display_name: 'Revisión de política', dimension: 'policy', status: 'exception', accepts_evidence: true, evidence_fallback: false };
     const mixed = Array.from(withControl('c1', [server, manual]).querySelectorAll('tbody tr')).filter((li) => li.querySelector('app-test-findings'));
     expect(mixed.length).toBe(1);
     expect(mixed[0].textContent).toContain('T-SRV-009');
@@ -129,22 +129,55 @@ describe('ControlTests', () => {
       expect(descriptions[0].textContent).toContain(SHORT);
     });
 
-    it('does not offer "show more" for a short description', () => {
+    it('does not offer «ver más» for a description that fits', () => {
       const el = render([{ ...TESTS[2], display_description: SHORT }]);
-      expect(el.querySelector('button')).toBeNull();
+      expect(el.querySelector('[data-expandable-toggle]')).toBeNull();
     });
 
-    it('clamps a long description and expands it on demand', () => {
+    it('hands a description to the shared expandable text, clamped to two lines (the link only appears if it is really cut, MD-499)', () => {
       const el = render([{ ...TESTS[2], display_description: LONG }]);
-      const text = el.querySelector('[data-test-description]')!;
-      const button = el.querySelector('button')!;
+      const text = el.querySelector('[data-test-description] [data-expandable-text]')!;
+      expect(text.textContent).toContain(LONG);
       expect(text.classList).toContain('line-clamp-2');
-      expect(button.getAttribute('aria-expanded')).toBe('false');
-      button.click();
-      fixture.detectChanges();
-      expect(text.classList).not.toContain('line-clamp-2');
-      expect(button.getAttribute('aria-expanded')).toBe('true');
     });
+  });
+
+  it('gives every test the same two columns: its evidence, or how it is met when nothing is uploaded from here (MD-499)', () => {
+    TestBed.configureTestingModule({ imports: [Host], providers: [provideTranslateService()] });
+    const host = TestBed.createComponent(Host);
+    host.componentInstance.tests = [...TESTS, { test_id: 'id-proc-1', test_code: 'T-ACT-2-01', display_name: 'Revisión trimestral', dimension: 'process', status: 'pending', accepts_evidence: false, evidence_fallback: false }];
+    host.detectChanges();
+    const el = host.nativeElement as HTMLElement;
+    const row = (code: string) => Array.from(el.querySelectorAll<HTMLElement>('tbody tr')).find((r) => r.textContent!.includes(code))!;
+    expect(row('T-DOC-001').querySelector('[data-aside="evidence"] [data-test-evidence]')).not.toBeNull();
+    expect(row('T-SRV-001').querySelector('[data-aside="automated"] [data-test-how]')!.textContent).toContain('COMPLIANCE.TESTS.HOW_AUTOMATED');
+    // Una prueba que no acepta evidencia no lleva subida: lo dice, con la misma caja.
+    expect(row('T-ACT-2-01').querySelector('[data-aside="none"] [data-test-how]')!.textContent).toContain('COMPLIANCE.TESTS.HOW_NO_UPLOAD');
+    // La instrucción de la evidencia, una sola vez.
+    expect(el.querySelectorAll('[data-evidence-help]').length).toBe(1);
+  });
+
+  it('offers the upload only on tests that accept evidence, whatever their dimension (MD-499)', () => {
+    TestBed.configureTestingModule({ imports: [Host], providers: [provideTranslateService()] });
+    const host = TestBed.createComponent(Host);
+    host.componentInstance.tests = [
+      { test_id: 'id-cld-5', test_code: 'T-CLD-005', display_name: 'Respaldo', dimension: 'cloud', status: 'pending', accepts_evidence: true, evidence_fallback: true },
+      { test_id: 'id-doc-5', test_code: 'T-DOC-005', display_name: 'Política', dimension: 'policy', status: 'pending', accepts_evidence: false, evidence_fallback: false },
+    ];
+    host.detectChanges();
+    const el = host.nativeElement as HTMLElement;
+    const row = (code: string) => Array.from(el.querySelectorAll<HTMLElement>('tbody tr')).find((r) => r.textContent!.includes(code))!;
+    expect(row('T-CLD-005').querySelector('[data-aside="evidence"] [data-test-evidence]')).not.toBeNull();
+    expect(row('T-DOC-005').querySelector('[data-test-evidence]')).toBeNull();
+  });
+
+  it('lists the evidence tests for a view without the technical detail (MD-499)', () => {
+    TestBed.configureTestingModule({ imports: [Host], providers: [provideTranslateService()] });
+    const fixture = TestBed.createComponent(ControlTests);
+    fixture.componentRef.setInput('evidenceTests', [{ test_id: 'id-x', test_code: 'T-PRO-001', display_name: 'Revisión', dimension: 'process', status: 'pending', evidence_fallback: false, requirement_id: null }]);
+    fixture.componentRef.setInput('evidenceTpl', null);
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('T-PRO-001');
   });
 
   it('says how many tests the control has when the view does not bring the list', () => {

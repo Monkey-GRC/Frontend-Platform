@@ -85,6 +85,42 @@ describe('RiskForm', () => {
     expect(saved).toEqual(['nueva']);
   });
 
+  it('sends the optional classification of a new cause only when it was chosen', async () => {
+    setup('cause');
+    api.createCause.and.returnValue(of({ ...CAUSE, id: 'nueva' }));
+    await type('name', 'Causa');
+    await type('description', 'D');
+    await type('group', 'processes');
+    await type('cause_origin', 'internal');
+    await type('cause_type', 'human');
+    save();
+    expect(api.createCause).toHaveBeenCalledOnceWith('s1', { name: 'Causa', description: 'D', failure_category: 'processes', cause_origin: 'internal', cause_type: 'human' });
+  });
+
+  it('on edit sends only the classification that changed, and null to clear it', async () => {
+    setup('cause', { ...CAUSE, cause_origin: 'internal', cause_type: 'human' });
+    api.updateCause.and.returnValue(of(CAUSE));
+    await type('cause_type', '');
+    save();
+    expect(api.updateCause).toHaveBeenCalledOnceWith('c9', { name: 'Sin copias', description: 'No hay.', failure_category: 'processes', cause_type: null });
+  });
+
+  it('does not offer the classification when editing a catalog cause', () => {
+    setup('cause', { ...CAUSE, origin: 'catalog' });
+    expect(el().querySelector('[data-field="cause_origin"]')).toBeNull();
+    expect(el().querySelector('[data-field="cause_type"]')).toBeNull();
+  });
+
+  it('shows the 422 of the classification under its field', async () => {
+    setup('cause');
+    api.createCause.and.returnValue(throwError(() => new HttpErrorResponse({ status: 422, error: { message: 'x', error: { fields: [{ field: 'cause_type', code: 'invalid', message: 'Tipo no válido.' }] } } })));
+    await type('name', 'n');
+    await type('description', 'd');
+    await type('group', 'processes');
+    save();
+    expect(el().querySelector('[data-error="cause_type"]')!.textContent).toContain('Tipo no válido.');
+  });
+
   it('starts an edit with the current values and only enables saving once something changed', async () => {
     setup('risk', RISK);
     expect(el().querySelector<HTMLInputElement>('[data-field="name"]')!.value).toBe('Pérdida de un portátil');

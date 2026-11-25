@@ -1,10 +1,10 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { NEVER, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ComplianceOverview, OverviewCategory, OverviewFramework } from '@features/compliance/domain/models/overview.models';
+import { ComplianceOverview, EvaluationPeriodItem, OverviewCategory, OverviewFramework } from '@features/compliance/domain/models/overview.models';
 import { ComplianceContextService } from '@features/compliance/domain/services/compliance-context.service';
 import { OverviewService } from '@features/compliance/domain/services/overview.service';
 import { RiskService } from '@shared/domain/services/risk.service';
@@ -37,8 +37,9 @@ describe('OverviewView', () => {
   let riskApi: jasmine.SpyObj<RiskService>;
   let fixture: ComponentFixture<OverviewView>;
 
-  function setup(role: string, frameworks: OverviewFramework[], result: 'ok' | 'error' | 'pending' = 'ok'): OverviewView {
-    api = jasmine.createSpyObj<OverviewService>('OverviewService', ['get', 'setEvaluationPeriod']);
+  function setup(role: string, frameworks: OverviewFramework[], result: 'ok' | 'error' | 'pending' = 'ok', periods: EvaluationPeriodItem[] = [], definir: string | null = null): OverviewView {
+    api = jasmine.createSpyObj<OverviewService>('OverviewService', ['get', 'setEvaluationPeriod', 'listEvaluationPeriods']);
+    api.listEvaluationPeriods.and.returnValue(of(periods));
     riskApi = jasmine.createSpyObj<RiskService>('RiskService', ['listAllRisks', 'matrix']);
     riskApi.matrix.and.returnValue(of(RISK_MATRIX));
     riskApi.listAllRisks.and.returnValue(of([]));
@@ -48,6 +49,7 @@ describe('OverviewView', () => {
       providers: [
         provideTranslateService(), provideRouter([]), provideCatalogStub(),
         { provide: OverviewService, useValue: api },
+        { provide: ActivatedRoute, useValue: { queryParamMap: of(convertToParamMap(definir ? { definir } : {})) } },
         { provide: RiskService, useValue: riskApi },
         { provide: ActiveComplianceService, useValue: { serviceId: signal<string | null>('s1') } },
       ],
@@ -257,7 +259,7 @@ describe('OverviewView', () => {
   it('adds the tests that pass of each failing control when the technical view brings them', () => {
     const security = category('security', {
       failing_controls: [failing('k1', 'IAC-12', 'Gestión de accesos')],
-      technical: { state: 'non_compliant', controls: [{ control_id: 'k1', control_code: 'IAC-12', state: 'ineffective', progress: { done: 3, total: 4 }, blocking_tests: [] }] },
+      technical: { state: 'non_compliant', controls: [{ control_id: 'k1', control_code: 'IAC-12', progress: { done: 3, total: 4 } }] },
     });
     setup('admin_empresa', [framework({ categories: [security], technical: technical('non_compliant') })]);
     expect(q('[data-attention]')!.textContent).toContain('COMPLIANCE.OVERVIEW.TESTS');
@@ -297,5 +299,54 @@ describe('OverviewView', () => {
     view.load();
     fixture.detectChanges();
     expect(view.stage()).toBe('ready');
+  });
+
+  describe('audited period (D145)', () => {
+    const closed: EvaluationPeriodItem = { id: 'p1', status: 'closed', period_start: '2026-01-01', period_end: '2026-06-30', cutoff_date: null, opened_by: 'user', closed_at: '2026-07-01T00:05:00Z' };
+    const open: EvaluationPeriodItem = { id: 'p2', status: 'open', period_start: '2026-07-01', period_end: '2026-12-31', cutoff_date: null, opened_by: 'system', closed_at: null };
+
+    it('lists the closed periods of the framework for the company admin, and not the open one', () => {
+      setup('admin_empresa', [framework()], 'ok', [open, closed]);
+      expect(api.listEvaluationPeriods).toHaveBeenCalledWith('s1', 'soc2');
+      const rows = el().querySelectorAll('[data-history] tbody tr');
+      expect(rows.length).toBe(1);
+      expect(rows[0].textContent).toContain('COMPLIANCE.PERIOD.OPENED_BY_USER');
+    });
+
+    it('also lists them for the auditor, and does not ask for them for the owner (the endpoint is for the technical view)', () => {
+      setup('auditor', [framework()], 'ok', [closed]);
+      expect(q('[data-history]')).not.toBeNull();
+      TestBed.resetTestingModule();
+      setup('responsable', [framework()], 'ok', [closed]);
+      expect(api.listEvaluationPeriods).not.toHaveBeenCalled();
+      expect(q('[data-history]')).toBeNull();
+    });
+
+    it('shows nothing when there is no closed period, and does not ask while the period is undefined', () => {
+      setup('admin_empresa', [framework()], 'ok', [open]);
+      expect(q('[data-history]')).toBeNull();
+      TestBed.resetTestingModule();
+      setup('admin_empresa', [framework({ evaluation: UNDEFINED })], 'ok', [closed]);
+      expect(api.listEvaluationPeriods).not.toHaveBeenCalled();
+    });
+
+    it('offers a retry when the history cannot be read', () => {
+      setup('admin_empresa', [framework()]);
+      api.listEvaluationPeriods.and.returnValue(throwError(() => new Error('x')));
+      fixture.destroy();
+      fixture = TestBed.createComponent(OverviewView);
+      fixture.detectChanges();
+      expect(q('[data-history-error]')).not.toBeNull();
+    });
+
+    it('«?definir=<marco>» (the onboarding step on Home) opens that framework period form for the company admin, and drops the parameter', () => {
+      setup('admin_empresa', [framework({ evaluation: UNDEFINED, readiness: 'not_measured' })], 'ok', [], 'soc2');
+      expect(q('app-evaluation-period-form')).not.toBeNull();
+    });
+
+    it('«?definir=<marco>» opens nothing for someone who cannot define the period', () => {
+      setup('responsable', [framework({ evaluation: UNDEFINED, readiness: 'not_measured' })], 'ok', [], 'soc2');
+      expect(q('app-evaluation-period-form')).toBeNull();
+    });
   });
 });

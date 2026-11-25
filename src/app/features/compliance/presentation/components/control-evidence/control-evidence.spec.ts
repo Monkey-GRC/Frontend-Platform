@@ -249,20 +249,17 @@ describe('ControlEvidence', () => {
       expect(fixture.nativeElement.querySelector('[data-shared-with]')).toBeNull();
     });
 
-    it('for another manual test, lists the requirement of each control that carries it and marks those of other controls', () => {
+    it('for a test of any dimension it uses the same centered block with the upload and the sharing note (MD-499)', () => {
       const view = setup('admin_empresa', true, []);
-      const mine = { ...requirement('a'), dimension: 'server', control: { id: 'c1', code: 'IAC-1' } };
-      const theirs = { ...requirement('b'), dimension: 'server', control: { id: 'k2', code: 'IAC-12' } };
-      api.listForTest.and.returnValue(of({ test_id: 'tid-9', shared_with: [{ id: 'k2', code: 'IAC-12' }], items: [mine, theirs] }));
+      const mine = { ...own('a', { id: 'tid-9', code: 'T-SRV-009', display_name: 'Servidores' }), dimension: 'server', submissions: [submission(1)] };
+      api.listForTest.and.returnValue(of({ test_id: 'tid-9', shared_with: [{ id: 'k2', code: 'IAC-12' }], items: [mine] }));
       fixture.componentRef.setInput('dimension', 'server');
       fixture.componentRef.setInput('embedded', true);
       fixture.componentRef.setInput('testId', 'tid-9');
       fixture.detectChanges();
-      expect(text()).toContain('Documento a');
-      expect(text()).toContain('Documento b');
-      expect(fixture.nativeElement.querySelectorAll('[data-from-control]').length).toBe(1);
+      expect(fixture.nativeElement.querySelector('[data-test-evidence-block] [data-upload-open]')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('[data-shared-with]')).not.toBeNull();
-      expect(view.documentary()).toBeFalse();
+      expect(view.documentary()).toBeTrue();
     });
 
     it('ignores a slow answer for a previous test when the test changes', () => {
@@ -284,12 +281,32 @@ describe('ControlEvidence', () => {
       expect(text()).toContain('politica-v1.pdf');
       expect(text()).not.toContain('politica-v7.pdf');
       expect(text()).not.toContain('Documento suggested');
-      expect(fixture.nativeElement.querySelector('[data-per-control-note]')).not.toBeNull();
+      // Bajo la prueba, la instrucción la dice una vez la lista de pruebas, no cada bloque (MD-499).
+      expect(fixture.nativeElement.querySelector('[data-per-control-note]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-test-evidence-block] [data-evidence-state]')).not.toBeNull();
+    });
+
+    it('on a test with the evidence fallback it says there is no integration connected and keeps the upload block (MD-499)', () => {
+      under([own('mine', T1)]);
+      expect(fixture.nativeElement.querySelector('[data-fallback-tag]')).toBeNull();
+      fixture.componentRef.setInput('fallback', true);
+      fixture.componentRef.setInput('dimension', 'cloud');
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-fallback-tag]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-fallback-note]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-test-evidence-block] [data-upload-open]')).not.toBeNull();
     });
 
     it('with nothing delivered yet it says so and offers "upload evidence" straight away, with nothing to prepare first', () => {
       under([own('other', T2)]);
-      expect(fixture.nativeElement.querySelector('[data-empty]').textContent).toContain('COMPLIANCE.EVIDENCE.NONE_FOR_TEST');
+      // Una sola unidad: el estado «Sin subir» y la acción principal en la misma cabecera del bloque (MD-499).
+      const block = fixture.nativeElement.querySelector('[data-test-evidence-block]') as HTMLElement;
+      expect(block.querySelector('[data-empty]')!.textContent).toContain('COMPLIANCE.EVIDENCE.NOT_UPLOADED');
+      expect(block.querySelector('[data-upload-open]')!.className).toContain('mk-btn-sm');
+      // Centrado, a todo el alto: estado arriba, lo que se espera en medio y la acción abajo (Rod).
+      expect(block.className).toContain('justify-center');
+      expect(block.querySelector('[data-evidence-expected]')).not.toBeNull();
+      expect(block.lastElementChild!.hasAttribute('data-upload-open')).toBeTrue();
       expect(fixture.nativeElement.querySelector('[data-upload-open]').textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD');
       expect(fixture.nativeElement.querySelector('[data-upload-open]').textContent).not.toContain('UPLOAD_NEW');
     });

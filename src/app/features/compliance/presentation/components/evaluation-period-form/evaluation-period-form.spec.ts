@@ -7,7 +7,7 @@ import { OverviewService } from '@features/compliance/domain/services/overview.s
 import { EvaluationPeriodForm } from './evaluation-period-form';
 
 const TODAY = new Date().toISOString().slice(0, 10);
-const UNDEFINED = { catalog_version: null, period_start: null, period_end: null, cutoff_date: null, cutoff_frozen: null };
+const UNDEFINED = { min_period_months: 6, catalog_version: null, period_start: null, period_end: null, cutoff_date: null, cutoff_frozen: null };
 const framework = (evaluation: OverviewFramework['evaluation'] = UNDEFINED): OverviewFramework => ({
   framework_code: 'soc2', name: 'SOC 2', readiness: 'not_measured', progress: { done: 0, total: 5 }, coverage: { measured: 0, applicable: 5 }, evaluation, categories: [],
 });
@@ -76,12 +76,54 @@ describe('EvaluationPeriodForm', () => {
     expect(api.setEvaluationPeriod.calls.mostRecent().args[2].cutoff_date).toBeNull();
   });
 
-  it('accepts a single-day period (SOC 2 Type I)', () => {
+  it('explains that the period is always type II and that the next one opens by itself', () => {
+    setup();
+    const rules = q('[data-period-rules]')!.textContent!;
+    expect(rules).toContain('COMPLIANCE.PERIOD.TYPE_II');
+    expect(rules).toContain('COMPLIANCE.PERIOD.AUTO_NEXT');
+    expect(rules).toContain('COMPLIANCE.PERIOD.MIN_MONTHS');
+    expect(el().textContent).not.toContain('SINGLE_DAY');
+  });
+
+  it('does not accept a single day: the end must be after the start', () => {
     setup();
     pick('start', '2026-10-15');
     pick('end', '2026-10-15');
+    expect(q('[data-error="period_end"]')!.textContent).toContain('COMPLIANCE.PERIOD.ERR_RANGE');
+    expect(saveButton().disabled).toBeTrue();
+  });
+
+  it('in SOC 2 warns, before asking the server, when the period lasts less than 6 months, and does not send', () => {
+    setup();
+    pick('start', '2026-01-01');
+    pick('end', '2026-06-29');
+    expect(q('[data-error="period_end"]')!.textContent).toContain('COMPLIANCE.PERIOD.ERR_TOO_SHORT');
+    expect(saveButton().disabled).toBeTrue();
+    saveButton().click();
+    expect(api.setEvaluationPeriod).not.toHaveBeenCalled();
+    pick('end', '2026-06-30');
     expect(q('[data-error="period_end"]')).toBeNull();
     expect(saveButton().disabled).toBeFalse();
+  });
+
+  it('in a framework with no minimum a short period is left to the server', () => {
+    setup(framework({ ...UNDEFINED, min_period_months: null }));
+    pick('start', '2026-01-01');
+    pick('end', '2026-02-01');
+    expect(q('[data-error="period_end"]')).toBeNull();
+    expect(q('[data-period-rules]')!.textContent).not.toContain('COMPLIANCE.PERIOD.MIN_MONTHS');
+  });
+
+  it('shows the server too_short / invalid_range message under the end date', () => {
+    setup();
+    api.setEvaluationPeriod.and.returnValue(throwError(() => new HttpErrorResponse({
+      status: 422, error: { message: 'Revisa los datos enviados.', error: { code: 'VALIDATION_FAILED', fields: [{ field: 'period_end', code: 'period.too_short', message: 'El período dura menos de 6 meses.' }] } },
+    })));
+    pick('start', '2026-01-01');
+    pick('end', '2026-12-31');
+    saveButton().click();
+    fixture.detectChanges();
+    expect(q('[data-error="period_end"]')!.textContent).toContain('El período dura menos de 6 meses.');
   });
 
   it('warns, before asking the server, when the end is before the start, and does not send', () => {

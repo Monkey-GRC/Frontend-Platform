@@ -76,11 +76,17 @@ describe('DiscoveredAssets', () => {
     expect(el().querySelector('app-os-icon')).toBeNull();
   });
 
-  it('opens the detail of an asset in the side drawer from its name', () => {
+  it('opens the detail of an asset in the detail modal from its name, with its name as the title and the add or remove action in the footer (MD-499)', () => {
     setup([asset('a1', 'web-01', true)]);
     el().querySelector<HTMLButtonElement>('tbody button')!.click();
     fixture.detectChanges();
-    expect(el().querySelector('[role="dialog"]')).not.toBeNull();
+    const dialog = el().querySelector('[role="dialog"]')!;
+    expect(el().querySelector('#' + dialog.getAttribute('aria-labelledby'))!.textContent).toContain('web-01');
+    expect(dialog.querySelector('footer [data-asset-toggle]')).not.toBeNull();
+    expect(dialog.querySelector('[data-asset-inclusion]')).not.toBeNull();
+    expect(dialog.querySelector('[role="tablist"]')).toBeNull();
+    expect(dialog.className).toContain('max-w-2xl');
+    expect(dialog.className).toContain('h-[min(31rem,calc(100dvh-2rem))]');
   });
 
   describe('evaluate now, next to save', () => {

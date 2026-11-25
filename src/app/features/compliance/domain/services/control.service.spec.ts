@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ControlService } from './control.service';
@@ -53,5 +53,38 @@ describe('ControlService', () => {
     const del = http.expectOne((r) => r.url.endsWith('/controls/c1'));
     expect(del.request.method).toBe('DELETE');
     del.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  describe('setPeriodicity (D147)', () => {
+    const body = { periodicity: 'monthly' as const, justification: 'Cambió la auditoría.' };
+
+    it('puts the body to the control and unwraps the detail it answers with', () => {
+      let got: unknown;
+      service.setPeriodicity('c1', body).subscribe((d) => (got = d));
+      const req = http.expectOne((r) => r.url.endsWith('/controls/c1/periodicity'));
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(body);
+      expect(req.request.params.has('view')).toBeFalse();
+      req.flush({ statusCode: 200, message: 'ok', data: { id: 'c1' } });
+      expect(got).toEqual({ id: 'c1' });
+    });
+
+    it('sends null to go back to the suggested one, and the view only when asked', () => {
+      service.setPeriodicity('c1', { periodicity: null, justification: 'Volver.' }, 'technical').subscribe();
+      const req = http.expectOne((r) => r.url.endsWith('/controls/c1/periodicity'));
+      expect(req.request.body).toEqual({ periodicity: null, justification: 'Volver.' });
+      expect(req.request.params.get('view')).toBe('technical');
+      req.flush({ statusCode: 200, message: 'ok', data: { id: 'c1' } });
+    });
+
+    it('lets the 422 of a field and the 409 of a retired control reach the caller untouched', () => {
+      const failures: HttpErrorResponse[] = [];
+      service.setPeriodicity('c1', body).subscribe({ error: (e: HttpErrorResponse) => failures.push(e) });
+      http.expectOne((r) => r.url.endsWith('/controls/c1/periodicity')).flush({ message: 'Justificación obligatoria.' }, { status: 422, statusText: 'Unprocessable Entity' });
+      service.setPeriodicity('c1', body).subscribe({ error: (e: HttpErrorResponse) => failures.push(e) });
+      http.expectOne((r) => r.url.endsWith('/controls/c1/periodicity')).flush({ message: 'Este control ya fue dado de baja.' }, { status: 409, statusText: 'Conflict' });
+      expect(failures.map((e) => e.status)).toEqual([422, 409]);
+      expect(failures[1].error.message).toBe('Este control ya fue dado de baja.');
+    });
   });
 });

@@ -43,6 +43,11 @@ describe('LocalDatePipe', () => {
     expect(pipe.transform(date, 'medium', true)).toMatch(/^9 nov 2026.*12:00$/);
   });
 
+  it('con calendar muestra el día AAAA-MM-DD tal cual, sin que la zona horaria lo corra', () => {
+    language.current.set('en');
+    expect(pipe.transform('2026-03-01', 'long', false, true)).toBe('March 1, 2026');
+  });
+
   it('devuelve cadena vacía con null, undefined, vacío o fecha inválida', () => {
     expect(pipe.transform(null)).toBe('');
     expect(pipe.transform(undefined)).toBe('');

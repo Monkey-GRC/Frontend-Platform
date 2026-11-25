@@ -1,15 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
-import { NEVER, of, throwError } from 'rxjs';
+import { CatalogService } from '@shared/domain/services/catalog.service';
+import { NEVER, of, throwError, Subject } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
-import { ControlDetail } from '@features/compliance/domain/models/control.models';
+import { ControlDetail, ControlDimension } from '@features/compliance/domain/models/control.models';
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlDetailPanel } from './control-detail-panel';
 import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
+
+const DIMENSIONS: ControlDimension[] = ['policy', 'server', 'database', 'app', 'cloud', 'network', 'endpoint', 'physical', 'process'];
 
 const DETAIL: ControlDetail = {
   id: 'c1',
@@ -47,7 +51,7 @@ describe('ControlDetailPanel', () => {
     evidence = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'listForTest', 'upload', 'download']);
     evidence.list.and.returnValue(NEVER);
     evidence.listForTest.and.returnValue(NEVER);
-    TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), { provide: ControlService, useValue: api }, { provide: EvidenceService, useValue: evidence }] });
+    TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), provideRouter([]), { provide: CatalogService, useValue: { options: () => of(DIMENSIONS.map((value) => ({ value, label: `L-${value}` }))) } }, { provide: ControlService, useValue: api }, { provide: EvidenceService, useValue: evidence }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(ControlDetailPanel);
     fixture.componentRef.setInput('controlId', 'c1');
@@ -56,6 +60,37 @@ describe('ControlDetailPanel', () => {
   }
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+  it('ignores a slow answer that arrives after a newer load (MD-499)', () => {
+    const panel = setup('admin_empresa');
+    const slow = new Subject<NonNullable<ReturnType<typeof panel.detail>>>();
+    const current = panel.detail()!;
+    api.get.and.returnValues(slow as never, of({ ...current, code: 'NEW-1' }) as never);
+    panel.load();
+    panel.load();
+    slow.next({ ...current, code: 'OLD-9' });
+    expect(panel.detail()!.code).toBe('NEW-1');
+  });
+
+  it('drops the draft, the edit mode, the search and the confirmation of the previous control when another one is opened', () => {
+    const panel = setup('admin_empresa');
+    panel.startInterpretation();
+    panel.interpretationDraft.set('Borrador a medio escribir');
+    panel.periodicityOpen.set(true);
+    panel.causeList.search('x');
+    panel.askRemove();
+    expect(panel.editing()).toBeTrue();
+    api.get.and.returnValue(of({ ...DETAIL, id: 'c2' }));
+    fixture.componentRef.setInput('controlId', 'c2');
+    fixture.detectChanges();
+    expect(api.get).toHaveBeenCalledWith('c2', 'technical');
+    expect(panel.mode()).toBe('view');
+    expect(panel.interpretationDraft()).toBe('');
+    expect(panel.periodicityOpen()).toBeFalse();
+    expect(panel.causeList.query()).toBe('');
+    expect(panel.confirmingRemove()).toBeFalse();
+    expect(panel.editing()).toBeFalse();
+  });
 
   it('asks for the technical view for the company admin and the auditor, and the business view for the owner and the delegate', () => {
     setup('admin_empresa');
@@ -69,18 +104,18 @@ describe('ControlDetailPanel', () => {
   });
 
   it('shows the code and the requirements it covers next to the name, and the percentages', () => {
-    const panel = setup('admin_empresa', { ...DETAIL, code: 'IAC-12', requirement_codes: ['CC6.1'], progress: { done: 3, total: 5 }, coverage: { measured: 4, applicable: 5 } });
+    setup('admin_empresa', { ...DETAIL, code: 'IAC-12', requirement_codes: ['CC6.1'], progress: { done: 3, total: 5 }, coverage: { measured: 4, applicable: 5 } });
     expect(text()).toContain('IAC-12');
     expect(text()).toContain('CC6.1');
-    expect(panel.pct(3, 5).replace(/\s/g, '')).toBe('60%');
-    expect(panel.pct(4, 5).replace(/\s/g, '')).toBe('80%');
+    expect(fixture.nativeElement.querySelector('[data-test-score]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-donut')).not.toBeNull();
   });
 
-  it('shows the five dimensions with their word (applies or not), also when the control has no test for them', () => {
+  it('shows the nine dimensions in the catalog order with their word (applies or not), also when the control has no test for them', () => {
     setup('admin_empresa');
     const cells = Array.from(fixture.nativeElement.querySelectorAll('[data-dimension]')) as HTMLElement[];
-    expect(cells.map((c) => c.getAttribute('data-dimension'))).toEqual(['policy', 'server', 'database', 'app', 'cloud']);
-    expect(cells.map((c) => c.getAttribute('data-applies'))).toEqual(['true', 'false', 'false', 'false', 'false']);
+    expect(cells.map((c) => c.getAttribute('data-dimension'))).toEqual(DIMENSIONS);
+    expect(cells.map((c) => c.getAttribute('data-applies'))).toEqual(['true', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']);
     expect(cells[0].textContent).toContain('COMPLIANCE.DETAIL.APPLIES');
     expect(cells[0].querySelector('[data-tone="ok"]')).not.toBeNull();
     expect(cells[2].textContent).toContain('COMPLIANCE.DETAIL.NOT_APPLIES');
@@ -88,7 +123,86 @@ describe('ControlDetailPanel', () => {
     expect(text()).toContain('COMPLIANCE.DETAIL.REASON_IS');
   });
 
-  it('puts the evidence of the control inside the drawer, for this control, and lets only the company admin and the owner and the delegate upload it', () => {
+  it('opens in the wide detail modal: the name as the title, the codes and the score in the fixed header, and «Cerrar» and «Dar de baja» in the footer (MD-499)', () => {
+    setup('admin_empresa', { ...DETAIL, requirement_codes: ['CC6.1'] });
+    const el = fixture.nativeElement as HTMLElement;
+    const dialog = el.querySelector('[role="dialog"]')!;
+    expect(el.querySelector('#' + dialog.getAttribute('aria-labelledby'))?.textContent).toContain('Gestión de accesos');
+    const header = dialog.querySelector('header')!;
+    expect(header.textContent).toContain('IAC-12');
+    expect(header.textContent).toContain('CC6.1');
+    expect(header.querySelector('[data-test-score]')).not.toBeNull();
+    expect(dialog.querySelector('footer [data-detail-close]')).not.toBeNull();
+    expect(dialog.querySelector('footer [data-retire]')).not.toBeNull();
+    expect(el.querySelector('aside')).toBeNull();
+  });
+
+  it('takes the open tab from the address and tells the view when it changes', () => {
+    const panel = setup('admin_empresa', { ...DETAIL, technical: TECH });
+    const changes: string[] = [];
+    panel.tabChange.subscribe((t) => changes.push(t));
+    fixture.componentRef.setInput('requestedTab', 'requirements');
+    fixture.detectChanges();
+    expect(panel.activeTab()).toBe('requirements');
+    panel.selectTab('evidence');
+    expect(changes).toEqual(['evidence']);
+    fixture.componentRef.setInput('requestedTab', 'nope');
+    fixture.detectChanges();
+    expect(panel.activeTab()).toBe('summary');
+  });
+
+  const tabIds = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('[role="tab"]')).map((t) => t.id.replace('detail-tab-', ''));
+  const TECH = { points_of_focus: ['PF-1'], level: 'partial' as const, level_value: 3, complies: false, c_percent: 50, requirements: [] };
+
+  it('shows Summary, Requirements and tests and Evidence in the technical view, and Period only when the audited period is defined', () => {
+    setup('admin_empresa', { ...DETAIL, technical: TECH });
+    expect(tabIds()).toEqual(['summary', 'requirements', 'evidence']);
+    TestBed.resetTestingModule();
+    setup('admin_empresa', { ...DETAIL, technical: { ...TECH, period: { level: 'weak', complies: false, windows: { total: 2, with_evidence: 1 }, missing: [] } } });
+    expect(tabIds()).toEqual(['summary', 'requirements', 'evidence', 'period']);
+    expect(fixture.nativeElement.querySelector('app-control-period')).not.toBeNull();
+  });
+
+  it('shows only Summary and Evidence in the business view, without level or requirements', () => {
+    setup('responsable');
+    expect(tabIds()).toEqual(['summary', 'evidence']);
+    expect(fixture.nativeElement.querySelector('[data-test-level]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-control-requirements')).toBeNull();
+  });
+
+  it('shows one tab at a time and keeps a half-written interpretation when switching tabs', () => {
+    const panel = setup('admin_empresa', { ...DETAIL, technical: TECH });
+    const tab = (id: string) => (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(`[data-tab="${id}"]`)!;
+    expect(tab('summary').hidden).toBeFalse();
+    expect(tab('evidence').hidden).toBeTrue();
+    panel.startInterpretation();
+    panel.interpretationDraft.set('Otra lectura.');
+    panel.selectTab('evidence');
+    fixture.detectChanges();
+    expect(tab('summary').hidden).toBeTrue();
+    expect(tab('evidence').hidden).toBeFalse();
+    expect(panel.editing()).toBeTrue();
+    panel.selectTab('summary');
+    fixture.detectChanges();
+    expect(panel.interpretationDraft()).toBe('Otra lectura.');
+    expect(panel.activeTab()).toBe('summary');
+  });
+
+  it('lists the causes in a searchable table and a click on a row opens that cause', () => {
+    const panel = setup('admin_empresa', { ...DETAIL, causes: [{ id: 'k1', code: 'F007', name: 'Cuentas sin dueño' }, { id: 'k2', code: 'F008', name: 'Claves viejas' }] });
+    const opened: string[] = [];
+    panel.openCause.subscribe((id) => opened.push(id));
+    const rows = () => Array.from(fixture.nativeElement.querySelectorAll('[data-cause-link] tbody tr')) as HTMLElement[];
+    expect(rows().length).toBe(2);
+    (rows()[0] as HTMLElement).click();
+    expect(opened).toEqual(['k1']);
+    panel.causeList.search('claves');
+    fixture.detectChanges();
+    expect(rows().length).toBe(1);
+    expect(rows()[0].textContent).toContain('F008');
+  });
+
+  it('puts the evidence of the control inside the detail, for this control, and lets only the company admin and the owner and the delegate upload it', () => {
     const panel = setup('admin_empresa');
     expect(fixture.nativeElement.querySelector('app-control-evidence')).not.toBeNull();
     expect(evidence.list).toHaveBeenCalledWith('c1', 'technical');
@@ -104,15 +218,16 @@ describe('ControlDetailPanel', () => {
       ...DETAIL,
       technical: {
         points_of_focus: [],
-        control_state: 'incomplete',
-        tests_count: 2,
+        
+        
         tests: [
-          { test_id: 't-doc-1', test_code: 'T-DOC-001', display_name: 'Revisión de diseño de la política', dimension: 'policy', state: 'pending' },
-          { test_id: 't-srv-1', test_code: 'T-SRV-001', display_name: 'Configuración de servidores', dimension: 'server', state: 'no_assets' },
+          { test_id: 't-doc-1', test_code: 'T-DOC-001', display_name: 'Revisión de diseño de la política', dimension: 'policy', status: 'pending', accepts_evidence: true, evidence_fallback: false },
+          { test_id: 't-srv-1', test_code: 'T-SRV-001', display_name: 'Configuración de servidores', dimension: 'server', status: 'pending', accepts_evidence: false, evidence_fallback: false },
         ],
       },
     });
-    expect(text()).toContain('COMPLIANCE.REQUIRES.TITLE');
+    expect(text()).toContain('COMPLIANCE.DETAIL_TABS.EVIDENCE');
+    expect(text()).toContain('COMPLIANCE.REQUIRES.INTRO');
     expect(text()).toContain('T-DOC-001');
     expect(text()).toContain('Configuración de servidores');
     expect(fixture.nativeElement.querySelector('app-control-evidence')).not.toBeNull();
@@ -167,11 +282,22 @@ describe('ControlDetailPanel', () => {
       {
         dimensions: [
           { dimension: 'policy', applies: false, reason_not_applicable: 'No usamos documentos.' },
-          { dimension: 'database', applies: false, reason_not_applicable: 'No operamos bases de datos propias.' },
         ],
       },
       'technical',
     );
+  });
+
+  it('offers the nine dimensions to edit and lets the admin turn on one the detail has no row for', () => {
+    const panel = setup('admin_empresa');
+    panel.startDimensions();
+    expect(panel.dimensionsDraft().map((d) => d.dimension)).toEqual(DIMENSIONS);
+    expect(panel.dimensionsValid()).toBeFalse();
+    api.update.and.returnValue(of(DETAIL));
+    panel.toggleDimension(DIMENSIONS.indexOf('network'), true);
+    expect(panel.dimensionsValid()).toBeTrue();
+    panel.submitDimensions();
+    expect(api.update).toHaveBeenCalledWith('c1', { dimensions: [{ dimension: 'network', applies: true }] }, 'technical');
   });
 
   it('shows the 422 error of a field under that field and keeps the editor open', () => {
@@ -189,7 +315,7 @@ describe('ControlDetailPanel', () => {
     expect(text()).toContain('Es demasiado largo.');
   });
 
-  it('asks for confirmation before retiring, sends nothing until confirmed, and then closes the drawer', () => {
+  it('asks for confirmation before retiring, sends nothing until confirmed, and then closes the detail', () => {
     const panel = setup('admin_empresa');
     api.retire.and.returnValue(of(undefined));
     let changed = 0;
@@ -197,28 +323,28 @@ describe('ControlDetailPanel', () => {
     panel.changed.subscribe(() => changed++);
     panel.closed.subscribe(() => closed++);
 
-    panel.askRetire();
-    expect(panel.confirmingRetire()).toBeTrue();
+    panel.askRemove();
+    expect(panel.confirmingRemove()).toBeTrue();
     expect(api.retire).not.toHaveBeenCalled();
 
-    panel.confirmRetire();
+    panel.confirmRemove();
     expect(api.retire).toHaveBeenCalledWith('c1');
-    expect(panel.confirmingRetire()).toBeFalse();
+    expect(panel.confirmingRemove()).toBeFalse();
     expect(changed).toBe(1);
     expect(closed).toBe(1);
   });
 
-  it('keeps the drawer open and says why when the control cannot be retired', () => {
+  it('keeps the detail open and says why when the control cannot be retired', () => {
     const panel = setup('admin_empresa');
     api.retire.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Este control ya fue dado de baja.' } })));
-    panel.askRetire();
-    panel.confirmRetire();
+    panel.askRemove();
+    panel.confirmRemove();
     fixture.detectChanges();
     expect(panel.error()).toBe('Este control ya fue dado de baja.');
-    expect(panel.confirmingRetire()).toBeFalse();
+    expect(panel.confirmingRemove()).toBeFalse();
   });
 
-  it('guards the drawer while the interpretation or the dimensions differ from what is saved (MD-485)', () => {
+  it('guards the detail while the interpretation or the dimensions differ from what is saved (MD-485)', () => {
     const panel = setup('admin_empresa');
     expect(panel.editing()).toBeFalse();
     panel.startInterpretation();
@@ -231,5 +357,48 @@ describe('ControlDetailPanel', () => {
     expect(panel.editing()).toBeFalse();
     panel.setReason(0, 'No aplica por ahora');
     expect(panel.editing()).toBeTrue();
+  });
+
+  describe('periodicity (G-10, D147)', () => {
+    const REQ = { id: 'r1', code: 'IAC-12-L2', text: 'x', type: 'operational', periodicity: 'monthly' as const, suggested_periodicity: 'quarterly' as const, periodicity_source: 'client' as const, status: 'compliant' as const, tests: [] };
+    const withReqs = (patch: Partial<ControlDetail> = {}): ControlDetail => ({ ...DETAIL, ...patch, technical: { ...TECH, requirements: [REQ], periodicity_change: { periodicity: 'monthly', justification: 'Contrato con el banco', changed_at: '2026-11-20T10:00:00Z' } } });
+    const change = () => fixture.nativeElement.querySelector('[data-change-periodicity]') as HTMLButtonElement | null;
+
+    it('shows the current and the suggested periodicity and the last change to the company admin and the auditor', () => {
+      setup('auditor', withReqs());
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('[data-periodicity-current]')!.textContent).toContain('monthly');
+      expect(el.querySelector('[data-periodicity-suggested]')!.textContent).toContain('quarterly');
+      expect(el.querySelector('[data-periodicity-change]')!.textContent).toContain('COMPLIANCE.PERIODICITY_CHANGE.LAST_REASON');
+    });
+
+    it('offers «Cambiar periodicidad» only to the company admin', () => {
+      setup('admin_empresa', withReqs());
+      expect(change()).not.toBeNull();
+      TestBed.resetTestingModule();
+      setup('auditor', withReqs());
+      expect(change()).toBeNull();
+    });
+
+    it('does not offer it in a control of the organization (it has no catalog requirements)', () => {
+      setup('admin_empresa', withReqs({ origin: 'own' }));
+      expect(change()).toBeNull();
+    });
+
+    it('opens the form, and after saving reloads the detail, closes it, tells the list and shows a toast', () => {
+      const panel = setup('admin_empresa', withReqs());
+      const changed = jasmine.createSpy('changed');
+      panel.changed.subscribe(changed);
+      change()!.click();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('app-control-periodicity-form')).not.toBeNull();
+      const next = withReqs({ name: 'Recalculado' });
+      panel.onPeriodicitySaved(next);
+      fixture.detectChanges();
+      expect(panel.detail()).toBe(next);
+      expect(fixture.nativeElement.querySelector('app-control-periodicity-form')).toBeNull();
+      expect(changed).toHaveBeenCalledTimes(1);
+      expect(toastText()).toContain('COMPLIANCE.PERIODICITY_CHANGE.SAVED');
+    });
   });
 });

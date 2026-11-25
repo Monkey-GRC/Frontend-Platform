@@ -117,12 +117,11 @@ describe('IntegrationsListView', () => {
     expect(q('[data-test-review]')).toBeNull();
   });
 
-  it('opens the detail of the integration when a row is clicked (and has no drawer any more)', () => {
+  it('opens the detail of the integration when a row is clicked', () => {
     setup('admin_empresa', [AWS, JIRA]);
     const nav = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
     click('tbody tr');
     expect(nav).toHaveBeenCalledWith(['/integraciones', 'aws']);
-    expect(q('app-side-drawer')).toBeNull();
     expect(q('[data-test-connection]')).toBeNull();
   });
 

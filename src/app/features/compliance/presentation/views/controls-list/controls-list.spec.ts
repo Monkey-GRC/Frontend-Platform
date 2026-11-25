@@ -1,5 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
@@ -31,7 +33,10 @@ describe('ControlsListView', () => {
   let api: jasmine.SpyObj<ControlService>;
   let fixture: ComponentFixture<ControlsListView>;
 
+  let query: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+
   function setup(role: string): ControlsListView {
+    query = new BehaviorSubject(convertToParamMap({}));
     api = jasmine.createSpyObj<ControlService>('ControlService', ['list']);
     api.list.and.returnValue(of({ items: [ITEM], ...PAGE }));
     const catalogs = jasmine.createSpyObj<CatalogService>('CatalogService', ['options']);
@@ -40,6 +45,7 @@ describe('ControlsListView', () => {
       imports: [ControlsListView],
       providers: [
         provideTranslateService(),
+        { provide: ActivatedRoute, useValue: { queryParamMap: query } },
         { provide: ControlService, useValue: api },
         { provide: CatalogService, useValue: catalogs },
         { provide: ActiveComplianceService, useValue: { serviceId: signal<string | null>('s1') } },
@@ -52,6 +58,7 @@ describe('ControlsListView', () => {
   }
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+  const el = () => fixture.nativeElement as HTMLElement;
 
   it('loads the first page of the service with no filters, in the technical view for the company admin', () => {
     setup('admin_empresa');
@@ -82,13 +89,13 @@ describe('ControlsListView', () => {
     expect(text()).toContain('CC6.2');
   });
 
-  it('shows compliance and coverage as percentages together with the counts, truncated and never a bare number', () => {
+  it('shows progress with its count and the coverage below as a percentage, without repeating the counts, truncated and never a bare number', () => {
     const view = setup('admin_empresa');
     expect(view.pct(3, 5).replace(/\s/g, '')).toBe('60%');
     expect(view.pct(199, 200).replace(/\s/g, '')).toBe('99%');
     expect(view.pct(0, 0)).toBe('—');
-    expect(text()).toContain('COMPLIANCE.CONTROLS.PROGRESS');
-    expect(text()).toContain('COMPLIANCE.CONTROLS.COVERAGE');
+    expect(el().querySelector('[data-progress]')!.textContent).toContain('COMPLIANCE.CONTROLS.PROGRESS_VALUE');
+    expect(el().querySelector('[data-coverage]')!.textContent).toContain('COMPLIANCE.CONTROLS.COVERAGE_SHORT');
   });
 
   it('asks the backend again from page 1 when a topic is picked, and toggles it off when picked twice', () => {
@@ -109,10 +116,14 @@ describe('ControlsListView', () => {
     expect(api.list.calls.mostRecent().args[1]).toEqual({ page: 1, pageSize: 25, trustCriterion: null, readiness: null });
   });
 
-  it('opens the detail of the row that is picked', () => {
+  it('puts the row that is picked in the address (?abrir=) and opens the detail from it', () => {
     const view = setup('admin_empresa');
+    const navigate = spyOn(TestBed.inject(Router), 'navigate');
     view.open(ITEM);
+    expect(navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { abrir: 'c1', tab: null } }));
+    query.next(convertToParamMap({ abrir: 'c1', tab: 'evidence' }));
     expect(view.selected()).toBe('c1');
+    expect(view.tab()).toBe('evidence');
   });
 
   it('shows the error state with a retry when the list cannot be loaded', () => {

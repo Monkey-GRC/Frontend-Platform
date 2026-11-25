@@ -1,7 +1,7 @@
 import { DashboardFramework } from '../models/dashboard.models';
 import { serviceReadiness } from './service-status';
 
-const fw = (readiness: string, verdict: string | null = null): DashboardFramework => ({ code: 'x', name: 'X', readiness, verdict, progress: { done: 1, total: 2 }, coverage: { measured: 1, applicable: 2 } });
+const fw = (readiness: string, verdict: string | null = null): DashboardFramework => ({ code: 'x', name: 'X', readiness, verdict, progress: { done: 1, total: 2 }, coverage: { measured: 1, applicable: 2 }, periodDefined: true });
 
 describe('serviceReadiness', () => {
   it('takes the worst framework', () => {

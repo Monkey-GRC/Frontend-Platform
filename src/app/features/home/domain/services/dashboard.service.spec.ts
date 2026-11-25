@@ -42,6 +42,7 @@ describe('HomeDashboardService', () => {
         frameworks: [
           {
             framework_code: 'soc2', name: 'SOC 2', readiness: 'needs_work', progress: { done: 0, total: 86 }, coverage: { measured: 22, applicable: 86 },
+            evaluation: { period_start: '2026-01-01', period_end: null },
             categories: [
               { failing_controls: [{ control_id: 'k1', code: 'IAC-12', name: 'Accesos' }] },
               { failing_controls: [{ control_id: 'k1', code: 'IAC-12', name: 'Accesos' }, { control_id: 'k2', code: 'MON-3', name: 'Monitoreo' }] },
@@ -54,13 +55,13 @@ describe('HomeDashboardService', () => {
     expect(got!.services).toEqual([
       {
         id: 's1', name: 'Datafunction', assets: 5, risks: 10, risksEvaluated: 4, causes: 56, controls: 86,
-        frameworks: [{ code: 'soc2', name: 'SOC 2', readiness: 'needs_work', verdict: 'non_compliant', progress: { done: 0, total: 86 }, coverage: { measured: 22, applicable: 86 } }],
+        frameworks: [{ code: 'soc2', name: 'SOC 2', readiness: 'needs_work', verdict: 'non_compliant', progress: { done: 0, total: 86 }, coverage: { measured: 22, applicable: 86 }, periodDefined: false }],
         failing: [{ controlId: 'k1', code: 'IAC-12', name: 'Accesos' }, { controlId: 'k2', code: 'MON-3', name: 'Monitoreo' }],
       },
     ]);
   });
 
-  it('a count that cannot be read stays at zero instead of taking the whole panel down', () => {
+  it('a count that cannot be read is «no data» (null), never a zero, and does not take the whole panel down', () => {
     let got: Dashboard | undefined;
     service.load(false).subscribe((d) => (got = d));
     http.expectOne(url('/services')).flush(envelope({ items: [{ id: 's1', name: 'Servicio' }], total: 1 }));
@@ -70,6 +71,17 @@ describe('HomeDashboardService', () => {
     const overview = http.expectOne((r) => r.url.endsWith('/compliance-overview'));
     expect(overview.request.params.has('view')).toBeFalse();
     overview.flush('x', { status: 403, statusText: 'Forbidden' });
-    expect(got!.services[0]).toEqual(jasmine.objectContaining({ assets: 0, risks: 3, causes: 2, frameworks: [], failing: [], controls: 0 }));
+    expect(got!.services[0]).toEqual(jasmine.objectContaining({ assets: null, risks: 3, causes: 2, frameworks: [], failing: [], controls: 0 }));
+  });
+
+  it('a page without a total is «no data» too, not NaN', () => {
+    let got: Dashboard | undefined;
+    service.load(false).subscribe((d) => (got = d));
+    http.expectOne(url('/services')).flush(envelope({ items: [{ id: 's1', name: 'Servicio' }], total: 1 }));
+    http.expectOne((r) => r.url.endsWith('/assets')).flush(envelope({ items: [] }));
+    http.match((r) => r.url.endsWith('/services/s1/risks')).forEach((r) => r.flush(envelope({ items: [], total: 3 })));
+    http.expectOne(url('/services/s1/causes')).flush(envelope({ items: [], total: 2 }));
+    http.expectOne((r) => r.url.endsWith('/compliance-overview')).flush('x', { status: 403, statusText: 'Forbidden' });
+    expect(got!.services[0].assets).toBeNull();
   });
 });

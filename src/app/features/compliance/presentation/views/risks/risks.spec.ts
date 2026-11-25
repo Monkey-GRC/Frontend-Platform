@@ -131,7 +131,7 @@ describe('RisksView', () => {
   it('opens a risk in its own panel when it is in the risks tab, and jumps to the causes tab to open a cause', () => {
     const view = setup('admin_empresa');
     view.openRisk('r1');
-    expect(view.selectedRisk()).toBe('r1');
+    expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { abrir: 'r1', tab: null } }));
     view.openCause('c1');
     expect(router.navigate).toHaveBeenCalledWith(['/', 'cumplimiento', 'causas'], { queryParams: { abrir: 'c1' } });
   });
@@ -139,7 +139,7 @@ describe('RisksView', () => {
   it('opens a cause in its own panel when it is in the causes tab, and jumps to the risks tab to open a risk', () => {
     const view = setup('admin_empresa', 'causes');
     view.openCause('c1');
-    expect(view.selectedCause()).toBe('c1');
+    expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { abrir: 'c1', tab: null } }));
     view.openRisk('r1');
     expect(router.navigate).toHaveBeenCalledWith(['/', 'cumplimiento', 'riesgos'], { queryParams: { abrir: 'r1' } });
   });
@@ -160,14 +160,14 @@ describe('RisksView', () => {
   });
 
   it('draws one table with a section header (and its count) per criterion, and a click on a row opens the risk', () => {
-    const view = setup('admin_empresa');
+    setup('admin_empresa');
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('app-data-table').length).toBe(1);
     expect(Array.from(el.querySelectorAll('[data-group-header]')).map((h) => h.getAttribute('data-group'))).toEqual(['availability', 'confidentiality']);
     expect(el.querySelectorAll('tbody tr:not([data-group-header])').length).toBe(3);
     expect(el.querySelector('app-risk-level-badge')).not.toBeNull();
     (el.querySelectorAll('tbody tr:not([data-group-header])')[1] as HTMLElement).click();
-    expect(view.selectedRisk()).toBe('r1');
+    expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { abrir: 'r1', tab: null } }));
   });
 
   it('draws the causes in the same kind of table, grouped by failure category', () => {

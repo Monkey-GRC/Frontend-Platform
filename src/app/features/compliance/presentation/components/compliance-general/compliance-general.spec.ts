@@ -58,8 +58,8 @@ describe('ComplianceGeneral', () => {
   it('lists every service under the framework it has, each with its own result, and links to its detail', () => {
     api.get.and.callFake((id: string) => of(overview(id, [fw(id === 's2' ? { readiness: 'ready', progress: { done: 4, total: 4 } } : {})])));
     setup();
-    const groups = el().querySelectorAll('[data-group-header]');
-    expect(groups.length).toBe(1);
+    // Un solo marco: sin fila de grupo (data-table no la pinta con un solo grupo; el marco ya está en el banner).
+    expect(el().querySelectorAll('[data-group-header]').length).toBe(0);
     const rows = Array.from(el().querySelectorAll('[data-service-row]'));
     expect(rows.map((r) => r.textContent)).toEqual([jasmine.stringContaining('Facturación'), jasmine.stringContaining('Nómina')]);
     expect(rows.map((r) => r.getAttribute('href'))).toEqual(['/cumplimiento/resumen?servicio=s1', '/cumplimiento/resumen?servicio=s2']);
