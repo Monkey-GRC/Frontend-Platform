@@ -62,7 +62,9 @@
     "SELECT": {
       "COUNT": "{{count}} selected",
       "NO_OPTIONS": "No options",
-      "NONE": "Not chosen"
+      "NONE": "Not chosen",
+      "SEARCH": "Search",
+      "NO_MATCH": "Nothing matches the search"
     },
     "FILE": {
       "DROP_OR_CLICK": "Drag a file here or click to choose one",
@@ -140,7 +142,10 @@
       "MESSAGE": "What you entered in this form has not been saved yet. If you leave now, it will be lost.",
       "KEEP": "Keep editing",
       "CONFIRM": "Discard changes"
-    }
+    },
+    "SHOW_MORE": "Show more",
+    "SHOW_LESS": "Show less",
+    "UNLINK": "Unlink"
   },
   "PAGE_TITLE": {
     "HOME": "Home",
