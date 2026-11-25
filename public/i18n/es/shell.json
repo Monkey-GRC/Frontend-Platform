@@ -10,7 +10,6 @@
       "TEAM": "Equipo",
       "MY_WORK": "Mi trabajo",
       "ASSIGNMENT": "Asignación",
-      "ASSIGN_EXECUTOR": "Asignar ejecutor",
       "MY_TEAM": "Mi equipo",
       "LABEL": "Navegación principal",
       "TOGGLE_SIDEBAR": "Mostrar u ocultar el menú lateral",
@@ -20,7 +19,10 @@
       "TEAM_GROUPS": "Grupos",
       "TEAM_ORG": "Organigrama",
       "LOGO_ALT": "Logotipo de Monkey",
-      "INTEGRATIONS": "Integraciones"
+      "INTEGRATIONS": "Integraciones",
+      "MY_DOCUMENTS": "Mis documentos",
+      "DOCUMENT_LIBRARY": "Biblioteca",
+      "DOCUMENTS": "Documentos"
     },
     "COMING_SOON": "Esta pantalla aún no está disponible. Mientras tanto, tus controles están en Cumplimiento.",
     "HEADER": {

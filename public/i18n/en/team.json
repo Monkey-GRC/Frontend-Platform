@@ -1,7 +1,7 @@
 {
   "TEAM": {
     "INTRO": "Invite your company's people and set their role. Each gets an email to activate their account.",
-    "INTRO_OWN": "Your delegates. Each person you invite gets an email to activate their account.",
+    "INTRO_OWN": "The delegates of your team. Your company administrator invites and organizes them.",
     "YOU": "You",
     "NO_NAME": "No name. Edit it to recognize this person.",
     "LOAD_ERROR": "We could not load the team.",
@@ -32,7 +32,7 @@
     },
     "GROUPS": {
       "INTRO_ADMIN": "Owners form groups that you lead; each owner can lead a team of delegates.",
-      "INTRO_OWN": "Your team of delegates. Create it to invite delegates.",
+      "INTRO_OWN": "Your team of delegates. Your company administrator creates and organizes it.",
       "KIND_RESPONSABLES": "Owners group",
       "KIND_TEAM": "Team of delegates",
       "RENAME": "Rename",
@@ -45,12 +45,9 @@
       "RESPONSIBLE_LABEL": "Owner",
       "RESPONSIBLE_PICK": "Choose an owner",
       "NO_ELIGIBLE": "All your owners already have a team, or there are no owners yet.",
-      "CREATE_OWN_TITLE": "Create your team of delegates",
-      "CREATE_OWN_HELP": "Give it any name you like. You can lead only one team.",
-      "DEFAULT_TEAM_NAME": "{{name}}'s team",
       "EMPTY_TITLE": "There are no groups yet",
       "EMPTY_BODY_ADMIN": "Groups of owners and teams of delegates will show up here once you create them.",
-      "EMPTY_BODY_OWN": "Once you create your team, it will show up here.",
+      "EMPTY_BODY_OWN": "Once the administrator creates your team, it will show up here.",
       "MEMBERS_EMPTY": "This group has nobody yet.",
       "MEMBERS_ERROR": "We could not load the people of this group.",
       "MEMBERS_MORE": "Showing the first {{shown}} of {{total}}.",
@@ -91,7 +88,8 @@
       "ADMIN_EMPRESA": "Administrator",
       "RESPONSABLE": "Owner",
       "DELEGADO": "Delegate",
-      "AUDITOR": "Auditor"
+      "AUDITOR": "Auditor",
+      "COLABORADOR": "Collaborator"
     },
     "STATUS": {
       "ACTIVE": "Active",
@@ -117,7 +115,6 @@
       "TEAM_PICK": "Choose an owner",
       "TEAM_OPTION": "{{leader}} · {{team}}",
       "NO_TEAMS_ADMIN": "No owner has a team yet. Create one from the org chart to invite delegates.",
-      "NO_TEAM_OWN": "You do not have a team yet. Create it to invite delegates.",
       "GO_TO_GROUPS": "Go to the org chart",
       "HELP_ADMIN_EMPRESA": "An administrator manages the team, assigns the owner of each control and validates what is uploaded, like you.",
       "HELP_RESPONSABLE": "An owner is in charge of controls, reviews what their team uploads and splits the execution among their delegates.",
@@ -125,7 +122,8 @@
       "HELP_AUDITOR": "An auditor reviews everything in your company read-only and leaves observations.",
       "TEAM_NAME": "Team name (optional)",
       "TEAM_NAME_HELP": "If you leave it empty it will be called “Team of” plus their name.",
-      "SUBTITLE": "They will get an email to activate their account."
+      "SUBTITLE": "They will get an email to activate their account.",
+      "HELP_COLABORADOR": "A collaborator only reads and accepts the documents you assign. They see no compliance, services or team."
     },
     "INVITATION": {
       "SENT_TITLE": "We sent the invitation to {{email}}",
@@ -198,7 +196,7 @@
     },
     "ORG": {
       "TITLE": "Org chart",
-      "INTRO_ADMIN": "Who reports to whom: administrators on top, each owner with their team of delegates, and auditors apart.",
+      "INTRO_ADMIN": "Who reports to whom: administrators on top, each owner with their team of delegates, and auditors and collaborators apart.",
       "INTRO_OWN": "Your team: you as an owner and the delegates who work with you.",
       "SHOW_INACTIVE": "Show deactivated",
       "EMPTY": "There is nobody on the team yet. Invite the first person from “People”.",
@@ -214,9 +212,8 @@
       "RENAME": "Rename",
       "DEFAULT_TEAM_NAME": "{{name}}'s team",
       "NO_TEAM_ADMIN": "They have no team yet; without one, delegates cannot be assigned to them.",
-      "NO_TEAM_OWN": "You do not have a team yet. Create it to invite delegates.",
+      "NO_TEAM_OWN": "You do not have a team yet. Your company administrator creates it.",
       "CREATE_TEAM": "Create their team",
-      "CREATE_OWN_TEAM": "Create my team",
       "CREATE_TEAM_SAVE": "Create team",
       "NO_DELEGATES": "No delegates yet.",
       "MOVE": "Change owner",
@@ -239,7 +236,9 @@
         "MOVE_TARGET": "We could not move the person: the destination team does not exist or its owner is no longer active."
       },
       "HIDE": "Hide their team",
-      "SHOW": "Show their team"
+      "SHOW": "Show their team",
+      "COLLABORATORS": "Collaborators",
+      "COLLABORATORS_HELP": "Outside the chain: they only read and accept the documents assigned to them, and are not given controls."
     }
   }
 }

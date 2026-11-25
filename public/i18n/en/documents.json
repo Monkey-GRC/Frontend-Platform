@@ -1,0 +1,211 @@
+{
+  "DOCUMENTS": {
+    "LOAD_ERROR_TITLE": "We could not load the documents",
+    "CLEAR_FILTERS": "Clear filters",
+    "STATUS": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted",
+      "OVERDUE": "Overdue"
+    },
+    "VERSION_STATUS": {
+      "DRAFT": "Draft",
+      "IN_APPROVAL": "In approval",
+      "REJECTED": "Rejected",
+      "APPROVED": "Approved",
+      "CURRENT": "Current",
+      "RENEWAL_DUE": "Renewal due",
+      "EXPIRED": "Expired",
+      "ARCHIVED": "Archived"
+    },
+    "ORIGIN": {
+      "INTERNAL": "Internal",
+      "EXTERNAL": "External"
+    },
+    "MINE": {
+      "TITLE": "My documents",
+      "INTRO": "The documents your company asked you to read and accept. Each one has its code, its current version and the deadline to accept it.",
+      "SEARCH": "Search by code or name",
+      "FILTERS": "Search and filter my documents",
+      "FILTER_STATUS": "Status",
+      "TABLE_CAPTION": "Documents assigned to you",
+      "COLUMNS": {
+        "CODE": "Code",
+        "DOCUMENT": "Document",
+        "VERSION": "Current version",
+        "STATUS": "Status and deadline"
+      },
+      "VERSION_NUMBER": "Version {{number}}",
+      "APPROVED_ON": "Approved on {{date}}",
+      "ACCEPTED_ON": "Accepted on {{date}}",
+      "DUE_ON": "Deadline to accept: {{date}}",
+      "OVERDUE_SINCE": "Overdue since {{date}}",
+      "NO_ACCEPTANCE": "No acceptance required",
+      "READ_ONLY": "You only need to read it.",
+      "EMPTY_TITLE": "You have no documents assigned yet",
+      "EMPTY_BODY": "When your company administrator assigns you one, it will show up here with its deadline to accept it.",
+      "EMPTY_FILTERED_TITLE": "No document matches",
+      "EMPTY_FILTERED_BODY": "Try another code or name, or clear the filters."
+    },
+    "READER": {
+      "BACK": "My documents",
+      "MISSING_TITLE": "This document is not assigned to you",
+      "MISSING_BODY": "It may no longer be assigned to you, or the link may be wrong. Check your list of documents.",
+      "ACCEPT_TITLE": "Acceptance",
+      "ACCEPT": "Accept document",
+      "ACCEPT_BODY": "By accepting, it is recorded that you read {{code}}, version {{number}}, with the date and the fingerprint of the file. It cannot be undone.",
+      "ACCEPT_LATE": "The deadline has passed: you can still accept it, and it will be recorded as late.",
+      "ACCEPTED_BODY": "You accepted version {{number}} on {{date}}. If a new version is published, we will ask you to accept it again.",
+      "ACCEPTED_TOAST": "You accepted {{code}}, version {{number}}.",
+      "NOT_REQUIRED_BODY": "This document does not require acceptance: you only need to read it.",
+      "CONFIRM_TITLE": "Accept {{code}}, version {{number}}?",
+      "CONFIRM_BODY": "It will be recorded with your name, the date and the fingerprint of the file. An acceptance cannot be edited or deleted.",
+      "DOWNLOAD": "Download",
+      "REFRESH": "Open again",
+      "LINK_EXPIRES": "The link to the file expires in 5 minutes: if it expires while you read, open it again.",
+      "DOWNLOAD_ONLY_TITLE": "This file is read by downloading it",
+      "DOWNLOAD_ONLY_BODY": "{{name}} cannot be shown on screen. Download it to read it and, when you finish, accept the document.",
+      "VIEWER_ERROR": "We could not open the file. Try again.",
+      "DOWNLOAD_ERROR": "We could not prepare the download. Try again.",
+      "RELOAD": "Refresh document",
+      "ERROR": {
+        "NOT_CURRENT": "A new version was published while you were reading. Refresh the document, read it and accept it again.",
+        "ALREADY_ACCEPTED": "You already accepted this version. Refresh the document to see its status.",
+        "NOT_REQUIRED": "This document no longer requires acceptance. Refresh the document to see it.",
+        "NOT_ASSIGNED": "This document is no longer assigned to you.",
+        "GENERIC": "We could not record your acceptance. Try again."
+      }
+    },
+    "LIST": {
+      "TITLE": "Documents",
+      "INTRO_ADMIN": "Your company's documents, from the frameworks you contracted. Publish the approved version of each one and assign it to the people who must read and accept it.",
+      "INTRO_READER": "The company's documents with their current version and who accepted them. Read only.",
+      "SEARCH": "Search by code or name",
+      "FILTERS": "Search and filter documents",
+      "FILTER_TYPE": "Type",
+      "FILTER_PUBLICATION": "Publication",
+      "PUBLISHED": "With a current version",
+      "UNPUBLISHED": "Not published",
+      "TABLE_CAPTION": "Company documents",
+      "COLUMNS": {
+        "CODE": "Code",
+        "NAME": "Document",
+        "VERSION": "Current version",
+        "ACCEPTANCE": "Acceptance"
+      },
+      "ACCEPTED_OF": "{{accepted}} of {{total}} accepted",
+      "OUTSTANDING": "Pending: {{pending}} · Overdue: {{overdue}}",
+      "UNASSIGNED": "Not assigned",
+      "EMPTY_TITLE": "There are no documents yet",
+      "EMPTY_BODY": "Documents appear when the company has a service with a contracted framework.",
+      "EMPTY_FILTERED_TITLE": "No document matches",
+      "EMPTY_FILTERED_BODY": "Try another code or name, or clear the filters."
+    },
+    "DETAIL": {
+      "TITLE": "Document",
+      "TABS_ARIA": "Document sections",
+      "TABS": {
+        "SUMMARY": "Summary",
+        "VERSIONS": "Versions",
+        "PEOPLE": "People"
+      },
+      "CURRENT_BADGE": "Current: version {{number}}",
+      "LOAD_ERROR_TITLE": "We could not load the document",
+      "WHAT": "What it is",
+      "NO_DESCRIPTION": "This document has no description yet.",
+      "MINIMUM": "Minimum content it must have",
+      "NO_MINIMUM": "No minimum content was defined.",
+      "CURRENT": "Current version",
+      "APPROVED_AT": "Approved on",
+      "UNPUBLISHED": "The current version has not been published yet.",
+      "UNPUBLISHED_ADMIN": "It has no current version yet. Publish the approved version so you can assign it to people.",
+      "ACCEPTANCE": "Acceptance",
+      "RULE": "Who must accept it: {{rule}}.",
+      "COUNTS": {
+        "ASSIGNED": "Assigned to",
+        "ACCEPTED": "Accepted",
+        "OF": "of {{total}}"
+      },
+      "ASSIGN": "Assign people",
+      "PUBLISH": "Publish version",
+      "ASSIGN_NEEDS_VERSION": "Publish a version before assigning it.",
+      "DOWNLOAD": "Download",
+      "DOWNLOAD_ERROR": "We could not prepare the download. Try again.",
+      "IMPORTED": "Imported approval (approved outside Monkey)",
+      "NOTE": "Note: {{note}}",
+      "HASH": "Fingerprint: {{hash}}…",
+      "VERSIONS": {
+        "SEARCH": "Search by number or file",
+        "CAPTION": "Document versions",
+        "COLUMNS": {
+          "VERSION": "Version",
+          "APPROVAL": "Approval",
+          "FILE": "File"
+        },
+        "EMPTY_TITLE": "There are no versions yet",
+        "EMPTY_BODY": "The first one appears when the approved version is published.",
+        "EMPTY_FILTERED": "No version matches"
+      },
+      "PEOPLE": {
+        "SEARCH": "Search by name",
+        "CAPTION": "People with the document assigned",
+        "COLUMNS": {
+          "PERSON": "Person",
+          "STATUS": "Status",
+          "DETAIL": "Acceptance and deadline"
+        },
+        "ACCEPTED": "Accepted version {{number}} on {{date}}",
+        "NOT_ACCEPTED": "Has not accepted it yet",
+        "EMPTY_TITLE": "It has not been assigned to anyone yet",
+        "EMPTY_BODY": "Only the company administrator assigns documents.",
+        "EMPTY_BODY_ADMIN": "Use «Assign people» to ask them to read and accept it.",
+        "EMPTY_FILTERED": "No person matches"
+      }
+    },
+    "PUBLISH": {
+      "TITLE": "Publish version",
+      "SUBTITLE": "Upload the approved file and say who approved it and when. The new version becomes the current one.",
+      "REACCEPT": "Those who already have it assigned ({{count}}) will have to accept the new version.",
+      "FILE": "Approved file",
+      "APPROVED_AT": "Approval date",
+      "APPROVED_AT_HINT": "The day it was approved outside Monkey. It cannot be a future date.",
+      "APPROVERS": "Who approved it",
+      "APPROVERS_HINT": "From 1 to {{max}} people, with their name and position. They do not need an account.",
+      "APPROVER_NAME": "Name",
+      "APPROVER_ROLE": "Position",
+      "ADD_APPROVER": "Add approver",
+      "REMOVE_APPROVER": "Remove",
+      "NOTE": "Note (optional)",
+      "NOTE_HINT": "For example, the reference of the minutes. 500 characters at most.",
+      "SUBMIT": "Publish version",
+      "DONE": "You published version {{number}}.",
+      "ERROR": "We could not publish the version. Try again."
+    },
+    "ASSIGN": {
+      "TITLE": "Assign people",
+      "SUBTITLE": "Choose who must read and accept this document. The deadline to accept it starts when you assign it.",
+      "SEARCH": "Search by name or email",
+      "FILTERS": "Search and filter people",
+      "FILTER_ROLE": "Role",
+      "TABLE_CAPTION": "People the document can be assigned to",
+      "COLUMNS": {
+        "PERSON": "Person",
+        "ROLE": "Role",
+        "STATUS": "Account"
+      },
+      "SELECTED": "People chosen: {{count}} (maximum {{max}})",
+      "CLEAR_SELECTION": "Clear selection",
+      "EMPTY_TITLE": "There is nobody to assign",
+      "EMPTY_BODY": "Everybody who can accept it already has it assigned.",
+      "EMPTY_FILTERED_TITLE": "No person matches",
+      "EMPTY_FILTERED_BODY": "Try another name or clear the filters.",
+      "LOAD_ERROR": "We could not load the people",
+      "SUBMIT": "Assign",
+      "DONE": "Assignment done. New people: {{count}}.",
+      "ERROR": {
+        "NOT_ELIGIBLE": "Nobody was assigned: {{count}} of the chosen people can no longer receive it (inactive account or a role that does not accept). Choose again.",
+        "NOT_PUBLISHED": "This document has no current version yet: publish it before assigning.",
+        "GENERIC": "We could not assign the document. Try again."
+      }
+    }
+  }
+}

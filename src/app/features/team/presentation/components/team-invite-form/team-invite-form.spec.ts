@@ -6,7 +6,7 @@ import { Group } from '@features/team/domain/models/group.models';
 import { InvitedMember, TeamMember } from '@shared/domain/models/team.models';
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
-import { InviteActor, TeamInviteForm } from './team-invite-form';
+import { TeamInviteForm } from './team-invite-form';
 import { isSelect, optionValues, pickOption } from '@shared/presentation/components/select/select.testing';
 
 const group = (over: Partial<Group>): Group => ({ id: 'g1', name: 'Grupo', kind: 'team', leader: { id: 'r1', name: 'María', last_name: 'Gómez', role: 'responsable' }, members_count: 0, ...over });
@@ -24,14 +24,13 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
   let groupApi: jasmine.SpyObj<GroupService>;
   let fixture: ComponentFixture<TeamInviteForm>;
 
-  function setup(actor: InviteActor, groups: Group[] = [], members: TeamMember[] = []): TeamInviteForm {
+  function setup(groups: Group[] = [], members: TeamMember[] = []): TeamInviteForm {
     api = jasmine.createSpyObj<TeamService>('TeamService', ['invite']);
     api.invite.and.returnValue(of(created()));
     groupApi = jasmine.createSpyObj<GroupService>('GroupService', ['create']);
     groupApi.create.and.returnValue(of(TEAM_MARIA));
     TestBed.configureTestingModule({ imports: [TeamInviteForm], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: TeamService, useValue: api }, { provide: GroupService, useValue: groupApi }] });
     fixture = TestBed.createComponent(TeamInviteForm);
-    fixture.componentRef.setInput('actor', actor);
     fixture.componentRef.setInput('groups', groups);
     fixture.componentRef.setInput('members', members);
     fixture.detectChanges();
@@ -65,20 +64,15 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
   const roleValues = () => optionValues(el(), '[data-test-role]', () => fixture.detectChanges());
 
   describe('who can create whom (D102 punto 2)', () => {
-    it('lets the administrator create every role', () => {
-      setup('admin_empresa', [RESPONSABLES]);
-      expect(roleValues()).toEqual(['responsable', 'delegado', 'auditor', 'admin_empresa']);
-    });
-
-    it('lets an owner create only delegates', () => {
-      setup('responsable', [TEAM_MARIA]);
-      expect(roleValues()).toEqual(['delegado']);
+    it('lets the administrator create every role, the collaborator included (MD-503)', () => {
+      setup([RESPONSABLES]);
+      expect(roleValues()).toEqual(['responsable', 'delegado', 'auditor', 'colaborador', 'admin_empresa']);
     });
   });
 
   describe('administrator', () => {
     it('needs the email, first and last name; an auditor and an administrator need nothing else, and send no group nor affiliation', () => {
-      setup('admin_empresa', [RESPONSABLES]);
+      setup([RESPONSABLES]);
       type('[data-test-role]', 'auditor');
       expect(submitDisabled()).toBeTrue();
       fillPerson();
@@ -92,7 +86,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('creating a responsible also creates their team, so nobody creates groups apart: it never asks for a group', () => {
-      const component = setup('admin_empresa', [RESPONSABLES]);
+      const component = setup([RESPONSABLES]);
       const teamCreated = jasmine.createSpy('teamCreated');
       component.teamCreated.subscribe(teamCreated);
       fillPerson();
@@ -105,7 +99,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('uses the team name that was typed, and leaves it empty by default', () => {
-      setup('admin_empresa', [RESPONSABLES]);
+      setup([RESPONSABLES]);
       expect(q<HTMLInputElement>('[data-test-team-name]').value).toBe('');
       fillPerson();
       type('[data-test-team-name]', '  Seguridad Cloud ');
@@ -115,7 +109,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('asks for a team name only for a responsible, and creates no team for any other role', () => {
-      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA]);
+      setup([RESPONSABLES, TEAM_MARIA]);
       for (const role of ['delegado', 'auditor', 'admin_empresa']) {
         type('[data-test-role]', role);
         expect(el().querySelector('[data-test-team-name]')).toBeNull();
@@ -126,17 +120,22 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(groupApi.create).not.toHaveBeenCalled();
     });
 
-    it('an owner creating a delegate never creates a team', () => {
-      setup('responsable', [TEAM_MARIA]);
+    it('a collaborator needs only the person: no team, no affiliation, no team name, and none is sent (D136, D150)', () => {
+      setup([RESPONSABLES, TEAM_MARIA]);
+      type('[data-test-role]', 'colaborador');
+      expect(el().querySelector('[data-test-team]')).toBeNull();
       expect(el().querySelector('[data-test-team-name]')).toBeNull();
+      expect(el().querySelector('[data-test-internal]')).toBeNull();
+      expect(q('[data-test-role-help]').textContent).toContain('TEAM.INVITE.HELP_COLABORADOR');
       fillPerson();
-      click('[data-test-internal]');
+      expect(submitDisabled()).toBeFalse();
       submitForm();
+      expect(api.invite).toHaveBeenCalledOnceWith({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'colaborador' });
       expect(groupApi.create).not.toHaveBeenCalled();
     });
 
     it('when the default team name is already used by another team, tries again with the email at the end', () => {
-      setup('admin_empresa', [RESPONSABLES]);
+      setup([RESPONSABLES]);
       const taken = new HttpErrorResponse({ status: 409, error: { message: 'Ese nombre ya existe.', error: { code: 'GROUP_NAME_TAKEN' } } });
       groupApi.create.and.returnValues(throwError(() => taken), of(TEAM_MARIA));
       fillPerson();
@@ -146,7 +145,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('when the person was created but the team was not, still tells the parent who was created and why the team failed', () => {
-      const component = setup('admin_empresa', [RESPONSABLES]);
+      const component = setup([RESPONSABLES]);
       const invited = jasmine.createSpy('invited');
       const failed = jasmine.createSpy('failed');
       component.invited.subscribe(invited);
@@ -160,7 +159,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
       expect(failed).toHaveBeenCalledOnceWith('Ese nombre ya existe.');
     });
     it('for a delegate asks whether it is internal or external, and the team (D104: it must already exist), before enabling the button', () => {
-      setup('admin_empresa', [RESPONSABLES, TEAM_MARIA, TEAM_PEDRO]);
+      setup([RESPONSABLES, TEAM_MARIA, TEAM_PEDRO]);
       type('[data-test-role]', 'delegado');
       fillPerson();
       expect(submitDisabled()).toBeTrue();
@@ -174,7 +173,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('sends an external delegate as is_internal false (a real choice, not a default)', () => {
-      setup('admin_empresa', [TEAM_MARIA]);
+      setup([TEAM_MARIA]);
       type('[data-test-role]', 'delegado');
       fillPerson();
       click('[data-test-external]');
@@ -184,7 +183,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('explains that no owner has a team yet and does not let a delegate be created without one', () => {
-      setup('admin_empresa', [RESPONSABLES]);
+      setup([RESPONSABLES]);
       type('[data-test-role]', 'delegado');
       fillPerson();
       click('[data-test-internal]');
@@ -194,30 +193,9 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
   });
 
-  describe('owner', () => {
-    it('creates a delegate in their own team: asks only the affiliation and never sends the group', () => {
-      setup('responsable', [TEAM_MARIA]);
-      fillPerson();
-      expect(el().querySelector('[data-test-team]')).toBeNull();
-      expect(submitDisabled()).toBeTrue();
-      click('[data-test-internal]');
-      expect(submitDisabled()).toBeFalse();
-      submitForm();
-      expect(api.invite).toHaveBeenCalledWith({ email: 'juan@acme.co', name: 'Juan', last_name: 'Pérez', role: 'delegado', is_internal: true });
-    });
-
-    it('while the owner has no team yet, says so and does not allow creating delegates', () => {
-      setup('responsable', []);
-      fillPerson();
-      click('[data-test-internal]');
-      expect(q('[data-test-no-team]').textContent).toContain('TEAM.INVITE.NO_TEAM_OWN');
-      expect(submitDisabled()).toBeTrue();
-    });
-  });
-
   describe('after sending', () => {
     it('tells the parent who was created and clears the form', () => {
-      const component = setup('admin_empresa', [RESPONSABLES]);
+      const component = setup([RESPONSABLES]);
       let emitted: InvitedMember | null = null;
       component.invited.subscribe((m) => (emitted = m));
       type('[data-test-role]', 'auditor');
@@ -229,7 +207,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('says under the email that it is registered when the server refuses it (another company), without a general error', () => {
-      setup('admin_empresa', [RESPONSABLES]);
+      setup([RESPONSABLES]);
       api.invite.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { message: 'Ya existe una cuenta con ese correo.', error: { code: 'EMAIL_TAKEN' } } })));
       type('[data-test-role]', 'auditor');
       fillPerson('otra@empresa.co');
@@ -239,7 +217,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('explains the user limit with the numbers the server gives, and without them when it does not', () => {
-      setup('admin_empresa', [RESPONSABLES]);
+      setup([RESPONSABLES]);
       type('[data-test-role]', 'auditor');
       fillPerson();
       api.invite.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { error: { code: 'USER_LIMIT_REACHED', max_users: 10, users_count: 10 } } })));
@@ -252,7 +230,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('explains that the owner has no team when the server says so (RESPONSIBLE_HAS_NO_TEAM)', () => {
-      setup('admin_empresa', [TEAM_MARIA]);
+      setup([TEAM_MARIA]);
       api.invite.and.returnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { error: { code: 'RESPONSIBLE_HAS_NO_TEAM' } } })));
       type('[data-test-role]', 'delegado');
       fillPerson();
@@ -263,7 +241,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
     });
 
     it('shows the translated message of any other error the server sends (validation)', () => {
-      setup('admin_empresa', [RESPONSABLES]);
+      setup([RESPONSABLES]);
       api.invite.and.returnValue(throwError(() => new HttpErrorResponse({ status: 422, error: { message: 'Revisa los datos.', error: { code: 'VALIDATION_FAILED' } } })));
       type('[data-test-role]', 'auditor');
       fillPerson();
@@ -274,7 +252,7 @@ describe('TeamInviteForm (MD-197, D102, D104)', () => {
 
   describe('an email that is already in the team', () => {
     it('says so at once, does not allow creating it again and offers to fix the name', () => {
-      const component = setup('admin_empresa', [RESPONSABLES], [member({ id: 'pen', email: 'pen@acme.co', name: null, last_name: null, status: 'pending', role: 'auditor' })]);
+      const component = setup([RESPONSABLES], [member({ id: 'pen', email: 'pen@acme.co', name: null, last_name: null, status: 'pending', role: 'auditor' })]);
       let fixed: TeamMember | null = null;
       component.fixName.subscribe((m) => (fixed = m));
       type('[data-test-role]', 'auditor');

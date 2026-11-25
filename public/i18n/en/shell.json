@@ -10,7 +10,6 @@
       "TEAM": "Team",
       "MY_WORK": "My work",
       "ASSIGNMENT": "Assignment",
-      "ASSIGN_EXECUTOR": "Assign executor",
       "MY_TEAM": "My team",
       "LABEL": "Main navigation",
       "TOGGLE_SIDEBAR": "Show or hide the side menu",
@@ -20,7 +19,10 @@
       "TEAM_GROUPS": "Groups",
       "TEAM_ORG": "Org chart",
       "LOGO_ALT": "Monkey logo",
-      "INTEGRATIONS": "Integrations"
+      "INTEGRATIONS": "Integrations",
+      "MY_DOCUMENTS": "My documents",
+      "DOCUMENT_LIBRARY": "Library",
+      "DOCUMENTS": "Documents"
     },
     "COMING_SOON": "This screen is not available yet. Meanwhile, your controls are in Compliance.",
     "HEADER": {

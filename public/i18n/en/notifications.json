@@ -1,0 +1,104 @@
+{
+  "NOTIFICATIONS": {
+    "PAGE_TITLE": {
+      "CENTER": "Notifications",
+      "SETTINGS": "Settings · Notifications"
+    },
+    "READ": "Read",
+    "UNREAD": "Unread",
+    "BELL": {
+      "TITLE": "Notifications",
+      "LABEL_NONE": "Notifications, none unread",
+      "LABEL_ONE": "Notifications, 1 unread",
+      "LABEL_MANY": "Notifications, {{count}} unread"
+    },
+    "PANEL": {
+      "TITLE": "Notifications",
+      "MARK_ALL": "Mark all as read",
+      "SEE_ALL": "See all notifications",
+      "ERROR_TITLE": "We could not load your notifications",
+      "EMPTY_TITLE": "You have no notifications",
+      "EMPTY_BODY": "When one of your controls needs attention (a window about to close, evidence approved or rejected, an assigned control), you will see it here.",
+      "UNREAD_ONLY": "Show only unread",
+      "OPEN_CENTER": "Open notifications",
+      "ACTIONS": "More actions",
+      "RECENT": "Latest",
+      "OLDER": "Older",
+      "EMPTY_UNREAD_TITLE": "You have no unread notifications",
+      "EMPTY_UNREAD_BODY": "Turn off «Show only unread» to see the ones you already read."
+    },
+    "DETAIL": {
+      "TITLE": "Notification",
+      "CONTROL": "Control",
+      "SERVICE": "Service",
+      "TYPE": "Notification type",
+      "RECEIVED": "Received",
+      "DUE": "Window closes",
+      "OPEN_CONTROL": "Open control {{code}}",
+      "EMPTY": "This notification has no further detail. Open the control to see what is missing.",
+      "MARK_READ": "Mark as read",
+      "MARK_UNREAD": "Mark as unread",
+      "STATE": "Status",
+      "CONTROLS": "Controls in this notification",
+      "ASSIGN_UNOWNED": "Assign the controls with no owner"
+    },
+    "FIELDS": {
+      "what_happened": "What happened",
+      "why_it_matters": "Why it matters",
+      "how_to_fix": "How to fix it",
+      "who": "Who",
+      "time_needed": "How long",
+      "evidence": "What evidence",
+      "impact": "What impact it has"
+    },
+    "FILTER": {
+      "ALL": "All",
+      "UNREAD": "Unread",
+      "READ": "Read",
+      "STATUS": "Reading status",
+      "TYPE": "All types"
+    },
+    "TABLE": {
+      "CAPTION": "Your notifications from the last 90 days",
+      "STATE": "Reading",
+      "NOTICE": "Notification",
+      "TYPE": "Type",
+      "RECEIVED": "Received"
+    },
+    "CENTER": {
+      "TITLE": "Notifications",
+      "INTRO": "What needs your attention in your controls, from the last 90 days. Only you see your notifications.",
+      "PREFERENCES": "Email preferences",
+      "SEARCH": "Search by control code, requirement, service or notification text",
+      "TOOLBAR": "Search and filter notifications",
+      "LOAD_ERROR_TITLE": "We could not load your notifications",
+      "EMPTY_TITLE": "You have no notifications yet",
+      "EMPTY_BODY": "We will tell you here when one of your controls needs attention: a window about to close, evidence approved or rejected, or a control assigned to you.",
+      "EMPTY_FILTERED_TITLE": "No notification matches",
+      "EMPTY_FILTERED_BODY": "Try another search or remove the filters to see all your notifications.",
+      "CLEAR_FILTERS": "Clear filters",
+      "NOT_AVAILABLE": "This notification is no longer available",
+      "NOT_AVAILABLE_BODY": "Notifications are kept for 90 days. The ones listed here are the most recent."
+    },
+    "SETTINGS": {
+      "NAV": "Notifications",
+      "TITLE": "Notifications",
+      "INTRO": "Choose whether you want an email summary of the notifications you have not read.",
+      "EMAIL_GROUP": "Email",
+      "DIGEST_TITLE": "Daily email summary",
+      "DIGEST_DESC": "Once a day we send you the notifications you still have unread. If there are none, we do not write to you.",
+      "DIGEST_TIME": "Sent from {{utc}} UTC ({{local}} in your time zone).",
+      "ON": "On",
+      "OFF": "Off",
+      "SAVED_ON": "You will receive the daily email summary",
+      "SAVED_OFF": "You will no longer receive the daily email summary",
+      "ERROR_TITLE": "We could not save the change",
+      "ERROR_FALLBACK": "Try again in a few minutes.",
+      "LOAD_ERROR": "We could not load your preferences.",
+      "APP_GROUP": "In the app",
+      "BELL_TITLE": "Bell notifications",
+      "BELL_DESC": "Bell notifications cannot be turned off: they are the record of what needs your attention. Turning off the email does not remove them.",
+      "BELL_ALWAYS": "Always on"
+    }
+  }
+}

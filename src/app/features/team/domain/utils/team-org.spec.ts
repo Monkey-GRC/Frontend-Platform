@@ -28,6 +28,14 @@ describe('buildOrgChart', () => {
     expect(chart.orphans).toEqual([]);
   });
 
+  it('puts the collaborators apart, outside the chain, sorted by name, and never inside a team (D136)', () => {
+    const chart = buildOrgChart([admin, maria, member('c2', 'colaborador', 'Zoe'), member('c1', 'colaborador', 'Ana'), member('c3', 'colaborador', 'Luis', { status: 'inactive' })], [tMaria]);
+    expect(chart.collaborators.map((m) => m.id)).toEqual(['c1', 'c2']);
+    expect(chart.responsibles.flatMap((r) => r.delegates)).toEqual([]);
+    expect(chart.orphans).toEqual([]);
+    expect(buildOrgChart([member('c3', 'colaborador', 'Luis', { status: 'inactive' })], [], true).collaborators.map((m) => m.id)).toEqual(['c3']);
+  });
+
   it('a responsible with no team yet is still shown, with no team', () => {
     const chart = buildOrgChart([maria], []);
     expect(chart.responsibles[0].team).toBeNull();

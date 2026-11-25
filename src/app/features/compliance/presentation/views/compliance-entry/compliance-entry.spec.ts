@@ -54,6 +54,16 @@ describe('ComplianceEntryView · un solo servicio', () => {
     TestBed.createComponent(ComplianceEntryView).detectChanges();
     expect(navigate).toHaveBeenCalledWith(['/', 'cumplimiento', 'resumen'], { queryParams: { servicio: 's1' }, replaceUrl: true });
   });
+  it('takes the delegate to the controls, not to the summary that is no longer theirs (D136)', () => {
+    const navigate = spyOn(Router.prototype, 'navigate').and.resolveTo(true);
+    TestBed.configureTestingModule({
+      imports: [ComplianceEntryView],
+      providers: [provideRouter([]), provideTranslateService(), { provide: ComplianceServicesService, useValue: { list: () => of([{ id: 's1', name: 'Facturación', frameworks: [] }]) } }],
+    });
+    TestBed.inject(SessionService).set({ id: 'u', email: 'a@x.co', name: null, last_name: null, role: 'delegado' }, { id: 'c', name: 'ACME' });
+    TestBed.createComponent(ComplianceEntryView).detectChanges();
+    expect(navigate).toHaveBeenCalledWith(['/', 'cumplimiento', 'controles'], { queryParams: { servicio: 's1' }, replaceUrl: true });
+  });
   it('follows the session: the role flags are computed, not read once', () => {
     TestBed.configureTestingModule({
       imports: [ComplianceEntryView],

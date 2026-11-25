@@ -1,8 +1,10 @@
+import { Component, Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
+import { HEADER_WIDGETS } from '@core/presentation/components/app-header/header-widgets';
 import { SidebarService } from '@core/domain/services/sidebar.service';
 import { AppHeaderComponent } from './app-header.component';
 
@@ -59,5 +61,42 @@ describe('AppHeaderComponent · pin of the side menu', () => {
     let open = false;
     sidebar.isMobileOpen$.subscribe((v) => (open = v)).unsubscribe();
     expect(open).toBeTrue();
+  });
+});
+
+// What other layers ask to show in the header (the bell of the notices) arrives by the `HEADER_WIDGETS` token: `core/` never imports a feature.
+@Component({ selector: 'app-test-widget', template: '<span data-test-widget>widget</span>' })
+class TestWidget {}
+
+@Component({ selector: 'app-other-widget', template: '<span data-other-widget>other</span>' })
+class OtherWidget {}
+
+describe('AppHeaderComponent · widgets of other layers', () => {
+  function create(providers: Provider[]) {
+    TestBed.configureTestingModule({ imports: [AppHeaderComponent], providers: [provideRouter([]), provideTranslateService(), provideHttpClient(), provideHttpClientTesting(), ...providers] });
+    const fixture = TestBed.createComponent(AppHeaderComponent);
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('shows each provided widget before the help menu', () => {
+    const host = create([{ provide: HEADER_WIDGETS, useValue: TestWidget, multi: true }]);
+    const widget = host.querySelector('[data-test-widget]')!;
+    expect(widget).not.toBeNull();
+    expect(widget.compareDocumentPosition(host.querySelector('app-help-menu')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('adds a second provided widget after the first instead of replacing it (multi token)', () => {
+    const host = create([
+      { provide: HEADER_WIDGETS, useValue: TestWidget, multi: true },
+      { provide: HEADER_WIDGETS, useValue: OtherWidget, multi: true },
+    ]);
+    const first = host.querySelector('[data-test-widget]')!;
+    const second = host.querySelector('[data-other-widget]')!;
+    expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('shows nothing extra when nobody provides one', () => {
+    expect(create([]).querySelector('[data-test-widget]')).toBeNull();
   });
 });
