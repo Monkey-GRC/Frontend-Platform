@@ -1,0 +1,64 @@
+<div class="space-y-8">
+  <div>
+    <h1 class="text-2xl font-semibold text-ink">{{ 'NOTIFICATIONS.SETTINGS.TITLE' | translate }}</h1>
+    <p class="mt-1.5 text-base text-ink-faint">{{ 'NOTIFICATIONS.SETTINGS.INTRO' | translate }}</p>
+  </div>
+
+  <section>
+    <h2 class="mb-3 text-lg font-medium text-ink">{{ 'NOTIFICATIONS.SETTINGS.EMAIL_GROUP' | translate }}</h2>
+    <div class="overflow-hidden rounded-card border border-line bg-surface">
+      @switch (stage()) {
+        @case ('loading') {
+          <app-skeleton-region data-testid="prefs-loading">
+            <!-- D116 · La forma de la fila: título, explicación en dos líneas, la hora y, a la derecha, el estado y el interruptor. -->
+            <div class="flex items-center gap-4 px-5 py-4">
+              <div class="min-w-0 flex-1 space-y-2">
+                <app-skeleton shape="title" width="12rem" />
+                <app-skeleton shape="line" [lines]="2" />
+                <app-skeleton shape="line" width="45%" />
+              </div>
+              <div class="flex shrink-0 items-center gap-3">
+                <app-skeleton shape="line" width="4.5rem" />
+                <app-skeleton shape="block" width="2.75rem" height="1.5rem" />
+              </div>
+            </div>
+          </app-skeleton-region>
+        }
+        @case ('error') {
+          <div class="px-5 py-8 text-center" data-testid="prefs-error">
+            <p class="text-sm text-ink-muted">{{ 'NOTIFICATIONS.SETTINGS.LOAD_ERROR' | translate }}</p>
+            <button type="button" (click)="load()" class="mk-btn-secondary-sm mt-3">{{ 'COMMON.RETRY' | translate }}</button>
+          </div>
+        }
+        @default {
+          <div class="flex items-center gap-4 px-5 py-4">
+            <div class="min-w-0 flex-1">
+              <label for="digest-switch" class="block text-base font-medium text-ink">{{ 'NOTIFICATIONS.SETTINGS.DIGEST_TITLE' | translate }}</label>
+              <p class="mt-0.5 text-sm text-ink-faint" id="digest-help">{{ 'NOTIFICATIONS.SETTINGS.DIGEST_DESC' | translate }}</p>
+              @if (localTime(); as local) {
+                <p class="mt-1 text-sm text-ink-muted" data-testid="digest-time">{{ 'NOTIFICATIONS.SETTINGS.DIGEST_TIME' | translate: { utc: utcTime(), local: local } }}</p>
+              }
+            </div>
+            <div class="flex shrink-0 items-center gap-3">
+              <span class="text-sm text-ink-muted" data-testid="digest-state">{{ (enabled() ? 'NOTIFICATIONS.SETTINGS.ON' : 'NOTIFICATIONS.SETTINGS.OFF') | translate }}</span>
+              <app-switch inputId="digest-switch" describedBy="digest-help" data-testid="digest-switch" [checked]="enabled()" [busy]="saving()" (checkedChange)="toggle($event)" />
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  <section>
+    <h2 class="mb-3 text-lg font-medium text-ink">{{ 'NOTIFICATIONS.SETTINGS.APP_GROUP' | translate }}</h2>
+    <div class="overflow-hidden rounded-card border border-line bg-surface">
+      <div class="flex items-center gap-4 px-5 py-4" data-testid="bell-always-on">
+        <div class="min-w-0 flex-1">
+          <p class="text-base font-medium text-ink">{{ 'NOTIFICATIONS.SETTINGS.BELL_TITLE' | translate }}</p>
+          <p class="mt-0.5 text-sm text-ink-faint">{{ 'NOTIFICATIONS.SETTINGS.BELL_DESC' | translate }}</p>
+        </div>
+        <app-status-indicator class="shrink-0" tone="ok" labelKey="NOTIFICATIONS.SETTINGS.BELL_ALWAYS" />
+      </div>
+    </div>
+  </section>
+</div>

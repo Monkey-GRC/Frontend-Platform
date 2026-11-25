@@ -66,9 +66,9 @@
   <!-- Resumen: qué es la causa y cuánto pesa (riesgos que origina, controles que la mitigan) arriba; los riesgos que origina, a todo el ancho. -->
   <div [hidden]="activeTab() !== 'summary'" data-tab="summary" class="flex flex-col gap-8">
     <div class="grid items-start gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      <app-detail-card class="min-w-0" titleKey="COMPLIANCE.CAUSE_DETAIL.DESCRIPTION">
+      <app-detail-section class="min-w-0" titleKey="COMPLIANCE.CAUSE_DETAIL.DESCRIPTION">
         <p class="max-w-prose whitespace-pre-line text-pretty text-sm leading-relaxed text-ink-muted">{{ d.description }}</p>
-      </app-detail-card>
+      </app-detail-section>
       <dl class="flex flex-wrap gap-x-10 gap-y-4 pt-1" data-cause-counts>
         @if (d.cause_origin || d.cause_type) {
         <div class="flex basis-full flex-col items-start gap-1.5" data-cause-classification>
@@ -95,7 +95,7 @@
     @if (d.risks.length > 0) {
     <app-search-field class="mb-4 block w-full" inputId="cause-risks-search" placeholderKey="COMPLIANCE.CAUSE_DETAIL.SEARCH" [value]="riskList.query()" (valueChange)="riskList.search($event)" data-risks-search />
     }
-    <app-detail-card titleKey="COMPLIANCE.CAUSE_DETAIL.RISKS_ORIGINATED">
+    <app-detail-section titleKey="COMPLIANCE.CAUSE_DETAIL.RISKS_ORIGINATED">
       @if (d.risks.length === 0) {
       <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.CAUSE_DETAIL.NO_RISKS' | translate }}</p>
       } @else {
@@ -106,7 +106,7 @@
         <ng-template appCell="risk" let-r><span class="text-sm text-ink"><app-tag [text]="r.code" /> · {{ r.name }}</span></ng-template>
       </app-data-table>
       }
-    </app-detail-card>
+    </app-detail-section>
     </div>
 
   </div>
@@ -117,7 +117,7 @@
     @if (d.controls.length > 0) {
     <app-search-field class="mb-4 block w-full" inputId="cause-controls-search" placeholderKey="COMPLIANCE.CAUSE_DETAIL.SEARCH" [value]="controlList.query()" (valueChange)="controlList.search($event)" data-controls-search />
     }
-    <app-detail-card titleKey="COMPLIANCE.CAUSE_DETAIL.MITIGATING_CONTROLS">
+    <app-detail-section titleKey="COMPLIANCE.CAUSE_DETAIL.MITIGATING_CONTROLS">
       @if (view.canManage() && !picking()) {
       <button actions type="button" (click)="startLink()" [disabled]="saving()" class="mk-btn-secondary-sm">
         <span class="material-symbols-rounded text-[16px]" aria-hidden="true">add_link</span>{{ 'COMPLIANCE.CAUSE_DETAIL.LINK_CONTROL' | translate }}
@@ -153,7 +153,7 @@
         </ng-template>
       </app-data-table>
       }
-    </app-detail-card>
+    </app-detail-section>
   </div>
 
   }

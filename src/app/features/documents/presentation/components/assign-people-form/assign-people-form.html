@@ -1,0 +1,43 @@
+<!-- Va dentro del modal de «Asignar personas» (el título y el pie los pone el modal; el botón de enviar es del pie y apunta a este formulario por su id). -->
+<form id="assign-form" class="flex flex-col gap-2" (submit)="$event.preventDefault(); submit()" [attr.aria-label]="'DOCUMENTS.ASSIGN.TITLE' | translate">
+  @if (error(); as e) {
+  <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-form-error><span>{{ e }}</span></div>
+  }
+
+  @if (stage() === 'error') {
+  <app-empty-state icon="" titleKey="DOCUMENTS.ASSIGN.LOAD_ERROR" descriptionKey="COMMON.CHECK_CONNECTION" data-test-load-error>
+    <button action type="button" (click)="load()" data-test-retry class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  } @else {
+
+  <app-table-toolbar searchPlaceholderKey="DOCUMENTS.ASSIGN.SEARCH" [query]="list.query()" (queryChange)="list.search($event)" ariaLabelKey="DOCUMENTS.ASSIGN.FILTERS">
+    <app-table-filter filters data-test-filter-role labelKey="DOCUMENTS.ASSIGN.FILTER_ROLE" [options]="roleOptions" [value]="roleFilter()" (valueChange)="setRole($event)" />
+    @if (hasFilters()) {
+    <button filters type="button" (click)="clearFilters()" class="mk-btn-secondary">{{ 'DOCUMENTS.CLEAR_FILTERS' | translate }}</button>
+    }
+  </app-table-toolbar>
+
+  <app-data-table captionKey="DOCUMENTS.ASSIGN.TABLE_CAPTION" [columns]="columns" [rows]="list.rows()" [rowKey]="rowKey" [rowLabel]="rowLabel" [page]="list.info()" [loading]="stage() === 'loading'"
+    [selectable]="true" [selected]="selected()" [compact]="true" emptyIcon=""
+    [emptyTitleKey]="hasFilters() ? 'DOCUMENTS.ASSIGN.EMPTY_FILTERED_TITLE' : 'DOCUMENTS.ASSIGN.EMPTY_TITLE'"
+    [emptyDescriptionKey]="hasFilters() ? 'DOCUMENTS.ASSIGN.EMPTY_FILTERED_BODY' : 'DOCUMENTS.ASSIGN.EMPTY_BODY'"
+    (selectionChange)="setSelected($event)" (pageChange)="list.goTo($event)" (pageSizeChange)="list.resize($event)">
+    <ng-template appCell="person" let-m>
+      <app-person-cell [attr.data-test-person]="m.email" [name]="personName(m)" [initialsFrom]="personName(m)" [secondary]="personName(m) !== m.email ? m.email : null" />
+    </ng-template>
+    <ng-template appCell="role" let-m><span class="text-sm text-ink">{{ ('TEAM.ROLE.' + m.role.toUpperCase()) | translate }}</span></ng-template>
+    <ng-template appCell="status" let-m>
+      <app-status-indicator [tone]="m.status === 'active' ? 'ok' : 'warn'" [labelKey]="'TEAM.STATUS.' + m.status.toUpperCase()" />
+    </ng-template>
+  </app-data-table>
+
+  <!-- Cuántas personas lleva elegidas, con el tope del contrato; si se pasa, el botón del pie queda sin habilitar. -->
+  <div class="flex flex-wrap items-center justify-between gap-2 text-sm" aria-live="polite">
+    <span [class]="overLimit() ? 'text-bad-ink' : 'text-ink-muted'" data-test-count>{{ 'DOCUMENTS.ASSIGN.SELECTED' | translate: { count: count(), max: maxAssignees } }}</span>
+    @if (count() > 0) {
+    <button type="button" (click)="clearSelection()" data-test-clear-selection class="mk-btn-secondary-sm">{{ 'DOCUMENTS.ASSIGN.CLEAR_SELECTION' | translate }}</button>
+    }
+  </div>
+
+  }
+</form>

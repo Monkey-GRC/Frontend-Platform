@@ -9,7 +9,7 @@ import { Responsible, RiskDetail, RiskEvaluationEntry } from '@shared/domain/mod
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { ResponsibleService } from '@features/compliance/domain/services/responsible.service';
 import { RiskService } from '@shared/domain/services/risk.service';
-import { DetailCard } from '../detail-card/detail-card';
+import { DetailSection } from '@shared/presentation/components/detail-section/detail-section';
 import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 import { MatrixCell, MatrixPosition, RiskMatrix } from '@shared/presentation/components/risk-matrix/risk-matrix';
 import { targetValue } from '@shared/presentation/utils/event-target';
@@ -25,7 +25,7 @@ import { hasChanges } from '@shared/domain/utils/form-changes';
 // porque no todos los roles pueden leerlo.
 @Component({
   selector: 'app-risk-assessment',
-  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix, DetailCard, Select, Skeleton, SkeletonRegion, Busy, BusyFields],
+  imports: [TranslatePipe, RiskLevelBadge, RiskMatrix, DetailSection, Select, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './risk-assessment.html',
   // Sin caja propia: sus dos secciones se colocan en la rejilla del detalle del riesgo (MD-499).
   host: { class: 'contents' },

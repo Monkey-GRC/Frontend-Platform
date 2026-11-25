@@ -59,7 +59,7 @@
 
   @if (isDelegateRole() && noTeam()) {
   <p class="flex items-start gap-2 text-xs text-ink-muted" data-test-no-team>
-    <span>{{ (isAdminActor() ? 'TEAM.INVITE.NO_TEAMS_ADMIN' : 'TEAM.INVITE.NO_TEAM_OWN') | translate }}
+    <span>{{ 'TEAM.INVITE.NO_TEAMS_ADMIN' | translate }}
       <button type="button" (click)="manageGroups.emit()" data-test-go-groups class="ml-1 font-medium text-action underline">{{ 'TEAM.INVITE.GO_TO_GROUPS' | translate }}</button></span>
   </p>
   } @else {

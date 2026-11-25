@@ -17,6 +17,9 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
   {
     name: 'account',
     labelKey: 'SETTINGS.GROUPS.ACCOUNT',
-    sections: [{ name: 'security', labelKey: 'SETTINGS.SECTIONS.SECURITY', icon: 'shield_lock', path: 'seguridad' }],
+    sections: [
+      { name: 'security', labelKey: 'SETTINGS.SECTIONS.SECURITY', icon: 'shield_lock', path: 'seguridad' },
+      { name: 'notifications', labelKey: 'NOTIFICATIONS.SETTINGS.NAV', icon: 'notifications', path: 'notificaciones' },
+    ],
   },
 ];

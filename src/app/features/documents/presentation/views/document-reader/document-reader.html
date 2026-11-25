@@ -1,0 +1,120 @@
+<section class="w-full pb-10">
+
+  @switch (stage()) {
+
+  @case ('loading') {
+  <!-- D116 · La forma del lector: cabecera con el código y el estado, el visor y el bloque de aceptación. -->
+  <app-skeleton-region data-test-loading>
+    <div class="space-y-3 pb-4"><app-skeleton shape="line" width="8rem" /><app-skeleton shape="title" width="40%" /><div class="flex gap-2"><app-skeleton shape="badge" width="4.5rem" /><app-skeleton shape="badge" width="6rem" /></div></div>
+    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]"><app-skeleton shape="block" height="70vh" /><app-skeleton shape="card" /></div>
+  </app-skeleton-region>
+  }
+
+  @case ('error') {
+  <app-empty-state icon="" titleKey="DOCUMENTS.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION" data-test-error>
+    <button action type="button" (click)="load()" data-test-retry class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  }
+
+  @case ('missing') {
+  <app-empty-state icon="" titleKey="DOCUMENTS.READER.MISSING_TITLE" descriptionKey="DOCUMENTS.READER.MISSING_BODY" data-test-missing>
+    <a action routerLink="/mis-documentos" class="mk-link underline">{{ 'DOCUMENTS.READER.BACK' | translate }}</a>
+  </app-empty-state>
+  }
+
+  @default {
+  @if (item(); as d) {
+  <app-page-header [title]="d.document.name" [backLink]="['/mis-documentos']" [backLabel]="'DOCUMENTS.READER.BACK' | translate">
+  </app-page-header>
+
+  <!-- Código, versión y estado juntos, con su fecha (D80): nunca el estado solo. -->
+  <div class="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2" data-test-meta>
+    <app-tag [text]="d.document.code" />
+    <span class="text-sm tabular-nums text-ink-muted">{{ 'DOCUMENTS.MINE.VERSION_NUMBER' | translate: { number: d.version.number } }} · {{ 'DOCUMENTS.MINE.APPROVED_ON' | translate: { date: (d.version.approved_at | localDate: 'medium' : false : true) } }}</span>
+  </div>
+
+  <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+
+    <!-- El archivo de la versión vigente -->
+    <app-card [padded]="false" class="min-w-0 overflow-hidden">
+      <div class="flex h-[70vh] items-center justify-center bg-canvas" data-test-viewer [attr.data-viewer]="viewer()">
+        @switch (viewer()) {
+        @case ('loading') {
+        <app-skeleton-region class="h-full w-full" data-test-viewer-loading><app-skeleton shape="block" height="70vh" /></app-skeleton-region>
+        }
+        @case ('inline') {
+        @if (isImage()) {
+        <img [src]="fileUrl()" [alt]="fileName()" referrerpolicy="no-referrer" (error)="viewer.set('error')" class="max-h-full max-w-full object-contain" data-test-image />
+        } @else {
+        <iframe [src]="safeUrl()" [title]="fileName()" referrerpolicy="no-referrer" class="h-full w-full border-0" data-test-pdf></iframe>
+        }
+        }
+        @case ('download') {
+        <div class="flex max-w-sm flex-col items-center gap-3 p-6 text-center text-sm text-ink-muted" data-test-download-only>
+          <p class="font-medium text-ink">{{ 'DOCUMENTS.READER.DOWNLOAD_ONLY_TITLE' | translate }}</p>
+          <p>{{ 'DOCUMENTS.READER.DOWNLOAD_ONLY_BODY' | translate: { name: fileName() } }}</p>
+          <button type="button" (click)="download()" [appBusy]="downloading()" data-test-download class="mk-btn">{{ 'DOCUMENTS.READER.DOWNLOAD' | translate }}</button>
+        </div>
+        }
+        @default {
+        <div role="alert" class="flex flex-col items-center gap-3 p-6 text-center text-sm text-ink-muted" data-test-viewer-error>
+          <span>{{ 'DOCUMENTS.READER.VIEWER_ERROR' | translate }}</span>
+          <button type="button" (click)="openFile()" data-test-reopen class="mk-btn-secondary-sm">{{ 'COMMON.RETRY' | translate }}</button>
+        </div>
+        }
+        }
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3 text-xs text-ink-muted">
+        <span>{{ 'DOCUMENTS.READER.LINK_EXPIRES' | translate }}</span>
+        <span class="flex items-center gap-3">
+          <button type="button" (click)="openFile()" data-test-refresh class="mk-btn-secondary-sm">{{ 'DOCUMENTS.READER.REFRESH' | translate }}</button>
+          <button type="button" (click)="download()" [appBusy]="downloading()" class="mk-btn-secondary-sm">{{ 'DOCUMENTS.READER.DOWNLOAD' | translate }}</button>
+        </span>
+      </div>
+      @if (downloadFailed()) {
+      <p class="border-t border-line px-4 py-3 text-xs text-bad-ink" role="alert" data-test-download-error>{{ 'DOCUMENTS.READER.DOWNLOAD_ERROR' | translate }}</p>
+      }
+    </app-card>
+
+    <!-- Aceptar -->
+    <app-card class="min-w-0" data-test-accept-card>
+      <h2 class="text-base font-semibold text-ink">{{ 'DOCUMENTS.READER.ACCEPT_TITLE' | translate }}</h2>
+
+      @if (!d.requires_acceptance) {
+      <app-status-indicator class="mt-3 inline-flex" tone="neutral" labelKey="DOCUMENTS.MINE.NO_ACCEPTANCE" />
+      <p class="mt-3 text-sm text-ink-muted" data-test-not-required>{{ 'DOCUMENTS.READER.NOT_REQUIRED_BODY' | translate }}</p>
+      } @else if (d.status === 'accepted') {
+      <app-status-indicator class="mt-3 inline-flex" tone="ok" labelKey="DOCUMENTS.STATUS.ACCEPTED" />
+      <p class="mt-3 text-sm text-ink-muted" data-test-accepted>{{ 'DOCUMENTS.READER.ACCEPTED_BODY' | translate: { number: d.version.number, date: (d.accepted_at | localDate: 'medium' : true) } }}</p>
+      } @else {
+      <app-status-indicator class="mt-3 inline-flex" [tone]="myStatusTone(d.status)" [labelKey]="'DOCUMENTS.STATUS.' + d.status.toUpperCase()" />
+      <p class="mt-2 text-xs tabular-nums text-ink-muted" data-test-deadline>
+        {{ (d.status === 'overdue' ? 'DOCUMENTS.MINE.OVERDUE_SINCE' : 'DOCUMENTS.MINE.DUE_ON') | translate: { date: (d.due_at | localDate) } }}
+      </p>
+      <p class="mt-3 text-sm text-ink-muted">{{ 'DOCUMENTS.READER.ACCEPT_BODY' | translate: { code: d.document.code, number: d.version.number } }}</p>
+      @if (d.status === 'overdue') {
+      <p class="mt-2 text-sm text-ink-muted">{{ 'DOCUMENTS.READER.ACCEPT_LATE' | translate }}</p>
+      }
+      <button type="button" (click)="ask()" [disabled]="accepting()" data-test-accept class="mk-btn mt-4 w-full">{{ 'DOCUMENTS.READER.ACCEPT' | translate }}</button>
+      }
+
+      @if (problem(); as p) {
+      <div class="mt-4 flex flex-col items-start gap-3 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-problem>
+        <span>{{ p.messageKey ? (p.messageKey | translate) : p.serverMessage }}</span>
+        @if (p.reload) {
+        <button type="button" (click)="load()" data-test-reload class="mk-btn-secondary-sm">{{ 'DOCUMENTS.READER.RELOAD' | translate }}</button>
+        }
+      </div>
+      }
+    </app-card>
+  </div>
+
+  @if (confirming()) {
+  <app-confirm-dialog titleKey="DOCUMENTS.READER.CONFIRM_TITLE" [titleParams]="{ code: d.document.code, number: d.version.number }" messageKey="DOCUMENTS.READER.CONFIRM_BODY"
+    confirmLabelKey="DOCUMENTS.READER.ACCEPT" [busy]="accepting()" (confirmed)="confirm()" (cancelled)="confirming.set(false)" />
+  }
+  }
+  }
+
+  }
+</section>

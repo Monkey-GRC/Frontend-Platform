@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, computed, signal } 
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
-import { isAssignedRole, isCompanyAdmin } from '@shared/domain/utils/roles';
+import { canSeeComplianceSummary, isAssignedRole, isCompanyAdmin } from '@shared/domain/utils/roles';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
 import { ComplianceGeneral } from '../../components/compliance-general/compliance-general';
 import { COMPLIANCE_ROUTE, COMPLIANCE_SERVICE_PARAM, ComplianceServiceRef, DEFAULT_COMPLIANCE_SECTION } from '@features/compliance/domain/models/compliance.models';
@@ -43,7 +43,8 @@ export class ComplianceEntryView implements OnInit {
     this.api.list().subscribe({
       next: (items) => {
         if (items.length === 1) {
-          this.router.navigate(['/', COMPLIANCE_ROUTE, DEFAULT_COMPLIANCE_SECTION], { queryParams: { [COMPLIANCE_SERVICE_PARAM]: items[0].id }, replaceUrl: true });
+          // Quien no recibe el Resumen (el delegado, D136) entra por los controles.
+          this.router.navigate(['/', COMPLIANCE_ROUTE, canSeeComplianceSummary(this.role()) ? DEFAULT_COMPLIANCE_SECTION : 'controles'], { queryParams: { [COMPLIANCE_SERVICE_PARAM]: items[0].id }, replaceUrl: true });
           return;
         }
         this.services.set(items);

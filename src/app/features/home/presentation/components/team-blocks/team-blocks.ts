@@ -47,6 +47,7 @@ export class TeamBlocks {
       responsable: { labelKey: 'TEAM.ROLE.RESPONSABLE', bg: 'bg-data-2' },
       delegado: { labelKey: 'TEAM.ROLE.DELEGADO', bg: 'bg-data-3' },
       auditor: { labelKey: 'TEAM.ROLE.AUDITOR', bg: 'bg-data-4' },
+      colaborador: { labelKey: 'TEAM.ROLE.COLABORADOR', bg: 'bg-data-5' },
     };
     return SUMMARY_ROLES.map((role) => ({ role, ...rows[role], count: s?.byRole[role] ?? 0 }));
   });

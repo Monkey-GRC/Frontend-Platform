@@ -11,10 +11,12 @@ import { PageTitleStrategy } from '@core/domain/services/page-title.strategy';
 import { routes } from './app.routes';
 import { AuthService } from '@core/domain/services/auth.service';
 import { SessionService } from '@core/domain/services/session.service';
+import { HEADER_WIDGETS } from '@core/presentation/components/app-header/header-widgets';
+import { NotificationBell } from '@features/notifications/presentation/components/notification-bell/notification-bell';
 
 // Un archivo por área en `public/i18n/{es,en}/`. Se carga con HttpBackend a propósito: así no pasa
 // por `credentialsInterceptor` y no necesita sesión (el login ya se muestra traducido).
-export const I18N_FILES = ['common', 'shell', 'home', 'auth', 'onboarding', 'services', 'technical-control', 'integrations', 'compliance', 'team', 'settings'] as const;
+export const I18N_FILES = ['common', 'shell', 'home', 'auth', 'onboarding', 'services', 'technical-control', 'integrations', 'compliance', 'team', 'settings', 'documents', 'notifications', 'assignment'] as const;
 
 export function httpLoaderFactory(httpBackend: HttpBackend): MultiTranslateHttpLoader {
   return new MultiTranslateHttpLoader(
@@ -30,6 +32,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withPreloading(PreloadAllModules)),
     { provide: TitleStrategy, useExisting: PageTitleStrategy },
     provideHttpClient(withInterceptors([credentialsInterceptor])),
+    // La campana de avisos en el encabezado: `core/` no importa de las features, así que la pone esta capa por el token (`multi`: otro widget se suma, no la reemplaza).
+    { provide: HEADER_WIDGETS, useValue: NotificationBell, multi: true },
     provideTranslateService({
       loader: { provide: TranslateLoader, useFactory: httpLoaderFactory, deps: [HttpBackend] },
     }),

@@ -21,7 +21,7 @@ import { Group } from '@features/team/domain/models/group.models';
 import { Invitation, InvitedMember, PersonWorkload, TeamFilters, TeamMember, TeamRole, TeamStatus } from '@shared/domain/models/team.models';
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
-import { InviteActor, TeamInviteForm } from '../../components/team-invite-form/team-invite-form';
+import { TeamInviteForm } from '../../components/team-invite-form/team-invite-form';
 import { isCompanyAdmin } from '@shared/domain/utils/roles';
 import { targetValue } from '@shared/presentation/utils/event-target';
 import { Badge } from '@shared/presentation/components/badge/badge';
@@ -44,11 +44,10 @@ const PAGE_SIZE = 25;
 // Los valores de `user_role` y `user_status` (contracts/enums); sus etiquetas salen de i18n. No hay catálogo en la API para estos dos enums. El filtro de estado del Backend
 // hoy acepta `active`, `inactive` y `pending` (no `suspended`).
 const ADMIN_ROLE: TeamRole = 'admin_empresa';
-const ROLE_FILTERS: readonly TeamRole[] = ['admin_empresa', 'responsable', 'delegado', 'auditor'];
+const ROLE_FILTERS: readonly TeamRole[] = ['admin_empresa', 'responsable', 'delegado', 'auditor', 'colaborador'];
 const STATUS_FILTERS: readonly TeamStatus[] = ['active', 'pending', 'inactive'];
 
-// El equipo de la empresa (MD-197, D96, D102, D104). El administrador crea y gestiona a todos (responsables, delegados, auditores y otros administradores); el responsable ve a su equipo y
-// crea delegados para él. La invitación sale por correo (MD-190) y esta pantalla solo informa el resultado. Se retiraron el reparto por servicio y dimensión y las especialidades (MD-206).
+// El equipo de la empresa (MD-197, D96, D102, D104, D136). El administrador crea y gestiona a todos (responsables, delegados, auditores, colaboradores y otros administradores); el responsable solo ve a su equipo. La invitación sale por correo (MD-190) y esta pantalla solo informa el resultado. Se retiraron el reparto por servicio y dimensión y las especialidades (MD-206).
 // Personas es una subpágina del grupo Equipo (`/equipo/personas`); los grupos (MD-198) tienen la suya (`/equipo/grupos`, `TeamGroupsView`). La lista es una tabla de filas activables: la fila (o su
 // flecha) abre un panel lateral de solo lectura con los datos que ya trae la lista y las acciones que ya existen (no hay endpoint de detalle de persona).
 // Falta (espera al Backend): la baja con aviso de controles asignados y corregir si un delegado es interno o externo (ambos en MD-191, aún fuera de develop).
@@ -69,9 +68,8 @@ export class TeamPeopleView implements OnInit {
   private readonly session = inject(SessionService);
   readonly myId = computed(() => this.session.user()?.id);
 
-  /** Solo el administrador cambia a las personas del equipo (la API responde 403 al resto); el responsable ve a su equipo y crea delegados. */
+  /** Solo el administrador crea y cambia a las personas del equipo (la API responde 403 al resto, D136); el responsable ve a su equipo, sin invitar. */
   readonly canManage = computed(() => isCompanyAdmin(this.session.user()?.role));
-  readonly actor = computed<InviteActor>(() => (this.canManage() ? 'admin_empresa' : 'responsable'));
 
   readonly roleOptions: TableFilterOption[] = ROLE_FILTERS.map((r) => ({ value: r, labelKey: 'TEAM.ROLE.' + r.toUpperCase() }));
   readonly statusOptions: TableFilterOption[] = STATUS_FILTERS.map((s) => ({ value: s, labelKey: 'TEAM.STATUS.' + s.toUpperCase() }));

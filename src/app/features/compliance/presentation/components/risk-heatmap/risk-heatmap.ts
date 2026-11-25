@@ -10,6 +10,7 @@ import { RiskService } from '@shared/domain/services/risk.service';
 import { riskLevelHeat } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 import { ProgressLine } from '@shared/presentation/components/progress-line/progress-line';
 import { Tag } from '@shared/presentation/components/tag/tag';
+import { OPEN_PARAM } from '@shared/domain/models/route-links';
 
 interface Cell {
   likelihood: number;
@@ -97,7 +98,7 @@ export class RiskHeatmap {
   });
 
   readonly riskLink = computed(() => ['/', COMPLIANCE_ROUTE, 'riesgos']);
-  readonly riskQuery = (id: string) => ({ abrir: id, [COMPLIANCE_SERVICE_PARAM]: this.serviceId() });
+  readonly riskQuery = (id: string) => ({ [OPEN_PARAM]: id, [COMPLIANCE_SERVICE_PARAM]: this.serviceId() });
 
   protected count(l: number, i: number): number {
     return this.cells().get(`${l}-${i}`)?.risks.length ?? 0;

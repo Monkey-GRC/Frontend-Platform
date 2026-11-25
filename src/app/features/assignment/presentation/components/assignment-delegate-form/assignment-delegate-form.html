@@ -1,0 +1,34 @@
+<app-form-modal titleKey="ASSIGNMENT.DELEGATE.TITLE" descriptionKey="ASSIGNMENT.DELEGATE.SUBTITLE" [busy]="saving()" [guarded]="choice() !== ''" testId="assignment-delegate" (closed)="closed.emit()">
+  <form id="assignment-delegate-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" [attr.aria-label]="'ASSIGNMENT.DELEGATE.TITLE' | translate">
+    @if (error(); as e) {
+      <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-testid="delegate-error"><span>{{ e }}</span></div>
+    }
+
+    <div class="flex flex-wrap items-center gap-2" role="group" [attr.aria-label]="'ASSIGNMENT.FORM.CONTROLS' | translate" data-testid="delegate-controls">
+      @for (c of shown(); track c.client_control_id) {
+        <app-tag [text]="c.code" />
+      }
+      @if (hidden() > 0) {
+        <span class="text-sm text-ink-muted">{{ 'ASSIGNMENT.FORM.AND_MORE' | translate: { count: hidden() } }}</span>
+      }
+    </div>
+
+    @if (reasonKey(); as reason) {
+      <p class="text-sm text-ink" data-testid="delegate-reason">{{ reason | translate }}</p>
+      <p class="text-sm text-ink-muted">{{ 'ASSIGNMENT.DELEGATE.REMOVE_ONLY' | translate }}</p>
+    } @else {
+      <app-field labelKey="ASSIGNMENT.DELEGATE.LABEL" forId="assignment-delegate-select" hintKey="ASSIGNMENT.DELEGATE.HINT">
+        <app-select inputId="assignment-delegate-select" data-testid="delegate-select" [options]="options()" [value]="choice()" [disabled]="saving()" placeholderKey="ASSIGNMENT.DELEGATE.PLACEHOLDER"
+          (valueChange)="choice.set($event)" />
+      </app-field>
+      @if (delegates().length === 0) {
+        <p class="text-sm text-ink-muted" data-testid="delegate-no-team">{{ 'ASSIGNMENT.DELEGATE.NO_TEAM' | translate: { owner: ownerName() } }}</p>
+      } @else {
+        <p class="text-xs text-ink-muted">{{ 'ASSIGNMENT.DELEGATE.TEAM_OF' | translate: { owner: ownerName() } }}</p>
+      }
+    }
+  </form>
+  <button actions type="submit" form="assignment-delegate-form" class="mk-btn" [disabled]="!canSubmit()" [appBusy]="saving()" data-testid="delegate-submit">
+    {{ (removeOnly() ? 'ASSIGNMENT.DELEGATE.SUBMIT_REMOVE' : 'ASSIGNMENT.DELEGATE.SUBMIT') | translate }}
+  </button>
+</app-form-modal>

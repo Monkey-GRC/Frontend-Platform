@@ -21,6 +21,7 @@ import { RiskDetailPanel } from '../../components/risk-detail-panel/risk-detail-
 import { RiskForm } from '@shared/presentation/components/risk-form/risk-form';
 import { RiskLevelBadge } from '@shared/presentation/components/risk-level-badge/risk-level-badge';
 import { Stage } from '../../components/detail-panel-base/detail-panel-base';
+import { OPEN_PARAM } from '@shared/domain/models/route-links';
 
 type Section = 'risks' | 'causes';
 
@@ -152,7 +153,7 @@ export class RisksView {
     });
     // El detalle abierto es el de la dirección: se abre, cambia o se cierra con ella.
     effect(() => {
-      const id = this.queryParams().get('abrir');
+      const id = this.queryParams().get(OPEN_PARAM);
       const risks = this.section() === 'risks';
       untracked(() => {
         this.selectedRisk.set(risks ? id : null);
@@ -213,7 +214,7 @@ export class RisksView {
 
   /** Un control de la causa: se abre en Controles. */
   openControl(id: string): void {
-    this.router.navigate(['/', COMPLIANCE_ROUTE, 'controles'], { queryParams: { abrir: id } });
+    this.router.navigate(['/', COMPLIANCE_ROUTE, 'controles'], { queryParams: { [OPEN_PARAM]: id } });
   }
 
   newItem(): void {
@@ -232,7 +233,7 @@ export class RisksView {
   }
 
   closeDetail(): void {
-    this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: null, tab: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    this.router.navigate([], { relativeTo: this.route, queryParams: { [OPEN_PARAM]: null, tab: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   setTab(tab: string): void {
@@ -240,11 +241,11 @@ export class RisksView {
   }
 
   private show(id: string): void {
-    this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: id, tab: null }, queryParamsHandling: 'merge' });
+    this.router.navigate([], { relativeTo: this.route, queryParams: { [OPEN_PARAM]: id, tab: null }, queryParamsHandling: 'merge' });
   }
 
   private jump(tab: 'riesgos' | 'causas', id: string): void {
-    this.router.navigate(['/', COMPLIANCE_ROUTE, tab], { queryParams: { abrir: id } });
+    this.router.navigate(['/', COMPLIANCE_ROUTE, tab], { queryParams: { [OPEN_PARAM]: id } });
   }
 
   // Solo se pide lo que la pestaña muestra: riesgos en Riesgos, causas en Causas.

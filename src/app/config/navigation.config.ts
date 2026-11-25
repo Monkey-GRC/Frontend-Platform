@@ -1,4 +1,4 @@
-import { ONBOARDING_ROLE } from '@shared/domain/utils/roles';
+import { COMPLIANCE_ROLES, COMPLIANCE_SUMMARY_ROLES, DOCUMENT_LIBRARY_ROLES, MY_DOCUMENTS_ROLES, ONBOARDING_ROLE } from '@shared/domain/utils/roles';
 // src/app/core/config/navigation.config.ts
 
 export interface NavSubItem {
@@ -37,12 +37,12 @@ export const NAV_ITEMS: NavItem[] = [
             { name: 'Mis servicios', labelKey: 'SHELL.NAV.MY_SERVICES', path: '/services', section: 'Work', roles: ['admin_empresa'] },
         ],
     },
-    // Cumplimiento es un grupo: cada sección es una página (sin id; el servicio activo se elige en el encabezado). Todos los roles ven las seis, como antes las pestañas.
+    // Cumplimiento es un grupo: cada sección es una página (sin id; el servicio activo se elige en el encabezado). Lo ven los roles de la matriz (D136), no el colaborador; el Resumen, tampoco el delegado.
     // El `path` del grupo es solo para marcarlo «con la sección activa» también en `/cumplimiento` (el General), que no es una sección.
     {
-        icon: 'verified_user', name: 'Cumplimiento', labelKey: 'SHELL.NAV.COMPLIANCE', path: '/cumplimiento', section: 'Work',
+        icon: 'verified_user', name: 'Cumplimiento', labelKey: 'SHELL.NAV.COMPLIANCE', path: '/cumplimiento', section: 'Work', roles: [...COMPLIANCE_ROLES],
         subItems: [
-            { name: 'Resumen', labelKey: 'COMPLIANCE.SECTIONS.SUMMARY', path: '/cumplimiento/resumen', section: 'Work' },
+            { name: 'Resumen', labelKey: 'COMPLIANCE.SECTIONS.SUMMARY', path: '/cumplimiento/resumen', section: 'Work', roles: [...COMPLIANCE_SUMMARY_ROLES] },
             { name: 'Riesgos', labelKey: 'COMPLIANCE.GLOSSARY.RISKS', path: '/cumplimiento/riesgos', section: 'Work' },
             { name: 'Causas', labelKey: 'COMPLIANCE.GLOSSARY.CAUSES', path: '/cumplimiento/causas', section: 'Work' },
             { name: 'Controles', labelKey: 'COMPLIANCE.GLOSSARY.CONTROLS', path: '/cumplimiento/controles', section: 'Work' },
@@ -50,8 +50,18 @@ export const NAV_ITEMS: NavItem[] = [
             { name: 'Exclusiones', labelKey: 'COMPLIANCE.SECTIONS.EXCLUSIONS', path: '/cumplimiento/exclusiones', section: 'Work' },
         ],
     },
-    // La asignación de controles es una sola pantalla: el administrador asigna el dueño; el responsable, el ejecutor entre sus delegados (MD-199, MD-200).
-    { icon: 'assignment_turned_in', name: 'Asignar ejecutor', labelKey: 'SHELL.NAV.ASSIGN_EXECUTOR', path: '/asignacion', section: 'Work', roles: ['responsable'] },
+    // Documentos (D133, D136): un grupo para quien tiene las dos entradas y una entrada simple para quien tiene una sola. El administrador publica y asigna en «Biblioteca» y acepta los suyos en «Mis documentos»;
+    // el auditor solo lee la biblioteca (no acepta); el responsable, el delegado y el colaborador solo aceptan lo que les asignan (es lo único, con Ajustes, que ve el colaborador).
+    // Son tres entradas porque el menú oculta por rol y no sabe plegar un grupo de un solo hijo: cada rol ve exactamente una.
+    {
+        icon: 'description', name: 'Documentos', labelKey: 'SHELL.NAV.DOCUMENTS', section: 'Work', roles: ['admin_empresa'],
+        subItems: [
+            { name: 'Biblioteca', labelKey: 'SHELL.NAV.DOCUMENT_LIBRARY', path: '/documentos', section: 'Work', roles: [...DOCUMENT_LIBRARY_ROLES] },
+            { name: 'Mis documentos', labelKey: 'SHELL.NAV.MY_DOCUMENTS', path: '/mis-documentos', section: 'Work', roles: [...MY_DOCUMENTS_ROLES] },
+        ],
+    },
+    { icon: 'task', name: 'Documentos asignados', labelKey: 'SHELL.NAV.DOCUMENTS', path: '/mis-documentos', section: 'Work', roles: ['responsable', 'delegado', 'colaborador'] },
+    { icon: 'description', name: 'Documentos de la empresa', labelKey: 'SHELL.NAV.DOCUMENTS', path: '/documentos', section: 'Work', roles: ['auditor'] },
     // The owner's team: a group as well, so that «Grupos» (where they create their team) and «Organigrama» are reachable. `/equipo` redirects to the first child.
     {
         icon: 'groups', name: 'Mi equipo', labelKey: 'SHELL.NAV.MY_TEAM', section: 'Work', roles: ['responsable'],
@@ -72,7 +82,8 @@ export const NAV_ITEMS: NavItem[] = [
             { name: 'Cargos responsables', labelKey: 'SHELL.NAV.RESPONSIBLES', path: '/responsables', section: 'Work', roles: ['admin_empresa'] },
         ],
     },
-    { icon: 'assignment_turned_in', name: 'Asignación', labelKey: 'SHELL.NAV.ASSIGNMENT', path: '/asignacion', section: 'Work', roles: ['admin_empresa'] },
+    // La asignación de controles es una sola pantalla (D150, MD-503): el administrador asigna el dueño y delega; el responsable delega entre los delegados de su equipo.
+    { icon: 'assignment_turned_in', name: 'Asignación', labelKey: 'SHELL.NAV.ASSIGNMENT', path: '/asignacion', section: 'Work', roles: ['admin_empresa', 'responsable'] },
     // Se suma el dashboard cuando exista.
     // Integraciones (D110, MD-211): lo que la empresa conecta. El administrador agrega; el auditor lee.
     { icon: 'hub', name: 'Integraciones', labelKey: 'SHELL.NAV.INTEGRATIONS', path: '/integraciones', section: 'Connect', roles: ['admin_empresa', 'auditor'] },

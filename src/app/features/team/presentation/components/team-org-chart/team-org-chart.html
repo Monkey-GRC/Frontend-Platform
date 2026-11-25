@@ -105,10 +105,12 @@
           </form>
           } @else {
           <p class="flex flex-wrap items-center gap-x-3 gap-y-1" data-org-no-team>
-            <span>{{ (isAdmin() ? 'TEAM.ORG.NO_TEAM_ADMIN' : 'TEAM.ORG.NO_TEAM_OWN') | translate }}</span>
-            <button type="button" (click)="startCreate(r)" data-org-create class="mk-btn-secondary-sm">{{ (isAdmin() ? 'TEAM.ORG.CREATE_TEAM' : 'TEAM.ORG.CREATE_OWN_TEAM') | translate }}</button>
+            <span>{{ 'TEAM.ORG.NO_TEAM_ADMIN' | translate }}</span>
+            <button type="button" (click)="startCreate(r)" data-org-create class="mk-btn-secondary-sm">{{ 'TEAM.ORG.CREATE_TEAM' | translate }}</button>
           </p>
           }
+          } @else if (groupsLoaded() && !r.team) {
+          <p data-org-no-team>{{ 'TEAM.ORG.NO_TEAM_OWN' | translate }}</p>
           }
         </div>
 
@@ -169,6 +171,19 @@
     <ul class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-org-auditors>
       @for (a of chart().auditors; track a.id) {
       <li class="min-w-0"><ng-container [ngTemplateOutlet]="person" [ngTemplateOutletContext]="{ $implicit: a }" /></li>
+      }
+    </ul>
+  </section>
+  }
+
+  <!-- Aparte, como el auditor: el colaborador solo lee y acepta los documentos que le asignan (D136); no recibe controles ni tiene equipo. -->
+  @if (chart().collaborators.length) {
+  <section class="mt-8" aria-labelledby="org-collaborators-title">
+    <h2 id="org-collaborators-title" class="mb-1 border-b border-line pb-2 text-base font-semibold text-ink">{{ 'TEAM.ORG.COLLABORATORS' | translate }}</h2>
+    <p class="mb-4 mt-2 text-sm text-ink-muted">{{ 'TEAM.ORG.COLLABORATORS_HELP' | translate }}</p>
+    <ul class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-org-collaborators>
+      @for (c of chart().collaborators; track c.id) {
+      <li class="min-w-0"><ng-container [ngTemplateOutlet]="person" [ngTemplateOutletContext]="{ $implicit: c }" /></li>
       }
     </ul>
   </section>

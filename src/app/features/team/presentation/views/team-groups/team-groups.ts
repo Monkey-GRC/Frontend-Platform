@@ -12,7 +12,7 @@ import { FormModal } from '@shared/presentation/components/form-modal/form-modal
 import { TableFilter, TableFilterOption } from '@shared/presentation/components/table-filter/table-filter';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
 import { CreateGroupDto, Group, GroupKind } from '@features/team/domain/models/group.models';
-import { TeamActor, TeamMember } from '@shared/domain/models/team.models';
+import { TeamMember } from '@shared/domain/models/team.models';
 import { GroupService } from '@features/team/domain/services/group.service';
 import { TeamService } from '@shared/domain/services/team.service';
 import { GroupMembers } from '../../components/group-members/group-members';
@@ -25,7 +25,7 @@ const MAX_NAME = 100;
 
 // Los grupos de la empresa, subpágina `/equipo/grupos` del grupo Equipo (MD-198, contracts/gestion-usuarios.md → «Grupos», D102, D104). Un grupo tiene un nombre y un líder; cada persona (salvo administrador y auditor) pertenece a uno.
 //  · El administrador lidera uno o varios grupos de responsables, crea el equipo de delegados de cualquier responsable y renombra los grupos.
-//  · El responsable crea SU equipo cuando quiere (D104: no nace con su cuenta; mientras no lo cree, trabaja solo). Solo puede liderar uno.
+//  · El responsable solo ve el suyo: crear equipos es del administrador (D136, MD-503). Solo puede liderar uno.
 // Mover a un delegado de equipo es del administrador. No hay borrar grupos en este sprint. Crear va en un panel lateral que abre la acción del encabezado; cada fila abre otro con sus
 // datos, el renombrado (administrador) y sus personas (con el movimiento de delegados).
 @Component({
@@ -42,10 +42,9 @@ export class TeamGroupsView implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly session = inject(SessionService);
 
-  readonly actor = computed<TeamActor>(() => (isCompanyAdmin(this.session.user()?.role) ? 'admin_empresa' : 'responsable'));
   /** Los grupos que ve quien pregunta: todos si es administrador; el suyo si es responsable (vacío mientras no lo cree). */
   readonly groups = signal<Group[]>([]);
-  /** Hasta que los grupos llegan no se dice «aún no hay grupos» ni se ofrece crear el equipo propio (quizá ya existe). */
+  /** Hasta que los grupos llegan no se dice «aún no hay grupos» (quizá ya existen). */
   readonly loaded = signal(false);
   readonly loadFailed = signal(false);
   /** Para el administrador: los responsables, para elegir de quién se crea el equipo. */
@@ -86,29 +85,20 @@ export class TeamGroupsView implements OnInit {
   readonly responsablesGroupName = signal('');
   readonly teamName = signal('');
   readonly teamLeaderId = signal('');
-  readonly ownTeamName = signal('');
 
   readonly renamingId = signal<string | null>(null);
   readonly renameDraft = signal('');
-  /** El nombre de partida del equipo propio (para saber si la persona lo cambió). */
-  private readonly ownTeamDefault = signal('');
 
   /** MD-485 · Hay algo escrito o elegido sin enviar en «Crear»: cerrar pide confirmar antes de descartarlo. */
-  readonly createDirty = computed(() =>
-    this.isAdmin()
-      ? !!(this.responsablesGroupName().trim() || this.teamName().trim() || this.teamLeaderId())
-      : this.ownTeamName().trim() !== this.ownTeamDefault().trim(),
-  );
+  readonly createDirty = computed(() => !!(this.responsablesGroupName().trim() || this.teamName().trim() || this.teamLeaderId()));
   /** MD-485 · Se está renombrando el grupo y el nombre escrito ya no es el que tenía. */
   readonly renameDirty = computed(() => {
     const current = this.groups().find((g) => g.id === this.renamingId());
     return !!current && this.renameDraft().trim() !== current.name;
   });
 
-  readonly isAdmin = computed(() => this.actor() === 'admin_empresa');
+  readonly isAdmin = computed(() => isCompanyAdmin(this.session.user()?.role));
   readonly teams = computed(() => this.groups().filter((g) => g.kind === 'team'));
-  /** El equipo que lidera el responsable (la API solo le devuelve el suyo). */
-  readonly ownTeam = computed(() => this.teams()[0] ?? null);
 
   /** Los responsables vigentes (activos o pendientes) que aún no lideran un equipo: el servidor rechaza un segundo equipo (`TEAM_ALREADY_EXISTS`). */
   readonly eligibleLeaders = computed(() => {
@@ -119,7 +109,6 @@ export class TeamGroupsView implements OnInit {
   readonly leaderOptions = computed<SelectOption[]>(() => this.eligibleLeaders().map((m) => ({ value: m.id, label: this.personName(m) })));
   readonly canCreateResponsablesGroup = computed(() => !!this.responsablesGroupName().trim());
   readonly canCreateTeam = computed(() => !!this.teamName().trim() && !!this.teamLeaderId());
-  readonly canCreateOwnTeam = computed(() => !!this.ownTeamName().trim());
   readonly canRename = computed(() => {
     const draft = this.renameDraft().trim();
     const current = this.groups().find((g) => g.id === this.renamingId());
@@ -130,11 +119,6 @@ export class TeamGroupsView implements OnInit {
     this.reload();
     if (this.isAdmin()) {
       this.teamApi.list({ role: 'responsable' }, 1, 100).subscribe({ next: (page) => this.responsables.set(page.items), error: () => this.responsables.set([]) });
-    } else {
-      // Un nombre de partida para el equipo propio; se puede cambiar antes de crearlo.
-      const name = this.session.user()?.name?.trim();
-      this.ownTeamDefault.set(name ? this.translate.instant('TEAM.GROUPS.DEFAULT_TEAM_NAME', { name }) : '');
-      this.ownTeamName.set(this.ownTeamDefault());
     }
   }
 
@@ -165,7 +149,6 @@ export class TeamGroupsView implements OnInit {
     this.responsablesGroupName.set('');
     this.teamName.set('');
     this.teamLeaderId.set('');
-    this.ownTeamName.set(this.ownTeamDefault());
     this.createOpen.set(true);
   }
 
@@ -202,12 +185,6 @@ export class TeamGroupsView implements OnInit {
       this.teamName.set('');
       this.teamLeaderId.set('');
     });
-  }
-
-  /** El responsable crea su equipo: no manda `leader_id` (es él). */
-  createOwnTeam(): void {
-    if (!this.canCreateOwnTeam() || this.saving()) return;
-    this.create({ name: this.ownTeamName().trim() }, () => this.ownTeamName.set(''));
   }
 
   private create(dto: CreateGroupDto, done: () => void): void {

@@ -1,8 +1,8 @@
 
 // Cumplimiento es un grupo del menú: cada sección es una página en `/cumplimiento/<sección>` (sin id). El servicio activo no va en la ruta: se elige en el
 // encabezado y se recuerda entre secciones (`ActiveComplianceService`). Un enlace que lleva a un servicio concreto lo manda en `?servicio=<id>`.
-export const COMPLIANCE_ROUTE = 'cumplimiento';
-export const COMPLIANCE_SERVICE_PARAM = 'servicio';
+// La ruta y el parámetro viven en `shared/` (otras features enlazan aquí, p. ej. un aviso a su control); se reexportan para el módulo.
+export { COMPLIANCE_ROUTE, COMPLIANCE_SERVICE_PARAM } from '@shared/domain/models/route-links';
 // Un enlace que lleva a definir el período auditado de un marco lo manda en `?definir=<código del marco>` (paso «Medir un marco» del onboarding, Inicio).
 export const DEFINE_PERIOD_PARAM = 'definir';
 

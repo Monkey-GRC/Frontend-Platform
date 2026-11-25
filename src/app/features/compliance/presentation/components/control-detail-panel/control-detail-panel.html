@@ -88,7 +88,7 @@
   <div [hidden]="activeTab() !== 'summary'" data-tab="summary" class="flex flex-col gap-10">
     <div class="grid items-start gap-x-10 gap-y-8 lg:grid-cols-2" data-summary-top>
       <!-- Interpretación: cómo se cumple este control en la empresa -->
-      <app-detail-card titleKey="COMPLIANCE.DETAIL.INTERPRETATION">
+      <app-detail-section titleKey="COMPLIANCE.DETAIL.INTERPRETATION">
         @if (canEdit() && mode() === 'view') {
         <button actions type="button" (click)="startInterpretation()" [disabled]="saving()"
           class="mk-btn-secondary-sm">
@@ -118,10 +118,10 @@
         <p class="mt-2 text-xs text-ink-muted">{{ 'COMPLIANCE.DETAIL.CUSTOMIZED' | translate }}</p>
         }
         }
-      </app-detail-card>
+      </app-detail-section>
 
       <!-- Dimensiones: dónde se comprueba el control (las nueve del catálogo, en grilla) y por qué una no aplica -->
-      <app-detail-card class="min-w-0" titleKey="COMPLIANCE.DETAIL.DIMENSIONS">
+      <app-detail-section class="min-w-0" titleKey="COMPLIANCE.DETAIL.DIMENSIONS">
         @if (canEdit() && mode() === 'view') {
         <button actions type="button" (click)="startDimensions()" [disabled]="saving()"
           class="mk-btn-secondary-sm">
@@ -178,11 +178,11 @@
         }
         }
         }
-      </app-detail-card>
+      </app-detail-section>
     </div>
 
     <!-- Por qué podría pasar: las causas que este control ayuda a evitar, cada una con su enlace -->
-    <app-detail-card titleKey="COMPLIANCE.GLOSSARY.CAUSES" [count]="d.causes.length">
+    <app-detail-section titleKey="COMPLIANCE.GLOSSARY.CAUSES" [count]="d.causes.length">
       @if (d.causes.length === 0) {
       <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.DETAIL.NO_CAUSES' | translate }}</p>
       } @else {
@@ -194,11 +194,11 @@
         <ng-template appCell="name" let-c><span class="text-sm text-ink">{{ c.name || ('COMPLIANCE.CAUSE_DETAIL.TITLE_FALLBACK' | translate: { code: c.code }) }}</span></ng-template>
       </app-data-table>
       }
-    </app-detail-card>
+    </app-detail-section>
 
     <!-- En qué falla (solo si algo falla) -->
     @if (d.failing.length) {
-    <app-detail-card titleKey="COMPLIANCE.DETAIL.FAILING">
+    <app-detail-section titleKey="COMPLIANCE.DETAIL.FAILING">
       <ul class="flex flex-col gap-2">
         @for (f of d.failing; track f.dimension) {
         <li class="text-sm text-ink-muted">
@@ -211,7 +211,7 @@
         </li>
         }
       </ul>
-    </app-detail-card>
+    </app-detail-section>
     }
 
   </div>
@@ -227,7 +227,7 @@
       </div>
     </dl>
     @if (tech.requirements?.length) {
-    <app-detail-card titleKey="COMPLIANCE.PERIODICITY_CHANGE.SECTION" data-periodicity>
+    <app-detail-section titleKey="COMPLIANCE.PERIODICITY_CHANGE.SECTION" data-periodicity>
       @if (canChangePeriodicity()) {
       <button actions type="button" (click)="periodicityOpen.set(true)" class="mk-btn-secondary-sm" data-change-periodicity>{{ 'COMPLIANCE.PERIODICITY_CHANGE.OPEN' | translate }}</button>
       }
@@ -248,13 +248,13 @@
         </div>
         }
       </dl>
-    </app-detail-card>
+    </app-detail-section>
     }
     @if (tech.requirements) {
-    <app-detail-card titleKey="COMPLIANCE.REQS.TITLE">
+    <app-detail-section titleKey="COMPLIANCE.REQS.TITLE">
       <p class="mb-4 max-w-prose text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.REQS.INTRO' | translate }}</p>
       <app-control-requirements [technical]="tech" />
-    </app-detail-card>
+    </app-detail-section>
     }
   </div>
   }

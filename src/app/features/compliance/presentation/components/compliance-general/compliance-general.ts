@@ -4,6 +4,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LanguageService } from '@core/domain/services/language.service';
+import { SessionService } from '@core/domain/services/session.service';
+import { canSeeComplianceSummary } from '@shared/domain/utils/roles';
 import { formatPercent, percentOf } from '@shared/domain/utils/percentage';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { readinessLook } from '@shared/domain/utils/readiness-look';
@@ -29,7 +31,16 @@ interface Row {
     <h1 class="text-2xl font-semibold text-ink">{{ 'COMPLIANCE.ENTRY.GENERAL_TITLE' | translate }}</h1>
     <p class="mt-1 text-sm text-ink-muted">{{ 'COMPLIANCE.ENTRY.GENERAL_BODY' | translate }}</p>
 
-    @if (loading()) {
+    @if (!summary()) {
+      <!-- El delegado no recibe el Resumen (403, D136): sin avance por servicio, solo los servicios, que llevan a sus controles. -->
+      <div class="mt-6">
+        <app-data-table captionKey="COMPLIANCE.ENTRY.GENERAL_TABLE" [columns]="plainColumns" [rows]="services()" [rowKey]="serviceKey" [rowLabel]="serviceLabel" [clickable]="true" [focusable]="false" (rowClick)="open($event.id)">
+          <ng-template appCell="service" let-s>
+            <a [routerLink]="['/cumplimiento', 'controles']" [queryParams]="{ servicio: s.id }" data-service-row class="font-medium text-ink hover:underline">{{ s.name }}</a>
+          </ng-template>
+        </app-data-table>
+      </div>
+    } @else if (loading()) {
       <div class="mt-6"><app-data-table captionKey="COMPLIANCE.ENTRY.GENERAL_TABLE" [columns]="columns" [rows]="[]" [rowKey]="rowKey" [loading]="true" /></div>
     } @else {
       <!-- Una sola tabla agrupada por marco: cada fila es un servicio con su propio estado, avance y cobertura (nunca uno combinado). -->
@@ -85,6 +96,10 @@ export class ComplianceGeneral implements OnInit {
   private readonly view = inject(ComplianceViewService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly session = inject(SessionService);
+
+  /** ¿Recibe el Resumen? El delegado no (D136): para él no se pide el avance de cada servicio y entra directo a los controles. */
+  protected readonly summary = computed(() => canSeeComplianceSummary(this.session.user()?.role));
 
   readonly services = input.required<ComplianceServiceRef[]>();
 
@@ -107,13 +122,17 @@ export class ComplianceGeneral implements OnInit {
   protected readonly frameworkName = (code: string, rows: Row[]): string => rows[0]?.framework?.name ?? code;
 
   protected open(serviceId: string): void {
-    void this.router.navigate(['/cumplimiento', 'resumen'], { queryParams: { servicio: serviceId } });
+    void this.router.navigate(['/cumplimiento', this.summary() ? 'resumen' : 'controles'], { queryParams: { servicio: serviceId } });
   }
 
   /** Servicios que no tienen ningún marco contratado: no hay nada que comparar, pero se puede entrar a ellos. */
   protected readonly withoutFramework = computed(() => this.services().filter((s) => s.frameworks.length === 0));
 
   ngOnInit(): void {
+    if (!this.summary()) {
+      this.loading.set(false);
+      return;
+    }
     const withFramework = this.services().filter((s) => s.frameworks.length > 0);
     if (withFramework.length === 0) {
       this.loading.set(false);

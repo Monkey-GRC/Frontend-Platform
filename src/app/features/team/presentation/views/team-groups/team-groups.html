@@ -1,7 +1,7 @@
 <section class="w-full pb-10" data-test-groups>
   <app-page-header [title]="(isAdmin() ? 'TEAM.GROUPS.TITLE' : 'TEAM.GROUPS.TITLE_OWN') | translate" [description]="(isAdmin() ? 'TEAM.GROUPS.INTRO_ADMIN' : 'TEAM.GROUPS.INTRO_OWN') | translate">
-    @if (loaded() && (isAdmin() || !ownTeam())) {
-    <button actions type="button" (click)="openCreate()" data-test-open-create class="mk-btn">{{ (isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE') | translate }}</button>
+    @if (loaded() && isAdmin()) {
+    <button actions type="button" (click)="openCreate()" data-test-open-create class="mk-btn">{{ 'TEAM.GROUPS.NEW' | translate }}</button>
     }
   </app-page-header>
 
@@ -37,8 +37,8 @@
   }
 </section>
 
-<!-- Crear: el administrador un grupo de responsables o el equipo de un responsable; el responsable, el suyo (una sola vez, D104). Cada sección lleva su propia acción; el pie solo cierra. -->
-<app-form-modal [open]="createOpen()" [titleKey]="isAdmin() ? 'TEAM.GROUPS.NEW' : 'TEAM.GROUPS.CREATE_OWN_TITLE'" [descriptionKey]="isAdmin() ? 'TEAM.GROUPS.NEW_SUBTITLE' : 'TEAM.GROUPS.CREATE_OWN_HELP'" [busy]="saving()" [guarded]="createDirty()" testId="group-create" (closed)="createOpen.set(false)">
+<!-- Crear: el administrador un grupo de responsables o el equipo de un responsable (D136: el responsable ya no crea el suyo). Cada sección lleva su propia acción; el pie solo cierra. -->
+<app-form-modal [open]="createOpen()" titleKey="TEAM.GROUPS.NEW" descriptionKey="TEAM.GROUPS.NEW_SUBTITLE" [busy]="saving()" [guarded]="createDirty()" testId="group-create" (closed)="createOpen.set(false)">
   @if (createOpen()) {
   @if (error(); as e) {
   <div class="mb-4 flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-groups-error><span>{{ e }}</span>
@@ -68,16 +68,7 @@
     <div class="flex justify-end"><button type="submit" [disabled]="!canCreateTeam()" [appBusy]="saving()" data-test-create-team class="mk-btn-secondary">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button></div>
     }
   </form>
-  } @else {
-  <form id="group-own-form" class="flex flex-col gap-3" (submit)="$event.preventDefault(); createOwnTeam()" [attr.aria-label]="'TEAM.GROUPS.CREATE_OWN_TITLE' | translate" data-test-create-own>
-    <app-field labelKey="TEAM.GROUPS.NAME_LABEL" forId="own-name">
-      <input id="own-name" type="text" data-test-own-name [attr.maxlength]="maxName" autocomplete="off" [value]="ownTeamName()" (input)="ownTeamName.set(targetValue($event))" [disabled]="saving()" class="mk-input" />
-    </app-field>
-  </form>
   }
-  }
-  @if (createOpen() && !isAdmin()) {
-  <button actions type="submit" form="group-own-form" [disabled]="!canCreateOwnTeam()" [appBusy]="saving()" data-test-create-own-submit class="mk-btn">{{ 'TEAM.GROUPS.SUBMIT' | translate }}</button>
   }
 </app-form-modal>
 

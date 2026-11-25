@@ -1,6 +1,6 @@
 import { HomeTeamMember, HomeTeamRole } from '../models/team.models';
 
-export const SUMMARY_ROLES: readonly HomeTeamRole[] = ['admin_empresa', 'responsable', 'delegado', 'auditor'];
+export const SUMMARY_ROLES: readonly HomeTeamRole[] = ['admin_empresa', 'responsable', 'delegado', 'auditor', 'colaborador'];
 
 /** Días sin ingresar a partir de los cuales una cuenta activa se cuenta como «sin ingreso reciente». Umbral operativo, pendiente de confirmar por el comité. */
 export const STALE_LOGIN_DAYS = 30;
@@ -24,7 +24,7 @@ export interface TeamSummary {
 
 // Lo que el Inicio cuenta del equipo, sobre la lista que ya devuelve `GET /v1/users`: no hay un resumen en el servidor ni se calcula nada de cumplimiento.
 export function summarizeTeam(members: HomeTeamMember[], now: Date = new Date()): TeamSummary {
-  const summary: TeamSummary = { total: 0, active: 0, pending: 0, byRole: { admin_empresa: 0, responsable: 0, delegado: 0, auditor: 0 }, withoutSecondFactor: 0, withoutRecentLogin: 0, blocked: 0, activeAdmins: 0 };
+  const summary: TeamSummary = { total: 0, active: 0, pending: 0, byRole: { admin_empresa: 0, responsable: 0, delegado: 0, auditor: 0, colaborador: 0 }, withoutSecondFactor: 0, withoutRecentLogin: 0, blocked: 0, activeAdmins: 0 };
   const limit = now.getTime() - STALE_LOGIN_DAYS * DAY_MS;
   for (const m of members) {
     if (m.status === 'inactive' || m.status === 'suspended') {

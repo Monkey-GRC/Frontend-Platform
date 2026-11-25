@@ -8,7 +8,7 @@
   }
 
   <!-- Tratamiento -->
-  <app-detail-card class="min-w-0" titleKey="COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE">
+  <app-detail-section class="min-w-0" titleKey="COMPLIANCE.RISK_ASSESSMENT.TREATMENT_TITLE">
       @if (canManage() && !treating()) {
       <button actions type="button" (click)="startTreatment()" [disabled]="saving()" data-test-start-treatment class="mk-btn-secondary-sm"><span class="material-symbols-rounded text-[16px]" aria-hidden="true">edit</span>{{ (risk().treatment ? 'COMPLIANCE.RISK_ASSESSMENT.CHANGE_TREATMENT' : 'COMPLIANCE.RISK_ASSESSMENT.DEFINE_TREATMENT') | translate }}
       </button>
@@ -64,10 +64,10 @@
       }
     </div>
     }
-  </app-detail-card>
+  </app-detail-section>
 
   <!-- Evaluación 5×5 -->
-  <app-detail-card class="min-w-0" titleKey="COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE">
+  <app-detail-section class="min-w-0" titleKey="COMPLIANCE.RISK_ASSESSMENT.EVALUATION_TITLE">
       @if (canManage() && !evaluating()) {
       <button actions type="button" (click)="startEvaluation()" [disabled]="saving()" data-test-start-evaluation class="mk-btn-secondary-sm"><span class="material-symbols-rounded text-[16px]" aria-hidden="true">grid_on</span>{{ (evaluated() ? 'COMPLIANCE.RISK_ASSESSMENT.RE_EVALUATE' : 'COMPLIANCE.RISK_ASSESSMENT.EVALUATE') | translate }}
       </button>
@@ -123,5 +123,5 @@
     </div>
     }
 
-  </app-detail-card>
+  </app-detail-section>
 </div>
