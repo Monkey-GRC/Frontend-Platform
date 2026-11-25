@@ -16,6 +16,11 @@ describe('workLandingGuard (D102, MD-196)', () => {
     }
   });
 
+  it('sends the collaborator to «Mis documentos»: it has nothing else', () => {
+    signIn('colaborador');
+    expect(TestBed.inject(Router).serializeUrl(run() as UrlTree)).toBe('/mis-documentos');
+  });
+
   it('lets the administrator and the auditor into the start as before', () => {
     for (const role of ['admin_empresa', 'auditor']) {
       signIn(role);

@@ -30,6 +30,7 @@ import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
 import { Stage } from '../../components/detail-panel-base/detail-panel-base';
+import { OPEN_PARAM } from '@shared/domain/models/route-links';
 
 // La pestaña «Evidencias» de un servicio (MD-129): todo lo que los controles piden que se aporte, con su responsable y el estado de la última entrega,
 // para ver de un vistazo qué falta. Subir y descargar se hace en el panel del control (se abre con un clic en la fila), con el mismo componente de evidencia
@@ -134,7 +135,7 @@ export class EvidenceInboxView {
 
   /** Una causa del control abierto: se abre en Causas. */
   openCause(id: string): void {
-    this.router.navigate(['/', COMPLIANCE_ROUTE, 'causas'], { queryParams: { abrir: id } });
+    this.router.navigate(['/', COMPLIANCE_ROUTE, 'causas'], { queryParams: { [OPEN_PARAM]: id } });
   }
 
   /** Se subió algo en el panel de un control: se vuelve a pedir solo la evidencia de ese control. */

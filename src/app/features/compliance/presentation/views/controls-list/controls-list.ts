@@ -26,6 +26,7 @@ import { ControlService } from '@features/compliance/domain/services/control.ser
 import { ActivatedRoute, Router } from '@angular/router';
 import { COMPLIANCE_ROUTE } from '@features/compliance/domain/models/compliance.models';
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
+import { OPEN_PARAM } from '@shared/domain/models/route-links';
 
 type Stage = 'loading' | 'error' | 'ready';
 
@@ -59,7 +60,7 @@ export class ControlsListView {
 
   // El control abierto y su pestaña van en la dirección (`?abrir=<id>&tab=`): se puede compartir y «Atrás» lo cierra.
   private readonly query = toSignal(this.route.queryParamMap, { requireSync: true });
-  readonly selected = computed(() => this.query().get('abrir'));
+  readonly selected = computed(() => this.query().get(OPEN_PARAM));
   readonly tab = computed(() => this.query().get('tab'));
 
   readonly stage = signal<Stage>('loading');
@@ -184,11 +185,11 @@ export class ControlsListView {
   }
 
   open(row: ControlListItem): void {
-    this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: row.id, tab: null }, queryParamsHandling: 'merge' });
+    this.router.navigate([], { relativeTo: this.route, queryParams: { [OPEN_PARAM]: row.id, tab: null }, queryParamsHandling: 'merge' });
   }
 
   closeDetail(): void {
-    this.router.navigate([], { relativeTo: this.route, queryParams: { abrir: null, tab: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    this.router.navigate([], { relativeTo: this.route, queryParams: { [OPEN_PARAM]: null, tab: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   setTab(tab: string): void {
@@ -197,7 +198,7 @@ export class ControlsListView {
 
   /** Una causa del control: se abre en Causas. */
   openCause(id: string): void {
-    this.router.navigate(['/', COMPLIANCE_ROUTE, 'causas'], { queryParams: { abrir: id } });
+    this.router.navigate(['/', COMPLIANCE_ROUTE, 'causas'], { queryParams: { [OPEN_PARAM]: id } });
   }
 
   /** Los temas del control: el valor estable (decide el color del badge) y su etiqueta traducida. */

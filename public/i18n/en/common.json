@@ -182,6 +182,9 @@
     "INTEGRATIONS": "Integrations",
     "INTEGRATION_ADD": "Add integration",
     "INTEGRATION_DETAIL": "Integration detail",
-    "SETTINGS_DEVICES": "Settings · Remembered devices"
+    "SETTINGS_DEVICES": "Settings · Remembered devices",
+    "MY_DOCUMENTS": "My documents",
+    "DOCUMENT_READER": "Read document",
+    "DOCUMENTS": "Documents"
   }
 }

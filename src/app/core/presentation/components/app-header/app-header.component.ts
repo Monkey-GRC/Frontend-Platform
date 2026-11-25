@@ -1,16 +1,19 @@
 import { Component, inject, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, NgClass, NgComponentOutlet } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { HelpMenu } from '@core/presentation/components/app-header/help-menu/help-menu';
 import { ProfileMenu } from '@core/presentation/components/app-header/profile-menu/profile-menu';
 import { SidebarService } from '@core/domain/services/sidebar.service';
+import { HEADER_WIDGETS } from '@core/presentation/components/app-header/header-widgets';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
-    CommonModule,
+    AsyncPipe,
+    NgClass,
+    NgComponentOutlet,
     RouterModule,
     HelpMenu,
     ProfileMenu,
@@ -20,6 +23,8 @@ import { SidebarService } from '@core/domain/services/sidebar.service';
 })
 export class AppHeaderComponent implements AfterViewInit, OnDestroy {
   readonly sidebarService = inject(SidebarService);
+  // Lo que otras capas piden mostrar en el encabezado (la campana): llega por el token, `core/` no las importa.
+  readonly widgets = inject(HEADER_WIDGETS, { optional: true }) ?? [];
   isApplicationMenuOpen = false;
   readonly isMobileOpen$ = this.sidebarService.isMobileOpen$;
 

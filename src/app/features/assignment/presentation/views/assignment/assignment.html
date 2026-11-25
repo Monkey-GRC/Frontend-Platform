@@ -1,0 +1,143 @@
+<section class="w-full pb-10">
+  <app-page-header [title]="'ASSIGNMENT.TITLE' | translate" [description]="(isAdmin() ? 'ASSIGNMENT.INTRO_ADMIN' : 'ASSIGNMENT.INTRO_OWNER') | translate" />
+
+  @if (servicesStage() === 'error') {
+    <app-empty-state icon="" titleKey="ASSIGNMENT.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
+      <button action type="button" (click)="loadServices()" class="mk-btn" data-testid="assignment-retry-services">{{ 'COMMON.RETRY' | translate }}</button>
+    </app-empty-state>
+  } @else if (servicesStage() === 'ready' && serviceList().length === 0) {
+    <!-- Sin servicios no hay controles que asignar: se dice y se lleva a donde se crean. -->
+    <app-empty-state icon="" titleKey="ASSIGNMENT.NO_SERVICES_TITLE" [descriptionKey]="isAdmin() ? 'ASSIGNMENT.NO_SERVICES_BODY_ADMIN' : 'ASSIGNMENT.NO_SERVICES_BODY_OWNER'" data-testid="assignment-no-services">
+      @if (isAdmin()) {
+        <a action routerLink="/services" class="mk-link underline">{{ 'ASSIGNMENT.GO_TO_SERVICES' | translate }}</a>
+      }
+    </app-empty-state>
+  } @else if (servicesStage() === 'loading') {
+    <!-- D116 · La forma de la pantalla: el buscador a todo el ancho, los filtros, la barra de selección y la tabla con sus columnas. -->
+    <app-skeleton-region data-testid="assignment-loading">
+      <div class="mb-4 flex flex-col gap-3">
+        <app-skeleton shape="block" height="2.5rem" />
+        <div class="flex flex-wrap gap-3">
+          <app-skeleton shape="block" width="14rem" height="2.5rem" />
+          <app-skeleton shape="block" width="16rem" height="2.5rem" />
+          <app-skeleton shape="block" width="11rem" height="2.5rem" />
+        </div>
+      </div>
+      <app-skeleton shape="block" height="3.25rem" />
+    </app-skeleton-region>
+    <div class="mt-4">
+      <app-data-table captionKey="ASSIGNMENT.TABLE.CAPTION" [columns]="columns()" [rows]="[]" [rowKey]="rowKey" [loading]="true" [selectable]="true" />
+    </div>
+  } @else {
+    <app-table-toolbar searchPlaceholderKey="ASSIGNMENT.SEARCH" [query]="searchText()" (queryChange)="onSearch($event)" ariaLabelKey="ASSIGNMENT.TOOLBAR">
+      <div filters class="flex flex-wrap items-center gap-3">
+        <div class="min-w-56">
+          <app-select inputId="assignment-service" data-testid="assignment-service" [options]="serviceOptions()" [value]="serviceId() ?? ''" ariaLabelKey="ASSIGNMENT.FILTER.SERVICE"
+            (valueChange)="setService($event)" />
+        </div>
+        @if (isAdmin()) {
+          <app-option-chips [compact]="true" [options]="assignmentChips()" [selected]="[view().assignment ?? 'all']" labelKey="ASSIGNMENT.FILTER.ASSIGNMENT" (picked)="pickAssignment($event)" />
+          <app-table-filter labelKey="ASSIGNMENT.FILTER.OWNER" [options]="ownerFilterOptions()" [value]="view().ownerId ?? ''" (valueChange)="pickOwner($event)" />
+        } @else {
+          <app-table-filter labelKey="ASSIGNMENT.FILTER.EXECUTOR" [options]="executorFilterOptions()" [value]="view().executorId ?? ''" (valueChange)="pickExecutor($event)" />
+        }
+        <app-table-filter labelKey="ASSIGNMENT.FILTER.STATE" [options]="stateFilterOptions" [value]="view().status ?? ''" (valueChange)="pickState($event)" />
+      </div>
+    </app-table-toolbar>
+
+    <!-- La selección en lote y lo que se hace con ella: acciones con texto. Sin selección, los botones están a la vista pero apagados y la barra dice cómo empezar. -->
+    <div class="mb-4 flex flex-wrap items-center gap-3 rounded-card border border-line bg-surface px-4 py-3" role="region" [attr.aria-label]="'ASSIGNMENT.SELECTION.REGION' | translate" data-testid="selection-bar">
+      <p class="text-sm text-ink" aria-live="polite" data-testid="selection-text">
+        @if (selectedCount() === 0) {
+          {{ 'ASSIGNMENT.SELECTION.NONE' | translate }}
+        } @else {
+          {{ countKey('ASSIGNMENT.SELECTED', selectedCount()) | translate: { count: selectedCount() } }}
+        }
+      </p>
+      @if (limitReached()) {
+        <p class="text-sm text-ink-muted" role="status" data-testid="selection-limit">{{ 'ASSIGNMENT.SELECTION.LIMIT' | translate }}</p>
+      }
+      @if (membersStage() === 'error') {
+        <p class="text-sm text-ink-muted" role="status" data-testid="members-error">
+          {{ 'ASSIGNMENT.TEAM_LOAD_ERROR' | translate }}
+          <button type="button" class="mk-link ml-1 underline" (click)="loadMembers()">{{ 'COMMON.RETRY' | translate }}</button>
+        </p>
+      }
+      <div class="ml-auto flex flex-wrap items-center gap-2">
+        @if (selectedCount() > 0) {
+          <button type="button" class="mk-btn-secondary" (click)="clearSelection()" data-testid="selection-clear">{{ 'ASSIGNMENT.SELECTION.CLEAR' | translate }}</button>
+        }
+        @if (isAdmin()) {
+          <button type="button" class="mk-btn" [disabled]="selectedCount() === 0 || membersStage() !== 'ready'" (click)="openOwner()" data-testid="action-owner">{{ 'ASSIGNMENT.ACTIONS.OWNER' | translate }}</button>
+        }
+        <button type="button" [class]="isAdmin() ? 'mk-btn-secondary' : 'mk-btn'" [disabled]="selectedCount() === 0 || membersStage() !== 'ready'" (click)="openDelegate()" data-testid="action-delegate">
+          {{ 'ASSIGNMENT.ACTIONS.DELEGATE' | translate }}
+        </button>
+      </div>
+    </div>
+
+    @if (stage() === 'error') {
+      <app-empty-state icon="" titleKey="ASSIGNMENT.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
+        <button action type="button" (click)="load()" class="mk-btn" data-testid="assignment-retry">{{ 'COMMON.RETRY' | translate }}</button>
+      </app-empty-state>
+    } @else {
+      <app-data-table captionKey="ASSIGNMENT.TABLE.CAPTION" [columns]="columns()" [rows]="rows()" [rowKey]="rowKey" [rowLabel]="rowLabel" [page]="pageInfo()"
+        [loading]="stage() === 'loading' || loadingPage()" [selectable]="true" [selected]="selectedIds()" emptyIcon="" [emptyTitleKey]="emptyKeys().title" [emptyDescriptionKey]="emptyKeys().body"
+        (selectionChange)="onSelection($event)" (pageChange)="goTo($event)" (pageSizeChange)="resize($event)">
+
+        <!-- D80: el código se muestra siempre, con los requisitos del marco que el control cubre. -->
+        <ng-template appCell="code" let-row>
+          <div class="flex flex-wrap items-center gap-1">
+            <app-tag [text]="row.code" />
+            @for (r of row.requirement_codes; track r) {
+              <app-tag [text]="r" />
+            }
+          </div>
+        </ng-template>
+
+        <!-- El nombre es un enlace al control en Cumplimiento (navegar es un enlace subrayado). -->
+        <ng-template appCell="name" let-row>
+          @let link = controlLink(row.client_control_id, row.service.id);
+          <a [routerLink]="link.commands" [queryParams]="link.queryParams" class="mk-link font-medium underline" data-testid="control-link">{{ row.name }}</a>
+        </ng-template>
+
+        <ng-template appCell="owner" let-row>
+          @if (row.owner; as owner) {
+            <app-person-cell [name]="personName(owner, ('ASSIGNMENT.PERSON.UNKNOWN' | translate))" [secondary]="'TEAM.ROLE.' + owner.role.toUpperCase() | translate" />
+          } @else {
+            <app-status-indicator tone="warn" labelKey="ASSIGNMENT.OWNER.UNASSIGNED" hintKey="ASSIGNMENT.OWNER.UNASSIGNED_HINT" data-testid="owner-unassigned" />
+          }
+        </ng-template>
+
+        <ng-template appCell="executor" let-row>
+          @if (row.executor; as executor) {
+            <app-person-cell [name]="personName(executor, ('ASSIGNMENT.PERSON.UNKNOWN' | translate))" [secondary]="'TEAM.ROLE.' + executor.role.toUpperCase() | translate" />
+          } @else if (row.owner) {
+            <span class="text-sm text-ink-muted" data-testid="executor-owner">{{ 'ASSIGNMENT.EXECUTOR.OWNER_EXECUTES' | translate }}</span>
+          } @else {
+            <span class="text-sm text-ink-muted" data-testid="executor-none">{{ 'ASSIGNMENT.EXECUTOR.NEEDS_OWNER' | translate }}</span>
+          }
+        </ng-template>
+
+        <ng-template appCell="state" let-row>
+          <app-status-indicator [tone]="stateTone(row.state)" [labelKey]="'ASSIGNMENT.STATE.' + row.state.toUpperCase()" [hintKey]="'ASSIGNMENT.STATE_HINT.' + row.state.toUpperCase()" [attr.data-state]="row.state" />
+        </ng-template>
+
+        <app-empty-state tableEmpty icon="" [titleKey]="emptyKeys().title" [descriptionKey]="emptyKeys().body">
+          @if (hasFilters()) {
+            <button action type="button" (click)="clearFilters()" class="mk-btn-secondary" data-testid="assignment-clear">{{ 'ASSIGNMENT.FILTER.CLEAR' | translate }}</button>
+          }
+        </app-empty-state>
+      </app-data-table>
+    }
+  }
+</section>
+
+@if (ownerOpen()) {
+  <app-assignment-owner-form [controls]="selectedList()" [candidates]="ownerChoices()" [meId]="meId()" [saving]="saving()" [error]="formError()" (submitted)="submitOwner($event)"
+    (closed)="closeForms()" />
+}
+@if (delegateOpen()) {
+  <app-assignment-delegate-form [controls]="selectedList()" [scope]="delegationScope()" [delegates]="delegates()" [saving]="saving()" [error]="formError()" (submitted)="submitDelegate($event)"
+    (closed)="closeForms()" />
+}

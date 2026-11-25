@@ -1,0 +1,60 @@
+<section class="w-full pb-10">
+  <app-page-header [title]="'DOCUMENTS.MINE.TITLE' | translate" [description]="'DOCUMENTS.MINE.INTRO' | translate" />
+
+  @if (stage() === 'error') {
+  <app-empty-state icon="" titleKey="DOCUMENTS.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION" data-test-error>
+    <button action type="button" (click)="load()" data-test-retry class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  } @else {
+
+  <app-table-toolbar searchPlaceholderKey="DOCUMENTS.MINE.SEARCH" [query]="list.query()" (queryChange)="list.search($event)" ariaLabelKey="DOCUMENTS.MINE.FILTERS">
+    <app-table-filter filters data-test-filter-status labelKey="DOCUMENTS.MINE.FILTER_STATUS" [options]="statusOptions()" [value]="statusFilter()" (valueChange)="setStatus($event)" />
+    @if (hasFilters()) {
+    <button filters type="button" (click)="clearFilters()" data-test-clear class="mk-btn-secondary">{{ 'DOCUMENTS.CLEAR_FILTERS' | translate }}</button>
+    }
+  </app-table-toolbar>
+
+  <app-data-table captionKey="DOCUMENTS.MINE.TABLE_CAPTION" [columns]="columns" [rows]="list.rows()" [rowKey]="rowKey" [rowLabel]="rowLabel" [page]="list.info()"
+    [loading]="stage() === 'loading'" [clickable]="true" [focusable]="false"
+    (rowClick)="read($event)" (pageChange)="list.goTo($event)" (pageSizeChange)="list.resize($event)">
+
+    <!-- D80: el código se muestra siempre. -->
+    <ng-template appCell="code" let-row><app-tag [text]="row.document.code" /></ng-template>
+
+    <ng-template appCell="document" let-row>
+      <a [routerLink]="['/mis-documentos', row.document.id]" data-test-read class="mk-link underline">{{ row.document.name }}</a>
+      @if (typeLabel(row); as type) {<p class="mt-0.5 text-xs text-ink-muted">{{ type }}</p>}
+    </ng-template>
+
+    <ng-template appCell="version" let-row>
+      <p class="text-sm font-medium tabular-nums text-ink">{{ 'DOCUMENTS.MINE.VERSION_NUMBER' | translate: { number: row.version.number } }}</p>
+      <p class="mt-0.5 text-xs tabular-nums text-ink-muted">{{ 'DOCUMENTS.MINE.APPROVED_ON' | translate: { date: (row.version.approved_at | localDate: 'medium' : false : true) } }}</p>
+    </ng-template>
+
+    <!-- El estado va siempre con su fecha: el plazo, desde cuándo venció o cuándo se aceptó. -->
+    <ng-template appCell="status" let-row>
+      @if (row.requires_acceptance) {
+      <app-status-indicator [tone]="myStatusTone(row.status)" [labelKey]="'DOCUMENTS.STATUS.' + row.status.toUpperCase()" [attr.data-status]="row.status" />
+      <p class="mt-1 text-xs tabular-nums text-ink-muted" data-test-deadline>
+        @switch (row.status) {
+        @case ('accepted') { {{ 'DOCUMENTS.MINE.ACCEPTED_ON' | translate: { date: (row.accepted_at | localDate) } }} }
+        @case ('overdue') { {{ 'DOCUMENTS.MINE.OVERDUE_SINCE' | translate: { date: (row.due_at | localDate) } }} }
+        @default { {{ 'DOCUMENTS.MINE.DUE_ON' | translate: { date: (row.due_at | localDate) } }} }
+        }
+      </p>
+      } @else {
+      <app-status-indicator tone="neutral" labelKey="DOCUMENTS.MINE.NO_ACCEPTANCE" data-status="not_required" />
+      <p class="mt-1 text-xs text-ink-muted">{{ 'DOCUMENTS.MINE.READ_ONLY' | translate }}</p>
+      }
+    </ng-template>
+
+    <!-- Siempre se proyecta (un `@if` vacío ocuparía el lugar y el estado vacío de la tabla no saldría): con filtros dice que nada coincide y ofrece quitarlos. -->
+    <app-empty-state tableEmpty icon="" [titleKey]="hasFilters() ? 'DOCUMENTS.MINE.EMPTY_FILTERED_TITLE' : 'DOCUMENTS.MINE.EMPTY_TITLE'" [descriptionKey]="hasFilters() ? 'DOCUMENTS.MINE.EMPTY_FILTERED_BODY' : 'DOCUMENTS.MINE.EMPTY_BODY'" data-test-empty>
+      @if (hasFilters()) {
+      <button action type="button" (click)="clearFilters()" class="mk-btn-secondary-sm">{{ 'DOCUMENTS.CLEAR_FILTERS' | translate }}</button>
+      }
+    </app-empty-state>
+  </app-data-table>
+
+  }
+</section>

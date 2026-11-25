@@ -68,11 +68,11 @@
   <!-- Resumen, en una columna: qué es, qué puede afectar, cómo se trata y su evaluación 5×5 (matriz y nivel, MD-123) con el resultado al lado de la matriz. -->
   <div [hidden]="activeTab() !== 'summary'" data-tab="summary">
     <div class="flex flex-col gap-8">
-      <app-detail-card class="min-w-0" titleKey="COMPLIANCE.RISK_DETAIL.DESCRIPTION">
+      <app-detail-section class="min-w-0" titleKey="COMPLIANCE.RISK_DETAIL.DESCRIPTION">
         <p class="max-w-prose whitespace-pre-line text-pretty text-sm leading-relaxed text-ink-muted">{{ d.description }}</p>
-      </app-detail-card>
+      </app-detail-section>
 
-      <app-detail-card class="min-w-0" titleKey="COMPLIANCE.RISK_DETAIL.POTENTIAL_IMPACT">
+      <app-detail-section class="min-w-0" titleKey="COMPLIANCE.RISK_DETAIL.POTENTIAL_IMPACT">
         @if (d.potential_impact.length) {
         <ul class="flex flex-wrap gap-2">
           @for (impact of d.potential_impact; track impact) {
@@ -82,7 +82,7 @@
         } @else {
         <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.RISK_DETAIL.NO_IMPACT' | translate }}</p>
         }
-      </app-detail-card>
+      </app-detail-section>
 
       <app-risk-assessment [risk]="d" [canManage]="view.canManage()" (changed)="assessed()" />
     </div>
@@ -102,7 +102,7 @@
       </label>
     </div>
     }
-    <app-detail-card titleKey="COMPLIANCE.GLOSSARY.CAUSES">
+    <app-detail-section titleKey="COMPLIANCE.GLOSSARY.CAUSES">
       @if (view.canManage() && !picking()) {
       <button actions type="button" (click)="startLink()" [disabled]="saving()" class="mk-btn-secondary-sm">
         <span class="material-symbols-rounded text-[16px]" aria-hidden="true">add_link</span>{{ 'COMPLIANCE.RISK_DETAIL.LINK_CAUSE' | translate }}
@@ -156,7 +156,7 @@
         </ng-template>
       </app-data-table>
       }
-    </app-detail-card>
+    </app-detail-section>
   </div>
 
   }

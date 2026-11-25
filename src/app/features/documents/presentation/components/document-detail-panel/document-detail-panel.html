@@ -1,0 +1,209 @@
+<!-- El detalle de un documento en el panel lateral (MD-499, `drawer-narrow`: su contenido es corto y se lee en una columna): cabecera fija con el nombre, el código y la versión vigente; Resumen, Versiones y Personas; pie con «Cerrar» y, solo
+     para el administrador, «Asignar personas» y «Publicar versión». El auditor lo lee sin acciones. Los conteos siempre con su total, nunca un porcentaje solo. -->
+@let d = ready();
+<app-detail-modal titleKey="DOCUMENTS.DETAIL.TITLE" [heading]="d ? d.name : null" [tabs]="stage() === 'ready' ? tabs() : []" [activeTab]="tab()" tabsLabelKey="DOCUMENTS.DETAIL.TABS_ARIA"
+  variant="drawer-narrow" [loading]="stage() === 'loading'" [loadingTabs]="3" testId="document-detail" (activeTabChange)="selectTab($event)" (closed)="closed.emit()">
+
+  <!-- Cada bloque proyectado va en su propio @if con un solo elemento raíz: así Angular lo lleva a su lugar de la cabecera o del pie. -->
+  @if (d) {
+  <div meta class="flex flex-wrap items-center gap-2">
+    <app-tag [text]="d.code" />
+    @if (typeLabel(); as type) {
+    <app-badge kind="attribute" [value]="d.type">{{ type }}</app-badge>
+    }
+    <app-badge kind="attribute" [value]="d.origin">{{ ('DOCUMENTS.ORIGIN.' + d.origin.toUpperCase()) | translate }}</app-badge>
+    @if (d.current_version; as v) {
+    <app-status-indicator tone="ok" labelKey="DOCUMENTS.DETAIL.CURRENT_BADGE" [labelParams]="{ number: v.number }" data-test-current-badge />
+    } @else {
+    <app-status-indicator tone="warn" labelKey="DOCUMENTS.LIST.UNPUBLISHED" data-test-current-badge />
+    }
+  </div>
+  }
+  @if (d && canManage()) {
+  <button actions type="button" (click)="openAssign()" [disabled]="!canAssign()" [attr.title]="canAssign() ? null : ('DOCUMENTS.DETAIL.ASSIGN_NEEDS_VERSION' | translate)" data-test-open-assign class="mk-btn-secondary">{{ 'DOCUMENTS.DETAIL.ASSIGN' | translate }}</button>
+  }
+  @if (d && canManage()) {
+  <button actions type="button" (click)="openPublish()" data-test-open-publish class="mk-btn">{{ 'DOCUMENTS.DETAIL.PUBLISH' | translate }}</button>
+  }
+
+  @switch (stage()) {
+
+  @case ('loading') {
+  <!-- D116 · La forma del Resumen: la franja de cinco cifras (etiqueta, valor y su línea) y, debajo, qué es y su contenido mínimo en dos columnas. -->
+  <app-skeleton-region data-test-loading>
+    <div class="flex flex-col gap-8">
+      <div class="@container border-b border-line pb-5">
+        <div class="-mx-5 grid grid-cols-2 gap-y-5 @3xl:grid-cols-5">
+          @for (n of [0, 1, 2, 3, 4]; track n) {
+          <div class="flex flex-col gap-2 border-line px-5" [class]="n === 0 ? 'col-span-2 @3xl:col-span-1' : n % 2 === 0 ? 'border-l' : '@3xl:border-l'">
+            <app-skeleton shape="line" width="5rem" />
+            <app-skeleton shape="title" width="3.5rem" />
+            <app-skeleton shape="line" width="70%" />
+          </div>
+          }
+        </div>
+      </div>
+      <div class="grid items-start gap-x-10 gap-y-8 lg:grid-cols-2">
+        <app-skeleton shape="section" [lines]="3" width="30%" />
+        <app-skeleton shape="section" [lines]="3" width="45%" />
+      </div>
+    </div>
+  </app-skeleton-region>
+  }
+
+  @case ('error') {
+  <div class="py-10 text-center" data-test-error>
+    <p class="text-base font-semibold text-ink">{{ 'DOCUMENTS.DETAIL.LOAD_ERROR_TITLE' | translate }}</p>
+    <p class="mt-1 text-sm text-ink-muted">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+    <button type="button" (click)="load()" data-test-retry class="mk-btn mt-4">{{ 'COMMON.RETRY' | translate }}</button>
+  </div>
+  }
+
+  @default {
+  @if (d) {
+
+  @if (error(); as e) {
+  <div class="mb-5 flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert" data-test-detail-error><span>{{ e }}</span></div>
+  }
+
+  <!-- Resumen (decisión de Rod): arriba, una franja a todo el ancho con las cifras clave en columnas iguales separadas por líneas finas (como `control-score`): la
+       versión vigente y cuántas personas lo tienen asignado, lo aceptaron, lo tienen por aceptar y vencido, siempre con su total (nunca un porcentaje solo). Debajo, qué
+       es y su contenido mínimo en dos columnas parejas. Se mide el ancho del panel (consulta de contenedor): en fila desde 48 rem; más estrecho, la versión arriba y las
+       cuatro cifras de a dos. -->
+  <div [hidden]="tab() !== 'summary'" data-tab="summary" class="flex flex-col gap-8">
+    <div class="@container border-b border-line pb-5">
+      <dl class="-mx-5 grid grid-cols-2 gap-y-5 @3xl:grid-cols-5" data-test-counts>
+        <div class="col-span-2 flex min-w-0 flex-col gap-1 px-5 @3xl:col-span-1" data-summary-cell="version">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'DOCUMENTS.DETAIL.CURRENT' | translate }}</dt>
+          @if (current(); as v) {
+          <dd class="flex min-w-0 flex-col gap-1" data-test-current>
+            <span class="text-xl font-semibold tabular-nums text-ink">{{ 'DOCUMENTS.MINE.VERSION_NUMBER' | translate: { number: v.number } }}</span>
+            <span class="text-xs tabular-nums text-ink-muted">{{ 'DOCUMENTS.DETAIL.APPROVED_AT' | translate }} {{ v.approved_at | localDate: 'medium' : false : true }}</span>
+            <span class="truncate text-xs text-ink-muted" [title]="v.file_name">{{ v.file_name }} · {{ formatBytes(v.file_size) }}</span>
+          </dd>
+          } @else {
+          <dd class="flex min-w-0 flex-col gap-1">
+            <span class="text-xl font-semibold text-ink">{{ 'DOCUMENTS.LIST.UNPUBLISHED' | translate }}</span>
+            <span class="text-pretty text-xs text-ink-muted" data-test-unpublished>{{ (canManage() ? 'DOCUMENTS.DETAIL.UNPUBLISHED_ADMIN' : 'DOCUMENTS.DETAIL.UNPUBLISHED') | translate }}</span>
+          </dd>
+          }
+        </div>
+        <div class="flex min-w-0 flex-col gap-1 border-line px-5 @3xl:border-l" data-summary-cell="assigned">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'DOCUMENTS.DETAIL.COUNTS.ASSIGNED' | translate }}</dt>
+          <dd class="flex min-w-0 flex-col gap-1">
+            <span class="text-xl font-semibold tabular-nums text-ink">{{ d.assignments.total }}</span>
+            @if (acceptanceLabel(); as rule) {
+            <span class="text-pretty text-xs text-ink-muted" data-test-rule>{{ 'DOCUMENTS.DETAIL.RULE' | translate: { rule: rule } }}</span>
+            }
+          </dd>
+        </div>
+        <div class="flex min-w-0 flex-col gap-1 border-l border-line px-5" data-summary-cell="accepted">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'DOCUMENTS.DETAIL.COUNTS.ACCEPTED' | translate }}</dt>
+          <dd class="text-xl font-semibold tabular-nums text-ink">{{ d.assignments.accepted }}<span class="text-sm font-normal text-ink-muted"> {{ 'DOCUMENTS.DETAIL.COUNTS.OF' | translate: { total: d.assignments.total } }}</span></dd>
+        </div>
+        <div class="flex min-w-0 flex-col gap-1 border-line px-5 @3xl:border-l" data-summary-cell="pending">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'DOCUMENTS.STATUS.PENDING' | translate }}</dt>
+          <dd class="text-xl font-semibold tabular-nums text-ink">{{ d.assignments.pending }}</dd>
+        </div>
+        <div class="flex min-w-0 flex-col gap-1 border-l border-line px-5" data-summary-cell="overdue">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'DOCUMENTS.STATUS.OVERDUE' | translate }}</dt>
+          <dd class="text-xl font-semibold tabular-nums" [class]="d.assignments.overdue > 0 ? 'text-bad-ink' : 'text-ink'">{{ d.assignments.overdue }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="grid items-start gap-x-10 gap-y-8 lg:grid-cols-2">
+      <app-detail-section class="min-w-0" titleKey="DOCUMENTS.DETAIL.WHAT">
+        <p class="whitespace-pre-line text-pretty text-sm leading-relaxed text-ink-muted">{{ d.description || ('DOCUMENTS.DETAIL.NO_DESCRIPTION' | translate) }}</p>
+      </app-detail-section>
+      <app-detail-section class="min-w-0" titleKey="DOCUMENTS.DETAIL.MINIMUM">
+        <p class="whitespace-pre-line text-pretty text-sm leading-relaxed text-ink-muted" data-test-minimum>{{ d.minimum_content || ('DOCUMENTS.DETAIL.NO_MINIMUM' | translate) }}</p>
+      </app-detail-section>
+    </div>
+  </div>
+
+  <!-- Versiones -->
+  <div [hidden]="tab() !== 'versions'" data-tab="versions" class="flex flex-col gap-3">
+    <app-search-field placeholderKey="DOCUMENTS.DETAIL.VERSIONS.SEARCH" [value]="versionList.query()" (valueChange)="versionList.search($event)" />
+    <app-data-table captionKey="DOCUMENTS.DETAIL.VERSIONS.CAPTION" [columns]="versionColumns" [rows]="versionList.rows()" [rowKey]="versionKey" [page]="versionList.info()" [compact]="true" emptyIcon=""
+      [emptyTitleKey]="versionList.searching() ? 'DOCUMENTS.DETAIL.VERSIONS.EMPTY_FILTERED' : 'DOCUMENTS.DETAIL.VERSIONS.EMPTY_TITLE'"
+      [emptyDescriptionKey]="versionList.searching() ? null : 'DOCUMENTS.DETAIL.VERSIONS.EMPTY_BODY'"
+      (pageChange)="versionList.goTo($event)" (pageSizeChange)="versionList.resize($event)">
+      <ng-template appCell="version" let-v>
+        <div class="flex flex-wrap items-center gap-2" [attr.data-test-version]="v.number">
+          <span class="font-medium tabular-nums text-ink">{{ 'DOCUMENTS.MINE.VERSION_NUMBER' | translate: { number: v.number } }}</span>
+          <app-status-indicator [tone]="v.status === 'current' ? 'ok' : 'neutral'" [labelKey]="'DOCUMENTS.VERSION_STATUS.' + v.status.toUpperCase()" />
+        </div>
+      </ng-template>
+      <ng-template appCell="approval" let-v>
+        <p class="text-sm tabular-nums text-ink">{{ 'DOCUMENTS.MINE.APPROVED_ON' | translate: { date: (v.approved_at | localDate: 'medium' : false : true) } }}</p>
+        @if (v.imported_approval; as a) {
+        <p class="mt-0.5 text-xs text-ink-muted">{{ 'DOCUMENTS.DETAIL.IMPORTED' | translate }}</p>
+        <ul class="mt-1 text-xs text-ink-muted" data-test-approvers>
+          @for (p of a.approvers; track $index) {<li>{{ p.name }} · {{ p.role_label }}</li>}
+        </ul>
+        @if (a.note) {<p class="mt-1 text-xs text-ink-muted">{{ 'DOCUMENTS.DETAIL.NOTE' | translate: { note: a.note } }}</p>}
+        }
+      </ng-template>
+      <ng-template appCell="file" let-v>
+        <p class="break-words text-sm text-ink">{{ v.file_name }}</p>
+        <p class="mt-0.5 text-xs tabular-nums text-ink-muted">{{ formatBytes(v.file_size) }}</p>
+        <p class="mt-0.5 font-mono text-xs text-ink-muted" [title]="v.integrity_hash" data-test-hash>{{ 'DOCUMENTS.DETAIL.HASH' | translate: { hash: v.integrity_hash.slice(0, 12) } }}</p>
+      </ng-template>
+      <ng-template appCell="actions" let-v>
+        <button type="button" (click)="download(v)" [appBusy]="downloadingId() === v.id" [disabled]="!!downloadingId() && downloadingId() !== v.id" data-test-download class="mk-btn-secondary-sm">{{ 'DOCUMENTS.DETAIL.DOWNLOAD' | translate }}</button>
+      </ng-template>
+    </app-data-table>
+  </div>
+
+  <!-- Personas -->
+  <div [hidden]="tab() !== 'people'" data-tab="people" class="flex flex-col gap-3">
+    <app-search-field placeholderKey="DOCUMENTS.DETAIL.PEOPLE.SEARCH" [value]="peopleList.query()" (valueChange)="peopleList.search($event)" />
+    <app-data-table captionKey="DOCUMENTS.DETAIL.PEOPLE.CAPTION" [columns]="peopleColumns" [rows]="peopleList.rows()" [rowKey]="assigneeKey" [rowLabel]="assigneeLabel" [page]="peopleList.info()" [compact]="true" emptyIcon=""
+      [emptyTitleKey]="peopleList.searching() ? 'DOCUMENTS.DETAIL.PEOPLE.EMPTY_FILTERED' : 'DOCUMENTS.DETAIL.PEOPLE.EMPTY_TITLE'"
+      [emptyDescriptionKey]="peopleList.searching() ? null : (canManage() ? 'DOCUMENTS.DETAIL.PEOPLE.EMPTY_BODY_ADMIN' : 'DOCUMENTS.DETAIL.PEOPLE.EMPTY_BODY')"
+      (pageChange)="peopleList.goTo($event)" (pageSizeChange)="peopleList.resize($event)">
+      <ng-template appCell="person" let-a>
+        <app-person-cell [attr.data-test-person]="personName(a.user)" [name]="personName(a.user)" [initialsFrom]="personName(a.user)" [secondary]="('TEAM.ROLE.' + a.user.role.toUpperCase()) | translate" />
+      </ng-template>
+      <ng-template appCell="status" let-a>
+        <app-status-indicator [tone]="myStatusTone(a.status)" [labelKey]="'DOCUMENTS.STATUS.' + a.status.toUpperCase()" [attr.data-status]="a.status" />
+      </ng-template>
+      <ng-template appCell="detail" let-a>
+        <p class="text-sm tabular-nums text-ink">
+          @if (a.accepted_at) { {{ 'DOCUMENTS.DETAIL.PEOPLE.ACCEPTED' | translate: { number: a.accepted_version_number, date: (a.accepted_at | localDate) } }} }
+          @else { {{ 'DOCUMENTS.DETAIL.PEOPLE.NOT_ACCEPTED' | translate }} }
+        </p>
+        @if (a.status !== 'accepted') {
+        <p class="mt-0.5 text-xs tabular-nums text-ink-muted">{{ (a.status === 'overdue' ? 'DOCUMENTS.MINE.OVERDUE_SINCE' : 'DOCUMENTS.MINE.DUE_ON') | translate: { date: (a.due_at | localDate) } }}</p>
+        }
+      </ng-template>
+    </app-data-table>
+  </div>
+
+  }
+  }
+
+  }
+</app-detail-modal>
+
+<!-- Publicar la versión vigente (aprobación importada) y asignar personas: dos modales que abren las acciones del pie. El formulario se crea al abrirlo y se descarta al cerrar. -->
+@if (canManage()) {
+<app-form-modal [open]="publishOpen()" titleKey="DOCUMENTS.PUBLISH.TITLE" descriptionKey="DOCUMENTS.PUBLISH.SUBTITLE" size="wide" [busy]="publishSaving()" [guarded]="publishDirty()" testId="document-publish" (closed)="publishOpen.set(false)">
+  @if (publishOpen()) {
+  <app-publish-version-form [documentId]="documentId()" [assignedCount]="assignees().length" (published)="onPublished($event)" />
+  }
+  @if (publishOpen()) {
+  <button actions type="submit" form="publish-form" [disabled]="!publishCanSubmit()" [appBusy]="publishSaving()" data-test-publish class="mk-btn">{{ 'DOCUMENTS.PUBLISH.SUBMIT' | translate }}</button>
+  }
+</app-form-modal>
+
+<app-form-modal [open]="assignOpen()" titleKey="DOCUMENTS.ASSIGN.TITLE" descriptionKey="DOCUMENTS.ASSIGN.SUBTITLE" size="xl" [busy]="assignSaving()" [guarded]="assignDirty()" testId="document-assign" (closed)="assignOpen.set(false)">
+  @if (assignOpen()) {
+  <app-assign-people-form [documentId]="documentId()" [assignedUserIds]="assignedIds()" (assigned)="onAssigned($event)" />
+  }
+  @if (assignOpen()) {
+  <button actions type="submit" form="assign-form" [disabled]="!assignCanSubmit()" [appBusy]="assignSaving()" data-test-assign class="mk-btn">{{ 'DOCUMENTS.ASSIGN.SUBMIT' | translate }}</button>
+  }
+</app-form-modal>
+}

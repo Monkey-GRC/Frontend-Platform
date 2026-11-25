@@ -1,0 +1,136 @@
+{
+  "ASSIGNMENT": {
+    "TITLE": "Assignment",
+    "INTRO_ADMIN": "Decide who owns each control and which delegate of their team helps run it. A new control arrives with no owner.",
+    "INTRO_OWNER": "Delegate the controls you own to the delegates of your team. The owner stays responsible for the control even if someone else runs it.",
+    "LOAD_ERROR_TITLE": "We could not load the assignment",
+    "NO_SERVICES_TITLE": "There are no services yet",
+    "NO_SERVICES_BODY_ADMIN": "Controls are assigned per service. Create a service and its controls will show up here, with no owner.",
+    "NO_SERVICES_BODY_OWNER": "There are no services with controls in your charge yet. The administrator will assign you the controls that will be yours.",
+    "GO_TO_SERVICES": "Go to My services",
+    "TEAM_LOAD_ERROR": "We could not load your team, and it is needed to assign.",
+    "SEARCH": "Search by control code, requirement (CC6.1) or name",
+    "TOOLBAR": "Search and filter controls",
+    "PERSON": {
+      "UNKNOWN": "Person with no name"
+    },
+    "FILTER": {
+      "SERVICE": "Service",
+      "ASSIGNMENT": "Assignment",
+      "ALL": "All",
+      "UNASSIGNED": "Unassigned",
+      "ASSIGNED": "Assigned",
+      "OWNER": "Owner",
+      "EXECUTOR": "Delegate",
+      "STATE": "Control status",
+      "CLEAR": "Clear filters"
+    },
+    "TABLE": {
+      "CAPTION": "Controls of the service with their owner, executor and status",
+      "CODE": "Control",
+      "NAME": "Name",
+      "OWNER": "Owner",
+      "EXECUTOR": "Runs it",
+      "STATE": "Status"
+    },
+    "OWNER": {
+      "UNASSIGNED": "No owner",
+      "UNASSIGNED_HINT": "Nobody is responsible for this control yet. Give it an owner so they get the notification and can manage it.",
+      "TITLE": "Assign owner",
+      "SUBTITLE": "The owner is responsible for the selected controls and approves their evidence. It can be a responsible person or yourself.",
+      "LABEL": "Owner",
+      "PLACEHOLDER": "Choose an owner",
+      "HINT": "When the owner changes, the delegate who ran the control is removed. We notify the assigned person.",
+      "ME": "{{name}} (you)",
+      "NONE": "Leave without an owner",
+      "NO_CANDIDATES": "There are no active responsible people. Create one in Team or assign the controls to yourself.",
+      "SUBMIT": "Assign owner"
+    },
+    "EXECUTOR": {
+      "OWNER_EXECUTES": "The owner runs it",
+      "NEEDS_OWNER": "No owner: nobody runs it yet"
+    },
+    "DELEGATE": {
+      "TITLE": "Delegate",
+      "SUBTITLE": "The delegate uploads the evidence of the selected controls; the owner stays responsible for them.",
+      "LABEL": "Delegate",
+      "PLACEHOLDER": "Choose a delegate",
+      "HINT": "You can only choose delegates from the team of the control's owner. We notify the assigned person.",
+      "NONE": "Remove delegate (the owner runs it)",
+      "TEAM_OF": "{{owner}}'s team",
+      "NO_TEAM": "{{owner}} has no delegates in their team. Invite one in Team, or remove the delegate so the owner runs it.",
+      "REASON_NO_OWNER": "One of the selected controls has no owner, and a control with no owner cannot have a delegate.",
+      "REASON_MIXED_OWNERS": "The selected controls belong to different owners, and each delegate belongs to the team of a single owner.",
+      "REMOVE_ONLY": "For now you can only remove the delegate. To assign one, select controls of the same owner.",
+      "SUBMIT": "Delegate",
+      "SUBMIT_REMOVE": "Remove delegate"
+    },
+    "FORM": {
+      "CONTROLS": "Selected controls",
+      "AND_MORE": "and {{count}} more"
+    },
+    "ACTIONS": {
+      "OWNER": "Assign owner",
+      "DELEGATE": "Delegate"
+    },
+    "SELECTION": {
+      "REGION": "Control selection",
+      "NONE": "Select one or more controls to assign their owner or delegate them.",
+      "CLEAR": "Clear selection",
+      "LIMIT": "An assignment takes up to 200 controls."
+    },
+    "STATE": {
+      "EFFECTIVE": "Effective",
+      "INEFFECTIVE": "Not effective",
+      "EXPIRED": "Expired",
+      "ERROR": "Error",
+      "INCOMPLETE": "Incomplete",
+      "EVALUATING": "Evaluating",
+      "NO_TESTS": "No tests"
+    },
+    "STATE_HINT": {
+      "EFFECTIVE": "The control's tests pass and its evidence is current.",
+      "INEFFECTIVE": "A test of the control fails: check what is missing and who fixes it.",
+      "EXPIRED": "The control's evidence expired: new evidence has to be uploaded.",
+      "ERROR": "We could not evaluate the control. Try again later.",
+      "INCOMPLETE": "The control is missing evidence or one of its tests.",
+      "EVALUATING": "We are evaluating the control.",
+      "NO_TESTS": "The control has no tests that evaluate it yet."
+    },
+    "EMPTY": {
+      "ALL_ASSIGNED_TITLE": "Every control already has an owner",
+      "ALL_ASSIGNED_BODY": "No control is left unassigned in this service. Remove the filter to see how they are distributed.",
+      "FILTERED_TITLE": "No control matches",
+      "FILTERED_BODY": "Try another search or remove the filters to see all the controls of the service.",
+      "NONE_ADMIN_TITLE": "This service has no controls",
+      "NONE_ADMIN_BODY": "Controls show up when the service finishes getting ready. If it has been a while, try again later.",
+      "NONE_OWNER_TITLE": "You have no controls in your charge in this service",
+      "NONE_OWNER_BODY": "When the administrator assigns you controls of this service, you will be able to delegate them here."
+    },
+    "TOAST": {
+      "OWNER_SET_ONE": "Owner assigned to 1 control",
+      "OWNER_SET_MANY": "Owner assigned to {{count}} controls",
+      "OWNER_SET_BODY": "We notified the new owner. Previous delegates were removed.",
+      "OWNER_CLEARED_ONE": "1 control is now without an owner",
+      "OWNER_CLEARED_MANY": "{{count}} controls are now without an owner",
+      "OWNER_CLEARED_BODY": "Without an owner nobody is responsible for them: assign one soon.",
+      "DELEGATE_SET_ONE": "Delegate assigned to 1 control",
+      "DELEGATE_SET_MANY": "Delegate assigned to {{count}} controls",
+      "DELEGATE_SET_BODY": "We notified the delegate.",
+      "DELEGATE_REMOVED_ONE": "Delegate removed from 1 control",
+      "DELEGATE_REMOVED_MANY": "Delegate removed from {{count}} controls",
+      "DELEGATE_REMOVED_BODY": "Their owners now run them.",
+      "NOTHING_CHANGED": "Nothing changed",
+      "NOTHING_CHANGED_BODY": "The selected controls were already like that."
+    },
+    "ERROR": {
+      "GENERIC": "We could not save the assignment. Try again in a few minutes.",
+      "OWNER_NOT_ELIGIBLE": "That person can no longer be an owner: their account changed. Choose someone else.",
+      "EXECUTOR_NOT_IN_TEAM": "That delegate is not in the team of the control's owner. Choose someone from their team.",
+      "CONTROL_RETIRED": "One of the controls was retired and can no longer be assigned. We refreshed the list: choose again.",
+      "BATCH_SIZE": "An assignment takes between 1 and 200 controls."
+    },
+    "SELECTED_ONE": "1 control selected",
+    "SELECTED_MANY": "{{count}} controls selected"
+  }
+}

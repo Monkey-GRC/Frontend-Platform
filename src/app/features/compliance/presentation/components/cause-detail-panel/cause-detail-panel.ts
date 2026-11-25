@@ -12,7 +12,7 @@ import { Badge } from '@shared/presentation/components/badge/badge';
 import { Cause, CauseRiskRef, ControlLink } from '@shared/domain/models/risk.models';
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { RiskService } from '@shared/domain/services/risk.service';
-import { DetailCard } from '../detail-card/detail-card';
+import { DetailSection } from '@shared/presentation/components/detail-section/detail-section';
 import { actionsColumn, LinkedDetailPanelBase } from '../detail-panel-base/detail-panel-base';
 import { LinkPicker } from '../link-picker/link-picker';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
@@ -23,7 +23,7 @@ type DetailTab = 'summary' | 'controls';
 // controles y dar de baja una causa propia; el resto de roles solo lee.
 @Component({
   selector: 'app-cause-detail-panel',
-  imports: [Badge, TranslatePipe, DetailModal, SearchField, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, DetailCard, Skeleton, SkeletonRegion],
+  imports: [Badge, TranslatePipe, DetailModal, SearchField, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, DetailSection, Skeleton, SkeletonRegion],
   templateUrl: './cause-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

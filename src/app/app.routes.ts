@@ -9,7 +9,7 @@ import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layo
 import { authGuard } from '@core/domain/guards/auth.guard';
 import { guestGuard } from '@core/domain/guards/guest.guard';
 import { roleGuard } from '@core/domain/guards/role.guard';
-import { ONBOARDING_ROLE } from '@shared/domain/utils/roles';
+import { COMPLIANCE_ROLES, COMPLIANCE_SUMMARY_ROLES, DOCUMENT_LIBRARY_ROLES, MY_DOCUMENTS_ROLES, ONBOARDING_ROLE, TEAM_ROLES, TECHNICAL_VIEW_ROLES } from '@shared/domain/utils/roles';
 import { workLandingGuard } from '@core/domain/guards/work-landing.guard';
 import { legacyComplianceRedirectGuard } from '@features/compliance/domain/guards/legacy-compliance-redirect.guard';
 import { wizardLeaveGuard } from '@features/technical-control/domain/guards/wizard-leave.guard';
@@ -21,7 +21,7 @@ export const routes: Routes = [
   {
     path: 'services/:id/connections/new/:catalog/:platform',
     title: 'PAGE_TITLE.CONNECT_PLATFORM',
-    canActivate: [authGuard, risksEvaluatedGuard],
+    canActivate: [authGuard, roleGuard('admin_empresa'), risksEvaluatedGuard],
     canDeactivate: [wizardLeaveGuard],
     loadComponent: () => import('@features/technical-control/presentation/views/connection-wizard/connection-wizard').then(m => m.ConnectionWizardView),
   },
@@ -40,7 +40,7 @@ export const routes: Routes = [
         loadComponent: () => import('@features/home/presentation/views/home/home').then(m => m.Home),
         pathMatch: 'full',
       },
-      // Pantallas provisionales de D102: se reemplazan al cambiar su `loadComponent` cuando el Backend las permita («Mi trabajo»: MD-201 con MD-195; asignación: MD-199 y MD-200 con MD-192).
+      // Pantalla provisional de D102: se reemplaza al cambiar su `loadComponent` cuando el Backend lo permita («Mi trabajo»: MD-201 con MD-195).
       {
         path: 'mi-trabajo',
         title: 'PAGE_TITLE.MY_WORK',
@@ -48,12 +48,32 @@ export const routes: Routes = [
         data: { titleKey: 'SHELL.NAV.MY_WORK', icon: 'assignment_ind' },
         loadComponent: () => import('@core/presentation/pages/coming-soon/coming-soon').then(m => m.ComingSoonView),
       },
+      // Asignación (D150, MD-192, MD-503): el administrador asigna el dueño y delega; el responsable delega en su equipo. `?servicio=<id>&asignacion=unassigned` llega ya filtrado (el aviso de controles sin dueño).
       {
         path: 'asignacion',
         title: 'PAGE_TITLE.ASSIGNMENT',
         canActivate: [roleGuard('admin_empresa', 'responsable')],
-        data: { titleKey: 'SHELL.NAV.ASSIGNMENT', icon: 'assignment_turned_in' },
-        loadComponent: () => import('@core/presentation/pages/coming-soon/coming-soon').then(m => m.ComingSoonView),
+        loadComponent: () => import('@features/assignment/presentation/views/assignment/assignment').then(m => m.AssignmentView),
+      },
+      // Documentos (D133, D136, MD-503): «Mis documentos» es de quien puede recibir una asignación y aceptarla (y la entrada del colaborador); «Documentos» es la biblioteca de la empresa: la publica y asigna
+      // el administrador, la lee el auditor. El detalle de un documento es un panel lateral de la lista (`?documento=<id>`), no una ruta.
+      {
+        path: 'mis-documentos',
+        title: 'PAGE_TITLE.MY_DOCUMENTS',
+        canActivate: [roleGuard(...MY_DOCUMENTS_ROLES)],
+        loadComponent: () => import('@features/documents/presentation/views/my-documents/my-documents').then(m => m.MyDocumentsView),
+      },
+      {
+        path: 'mis-documentos/:id',
+        title: 'PAGE_TITLE.DOCUMENT_READER',
+        canActivate: [roleGuard(...MY_DOCUMENTS_ROLES)],
+        loadComponent: () => import('@features/documents/presentation/views/document-reader/document-reader').then(m => m.DocumentReaderView),
+      },
+      {
+        path: 'documentos',
+        title: 'PAGE_TITLE.DOCUMENTS',
+        canActivate: [roleGuard(...DOCUMENT_LIBRARY_ROLES)],
+        loadComponent: () => import('@features/documents/presentation/views/documents-list/documents-list').then(m => m.DocumentsListView),
       },
       // Componente 1 del onboarding: el cliente cuenta de qué trata su empresa.
       {
@@ -63,14 +83,17 @@ export const routes: Routes = [
         loadComponent: () => import('@features/onboarding/presentation/views/organizational-context/organizational-context').then(m => m.OrganizationalContextView),
       },
       // Los servicios de la empresa (antes, Componente 2 del onboarding; desde D89 se declaran cuando el cliente quiera). `new` va antes que `:id`.
+      // Servicios y Cumplimiento son de los roles de la matriz (D136): el colaborador no entra (SEG-85); crear y editar un servicio y conectar plataformas son del administrador.
       {
         path: 'services',
         title: 'PAGE_TITLE.SERVICES',
+        canActivate: [roleGuard(...COMPLIANCE_ROLES)],
         loadComponent: () => import('@features/services/presentation/views/services-list/services-list').then(m => m.ServicesListView),
       },
       {
         path: 'services/new',
         title: 'PAGE_TITLE.SERVICE_NEW',
+        canActivate: [roleGuard('admin_empresa')],
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
       },
       // El servicio del cliente: su información y las conexiones con las que Monkey llega a sus activos (Componente 3).
@@ -79,17 +102,19 @@ export const routes: Routes = [
       {
         path: 'services/:id/connections/new',
         title: 'PAGE_TITLE.CONNECTION_NEW',
-        canActivate: [risksEvaluatedGuard],
+        canActivate: [roleGuard('admin_empresa'), risksEvaluatedGuard],
         loadComponent: () => import('@features/integrations/presentation/views/service-new-connection/service-new-connection').then(m => m.ServiceNewConnectionView),
       },
       {
         path: 'services/:id/connections/:assetId',
         title: 'PAGE_TITLE.CONNECTION',
+        canActivate: [roleGuard(...TECHNICAL_VIEW_ROLES)],
         loadComponent: () => import('@features/technical-control/presentation/views/connection-detail/connection-detail').then(m => m.ConnectionDetailView),
       },
       {
         path: 'services/:id/edit',
         title: 'PAGE_TITLE.SERVICE_EDIT',
+        canActivate: [roleGuard('admin_empresa')],
         loadComponent: () => import('@features/services/presentation/views/service-form/service-form').then(m => m.ServiceFormView),
       },
       // Cumplimiento (MD-119) es un grupo del menú: `/cumplimiento` (sin sección) es el General o la entrada, y cada sección es una página de `/cumplimiento/<sección>`.
@@ -99,6 +124,7 @@ export const routes: Routes = [
         path: 'cumplimiento',
         pathMatch: 'full',
         title: 'PAGE_TITLE.COMPLIANCE',
+        canActivate: [roleGuard(...COMPLIANCE_ROLES)],
         loadComponent: () => import('@features/compliance/presentation/views/compliance-entry/compliance-entry').then(m => m.ComplianceEntryView),
       },
       // Integraciones (D110, MD-211): la lista la ven el administrador y el auditor; agregar es solo del administrador. `agregar` es la ruta fija.
@@ -125,7 +151,7 @@ export const routes: Routes = [
       // subítems del grupo Equipo del menú; `/equipo` redirige a Personas. El guard es del padre y vale para las dos.
       {
         path: 'equipo',
-        canActivate: [roleGuard('admin_empresa', 'responsable')],
+        canActivate: [roleGuard(...TEAM_ROLES)],
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'personas' },
           {
@@ -149,15 +175,19 @@ export const routes: Routes = [
       {
         path: 'responsables',
         title: 'PAGE_TITLE.RESPONSIBLES',
+        canActivate: [roleGuard('admin_empresa', 'auditor')],
         loadComponent: () => import('@features/compliance/presentation/views/responsibles/responsibles').then(m => m.ResponsiblesView),
       },
       {
         path: 'cumplimiento',
+        canActivate: [roleGuard(...COMPLIANCE_ROLES)],
         loadComponent: () => import('@features/compliance/presentation/views/compliance-shell/compliance-shell').then(m => m.ComplianceShellView),
         children: [
+          // El Resumen (el tablero) ya no es del delegado: el servidor le responde 403 (D136); lo demás de Cumplimiento sí es suyo.
           {
             path: 'resumen',
             title: 'PAGE_TITLE.COMPLIANCE_OVERVIEW',
+            canActivate: [roleGuard(...COMPLIANCE_SUMMARY_ROLES)],
             loadComponent: () => import('@features/compliance/presentation/views/overview/overview').then(m => m.OverviewView),
           },
           // El orden de las rutas es el del menú: riesgos → causas → controles → evidencias.
@@ -192,13 +222,22 @@ export const routes: Routes = [
         ],
       },
       // Las rutas viejas de Cumplimiento dentro de un servicio redirigen a las nuevas y fijan ese servicio como activo (el guard siempre devuelve una redirección).
-      { path: 'services/:id/cumplimiento', pathMatch: 'full', canActivate: [legacyComplianceRedirectGuard], children: [] },
-      { path: 'services/:id/cumplimiento/:tab', canActivate: [legacyComplianceRedirectGuard], children: [] },
+      { path: 'services/:id/cumplimiento', pathMatch: 'full', canActivate: [roleGuard(...COMPLIANCE_ROLES), legacyComplianceRedirectGuard], children: [] },
+      { path: 'services/:id/cumplimiento/:tab', canActivate: [roleGuard(...COMPLIANCE_ROLES), legacyComplianceRedirectGuard], children: [] },
+      // Notificaciones (D138, MD-515): el centro de la campana es de todos los roles con sesión; las notificaciones son de cada persona (RLS), no hay nada que restringir aquí.
+      // `/avisos` era su nombre antes de unificar la terminología: redirige (con sus parámetros, como `?abrir=<id>`) para no romper enlaces ni correos ya enviados.
+      { path: 'avisos', pathMatch: 'full', redirectTo: 'notificaciones' },
+      {
+        path: 'notificaciones',
+        title: 'NOTIFICATIONS.PAGE_TITLE.CENTER',
+        loadComponent: () => import('@features/notifications/presentation/views/notification-center/notification-center').then(m => m.NotificationCenterView),
+      },
       // Enlace de la pantalla anterior (el paso «control técnico» ya no existe como pantalla aparte).
       { path: 'services/:id/technical-control', redirectTo: '/services/:id' },
       {
         path: 'services/:id',
         title: 'PAGE_TITLE.SERVICE',
+        canActivate: [roleGuard(...COMPLIANCE_ROLES)],
         loadComponent: () => import('@features/services/presentation/views/service-detail/service-detail').then(m => m.ServiceDetailView),
       },
     ]
@@ -212,6 +251,11 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'seguridad', pathMatch: 'full' },
       // Cada sección es un resumen con sus categorías; las opciones con «>» abren su detalle (con «← Atrás»). Las rutas más específicas van antes.
+      {
+        path: 'notificaciones',
+        title: 'NOTIFICATIONS.PAGE_TITLE.SETTINGS',
+        loadComponent: () => import('@features/notifications/presentation/views/notification-preferences/notification-preferences').then(m => m.NotificationPreferencesView),
+      },
       {
         path: 'seguridad/contrasena',
         title: 'PAGE_TITLE.SETTINGS_PASSWORD',

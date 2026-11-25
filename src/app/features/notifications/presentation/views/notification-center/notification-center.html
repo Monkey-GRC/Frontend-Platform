@@ -1,0 +1,65 @@
+<section class="w-full pb-10">
+  <app-page-header [title]="'NOTIFICATIONS.CENTER.TITLE' | translate" [description]="'NOTIFICATIONS.CENTER.INTRO' | translate">
+    <a actions routerLink="/ajustes/notificaciones" class="mk-link text-sm underline" data-testid="center-preferences">{{ 'NOTIFICATIONS.CENTER.PREFERENCES' | translate }}</a>
+  </app-page-header>
+
+  @if (stage() === 'error') {
+    <app-empty-state icon="" titleKey="NOTIFICATIONS.CENTER.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION">
+      <button action type="button" (click)="load()" class="mk-btn" data-testid="center-retry">{{ 'COMMON.RETRY' | translate }}</button>
+    </app-empty-state>
+  } @else {
+    <app-table-toolbar searchPlaceholderKey="NOTIFICATIONS.CENTER.SEARCH" [query]="list.query()" (queryChange)="list.search($event)" ariaLabelKey="NOTIFICATIONS.CENTER.TOOLBAR">
+      <button actions type="button" class="mk-btn-secondary" [appBusy]="marking()" [disabled]="unread() === 0 || stage() !== 'ready'" (click)="markAll()" data-testid="center-mark-all">
+        {{ 'NOTIFICATIONS.PANEL.MARK_ALL' | translate }}
+      </button>
+      <app-option-chips filters [compact]="true" [options]="statusChips()" [selected]="[status()]" labelKey="NOTIFICATIONS.FILTER.STATUS" (picked)="pickStatus($event)" />
+      <app-table-filter filters labelKey="NOTIFICATIONS.FILTER.TYPE" [options]="typeFilterOptions()" [value]="type()" (valueChange)="pickType($event)" />
+    </app-table-toolbar>
+
+    <app-data-table captionKey="NOTIFICATIONS.TABLE.CAPTION" [columns]="columns" [rows]="list.rows()" [rowKey]="rowKey" [rowLabel]="rowLabel" [page]="list.info()"
+      [loading]="stage() === 'loading'" [clickable]="true" emptyIcon="" [emptyTitleKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_TITLE' : 'NOTIFICATIONS.CENTER.EMPTY_TITLE'"
+      [emptyDescriptionKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_BODY' : 'NOTIFICATIONS.CENTER.EMPTY_BODY'"
+      (pageChange)="list.goTo($event)" (pageSizeChange)="list.resize($event)" (rowClick)="open($event)">
+
+      <ng-template appCell="state" let-row>
+        <app-status-indicator [tone]="row.is_read ? 'neutral' : 'info'" [labelKey]="row.is_read ? 'NOTIFICATIONS.READ' : 'NOTIFICATIONS.UNREAD'" [attr.data-unread]="!row.is_read" />
+      </ng-template>
+
+      <ng-template appCell="title" let-row>
+        <div class="min-w-0">
+          <p class="text-ink" [class.font-semibold]="!row.is_read">{{ row.title }}</p>
+          <p class="mt-1 flex flex-wrap items-center gap-1 text-xs text-ink-muted">
+            @if (row.control; as control) {
+              <app-tag [text]="control.code" />
+              @for (code of control.requirement_codes; track code) {
+                <app-tag [text]="code" />
+              }
+            }
+            @if (row.service) {<span>{{ row.service.name }}</span>}
+          </p>
+        </div>
+      </ng-template>
+
+      <ng-template appCell="type" let-row>
+        <app-badge kind="attribute" [value]="row.type">{{ typeLabel(row.type) }}</app-badge>
+      </ng-template>
+
+      <ng-template appCell="received" let-row>
+        <p class="text-sm text-ink">{{ ago(row) }}</p>
+        <p class="text-xs text-ink-muted">{{ row.created_at | localDate: 'medium' : true }}</p>
+      </ng-template>
+
+      <app-empty-state tableEmpty icon="" [titleKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_TITLE' : 'NOTIFICATIONS.CENTER.EMPTY_TITLE'"
+        [descriptionKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_BODY' : 'NOTIFICATIONS.CENTER.EMPTY_BODY'">
+        @if (hasFilters()) {
+          <button action type="button" (click)="clearFilters()" class="mk-btn-secondary" data-testid="center-clear">{{ 'NOTIFICATIONS.CENTER.CLEAR_FILTERS' | translate }}</button>
+        }
+      </app-empty-state>
+    </app-data-table>
+  }
+</section>
+
+@if (selected(); as item) {
+  <app-notification-detail [notification]="item" [typeLabel]="typeLabel(item.type)" [working]="toggling()" (closed)="closeDetail()"
+    (readChange)="setRead(item, $event)" (followed)="setRead(item, true)" />
+}

@@ -72,7 +72,7 @@ export class TeamOrgChart implements OnInit {
   readonly teams = computed(() => this.groups().filter((g) => g.kind === 'team'));
   readonly isEmpty = computed(() => {
     const c = this.chart();
-    return !c.admins.length && !c.responsibles.length && !c.auditors.length && !c.orphans.length;
+    return !c.admins.length && !c.responsibles.length && !c.auditors.length && !c.collaborators.length && !c.orphans.length;
   });
 
   // Abrir y cerrar a cada responsable
@@ -143,9 +143,9 @@ export class TeamOrgChart implements OnInit {
     return p && p.total > 0 ? Math.round((p.done / p.total) * 100) : null;
   }
 
-  /** ¿Quien mira puede crear el equipo de este responsable? El administrador, el de cualquiera; el responsable, solo el suyo. */
+  /** ¿Quien mira puede crear el equipo de este responsable? Solo el administrador, el de cualquiera (D136: el responsable ya no crea el suyo). */
   canCreateTeamFor(node: OrgResponsible): boolean {
-    return this.groupsLoaded() && !node.team && (this.isAdmin() || node.member === null || node.member.role === 'responsable');
+    return this.groupsLoaded() && !node.team && this.isAdmin();
   }
 
   /** Los demás equipos a los que se puede mover un delegado: el nombre del responsable primero, que es lo que la persona reconoce. */
@@ -167,9 +167,7 @@ export class TeamOrgChart implements OnInit {
 
   createTeam(node: OrgResponsible): void {
     if (!this.canCreateTeam() || this.saving()) return;
-    // El responsable crea el suyo sin `leader_id` (es él); el administrador lo crea por el responsable.
-    const dto = this.isAdmin() ? { name: this.teamNameDraft().trim(), leader_id: node.id } : { name: this.teamNameDraft().trim() };
-    this.run(this.groupApi.create(dto), (g) => {
+    this.run(this.groupApi.create({ name: this.teamNameDraft().trim(), leader_id: node.id }), (g) => {
       this.creatingFor.set(null);
       this.toast.showSuccess(this.translate.instant('TEAM.ORG.NOTICE.CREATED', { name: g.name }));
     });

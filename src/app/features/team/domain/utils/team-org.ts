@@ -22,6 +22,8 @@ export interface OrgChart {
   responsibles: OrgResponsible[];
   /** Fuera de la cadena: el auditor lee, no recibe controles ni tiene equipo (D102). */
   auditors: TeamMember[];
+  /** Fuera de la cadena, como el auditor: el colaborador solo lee y acepta los documentos que le asignan (D136). */
+  collaborators: TeamMember[];
   /** Delegados cuyo responsable no está a la vista (por ejemplo, desactivado). Se muestran aparte para que nadie desaparezca del organigrama. */
   orphans: TeamMember[];
   hiddenInactive: number;
@@ -77,6 +79,7 @@ export function buildOrgChart(members: readonly TeamMember[], groups: readonly G
     admins: people.filter((p) => p.role === 'admin_empresa').sort(memberSort),
     responsibles: [...responsibles.values()].sort(byName),
     auditors: people.filter((p) => p.role === 'auditor').sort(memberSort),
+    collaborators: people.filter((p) => p.role === 'colaborador').sort(memberSort),
     orphans: orphans.sort(memberSort),
     hiddenInactive: showInactive ? 0 : members.filter((m) => m.status === 'inactive').length,
   };

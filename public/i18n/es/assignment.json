@@ -1,0 +1,136 @@
+{
+  "ASSIGNMENT": {
+    "TITLE": "Asignación",
+    "INTRO_ADMIN": "Define quién es el dueño de cada control y en qué delegado de su equipo se apoya para ejecutarlo. Un control nuevo llega sin dueño.",
+    "INTRO_OWNER": "Delega los controles que son tuyos en los delegados de tu equipo. El dueño sigue siendo responsable del control aunque lo ejecute otra persona.",
+    "LOAD_ERROR_TITLE": "No pudimos cargar la asignación",
+    "NO_SERVICES_TITLE": "Todavía no hay servicios",
+    "NO_SERVICES_BODY_ADMIN": "Los controles se asignan por servicio. Crea un servicio y sus controles aparecerán aquí, sin dueño.",
+    "NO_SERVICES_BODY_OWNER": "Aún no hay servicios con controles a tu cargo. El administrador te asignará los controles que serán tuyos.",
+    "GO_TO_SERVICES": "Ir a Mis servicios",
+    "TEAM_LOAD_ERROR": "No pudimos cargar tu equipo, y hace falta para asignar.",
+    "SEARCH": "Buscar por código del control, requisito (CC6.1) o nombre",
+    "TOOLBAR": "Buscar y filtrar controles",
+    "PERSON": {
+      "UNKNOWN": "Persona sin nombre"
+    },
+    "FILTER": {
+      "SERVICE": "Servicio",
+      "ASSIGNMENT": "Asignación",
+      "ALL": "Todos",
+      "UNASSIGNED": "Sin asignar",
+      "ASSIGNED": "Asignados",
+      "OWNER": "Dueño",
+      "EXECUTOR": "Delegado",
+      "STATE": "Estado del control",
+      "CLEAR": "Quitar filtros"
+    },
+    "TABLE": {
+      "CAPTION": "Controles del servicio con su dueño, su ejecutor y su estado",
+      "CODE": "Control",
+      "NAME": "Nombre",
+      "OWNER": "Dueño",
+      "EXECUTOR": "Ejecuta",
+      "STATE": "Estado"
+    },
+    "OWNER": {
+      "UNASSIGNED": "Sin dueño",
+      "UNASSIGNED_HINT": "Nadie responde por este control todavía. Asígnale un dueño para que le llegue el aviso y pueda gestionarlo.",
+      "TITLE": "Asignar dueño",
+      "SUBTITLE": "El dueño responde por los controles seleccionados y aprueba su evidencia. Puede ser un responsable o tú mismo.",
+      "LABEL": "Dueño",
+      "PLACEHOLDER": "Elige un dueño",
+      "HINT": "Al cambiar el dueño, el delegado que ejecutaba el control se quita. Le avisamos a la persona asignada.",
+      "ME": "{{name}} (tú)",
+      "NONE": "Dejar sin dueño",
+      "NO_CANDIDATES": "No hay responsables activos. Crea uno en Equipo o asígnate los controles a ti.",
+      "SUBMIT": "Asignar dueño"
+    },
+    "EXECUTOR": {
+      "OWNER_EXECUTES": "Lo ejecuta el dueño",
+      "NEEDS_OWNER": "Sin dueño: aún nadie lo ejecuta"
+    },
+    "DELEGATE": {
+      "TITLE": "Delegar",
+      "SUBTITLE": "El delegado carga la evidencia de los controles seleccionados; el dueño sigue siendo responsable de ellos.",
+      "LABEL": "Delegado",
+      "PLACEHOLDER": "Elige un delegado",
+      "HINT": "Solo puedes elegir delegados del equipo del dueño del control. Le avisamos a la persona asignada.",
+      "NONE": "Quitar delegado (lo ejecuta el dueño)",
+      "TEAM_OF": "Equipo de {{owner}}",
+      "NO_TEAM": "{{owner}} no tiene delegados en su equipo. Invita uno en Equipo, o quita el delegado para que ejecute el dueño.",
+      "REASON_NO_OWNER": "Alguno de los controles seleccionados no tiene dueño, y un control sin dueño no puede tener delegado.",
+      "REASON_MIXED_OWNERS": "Los controles seleccionados son de dueños distintos, y cada delegado pertenece al equipo de un solo dueño.",
+      "REMOVE_ONLY": "Por ahora solo puedes quitar el delegado. Para asignar uno, selecciona controles de un mismo dueño.",
+      "SUBMIT": "Delegar",
+      "SUBMIT_REMOVE": "Quitar delegado"
+    },
+    "FORM": {
+      "CONTROLS": "Controles seleccionados",
+      "AND_MORE": "y {{count}} más"
+    },
+    "ACTIONS": {
+      "OWNER": "Asignar dueño",
+      "DELEGATE": "Delegar"
+    },
+    "SELECTION": {
+      "REGION": "Selección de controles",
+      "NONE": "Selecciona uno o varios controles para asignar su dueño o delegarlos.",
+      "CLEAR": "Quitar la selección",
+      "LIMIT": "Una asignación admite hasta 200 controles."
+    },
+    "STATE": {
+      "EFFECTIVE": "Efectivo",
+      "INEFFECTIVE": "No efectivo",
+      "EXPIRED": "Vencido",
+      "ERROR": "Error",
+      "INCOMPLETE": "Incompleto",
+      "EVALUATING": "En evaluación",
+      "NO_TESTS": "Sin pruebas"
+    },
+    "STATE_HINT": {
+      "EFFECTIVE": "Las pruebas del control pasan y su evidencia está vigente.",
+      "INEFFECTIVE": "Alguna prueba del control falla: revisa qué falta y quién lo corrige.",
+      "EXPIRED": "La evidencia del control venció: hay que subir una nueva.",
+      "ERROR": "No pudimos evaluar el control. Inténtalo de nuevo más tarde.",
+      "INCOMPLETE": "Al control le falta evidencia o alguna de sus pruebas.",
+      "EVALUATING": "Estamos evaluando el control.",
+      "NO_TESTS": "El control todavía no tiene pruebas que lo evalúen."
+    },
+    "EMPTY": {
+      "ALL_ASSIGNED_TITLE": "Todos los controles ya tienen dueño",
+      "ALL_ASSIGNED_BODY": "No queda ningún control sin asignar en este servicio. Quita el filtro para ver cómo están repartidos.",
+      "FILTERED_TITLE": "Ningún control coincide",
+      "FILTERED_BODY": "Prueba con otra búsqueda o quita los filtros para ver todos los controles del servicio.",
+      "NONE_ADMIN_TITLE": "Este servicio no tiene controles",
+      "NONE_ADMIN_BODY": "Los controles aparecen cuando el servicio termina de prepararse. Si ya pasó un rato, vuelve a intentarlo más tarde.",
+      "NONE_OWNER_TITLE": "No tienes controles a tu cargo en este servicio",
+      "NONE_OWNER_BODY": "Cuando el administrador te asigne controles de este servicio, podrás delegarlos aquí."
+    },
+    "TOAST": {
+      "OWNER_SET_ONE": "Dueño asignado a 1 control",
+      "OWNER_SET_MANY": "Dueño asignado a {{count}} controles",
+      "OWNER_SET_BODY": "Avisamos al nuevo dueño. Los delegados anteriores se quitaron.",
+      "OWNER_CLEARED_ONE": "1 control quedó sin dueño",
+      "OWNER_CLEARED_MANY": "{{count}} controles quedaron sin dueño",
+      "OWNER_CLEARED_BODY": "Sin dueño nadie responde por ellos: asígnales uno cuanto antes.",
+      "DELEGATE_SET_ONE": "Delegado asignado a 1 control",
+      "DELEGATE_SET_MANY": "Delegado asignado a {{count}} controles",
+      "DELEGATE_SET_BODY": "Avisamos a la persona delegada.",
+      "DELEGATE_REMOVED_ONE": "Delegado quitado de 1 control",
+      "DELEGATE_REMOVED_MANY": "Delegado quitado de {{count}} controles",
+      "DELEGATE_REMOVED_BODY": "Ahora los ejecuta su dueño.",
+      "NOTHING_CHANGED": "No hubo cambios",
+      "NOTHING_CHANGED_BODY": "Los controles seleccionados ya estaban así."
+    },
+    "ERROR": {
+      "GENERIC": "No pudimos guardar la asignación. Inténtalo de nuevo en unos minutos.",
+      "OWNER_NOT_ELIGIBLE": "Esa persona ya no puede ser dueña: su cuenta cambió. Elige a otra persona.",
+      "EXECUTOR_NOT_IN_TEAM": "Ese delegado no está en el equipo del dueño del control. Elige a alguien de su equipo.",
+      "CONTROL_RETIRED": "Alguno de los controles se dio de baja y ya no se puede asignar. Actualizamos la lista: vuelve a elegir.",
+      "BATCH_SIZE": "Una asignación admite entre 1 y 200 controles."
+    },
+    "SELECTED_ONE": "1 control seleccionado",
+    "SELECTED_MANY": "{{count}} controles seleccionados"
+  }
+}

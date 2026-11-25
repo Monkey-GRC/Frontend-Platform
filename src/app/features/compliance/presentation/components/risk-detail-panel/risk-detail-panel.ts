@@ -12,7 +12,7 @@ import { targetChecked } from '@shared/presentation/utils/event-target';
 import { TabItem } from '@shared/presentation/components/tabs/tabs';
 import { RiskCauseNode, RiskDetail } from '@shared/domain/models/risk.models';
 import { RiskService } from '@shared/domain/services/risk.service';
-import { DetailCard } from '../detail-card/detail-card';
+import { DetailSection } from '@shared/presentation/components/detail-section/detail-section';
 import { actionsColumn, LinkedDetailPanelBase } from '../detail-panel-base/detail-panel-base';
 import { LinkPicker } from '../link-picker/link-picker';
 import { RiskAssessment } from '../risk-assessment/risk-assessment';
@@ -25,7 +25,7 @@ type DetailTab = 'summary' | 'causes';
 // empresa puede vincular y quitar causas y dar de baja un riesgo propio; el resto de roles solo lee. La evaluación 5×5 y el tratamiento los trae `app-risk-assessment` (MD-123).
 @Component({
   selector: 'app-risk-detail-panel',
-  imports: [Badge, TranslatePipe, DetailModal, SearchField, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailCard, Skeleton, SkeletonRegion],
+  imports: [Badge, TranslatePipe, DetailModal, SearchField, DataTable, TableCell, Tag, ConfirmDialog, LinkPicker, RiskLevelBadge, RiskAssessment, DetailSection, Skeleton, SkeletonRegion],
   templateUrl: './risk-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

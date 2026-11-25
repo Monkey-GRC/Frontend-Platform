@@ -1,0 +1,119 @@
+<div class="relative">
+  <button type="button" (click)="toggle()" data-testid="bell-trigger" aria-haspopup="dialog" [attr.aria-expanded]="open()"
+    [attr.aria-label]="labelKey() | translate: { count: count() }" [title]="'NOTIFICATIONS.BELL.TITLE' | translate"
+    class="relative flex size-10 items-center justify-center rounded-full text-ink-muted transition hover:bg-tint hover:text-ink active:translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-action/40"
+    [class.bg-tint]="open()">
+    <span class="material-symbols-rounded text-[24px] leading-none" aria-hidden="true">notifications</span>
+    @if (count() > 0) {
+      <app-count-badge data-testid="bell-count" class="absolute -top-1 left-6" [count]="count()" />
+    }
+  </button>
+
+  @if (open()) {
+    <div role="dialog" [attr.aria-label]="'NOTIFICATIONS.PANEL.TITLE' | translate" data-testid="bell-panel"
+      class="mk-enter absolute right-0 top-full z-(--z-header-menu) mt-2 flex max-h-[80dvh] w-[34rem] max-w-[calc(100vw-1.5rem)] flex-col rounded-card border border-line bg-surface shadow-float">
+      <!-- Cabecera (al estilo del panel de Jira): el título; a la derecha el filtro de no leídas, el enlace al centro de avisos y el menú de acciones. -->
+      <div class="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line py-3 pl-5 pr-3">
+        <h2 class="text-base font-semibold text-ink">{{ 'NOTIFICATIONS.PANEL.TITLE' | translate }}</h2>
+        <div class="flex items-center gap-2">
+          <label for="bell-unread-only" class="cursor-pointer text-sm text-ink-muted">{{ 'NOTIFICATIONS.PANEL.UNREAD_ONLY' | translate }}</label>
+          <app-switch inputId="bell-unread-only" data-testid="bell-unread-only" [checked]="unreadOnly()" (checkedChange)="setUnreadOnly($event)" />
+          <span class="mx-1 h-6 w-px bg-line" aria-hidden="true"></span>
+          <a routerLink="/notificaciones" (click)="close()" class="mk-btn-icon" data-testid="bell-see-all"
+            [attr.aria-label]="'NOTIFICATIONS.PANEL.OPEN_CENTER' | translate" [title]="'NOTIFICATIONS.PANEL.OPEN_CENTER' | translate">
+            <span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">open_in_new</span>
+          </a>
+          <div class="relative" data-bell-menu>
+            <button #menuTrigger type="button" class="mk-btn-icon" data-testid="bell-menu" aria-haspopup="menu" [attr.aria-expanded]="menuOpen()"
+              [attr.aria-controls]="menuOpen() ? 'bell-actions' : null" [attr.aria-label]="'NOTIFICATIONS.PANEL.ACTIONS' | translate" [title]="'NOTIFICATIONS.PANEL.ACTIONS' | translate"
+              (click)="toggleMenu()">
+              <span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">more_horiz</span>
+            </button>
+            @if (menuOpen()) {
+              <div id="bell-actions" role="menu" class="mk-enter absolute right-0 top-full z-10 mt-1 w-64 rounded-card border border-line bg-surface p-1 shadow-float">
+                <button #menuFirst type="button" role="menuitem" data-testid="bell-mark-all" [disabled]="count() === 0 || marking() || stage() !== 'ready'" (click)="markAllFromMenu()"
+                  class="flex w-full items-center gap-2 rounded-control px-3 py-2 text-left text-sm text-ink transition-colors enabled:hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40 disabled:cursor-not-allowed disabled:text-ink-faint">
+                  <span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">done_all</span>
+                  {{ 'NOTIFICATIONS.PANEL.MARK_ALL' | translate }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        @switch (stage()) {
+          @case ('loading') {
+            <!-- D116 · La forma de la lista: el título del grupo y cada aviso con su título, su servicio y fecha y el texto breve en dos líneas. -->
+            <app-skeleton-region data-testid="bell-loading">
+              <div class="px-5 pb-1 pt-3"><app-skeleton shape="line" width="6rem" /></div>
+              @for (n of placeholders; track n) {
+                <div class="flex gap-3 border-b border-line px-5 py-3 last:border-b-0">
+                  <div class="min-w-0 flex-1 space-y-2">
+                    <app-skeleton shape="line" width="80%" />
+                    <app-skeleton shape="line" width="35%" />
+                    <app-skeleton shape="line" [lines]="2" />
+                  </div>
+                  <app-skeleton shape="circle" [size]="8" />
+                </div>
+              }
+            </app-skeleton-region>
+          }
+          @case ('error') {
+            <div class="px-5 py-10 text-center" data-testid="bell-error">
+              <p class="text-sm font-medium text-ink">{{ 'NOTIFICATIONS.PANEL.ERROR_TITLE' | translate }}</p>
+              <p class="mt-1 text-sm text-ink-muted">{{ 'COMMON.CHECK_CONNECTION' | translate }}</p>
+              <button type="button" class="mk-btn-secondary-sm mt-3" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
+            </div>
+          }
+          @default {
+            @if (items().length === 0) {
+              <div class="px-6 py-12 text-center" data-testid="bell-empty">
+                <p class="text-base font-semibold text-ink">{{ (unreadOnly() ? 'NOTIFICATIONS.PANEL.EMPTY_UNREAD_TITLE' : 'NOTIFICATIONS.PANEL.EMPTY_TITLE') | translate }}</p>
+                <p class="mx-auto mt-1 max-w-sm text-pretty text-sm text-ink-muted">{{ (unreadOnly() ? 'NOTIFICATIONS.PANEL.EMPTY_UNREAD_BODY' : 'NOTIFICATIONS.PANEL.EMPTY_BODY') | translate }}</p>
+              </div>
+            } @else {
+              @let g = groups();
+              <div data-testid="bell-list">
+                @for (group of [{ key: 'NOTIFICATIONS.PANEL.RECENT', items: g.recent, id: 'recent' }, { key: 'NOTIFICATIONS.PANEL.OLDER', items: g.older, id: 'older' }]; track group.id) {
+                  @if (group.items.length) {
+                    <section [attr.aria-labelledby]="'bell-group-' + group.id" [attr.data-bell-group]="group.id">
+                      <h3 [id]="'bell-group-' + group.id" class="px-5 pb-1 pt-3 text-xs font-medium text-ink-faint">{{ group.key | translate }}</h3>
+                      <ul class="divide-y divide-line">
+                        @for (item of group.items; track item.id) {
+                          @let target = link(item);
+                          @let parts = titleParts(item);
+                          <li [attr.data-unread]="!item.is_read" data-testid="bell-item">
+                            <a [routerLink]="target.commands" [queryParams]="target.queryParams" (click)="select(item)" data-testid="bell-item-link"
+                              class="flex items-start gap-3 px-5 py-3 transition-colors hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40">
+                              <span class="min-w-0 flex-1">
+                                @if (!item.is_read) {
+                                  <span class="sr-only">{{ 'NOTIFICATIONS.UNREAD' | translate }}.</span>
+                                }
+                                <span class="block text-pretty text-sm leading-snug text-ink" [class.font-medium]="!item.is_read">
+                                  @if (parts.code) {<strong class="font-semibold" data-testid="bell-item-code">{{ parts.code }}</strong>@if (parts.text) { · }}{{ parts.text }}
+                                </span>
+                                <span class="mt-1 block text-xs text-ink-muted">
+                                  @if (item.service) {<span>{{ item.service.name }}</span> · }<span>{{ ago(item) }}</span>
+                                </span>
+                                @if (item.detail.what_happened; as brief) {
+                                  <span class="mt-1 line-clamp-2 text-sm text-ink-muted" data-testid="bell-item-brief">{{ brief }}</span>
+                                }
+                              </span>
+                              <app-unread-dot class="mt-1.5" [unread]="!item.is_read" />
+                            </a>
+                          </li>
+                        }
+                      </ul>
+                    </section>
+                  }
+                }
+              </div>
+            }
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

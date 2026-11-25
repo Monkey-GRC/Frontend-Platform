@@ -618,21 +618,22 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
   });
 
   describe('owner', () => {
-    it('sees only their team, can create delegates but has no actions over people (the API answers 403 to them)', () => {
+    it('sees only their team and has no actions over people nor invitation (the API answers 403 to them, D136)', () => {
       setup([DELEGATE], 'responsable', [GROUPS[1]]);
       expect(row('del@acme.co').textContent).toContain('Dani Lara');
       expect(el().querySelector('[data-test-edit-name-btn]')).toBeNull();
       expect(el().querySelector('[data-test-deactivate]')).toBeNull();
-      click('[data-test-open-invite]');
-      expect(optionValues(el(), '[data-test-role]', () => fixture.detectChanges())).toEqual(['delegado']);
+      expect(el().querySelector('[data-test-open-invite]')).toBeNull();
+      expect(el().querySelector('[data-test-invite]')).toBeNull();
     });
+  });
 
-    it('does not offer to resend a failed invitation (only the administrator can)', () => {
-      setup([DELEGATE], 'responsable', [GROUPS[1]]);
-      fixture.componentInstance.onInvited(invited({ delivery: 'failed', role: 'delegado' }));
-      fixture.detectChanges();
-      expect(q('[data-test-invitation]').getAttribute('data-status')).toBe('failed');
-      expect(el().querySelector('[data-test-resend]')).toBeNull();
+  describe('collaborators (D136)', () => {
+    it('can be filtered by their role and show their role label', () => {
+      setup([ME, { ...ANA, id: 'col', email: 'col@acme.co', role: 'colaborador', name: 'Coco', last_name: 'Lara', group: null }]);
+      expect(row('col@acme.co').textContent).toContain('TEAM.ROLE.COLABORADOR');
+      filter('role', 'colaborador');
+      expect(lastListCall()[0]).toEqual(jasmine.objectContaining({ role: 'colaborador' }));
     });
   });
 });

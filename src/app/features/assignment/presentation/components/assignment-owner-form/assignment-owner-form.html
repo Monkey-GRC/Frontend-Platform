@@ -1,0 +1,26 @@
+<app-form-modal titleKey="ASSIGNMENT.OWNER.TITLE" descriptionKey="ASSIGNMENT.OWNER.SUBTITLE" [busy]="saving()" [guarded]="choice() !== ''" testId="assignment-owner" (closed)="closed.emit()">
+  <form id="assignment-owner-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" [attr.aria-label]="'ASSIGNMENT.OWNER.TITLE' | translate">
+    @if (error(); as e) {
+      <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-testid="owner-error"><span>{{ e }}</span></div>
+    }
+
+    <div class="flex flex-wrap items-center gap-2" role="group" [attr.aria-label]="'ASSIGNMENT.FORM.CONTROLS' | translate" data-testid="owner-controls">
+      @for (c of shown(); track c.client_control_id) {
+        <app-tag [text]="c.code" />
+      }
+      @if (hidden() > 0) {
+        <span class="text-sm text-ink-muted">{{ 'ASSIGNMENT.FORM.AND_MORE' | translate: { count: hidden() } }}</span>
+      }
+    </div>
+
+    <app-field labelKey="ASSIGNMENT.OWNER.LABEL" forId="assignment-owner-select" hintKey="ASSIGNMENT.OWNER.HINT">
+      <app-select inputId="assignment-owner-select" data-testid="owner-select" [options]="options()" [value]="choice()" [disabled]="saving()" placeholderKey="ASSIGNMENT.OWNER.PLACEHOLDER"
+        (valueChange)="choice.set($event)" />
+    </app-field>
+
+    @if (candidates().length === 0) {
+      <p class="text-sm text-ink-muted" data-testid="owner-no-candidates">{{ 'ASSIGNMENT.OWNER.NO_CANDIDATES' | translate }}</p>
+    }
+  </form>
+  <button actions type="submit" form="assignment-owner-form" class="mk-btn" [disabled]="!canSubmit()" [appBusy]="saving()" data-testid="owner-submit">{{ 'ASSIGNMENT.OWNER.SUBMIT' | translate }}</button>
+</app-form-modal>

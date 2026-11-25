@@ -34,8 +34,8 @@ export interface RedeemDto {
   password: string;
 }
 
-// D96: cuatro roles.
-export type UserRole = 'admin_monkey' | 'admin_empresa' | 'responsable' | 'delegado' | 'auditor';
+// D96, D136: seis roles (el `colaborador` solo lee y acepta los documentos que le asignan).
+export type UserRole = 'admin_monkey' | 'admin_empresa' | 'responsable' | 'delegado' | 'auditor' | 'colaborador';
 
 export interface AuthUser {
   id: string;

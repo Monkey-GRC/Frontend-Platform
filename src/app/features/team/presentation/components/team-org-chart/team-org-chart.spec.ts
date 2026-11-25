@@ -114,13 +114,18 @@ describe('TeamOrgChart', () => {
     expect(toastText()).toContain('TEAM.ORG.NOTICE');
   });
 
-  it('the responsible creates their own team without a leader (it is them)', () => {
+  it('the responsible without a team is told the administrator creates it, and is offered nothing to create (D136)', () => {
     setup([JUAN], [], 'responsable');
-    groupApi.create.and.returnValue(of(T_MARIA));
-    click('[data-org-create]');
-    type('[data-org-create-input]', 'Mi equipo');
-    click('[data-org-create-save]');
-    expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Mi equipo' });
+    expect(q('[data-org-no-team]')!.textContent).toContain('TEAM.ORG.NO_TEAM_OWN');
+    expect(q('[data-org-create]')).toBeNull();
+  });
+
+  it('shows the collaborators apart, like the auditors: they are outside the chain of controls (D136)', () => {
+    setup([ADMIN, MARIA, member('c1', 'colaborador', 'Coco')], [T_MARIA]);
+    const section = q('[data-org-collaborators]')!;
+    expect(section.textContent).toContain('Coco');
+    expect(section.textContent).toContain('TEAM.ROLE.COLABORADOR');
+    expect(q('[data-org-delegates]')?.textContent ?? '').not.toContain('Coco');
   });
 
   it('does not say «no team» while the groups are still arriving', () => {

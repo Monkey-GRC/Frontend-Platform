@@ -1,6 +1,6 @@
 <section class="w-full pb-10">
   <app-page-header [title]="'TEAM.PEOPLE.TITLE' | translate" [description]="(canManage() ? 'TEAM.INTRO' : 'TEAM.INTRO_OWN') | translate">
-    @if (stage() === 'ready') {
+    @if (stage() === 'ready' && canManage()) {
     <button actions type="button" (click)="openInvite()" data-test-open-invite class="mk-btn">{{ 'TEAM.INVITE.OPEN' | translate }}</button>
     }
   </app-page-header>
@@ -96,14 +96,16 @@
 </section>
 
 <!-- La invitación vive en un modal que abre «Invitar»; el formulario se crea al abrirlo y se descarta al cerrar. Su acción va en el pie. -->
+@if (canManage()) {
 <app-form-modal [open]="inviteOpen()" titleKey="TEAM.INVITE.TITLE" descriptionKey="TEAM.INVITE.SUBTITLE" [busy]="inviteSaving()" [guarded]="inviteDirty()" testId="invite" (closed)="inviteOpen.set(false)">
   @if (inviteOpen()) {
-  <app-team-invite-form [actor]="actor()" [groups]="groups()" [groupsLoaded]="groupsLoaded()" [members]="members()" (invited)="onInvited($event)" (fixName)="onFixName($event)" (manageGroups)="onManageGroups()" (teamCreated)="onTeamCreated()" (teamFailed)="onTeamFailed($event)" />
+  <app-team-invite-form [groups]="groups()" [groupsLoaded]="groupsLoaded()" [members]="members()" (invited)="onInvited($event)" (fixName)="onFixName($event)" (manageGroups)="onManageGroups()" (teamCreated)="onTeamCreated()" (teamFailed)="onTeamFailed($event)" />
   }
   @if (inviteOpen()) {
   <button actions type="submit" form="invite-form" [disabled]="!inviteCanSubmit()" [appBusy]="inviteSaving()" data-test-invite class="mk-btn">{{ 'TEAM.INVITE.SUBMIT' | translate }}</button>
   }
 </app-form-modal>
+}
 
 <!-- El detalle de una persona: con los datos que ya trae la lista (no hay endpoint de detalle) y las acciones que ya existen, como filas. El pie solo cierra. -->
 <app-form-modal [open]="!!detail()" titleKey="TEAM.DETAIL.TITLE" descriptionKey="TEAM.DETAIL.SUBTITLE" icon="person" [closeButton]="true" cancelLabelKey="COMMON.CLOSE" size="max" [guarded]="nameDirty()" testId="person-detail" (closed)="closeDetail()">

@@ -20,7 +20,7 @@ import { ControlScore } from '../control-score/control-score';
 import { ControlDetail, ControlDimension, UpdateControlBody } from '@features/compliance/domain/models/control.models';
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { ControlEvidence } from '../control-evidence/control-evidence';
-import { DetailCard } from '../detail-card/detail-card';
+import { DetailSection } from '@shared/presentation/components/detail-section/detail-section';
 import { DetailPanelBase } from '../detail-panel-base/detail-panel-base';
 import { ControlTests } from '../control-tests/control-tests';
 import { ControlRequirements } from '../control-requirements/control-requirements';
@@ -56,7 +56,7 @@ const UPLOADING_ROLES: readonly UserRole[] = ['admin_empresa', 'responsable', 'd
 // recalcula. Los errores 422 se muestran bajo cada campo. El dueño y el ejecutor del control (D102) llegan con MD-202, cuando el Backend los exponga.
 @Component({
   selector: 'app-control-detail-panel',
-  imports: [Badge, ControlScore, FormsModule, TranslatePipe, DetailModal, DataTable, TableCell, SearchField, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlTests, ControlRequirements, ControlPeriodView, ControlPeriodicityForm, DetailCard, Skeleton, SkeletonRegion, Busy, BusyFields],
+  imports: [Badge, ControlScore, FormsModule, TranslatePipe, DetailModal, DataTable, TableCell, SearchField, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlTests, ControlRequirements, ControlPeriodView, ControlPeriodicityForm, DetailSection, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './control-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

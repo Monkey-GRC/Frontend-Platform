@@ -1,0 +1,117 @@
+@let n = notification();
+<app-detail-modal titleKey="NOTIFICATIONS.DETAIL.TITLE" [heading]="n.title" variant="drawer-narrow" testId="notification-detail" (closed)="closed.emit()">
+  <!-- Los requisitos del marco que cubre el control, bajo el título; el código del control va enlazado en «Qué pasó». -->
+  @if (n.control?.requirement_codes?.length) {
+  <div meta class="flex flex-wrap items-center gap-2">
+    @for (code of n.control?.requirement_codes; track code) {
+      <app-tag [text]="code" />
+    }
+  </div>
+  }
+
+  <div class="flex flex-col gap-6">
+    <!-- Franja de metadatos en columnas finas, separadas por líneas (como el resumen de un documento). Se mide el panel: en fila desde 42 rem; más estrecho, de a dos. -->
+    <div class="@container border-b border-line pb-5">
+      <dl class="-mx-5 grid grid-cols-2 gap-y-4 @2xl:grid-flow-col @2xl:auto-cols-fr @2xl:grid-cols-none" data-testid="detail-context">
+        @if (n.service; as service) {
+        <div class="flex min-w-0 flex-col gap-1 border-line px-5 @2xl:border-l @2xl:first:border-l-0">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'NOTIFICATIONS.DETAIL.SERVICE' | translate }}</dt>
+          <dd class="text-sm font-medium text-ink">{{ service.name }}</dd>
+        </div>
+        }
+        <div class="flex min-w-0 flex-col gap-1 border-line px-5 @2xl:border-l @2xl:first:border-l-0">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'NOTIFICATIONS.DETAIL.TYPE' | translate }}</dt>
+          <dd class="text-sm font-medium text-ink">{{ typeLabel() ?? n.type }}</dd>
+        </div>
+        <div class="flex min-w-0 flex-col gap-1 border-line px-5 @2xl:border-l @2xl:first:border-l-0">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'NOTIFICATIONS.DETAIL.RECEIVED' | translate }}</dt>
+          <dd class="text-sm font-medium tabular-nums text-ink">{{ n.created_at | localDate: 'medium' : true }}</dd>
+        </div>
+        @if (n.due_at) {
+        <div class="flex min-w-0 flex-col gap-1 border-line px-5 @2xl:border-l @2xl:first:border-l-0">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'NOTIFICATIONS.DETAIL.DUE' | translate }}</dt>
+          <dd class="text-sm font-medium tabular-nums text-ink">{{ n.due_at | localDate: 'medium' : false : true }}</dd>
+        </div>
+        }
+        <div class="flex min-w-0 flex-col items-start gap-1 border-line px-5 @2xl:border-l @2xl:first:border-l-0">
+          <dt class="text-xs font-medium text-ink-faint">{{ 'NOTIFICATIONS.DETAIL.STATE' | translate }}</dt>
+          <dd><app-status-indicator [tone]="n.is_read ? 'neutral' : 'info'" [labelKey]="n.is_read ? 'NOTIFICATIONS.READ' : 'NOTIFICATIONS.UNREAD'" data-testid="detail-state" /></dd>
+        </div>
+      </dl>
+    </div>
+
+    @if (blocks().length === 0) {
+      <p class="text-sm text-ink-muted" data-testid="detail-empty">{{ 'NOTIFICATIONS.DETAIL.EMPTY' | translate }}</p>
+    }
+
+    <!-- Qué pasó: lo primero que se lee, a todo el ancho, con el control del aviso enlazado. -->
+    @if (what(); as b) {
+      <section aria-labelledby="notice-what" [attr.data-field]="b.field" data-testid="detail-what">
+        <h3 id="notice-what" class="text-sm font-semibold text-ink">{{ 'NOTIFICATIONS.FIELDS.' + b.field | translate }}</h3>
+        <p class="mt-2 max-w-prose whitespace-pre-line text-pretty text-base leading-relaxed text-ink">{{ b.text }}</p>
+        @if (n.control; as control) {
+          <div class="mt-3 flex flex-wrap items-center gap-2" [attr.aria-label]="'NOTIFICATIONS.DETAIL.CONTROLS' | translate" role="group">
+            @if (link(); as target) {
+              <a [routerLink]="target.commands" [queryParams]="target.queryParams" (click)="followed.emit()" data-testid="detail-control-chip"
+                class="group inline-flex items-center gap-2 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40">
+                <app-tag [text]="control.code" />
+                <span class="text-sm text-ink-muted underline-offset-2 group-hover:text-ink group-hover:underline">{{ control.name }}</span>
+              </a>
+            } @else {
+              <app-tag [text]="control.code" />
+              <span class="text-sm text-ink-muted">{{ control.name }}</span>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- La agrupada de controles sin dueño: los códigos que trae (hasta 5), cada uno enlazado a su control; el resto se ve en Asignación con el botón de abajo. -->
+    @if (groupedControls().length) {
+      <div class="flex flex-wrap items-center gap-2" role="group" [attr.aria-label]="'NOTIFICATIONS.DETAIL.CONTROLS' | translate" data-testid="detail-controls">
+        @for (c of groupedControls(); track c.id) {
+          <a [routerLink]="c.link.commands" [queryParams]="c.link.queryParams" (click)="followed.emit()" data-testid="detail-control-code"
+            [attr.aria-label]="'NOTIFICATIONS.DETAIL.OPEN_CONTROL' | translate: { code: c.code }" class="rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action/40">
+            <app-tag [text]="c.code" />
+          </a>
+        }
+      </div>
+    }
+
+    <!-- Cómo corregirlo: el bloque de acción, con el botón que lleva a donde se resuelve. -->
+    @if (fix() || link()) {
+      <app-card [tinted]="true" [attr.data-field]="fix()?.field ?? null" data-testid="detail-fix">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          @if (fix(); as b) {
+            <div class="min-w-0">
+              <h3 class="text-sm font-semibold text-ink">{{ 'NOTIFICATIONS.FIELDS.' + b.field | translate }}</h3>
+              <p class="mt-1 max-w-prose whitespace-pre-line text-pretty text-sm leading-relaxed text-ink">{{ b.text }}</p>
+            </div>
+          }
+          @if (link(); as target) {
+            <a [routerLink]="target.commands" [queryParams]="target.queryParams" (click)="followed.emit()" class="mk-btn shrink-0" data-testid="detail-open-target">
+              {{ actionKey() | translate: { code: n.control?.code ?? '' } }}
+              <span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">arrow_forward</span>
+            </a>
+          }
+        </div>
+      </app-card>
+    }
+
+    <!-- Los datos para actuar: dos columnas compactas, título pequeño y texto. -->
+    @if (facts().length) {
+      <dl class="grid gap-x-8 gap-y-5 sm:grid-cols-2" data-testid="detail-facts">
+        @for (b of facts(); track b.field) {
+          <div [attr.data-field]="b.field">
+            <dt class="text-xs font-medium text-ink-faint">{{ 'NOTIFICATIONS.FIELDS.' + b.field | translate }}</dt>
+            <dd class="mt-1 whitespace-pre-line text-pretty text-sm leading-relaxed text-ink">{{ b.text }}</dd>
+          </div>
+        }
+      </dl>
+    }
+  </div>
+
+  <button actions type="button" class="mk-btn-secondary" [appBusy]="working()" (click)="readChange.emit(!n.is_read)" data-testid="detail-toggle-read">
+    {{ (n.is_read ? 'NOTIFICATIONS.DETAIL.MARK_UNREAD' : 'NOTIFICATIONS.DETAIL.MARK_READ') | translate }}
+  </button>
+</app-detail-modal>

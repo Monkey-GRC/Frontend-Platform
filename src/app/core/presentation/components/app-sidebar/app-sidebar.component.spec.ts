@@ -5,29 +5,57 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { SessionService } from '@core/domain/services/session.service';
 import { AppSidebarComponent } from './app-sidebar.component';
 
-// Qué ve cada rol en el menú (D102, MD-196). Ocultar es UX; la barrera real es el backend.
+// Qué ve cada rol en el menú (D102, MD-196, D136). Ocultar es UX; la barrera real es el backend.
 describe('AppSidebarComponent · menú por rol', () => {
-  function menuFor(role: string): string[] {
+  function items(role: string) {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({ imports: [AppSidebarComponent], providers: [provideRouter([]), provideTranslateService()] });
     TestBed.inject(SessionService).set({ id: 'u', email: 'a@x.co', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
-    return TestBed.createComponent(AppSidebarComponent).componentInstance.navItems.map((i) => i.name);
+    return TestBed.createComponent(AppSidebarComponent).componentInstance.navItems;
   }
+  const menuFor = (role: string): string[] => items(role).map((i) => i.name);
 
   it('shows the administrator everything, including the team and the control assignment', () => {
-    expect(menuFor('admin_empresa')).toEqual(['Inicio', 'Mi empresa', 'Cumplimiento', 'Equipo', 'Asignación', 'Integraciones']);
+    expect(menuFor('admin_empresa')).toEqual(['Inicio', 'Mi empresa', 'Cumplimiento', 'Documentos', 'Equipo', 'Asignación', 'Integraciones']);
   });
 
-  it('gives the owner «Mi trabajo», Cumplimiento, the executor assignment and their team, and nothing of the company', () => {
-    expect(menuFor('responsable')).toEqual(['Mi trabajo', 'Cumplimiento', 'Asignar ejecutor', 'Mi equipo']);
+  it('gives the owner «Mi trabajo», Cumplimiento, the assignment (delegating) and their team, and nothing of the company', () => {
+    expect(menuFor('responsable')).toEqual(['Mi trabajo', 'Cumplimiento', 'Documentos asignados', 'Mi equipo', 'Asignación']);
   });
 
-  it('gives the delegate only «Mi trabajo» and Cumplimiento', () => {
-    expect(menuFor('delegado')).toEqual(['Mi trabajo', 'Cumplimiento']);
+  it('gives the delegate «Mi trabajo», «Mis documentos» and Cumplimiento', () => {
+    expect(menuFor('delegado')).toEqual(['Mi trabajo', 'Cumplimiento', 'Documentos asignados']);
+  });
+
+  it('gives the collaborator only «Mis documentos»: nothing of compliance, services, team, assignment, integrations or technical control (D136, SEG-85)', () => {
+    expect(menuFor('colaborador')).toEqual(['Documentos asignados']);
+  });
+
+  it('groups the documents of the administrator in «Documentos» (library and «Mis documentos») after Cumplimiento', () => {
+    const list = items('admin_empresa');
+    const docs = list.find((i) => i.name === 'Documentos')!;
+    expect(list.indexOf(docs)).toBe(list.findIndex((i) => i.name === 'Cumplimiento') + 1);
+    expect(docs.subItems!.map((c) => c.path)).toEqual(['/documentos', '/mis-documentos']);
+    expect(docs.subItems!.map((c) => c.labelKey)).toEqual(['SHELL.NAV.DOCUMENT_LIBRARY', 'SHELL.NAV.MY_DOCUMENTS']);
+  });
+
+  it('shows «Documentos» as a single entry, with no dropdown, to the roles that have only one of the two (one place to go)', () => {
+    const expected: Record<string, string> = { responsable: '/mis-documentos', delegado: '/mis-documentos', colaborador: '/mis-documentos', auditor: '/documentos' };
+    for (const [role, path] of Object.entries(expected)) {
+      const docs = items(role).filter((i) => i.labelKey === 'SHELL.NAV.DOCUMENTS');
+      expect(docs.length).withContext(role).toBe(1);
+      expect(docs[0].path).withContext(role).toBe(path);
+      expect(docs[0].subItems).withContext(role).toBeUndefined();
+    }
+  });
+
+  it('gives the owner and the administrator the same «Asignación» entry (one screen: the administrator assigns and delegates, the owner delegates)', () => {
+    for (const role of ['admin_empresa', 'responsable']) expect(items(role).find((i) => i.path === '/asignacion')?.labelKey).withContext(role).toBe('SHELL.NAV.ASSIGNMENT');
+    for (const role of ['delegado', 'auditor', 'colaborador']) expect(items(role).some((i) => i.path === '/asignacion')).withContext(role).toBeFalse();
   });
 
   it('gives the auditor Integraciones (read only) and hides what the backend refuses them (company, services, team, assignment)', () => {
-    expect(menuFor('auditor')).toEqual(['Inicio', 'Cumplimiento', 'Responsables', 'Integraciones']);
+    expect(menuFor('auditor')).toEqual(['Inicio', 'Cumplimiento', 'Documentos de la empresa', 'Responsables', 'Integraciones']);
   });
 });
 
@@ -177,11 +205,12 @@ describe('AppSidebarComponent · groups', () => {
     expect(panel(fixture.nativeElement, 'nav-group-cumplimiento')).not.toBeNull();
   });
 
-  it('lists the six sections of Compliance as children, in the order of the tabs they replace, for every role', async () => {
+  it('lists the sections of Compliance as children, in the order of the tabs they replace: the delegate gets all but the summary, which is no longer theirs (D136)', async () => {
+    const all = ['/cumplimiento/resumen', '/cumplimiento/riesgos', '/cumplimiento/causas', '/cumplimiento/controles', '/cumplimiento/evidencias', '/cumplimiento/exclusiones'];
     for (const role of ['admin_empresa', 'auditor', 'responsable', 'delegado']) {
       const fixture = await render(role, '/');
       const links = Array.from(panel(fixture.nativeElement, 'nav-group-cumplimiento').querySelectorAll('a')).map((a) => a.getAttribute('href'));
-      expect(links).toEqual(['/cumplimiento/resumen', '/cumplimiento/riesgos', '/cumplimiento/causas', '/cumplimiento/controles', '/cumplimiento/evidencias', '/cumplimiento/exclusiones']);
+      expect(links).toEqual(role === 'delegado' ? all.slice(1) : all);
     }
   });
 

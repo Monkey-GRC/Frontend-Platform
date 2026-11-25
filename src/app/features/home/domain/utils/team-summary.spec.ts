@@ -12,11 +12,12 @@ describe('summarizeTeam', () => {
       member({ role: 'delegado', status: 'pending', mfaEnabled: false }),
       member({ role: 'auditor', status: 'inactive' }),
       member({ role: 'auditor', status: 'suspended' }),
+      member({ role: 'colaborador' }),
     ]);
-    expect(s.total).toBe(4);
-    expect(s.active).toBe(3);
+    expect(s.total).toBe(5);
+    expect(s.active).toBe(4);
     expect(s.pending).toBe(1);
-    expect(s.byRole).toEqual({ admin_empresa: 1, responsable: 1, delegado: 2, auditor: 0 });
+    expect(s.byRole).toEqual({ admin_empresa: 1, responsable: 1, delegado: 2, auditor: 0, colaborador: 1 });
   });
 
   it('counts only active accounts without a second factor (a pending invitation cannot have one yet)', () => {

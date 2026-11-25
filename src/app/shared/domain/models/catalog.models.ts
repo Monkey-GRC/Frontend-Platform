@@ -79,7 +79,6 @@ export type CatalogName =
   | 'responsible_type'
   | 'cause_control_effect'
   | 'exclusion_status'
-  | 'dimension'
   | 'control_type'
   | 'catalog_origin'
   | 'loss_type'
@@ -87,6 +86,11 @@ export type CatalogName =
   // Integraciones (D110): el orden de las secciones y de los filtros es el del catálogo
   | 'integration_status'
   | 'integration_purpose'
+  // Avisos (contracts/notificaciones.md) y Documentos (contracts/documentos.md)
+  | 'notification_type'
+  | 'document_type'
+  | 'document_acceptance'
+  | 'my_document_status'
   // Las regiones de una plataforma (`aws_region`…) salen de la base (D67): una plataforma nueva con regiones no exige cambiar esta lista.
   | `${string}_region`
   // Las versiones que se pueden declarar de un sistema operativo (`linux_version`, `windows_version`…, D112): también salen de la base.

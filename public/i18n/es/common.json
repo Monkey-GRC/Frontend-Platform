@@ -182,6 +182,9 @@
     "INTEGRATIONS": "Integraciones",
     "INTEGRATION_ADD": "Agregar integración",
     "INTEGRATION_DETAIL": "Detalle de la integración",
-    "SETTINGS_DEVICES": "Ajustes · Dispositivos recordados"
+    "SETTINGS_DEVICES": "Ajustes · Dispositivos recordados",
+    "MY_DOCUMENTS": "Mis documentos",
+    "DOCUMENT_READER": "Leer documento",
+    "DOCUMENTS": "Documentos"
   }
 }

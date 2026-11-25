@@ -1,0 +1,44 @@
+<!-- Va dentro del modal de «Publicar versión» (el título y el pie los pone el modal; el botón de enviar es del pie y apunta a este formulario por su id). -->
+<form id="publish-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" [attr.aria-label]="'DOCUMENTS.PUBLISH.TITLE' | translate">
+  @if (error(); as e) {
+  <div class="flex items-start gap-2 p-3 text-sm text-ink mk-surface-state-bad" role="alert" data-test-form-error><span>{{ e }}</span></div>
+  }
+
+  @if (assignedCount() > 0) {
+  <p class="text-sm text-ink-muted" data-test-reaccept>{{ 'DOCUMENTS.PUBLISH.REACCEPT' | translate: { count: assignedCount() } }}</p>
+  }
+
+  <div>
+    <app-file-upload inputId="publish-file" labelKey="DOCUMENTS.PUBLISH.FILE" [accept]="accept" [maxBytes]="maxBytes" [(file)]="file" [disabled]="saving()" />
+  </div>
+
+  <app-field labelKey="DOCUMENTS.PUBLISH.APPROVED_AT" forId="publish-approved-at" hintKey="DOCUMENTS.PUBLISH.APPROVED_AT_HINT">
+    <app-date-picker inputId="publish-approved-at" [max]="today" [(value)]="approvedAt" [disabled]="saving()" data-test-approved-at />
+  </app-field>
+
+  <!-- Quién lo aprobó fuera de Monkey: de 1 a 3, en texto (pueden no tener cuenta, D152). -->
+  <fieldset class="flex flex-col gap-3" [disabled]="saving()">
+    <legend class="mb-1.5 text-xs font-medium text-ink-faint">{{ 'DOCUMENTS.PUBLISH.APPROVERS' | translate }}</legend>
+    <p class="text-xs text-ink-muted">{{ 'DOCUMENTS.PUBLISH.APPROVERS_HINT' | translate: { max: maxApprovers } }}</p>
+    @for (a of approvers(); track a.key) {
+    <div class="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]" data-test-approver>
+      <app-field labelKey="DOCUMENTS.PUBLISH.APPROVER_NAME" [forId]="'publish-approver-name-' + a.key">
+        <input [id]="'publish-approver-name-' + a.key" type="text" [attr.maxlength]="maxText" autocomplete="off" data-test-approver-name [value]="a.name" (input)="setApprover(a.key, 'name', targetValue($event))" class="mk-input" />
+      </app-field>
+      <app-field labelKey="DOCUMENTS.PUBLISH.APPROVER_ROLE" [forId]="'publish-approver-role-' + a.key">
+        <input [id]="'publish-approver-role-' + a.key" type="text" [attr.maxlength]="maxText" autocomplete="off" data-test-approver-role [value]="a.role" (input)="setApprover(a.key, 'role', targetValue($event))" class="mk-input" />
+      </app-field>
+      @if (approvers().length > 1) {
+      <button type="button" (click)="removeApprover(a.key)" data-test-remove-approver class="mk-btn-secondary">{{ 'DOCUMENTS.PUBLISH.REMOVE_APPROVER' | translate }}</button>
+      }
+    </div>
+    }
+    @if (canAddApprover()) {
+    <div><button type="button" (click)="addApprover()" data-test-add-approver class="mk-btn-secondary-sm">{{ 'DOCUMENTS.PUBLISH.ADD_APPROVER' | translate }}</button></div>
+    }
+  </fieldset>
+
+  <app-field labelKey="DOCUMENTS.PUBLISH.NOTE" forId="publish-note" hintKey="DOCUMENTS.PUBLISH.NOTE_HINT">
+    <textarea id="publish-note" rows="3" [attr.maxlength]="maxNote" data-test-note [value]="note()" (input)="note.set(targetValue($event))" [disabled]="saving()" class="mk-textarea"></textarea>
+  </app-field>
+</form>

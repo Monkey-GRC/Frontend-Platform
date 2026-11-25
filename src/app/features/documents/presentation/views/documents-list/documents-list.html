@@ -1,0 +1,70 @@
+<section class="w-full pb-10">
+  <app-page-header [title]="'DOCUMENTS.LIST.TITLE' | translate" [description]="(canManage() ? 'DOCUMENTS.LIST.INTRO_ADMIN' : 'DOCUMENTS.LIST.INTRO_READER') | translate" />
+
+  @if (stage() === 'error') {
+  <app-empty-state icon="" titleKey="DOCUMENTS.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION" data-test-error>
+    <button action type="button" (click)="load()" data-test-retry class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  } @else {
+
+  <!-- El buscador arriba, a todo el ancho; los filtros debajo. -->
+  <app-table-toolbar searchPlaceholderKey="DOCUMENTS.LIST.SEARCH" [query]="search()" (queryChange)="onSearch($event)" ariaLabelKey="DOCUMENTS.LIST.FILTERS">
+    <app-table-filter filters data-test-filter-type labelKey="DOCUMENTS.LIST.FILTER_TYPE" [options]="typeOptions()" [value]="typeFilter()" (valueChange)="setType($event)" />
+    <app-table-filter filters data-test-filter-publication labelKey="DOCUMENTS.LIST.FILTER_PUBLICATION" [options]="publicationOptions" [value]="publication()" (valueChange)="setPublication($event)" />
+    @if (hasFilters()) {
+    <button filters type="button" (click)="clearFilters()" data-test-clear class="mk-btn-secondary">{{ 'DOCUMENTS.CLEAR_FILTERS' | translate }}</button>
+    }
+  </app-table-toolbar>
+
+  <app-data-table captionKey="DOCUMENTS.LIST.TABLE_CAPTION" [columns]="columns" [rows]="rows()" [rowKey]="rowKey" [rowLabel]="rowLabel" [page]="page()"
+    [loading]="stage() === 'loading' || loadingPage()" [clickable]="true"
+    (rowClick)="open($event)" (pageChange)="goTo($event)" (pageSizeChange)="resize($event)">
+
+    <!-- D80: el código se muestra siempre. -->
+    <ng-template appCell="code" let-row><app-tag [text]="row.code" /></ng-template>
+
+    <ng-template appCell="name" let-row>
+      <p class="font-medium text-ink" data-test-name>{{ row.name }}</p>
+      <p class="mt-1 flex flex-wrap items-center gap-1">
+        @if (typeLabel(row); as type) {<app-badge size="sm" kind="attribute" [value]="row.type">{{ type }}</app-badge>}
+        <app-badge size="sm" kind="attribute" [value]="row.origin">{{ ('DOCUMENTS.ORIGIN.' + row.origin.toUpperCase()) | translate }}</app-badge>
+      </p>
+    </ng-template>
+
+    <ng-template appCell="version" let-row>
+      @if (row.current_version; as v) {
+      <p class="text-sm font-medium tabular-nums text-ink" data-test-version>{{ 'DOCUMENTS.MINE.VERSION_NUMBER' | translate: { number: v.number } }}</p>
+      <p class="mt-0.5 text-xs tabular-nums text-ink-muted">{{ 'DOCUMENTS.MINE.APPROVED_ON' | translate: { date: (v.approved_at | localDate: 'medium' : false : true) } }}</p>
+      } @else {
+      <app-status-indicator tone="warn" labelKey="DOCUMENTS.LIST.UNPUBLISHED" data-test-unpublished />
+      }
+    </ng-template>
+
+    <!-- Cuántas personas aceptaron, sobre el total (nunca un porcentaje solo), y cuántas faltan. -->
+    <ng-template appCell="acceptance" let-row>
+      @if (row.assignments.total > 0) {
+      <p class="text-sm font-medium tabular-nums text-ink" data-test-accepted>{{ 'DOCUMENTS.LIST.ACCEPTED_OF' | translate: { accepted: row.assignments.accepted, total: row.assignments.total } }}</p>
+      @if (outstanding(row.assignments) > 0) {
+      <p class="mt-0.5 text-xs tabular-nums" [class]="row.assignments.overdue > 0 ? 'text-bad-ink' : 'text-ink-muted'" data-test-outstanding>
+        {{ 'DOCUMENTS.LIST.OUTSTANDING' | translate: { pending: row.assignments.pending, overdue: row.assignments.overdue } }}
+      </p>
+      }
+      } @else {
+      <p class="text-sm text-ink-muted" data-test-unassigned>{{ 'DOCUMENTS.LIST.UNASSIGNED' | translate }}</p>
+      }
+    </ng-template>
+
+    <!-- Siempre se proyecta (un `@if` vacío ocuparía el lugar y el estado vacío de la tabla no saldría): con filtros dice que nada coincide y ofrece quitarlos. -->
+    <app-empty-state tableEmpty icon="" [titleKey]="hasFilters() ? 'DOCUMENTS.LIST.EMPTY_FILTERED_TITLE' : 'DOCUMENTS.LIST.EMPTY_TITLE'" [descriptionKey]="hasFilters() ? 'DOCUMENTS.LIST.EMPTY_FILTERED_BODY' : 'DOCUMENTS.LIST.EMPTY_BODY'" data-test-empty>
+      @if (hasFilters()) {
+      <button action type="button" (click)="clearFilters()" class="mk-btn-secondary-sm">{{ 'DOCUMENTS.CLEAR_FILTERS' | translate }}</button>
+      }
+    </app-empty-state>
+  </app-data-table>
+
+  @if (selected(); as id) {
+  <app-document-detail-panel [documentId]="id" [canManage]="canManage()" (closed)="closeDetail()" (changed)="load()" />
+  }
+
+  }
+</section>

@@ -1,0 +1,211 @@
+{
+  "DOCUMENTS": {
+    "LOAD_ERROR_TITLE": "No pudimos cargar los documentos",
+    "CLEAR_FILTERS": "Quitar filtros",
+    "STATUS": {
+      "PENDING": "Por aceptar",
+      "ACCEPTED": "Aceptado",
+      "OVERDUE": "Vencido"
+    },
+    "VERSION_STATUS": {
+      "DRAFT": "Borrador",
+      "IN_APPROVAL": "En aprobación",
+      "REJECTED": "Rechazada",
+      "APPROVED": "Aprobada",
+      "CURRENT": "Vigente",
+      "RENEWAL_DUE": "Por renovar",
+      "EXPIRED": "Vencida",
+      "ARCHIVED": "Archivada"
+    },
+    "ORIGIN": {
+      "INTERNAL": "Interno",
+      "EXTERNAL": "Externo"
+    },
+    "MINE": {
+      "TITLE": "Mis documentos",
+      "INTRO": "Los documentos que tu empresa te pidió leer y aceptar. Cada uno lleva su código, su versión vigente y el plazo para aceptarlo.",
+      "SEARCH": "Buscar por código o nombre",
+      "FILTERS": "Buscar y filtrar mis documentos",
+      "FILTER_STATUS": "Estado",
+      "TABLE_CAPTION": "Documentos asignados a ti",
+      "COLUMNS": {
+        "CODE": "Código",
+        "DOCUMENT": "Documento",
+        "VERSION": "Versión vigente",
+        "STATUS": "Estado y plazo"
+      },
+      "VERSION_NUMBER": "Versión {{number}}",
+      "APPROVED_ON": "Aprobada el {{date}}",
+      "ACCEPTED_ON": "Aceptado el {{date}}",
+      "DUE_ON": "Plazo para aceptar: {{date}}",
+      "OVERDUE_SINCE": "Venció el {{date}}",
+      "NO_ACCEPTANCE": "No requiere aceptación",
+      "READ_ONLY": "Solo tienes que leerlo.",
+      "EMPTY_TITLE": "Aún no tienes documentos asignados",
+      "EMPTY_BODY": "Cuando el administrador de tu empresa te asigne uno, aparecerá aquí con su plazo para aceptarlo.",
+      "EMPTY_FILTERED_TITLE": "Ningún documento coincide",
+      "EMPTY_FILTERED_BODY": "Prueba con otro código o nombre, o quita los filtros."
+    },
+    "READER": {
+      "BACK": "Mis documentos",
+      "MISSING_TITLE": "No tienes este documento asignado",
+      "MISSING_BODY": "Puede que ya no te lo hayan asignado o que el enlace no sea el correcto. Revisa tu lista de documentos.",
+      "ACCEPT_TITLE": "Aceptación",
+      "ACCEPT": "Aceptar documento",
+      "ACCEPT_BODY": "Al aceptar, queda registrado que leíste {{code}}, versión {{number}}, con la fecha y la huella del archivo. No se puede deshacer.",
+      "ACCEPT_LATE": "Ya pasó el plazo: puedes aceptarlo igual y quedará registrado como fuera de plazo.",
+      "ACCEPTED_BODY": "Aceptaste la versión {{number}} el {{date}}. Si se publica una versión nueva, te pediremos aceptarla de nuevo.",
+      "ACCEPTED_TOAST": "Aceptaste {{code}}, versión {{number}}.",
+      "NOT_REQUIRED_BODY": "Este documento no requiere aceptación: solo tienes que leerlo.",
+      "CONFIRM_TITLE": "¿Aceptar {{code}}, versión {{number}}?",
+      "CONFIRM_BODY": "Quedará registrado con tu nombre, la fecha y la huella del archivo. Una aceptación no se edita ni se borra.",
+      "DOWNLOAD": "Descargar",
+      "REFRESH": "Volver a abrir",
+      "LINK_EXPIRES": "El enlace al archivo vence en 5 minutos: si caduca mientras lees, vuelve a abrirlo.",
+      "DOWNLOAD_ONLY_TITLE": "Este archivo se lee descargándolo",
+      "DOWNLOAD_ONLY_BODY": "{{name}} no se puede ver en pantalla. Descárgalo para leerlo y, cuando termines, acepta el documento.",
+      "VIEWER_ERROR": "No pudimos abrir el archivo. Vuelve a intentarlo.",
+      "DOWNLOAD_ERROR": "No pudimos preparar la descarga. Vuelve a intentarlo.",
+      "RELOAD": "Actualizar documento",
+      "ERROR": {
+        "NOT_CURRENT": "Se publicó una versión nueva mientras leías. Actualiza el documento, léelo y acéptalo de nuevo.",
+        "ALREADY_ACCEPTED": "Ya aceptaste esta versión. Actualiza el documento para ver su estado.",
+        "NOT_REQUIRED": "Este documento ya no requiere aceptación. Actualiza el documento para verlo.",
+        "NOT_ASSIGNED": "Ya no tienes este documento asignado.",
+        "GENERIC": "No pudimos registrar tu aceptación. Vuelve a intentarlo."
+      }
+    },
+    "LIST": {
+      "TITLE": "Documentos",
+      "INTRO_ADMIN": "Los documentos de tu empresa según los marcos que contrataste. Publica la versión aprobada de cada uno y asígnala a quienes deben leerla y aceptarla.",
+      "INTRO_READER": "Los documentos de la empresa con su versión vigente y quién los aceptó. Solo lectura.",
+      "SEARCH": "Buscar por código o nombre",
+      "FILTERS": "Buscar y filtrar documentos",
+      "FILTER_TYPE": "Tipo",
+      "FILTER_PUBLICATION": "Publicación",
+      "PUBLISHED": "Con versión vigente",
+      "UNPUBLISHED": "Sin publicar",
+      "TABLE_CAPTION": "Documentos de la empresa",
+      "COLUMNS": {
+        "CODE": "Código",
+        "NAME": "Documento",
+        "VERSION": "Versión vigente",
+        "ACCEPTANCE": "Aceptación"
+      },
+      "ACCEPTED_OF": "{{accepted}} de {{total}} aceptaron",
+      "OUTSTANDING": "Por aceptar: {{pending}} · Vencidos: {{overdue}}",
+      "UNASSIGNED": "Sin asignar",
+      "EMPTY_TITLE": "Aún no hay documentos",
+      "EMPTY_BODY": "Los documentos aparecen cuando la empresa tiene un servicio con un marco contratado.",
+      "EMPTY_FILTERED_TITLE": "Ningún documento coincide",
+      "EMPTY_FILTERED_BODY": "Prueba con otro código o nombre, o quita los filtros."
+    },
+    "DETAIL": {
+      "TITLE": "Documento",
+      "TABS_ARIA": "Secciones del documento",
+      "TABS": {
+        "SUMMARY": "Resumen",
+        "VERSIONS": "Versiones",
+        "PEOPLE": "Personas"
+      },
+      "CURRENT_BADGE": "Vigente: versión {{number}}",
+      "LOAD_ERROR_TITLE": "No pudimos cargar el documento",
+      "WHAT": "Qué es",
+      "NO_DESCRIPTION": "Este documento aún no tiene descripción.",
+      "MINIMUM": "Contenido mínimo que debe tener",
+      "NO_MINIMUM": "No se definió un contenido mínimo.",
+      "CURRENT": "Versión vigente",
+      "APPROVED_AT": "Aprobada el",
+      "UNPUBLISHED": "Aún no se publicó la versión vigente.",
+      "UNPUBLISHED_ADMIN": "Aún no tiene versión vigente. Publica la versión aprobada para poder asignarla a las personas.",
+      "ACCEPTANCE": "Aceptación",
+      "RULE": "Quién debe aceptarlo: {{rule}}.",
+      "COUNTS": {
+        "ASSIGNED": "Asignado a",
+        "ACCEPTED": "Aceptaron",
+        "OF": "de {{total}}"
+      },
+      "ASSIGN": "Asignar personas",
+      "PUBLISH": "Publicar versión",
+      "ASSIGN_NEEDS_VERSION": "Publica una versión antes de asignarlo.",
+      "DOWNLOAD": "Descargar",
+      "DOWNLOAD_ERROR": "No pudimos preparar la descarga. Vuelve a intentarlo.",
+      "IMPORTED": "Aprobación importada (se aprobó fuera de Monkey)",
+      "NOTE": "Nota: {{note}}",
+      "HASH": "Huella: {{hash}}…",
+      "VERSIONS": {
+        "SEARCH": "Buscar por número o archivo",
+        "CAPTION": "Versiones del documento",
+        "COLUMNS": {
+          "VERSION": "Versión",
+          "APPROVAL": "Aprobación",
+          "FILE": "Archivo"
+        },
+        "EMPTY_TITLE": "Aún no hay versiones",
+        "EMPTY_BODY": "La primera aparece cuando se publica la versión aprobada.",
+        "EMPTY_FILTERED": "Ninguna versión coincide"
+      },
+      "PEOPLE": {
+        "SEARCH": "Buscar por nombre",
+        "CAPTION": "Personas con el documento asignado",
+        "COLUMNS": {
+          "PERSON": "Persona",
+          "STATUS": "Estado",
+          "DETAIL": "Aceptación y plazo"
+        },
+        "ACCEPTED": "Aceptó la versión {{number}} el {{date}}",
+        "NOT_ACCEPTED": "Aún no lo acepta",
+        "EMPTY_TITLE": "Aún no se asignó a nadie",
+        "EMPTY_BODY": "Solo el administrador de la empresa asigna documentos.",
+        "EMPTY_BODY_ADMIN": "Usa «Asignar personas» para pedirles que lo lean y lo acepten.",
+        "EMPTY_FILTERED": "Ninguna persona coincide"
+      }
+    },
+    "PUBLISH": {
+      "TITLE": "Publicar versión",
+      "SUBTITLE": "Sube el archivo aprobado y di quién lo aprobó y cuándo. La versión nueva pasa a ser la vigente.",
+      "REACCEPT": "Quienes ya lo tienen asignado ({{count}}) deberán aceptar la versión nueva.",
+      "FILE": "Archivo aprobado",
+      "APPROVED_AT": "Fecha de aprobación",
+      "APPROVED_AT_HINT": "El día en que se aprobó fuera de Monkey. No puede ser una fecha futura.",
+      "APPROVERS": "Quién lo aprobó",
+      "APPROVERS_HINT": "De 1 a {{max}} personas, con su nombre y su cargo. No necesitan tener cuenta.",
+      "APPROVER_NAME": "Nombre",
+      "APPROVER_ROLE": "Cargo",
+      "ADD_APPROVER": "Agregar aprobador",
+      "REMOVE_APPROVER": "Quitar",
+      "NOTE": "Nota (opcional)",
+      "NOTE_HINT": "Por ejemplo, la referencia del acta. Máximo 500 caracteres.",
+      "SUBMIT": "Publicar versión",
+      "DONE": "Publicaste la versión {{number}}.",
+      "ERROR": "No pudimos publicar la versión. Vuelve a intentarlo."
+    },
+    "ASSIGN": {
+      "TITLE": "Asignar personas",
+      "SUBTITLE": "Elige quiénes deben leer y aceptar este documento. El plazo para aceptarlo corre desde que lo asignas.",
+      "SEARCH": "Buscar por nombre o correo",
+      "FILTERS": "Buscar y filtrar personas",
+      "FILTER_ROLE": "Rol",
+      "TABLE_CAPTION": "Personas a las que se puede asignar el documento",
+      "COLUMNS": {
+        "PERSON": "Persona",
+        "ROLE": "Rol",
+        "STATUS": "Cuenta"
+      },
+      "SELECTED": "Personas elegidas: {{count}} (máximo {{max}})",
+      "CLEAR_SELECTION": "Quitar la selección",
+      "EMPTY_TITLE": "No hay a quién asignar",
+      "EMPTY_BODY": "Todas las personas que pueden aceptarlo ya lo tienen asignado.",
+      "EMPTY_FILTERED_TITLE": "Ninguna persona coincide",
+      "EMPTY_FILTERED_BODY": "Prueba con otro nombre o quita los filtros.",
+      "LOAD_ERROR": "No pudimos cargar a las personas",
+      "SUBMIT": "Asignar",
+      "DONE": "Asignación hecha. Personas nuevas: {{count}}.",
+      "ERROR": {
+        "NOT_ELIGIBLE": "No se asignó a nadie: {{count}} de las personas elegidas ya no pueden recibirlo (cuenta inactiva o un rol que no acepta). Vuelve a elegir.",
+        "NOT_PUBLISHED": "Este documento aún no tiene versión vigente: publícala antes de asignarlo.",
+        "GENERIC": "No pudimos asignar el documento. Vuelve a intentarlo."
+      }
+    }
+  }
+}

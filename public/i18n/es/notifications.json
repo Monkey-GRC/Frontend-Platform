@@ -1,0 +1,104 @@
+{
+  "NOTIFICATIONS": {
+    "PAGE_TITLE": {
+      "CENTER": "Notificaciones",
+      "SETTINGS": "Ajustes · Notificaciones"
+    },
+    "READ": "Leída",
+    "UNREAD": "No leída",
+    "BELL": {
+      "TITLE": "Notificaciones",
+      "LABEL_NONE": "Notificaciones, ninguna sin leer",
+      "LABEL_ONE": "Notificaciones, 1 sin leer",
+      "LABEL_MANY": "Notificaciones, {{count}} sin leer"
+    },
+    "PANEL": {
+      "TITLE": "Notificaciones",
+      "MARK_ALL": "Marcar todos como leídos",
+      "SEE_ALL": "Ver todas las notificaciones",
+      "ERROR_TITLE": "No pudimos cargar tus notificaciones",
+      "EMPTY_TITLE": "No tienes notificaciones",
+      "EMPTY_BODY": "Cuando un control tuyo necesite atención (una ventana por cerrar, una evidencia validada o rechazada, un control asignado), lo verás aquí.",
+      "UNREAD_ONLY": "Mostrar solo las no leídas",
+      "OPEN_CENTER": "Abrir las notificaciones",
+      "ACTIONS": "Más acciones",
+      "RECENT": "Más recientes",
+      "OLDER": "Anteriores",
+      "EMPTY_UNREAD_TITLE": "No tienes notificaciones sin leer",
+      "EMPTY_UNREAD_BODY": "Desactiva «Mostrar solo las no leídas» para ver las que ya leíste."
+    },
+    "DETAIL": {
+      "TITLE": "Notificación",
+      "CONTROL": "Control",
+      "SERVICE": "Servicio",
+      "TYPE": "Tipo de notificación",
+      "RECEIVED": "Recibido",
+      "DUE": "Cierra la ventana",
+      "OPEN_CONTROL": "Abrir el control {{code}}",
+      "EMPTY": "Esta notificación no trae más detalle. Abre el control para ver qué falta.",
+      "MARK_READ": "Marcar como leída",
+      "MARK_UNREAD": "Marcar como no leída",
+      "STATE": "Estado",
+      "CONTROLS": "Controles de la notificación",
+      "ASSIGN_UNOWNED": "Asignar los controles sin dueño"
+    },
+    "FIELDS": {
+      "what_happened": "Qué pasó",
+      "why_it_matters": "Por qué importa",
+      "how_to_fix": "Cómo corregirlo",
+      "who": "Quién",
+      "time_needed": "Cuánto tiempo",
+      "evidence": "Qué evidencia",
+      "impact": "Qué impacto tiene"
+    },
+    "FILTER": {
+      "ALL": "Todas",
+      "UNREAD": "No leídas",
+      "READ": "Leídas",
+      "STATUS": "Estado de lectura",
+      "TYPE": "Todos los tipos"
+    },
+    "TABLE": {
+      "CAPTION": "Tus notificaciones de los últimos 90 días",
+      "STATE": "Lectura",
+      "NOTICE": "Notificación",
+      "TYPE": "Tipo",
+      "RECEIVED": "Recibido"
+    },
+    "CENTER": {
+      "TITLE": "Notificaciones",
+      "INTRO": "Lo que requiere tu atención en tus controles, de los últimos 90 días. Solo tú ves tus notificaciones.",
+      "PREFERENCES": "Preferencias del correo",
+      "SEARCH": "Buscar por código del control, requisito, servicio o texto de la notificación",
+      "TOOLBAR": "Buscar y filtrar notificaciones",
+      "LOAD_ERROR_TITLE": "No pudimos cargar tus notificaciones",
+      "EMPTY_TITLE": "Todavía no tienes notificaciones",
+      "EMPTY_BODY": "Te avisaremos aquí cuando un control tuyo necesite atención: una ventana por cerrar, una evidencia validada o rechazada, o un control que te asignen.",
+      "EMPTY_FILTERED_TITLE": "Ninguna notificación coincide",
+      "EMPTY_FILTERED_BODY": "Prueba con otra búsqueda o quita los filtros para ver todas tus notificaciones.",
+      "CLEAR_FILTERS": "Quitar filtros",
+      "NOT_AVAILABLE": "Esta notificación ya no está disponible",
+      "NOT_AVAILABLE_BODY": "Las notificaciones se conservan 90 días. Las que ves aquí son las más recientes."
+    },
+    "SETTINGS": {
+      "NAV": "Notificaciones",
+      "TITLE": "Notificaciones",
+      "INTRO": "Elige si quieres recibir por correo un resumen de las notificaciones que tienes sin leer.",
+      "EMAIL_GROUP": "Correo",
+      "DIGEST_TITLE": "Resumen diario por correo",
+      "DIGEST_DESC": "Una vez al día te enviamos las notificaciones que sigues sin leer. Si no hay ninguna, no te escribimos.",
+      "DIGEST_TIME": "Sale desde las {{utc}} UTC ({{local}} en tu zona horaria).",
+      "ON": "Activado",
+      "OFF": "Desactivado",
+      "SAVED_ON": "Recibirás el resumen diario por correo",
+      "SAVED_OFF": "Ya no recibirás el resumen diario por correo",
+      "ERROR_TITLE": "No pudimos guardar el cambio",
+      "ERROR_FALLBACK": "Inténtalo de nuevo en unos minutos.",
+      "LOAD_ERROR": "No pudimos cargar tus preferencias.",
+      "APP_GROUP": "En la aplicación",
+      "BELL_TITLE": "Notificaciones de la campana",
+      "BELL_DESC": "Las notificaciones de la campana no se pueden apagar: son el registro de lo que requiere tu atención. Apagar el correo no las quita.",
+      "BELL_ALWAYS": "Siempre activos"
+    }
+  }
+}

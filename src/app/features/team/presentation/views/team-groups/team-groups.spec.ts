@@ -217,36 +217,20 @@ describe('TeamGroupsView (MD-198, D102, D104)', () => {
     });
   });
 
-  describe('owner', () => {
-    it('without a team yet, offers to create their own with a starting name, and sends no leader (it is them)', () => {
+  describe('owner (D136: crear equipos es del administrador)', () => {
+    it('without a team yet, offers nothing to create: the administrator creates it', () => {
       setup('responsable', []);
-      openCreate();
-      expect(el().querySelector('[data-test-create-responsables]')).toBeNull(); // eso es del administrador
-      expect(q<HTMLInputElement>('[data-test-own-name]').value).toContain('TEAM.GROUPS.DEFAULT_TEAM_NAME');
-      groupApi.create.and.returnValue(of(TEAM_MARIA));
-      type('[data-test-own-name]', 'Mi equipo');
-      click('[data-test-create-own-submit]');
-      expect(groupApi.create).toHaveBeenCalledOnceWith({ name: 'Mi equipo' });
-      expect(reloads()).toBe(1);
+      expect(el().querySelector('[data-test-open-create]')).toBeNull();
+      expect(q('[data-test-groups-empty]').textContent).toContain('TEAM.GROUPS.EMPTY_BODY_OWN');
       expect(teamApi.list).not.toHaveBeenCalled(); // no necesita la lista de responsables
     });
 
-    it('with a team, does not offer to create a second one (D104: they lead a single team), nor to rename or to move', () => {
+    it('with a team, offers neither to create one, nor to rename it or to move people', () => {
       setup('responsable', [TEAM_MARIA]);
       expect(el().querySelector('[data-test-open-create]')).toBeNull();
-      expect(el().querySelector('[data-test-create-own]')).toBeNull();
       openGroup('team-maria');
       expect(el().querySelector('[data-test-rename]')).toBeNull();
       expect(el().querySelector('[data-test-move]')).toBeNull();
-    });
-
-    it('shows the server message when the team already exists (a second request in another window)', () => {
-      setup('responsable', []);
-      openCreate();
-      groupApi.create.and.returnValue(throwError(() => httpError(409, 'TEAM_ALREADY_EXISTS', 'Este responsable ya tiene un equipo de delegados: solo puede liderar uno.')));
-      type('[data-test-own-name]', 'Mi equipo');
-      click('[data-test-create-own-submit]');
-      expect(q('[data-test-groups-error]').textContent).toContain('solo puede liderar uno');
     });
   });
 
