@@ -24,12 +24,19 @@ export const COMPLIANCE_OPTIONS: Record<string, CatalogOption[]> = {
   risk_scale: ['1', '2', '3', '4', '5'].map((v) => option(v, v)),
 };
 
-// La matriz 5×5 que sirve `GET /v1/risk-matrix` (el backend la vigila en `risk-types.spec.ts`): Bajo 1–4, Moderado 5–9, Alto 10–16, Crítico 17–25. Es dato de prueba, no lógica.
-const levelOfValue = (v: number) => (v <= 4 ? 'low' : v <= 9 ? 'moderate' : v <= 16 ? 'high' : 'critical');
+// La matriz 5×5 que sirve `GET /v1/risk-matrix` (el backend la vigila en `risk-types.spec.ts`): el nivel sale de la celda (D134), fila = probabilidad 1→5, columna =
+// impacto 1→5. Es dato de prueba, no lógica.
+const LEVEL_BY_CELL = [
+  ['low', 'low', 'moderate', 'high', 'high'],
+  ['low', 'low', 'moderate', 'high', 'critical'],
+  ['low', 'moderate', 'high', 'critical', 'critical'],
+  ['moderate', 'high', 'high', 'critical', 'critical'],
+  ['high', 'high', 'critical', 'critical', 'critical'],
+];
 export const RISK_MATRIX: RiskMatrixData = {
   min: 1,
   max: 5,
-  cells: [1, 2, 3, 4, 5].flatMap((likelihood) => [1, 2, 3, 4, 5].map((impact) => ({ likelihood, impact, value: likelihood * impact, level: levelOfValue(likelihood * impact) }))),
+  cells: [1, 2, 3, 4, 5].flatMap((likelihood) => [1, 2, 3, 4, 5].map((impact) => ({ likelihood, impact, value: likelihood * impact, level: LEVEL_BY_CELL[likelihood - 1][impact - 1] }))),
 };
 
 /** Lo que una pantalla con matriz necesita de `RiskService`: solo `matrix()`. Para las pruebas que no tienen su propio doble de `RiskService`. */
