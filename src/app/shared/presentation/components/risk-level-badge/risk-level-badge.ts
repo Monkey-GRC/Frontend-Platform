@@ -4,7 +4,7 @@ import type { StatusTone } from '@shared/domain/models/status-tone.model';
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { Badge } from '../badge/badge';
 
-// Nivel de un riesgo en la matriz 5×5: Bajo 1–4 · Moderado 5–9 · Alto 10–16 · Crítico 17–25 (enums.md `risk_level`). Se pinta con `app-badge` de estado y el tono de la escala
+// Nivel de un riesgo en la matriz 5×5: sale de la celda (probabilidad, impacto), no de rangos del valor (D134; enums.md `risk_level`). Se pinta con `app-badge` de estado y el tono de la escala
 // de riesgo (`risk-low|moderate|high|critical`, con sus tokens: no son los de estado `ok|warn|bad`); el nivel nunca va solo en color: el badge lleva su palabra.
 // Un riesgo sin evaluar (`null`) no es «bajo»: es que la empresa aún no lo evalúa, y se pinta neutro.
 const TONES: Record<string, StatusTone> = { low: 'risk-low', moderate: 'risk-moderate', high: 'risk-high', critical: 'risk-critical' };

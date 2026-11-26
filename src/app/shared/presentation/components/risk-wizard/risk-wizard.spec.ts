@@ -158,7 +158,7 @@ describe('RiskWizard (D89)', () => {
     choose('likelihood', 4);
     choose('impact', 4);
     expect(q('[data-wizard-value]')!.textContent).toContain('COMPLIANCE.RISK_WIZARD.RESULT_VALUE');
-    expect(q('[data-wizard-preview] app-risk-level-badge [data-level]')!.getAttribute('data-level')).toBe('high'); // 4 × 4 = 16
+    expect(q('[data-wizard-preview] app-risk-level-badge [data-level]')!.getAttribute('data-level')).toBe('critical'); // celda (4,4): Crítico según D134
     expect(tone('likelihood', 4)).toContain('ring-2'); // la elegida se marca
   });
 
