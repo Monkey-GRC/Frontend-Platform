@@ -22,6 +22,7 @@ import { Busy } from '@shared/presentation/directives/busy';
 import { LocalDatePipe } from '@shared/presentation/pipes/local-date.pipe';
 import { DocumentAssignee, DocumentDetail, DocumentVersion } from '@features/documents/domain/models/document.models';
 import { DocumentService } from '@features/documents/domain/services/document.service';
+import { numberedItems } from '@features/documents/domain/utils/minimum-content';
 import { downloadFromUrl, isHttpUrl, myStatusTone, outstanding } from '@features/documents/domain/utils/document-status';
 import { AssignPeopleForm } from '../assign-people-form/assign-people-form';
 import { PublishVersionForm } from '../publish-version-form/publish-version-form';
@@ -86,7 +87,35 @@ export class DocumentDetailPanel {
   readonly typeLabel = computed(() => this.types().find((t) => t.value === this.ready()?.type)?.label ?? '');
   readonly acceptanceLabel = computed(() => this.acceptances().find((t) => t.value === this.ready()?.acceptance)?.label ?? '');
   /** Solo se asigna lo que ya tiene una versión vigente (`409 DOCUMENT_NOT_PUBLISHED`). */
+  /** El contenido mínimo como lista ordenada si el catálogo lo trae enumerado; `null` si es un texto corrido. */
+  readonly minimumItems = computed(() => numberedItems(this.ready()?.minimum_content));
+  /** La razón por la que «Asignar personas» está deshabilitado, a la vista (hover, foco o clic). */
+  readonly hintOpen = signal(false);
+  private hintPinned = false;
   readonly canAssign = computed(() => !!this.ready()?.current_version);
+
+  // Mientras el aviso está abierto: Escape lo cierra aunque se abriera con el ratón (sin cerrar el panel) y un clic fuera lo cierra.
+  private readonly hintListeners = effect((onCleanup) => {
+    if (!this.hintOpen()) return;
+    const close = (): void => {
+      this.hintPinned = false;
+      this.hintOpen.set(false);
+    };
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      event.stopPropagation();
+      close();
+    };
+    const onClick = (event: MouseEvent): void => {
+      if (!(event.target as Element | null)?.closest('[data-test-assign-hint]')) close();
+    };
+    document.addEventListener('keydown', onKey, true);
+    document.addEventListener('click', onClick, true);
+    onCleanup(() => {
+      document.removeEventListener('keydown', onKey, true);
+      document.removeEventListener('click', onClick, true);
+    });
+  });
 
   // Las listas largas de un detalle: tabla con buscador y páginas (MD-499).
   readonly peopleList = new ClientList<DocumentAssignee>(this.assignees, (a, q) => includesText(q, a.user.name, a.user.last_name));
@@ -209,5 +238,17 @@ export class DocumentDetailPanel {
         this.error.set(apiErrorMessage(e, this.translate.instant('DOCUMENTS.DETAIL.DOWNLOAD_ERROR')));
       },
     });
+  }
+
+  /** Pasar el ratón o enfocar lo abre y salir lo cierra, salvo que se haya fijado con un clic. */
+  protected showHint(open: boolean): void {
+    if (!open && this.hintPinned) return;
+    this.hintOpen.set(open);
+  }
+
+  /** El clic abre (no alterna: con el ratón ya estaba abierto por el paso del puntero) y lo fija hasta Escape o un clic fuera. */
+  protected pinHint(): void {
+    this.hintPinned = true;
+    this.hintOpen.set(true);
   }
 }

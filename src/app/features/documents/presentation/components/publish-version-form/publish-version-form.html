@@ -18,7 +18,7 @@
 
   <!-- Quién lo aprobó fuera de Monkey: de 1 a 3, en texto (pueden no tener cuenta, D152). -->
   <fieldset class="flex flex-col gap-3" [disabled]="saving()">
-    <legend class="mb-1.5 text-xs font-medium text-ink-faint">{{ 'DOCUMENTS.PUBLISH.APPROVERS' | translate }}</legend>
+    <legend class="mb-1.5 text-sm font-medium text-ink">{{ 'DOCUMENTS.PUBLISH.APPROVERS' | translate }}</legend>
     <p class="text-xs text-ink-muted">{{ 'DOCUMENTS.PUBLISH.APPROVERS_HINT' | translate: { max: maxApprovers } }}</p>
     @for (a of approvers(); track a.key) {
     <div class="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]" data-test-approver>
@@ -38,7 +38,12 @@
     }
   </fieldset>
 
-  <app-field labelKey="DOCUMENTS.PUBLISH.NOTE" forId="publish-note" hintKey="DOCUMENTS.PUBLISH.NOTE_HINT">
-    <textarea id="publish-note" rows="3" [attr.maxlength]="maxNote" data-test-note [value]="note()" (input)="note.set(targetValue($event))" [disabled]="saving()" class="mk-textarea"></textarea>
+  <!-- La ayuda a la izquierda y el contador «0/500» a la derecha, en la misma línea bajo el campo. -->
+  <app-field labelKey="DOCUMENTS.PUBLISH.NOTE" forId="publish-note">
+    <textarea id="publish-note" rows="3" [attr.maxlength]="maxNote" aria-describedby="publish-note-hint" data-test-note [value]="note()" (input)="note.set(targetValue($event))" [disabled]="saving()" class="mk-textarea"></textarea>
+    <div class="mt-1.5 flex items-start justify-between gap-3 text-xs text-ink-muted">
+      <p id="publish-note-hint">{{ 'DOCUMENTS.PUBLISH.NOTE_HINT' | translate }}</p>
+      <span class="shrink-0 tabular-nums" data-test-note-count>{{ note().length }}/{{ maxNote }}</span>
+    </div>
   </app-field>
 </form>

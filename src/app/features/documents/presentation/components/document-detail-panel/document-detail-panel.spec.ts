@@ -122,7 +122,54 @@ describe('DocumentDetailPanel (MD-503)', () => {
       expect(q('[data-test-unpublished]')!.textContent).toContain('DOCUMENTS.DETAIL.UNPUBLISHED_ADMIN');
       expect(q('[data-test-current-badge]')!.textContent).toContain('DOCUMENTS.LIST.UNPUBLISHED');
       expect(q<HTMLButtonElement>('[data-test-open-assign]')!.disabled).toBeTrue();
-      expect(q('[data-test-open-assign]')!.getAttribute('title')).toContain('DOCUMENTS.DETAIL.ASSIGN_NEEDS_VERSION');
+      // La razón: un botón de ícono «i» junto al botón; su texto aparece con clic o foco, no antes, y solo mientras está deshabilitado.
+      const hint = q<HTMLButtonElement>('[data-test-assign-hint]')!;
+      expect(hint.getAttribute('aria-label')).toContain('DOCUMENTS.DETAIL.ASSIGN_HINT_LABEL');
+      expect(hint.getAttribute('aria-controls')).toBeNull();
+      expect(q('[data-test-assign-hint-text]')).toBeNull();
+      hint.click();
+      fixture.detectChanges();
+      expect(q('[data-test-assign-hint-text]')!.textContent).toContain('DOCUMENTS.DETAIL.ASSIGN_NEEDS_VERSION');
+      expect(q('[data-test-assign-hint-text]')!.getAttribute('role')).toBe('tooltip');
+      expect(hint.getAttribute('aria-describedby')).toBe('document-assign-hint');
+    });
+
+    it('the hint opened by hover stays open on click (the click opens, it does not toggle), survives leaving, and Escape closes it without closing the panel', () => {
+      setup(true, of(UNPUBLISHED));
+      const hint = q<HTMLButtonElement>('[data-test-assign-hint]')!;
+      hint.dispatchEvent(new MouseEvent('mouseenter'));
+      fixture.detectChanges();
+      expect(q('[data-test-assign-hint-text]')).not.toBeNull();
+      hint.click();
+      fixture.detectChanges();
+      expect(q('[data-test-assign-hint-text]')).not.toBeNull();
+      hint.dispatchEvent(new MouseEvent('mouseleave'));
+      fixture.detectChanges();
+      expect(q('[data-test-assign-hint-text]')).not.toBeNull();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      fixture.detectChanges();
+      expect(q('[data-test-assign-hint-text]')).toBeNull();
+    });
+
+    it('the hint opened only by hover closes on leaving, and Escape also closes it', () => {
+      setup(true, of(UNPUBLISHED));
+      const hint = q<HTMLButtonElement>('[data-test-assign-hint]')!;
+      hint.dispatchEvent(new MouseEvent('mouseenter'));
+      fixture.detectChanges();
+      hint.dispatchEvent(new MouseEvent('mouseleave'));
+      fixture.detectChanges();
+      expect(q('[data-test-assign-hint-text]')).toBeNull();
+      hint.dispatchEvent(new MouseEvent('mouseenter'));
+      fixture.detectChanges();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      fixture.detectChanges();
+      expect(q('[data-test-assign-hint-text]')).toBeNull();
+    });
+
+    it('shows a numbered minimum content as an ordered list and leaves a plain text as it is', () => {
+      setup(true, of({ ...UNPUBLISHED, minimum_content: '1- Objetivo 2- Alcance 3- Responsables' }));
+      const items = Array.from(document.querySelectorAll('ol[data-test-minimum] li')).map((li) => li.textContent!.trim());
+      expect(items).toEqual(['Objetivo', 'Alcance', 'Responsables']);
     });
   });
 

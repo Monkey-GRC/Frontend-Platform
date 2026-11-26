@@ -129,6 +129,15 @@ describe('PublishVersionForm (D133 punto 5, D152)', () => {
     expect(q('[data-test-reaccept]')).toBeNull();
   });
 
+  it('counts the note as 0/500 and updates the counter as it is written, with the hint next to it', () => {
+    setup();
+    expect(q('[data-test-note-count]')!.textContent!.trim()).toBe('0/500');
+    expect(q('#publish-note-hint')!.textContent).toContain('DOCUMENTS.PUBLISH.NOTE_HINT');
+    expect(q('[data-test-note]')!.getAttribute('maxlength')).toBe('500');
+    type('[data-test-note]', 'Cambios del trimestre');
+    expect(q('[data-test-note-count]')!.textContent!.trim()).toBe('21/500');
+  });
+
   it('is dirty as soon as anything is written, so closing the modal asks first', () => {
     setup();
     expect(form.dirty()).toBeFalse();

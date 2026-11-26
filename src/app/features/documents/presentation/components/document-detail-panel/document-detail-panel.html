@@ -19,8 +19,22 @@
     }
   </div>
   }
+  <!-- Pie (decisión de Rod): «Cerrar» a la izquierda (lo pone el panel); a la derecha, si «Asignar personas» no se puede, un botón de ícono redondo «i» a su izquierda que dice por qué (al pasar el mouse, al enfocarlo o con clic); al final «Publicar versión», la primaria. -->
   @if (d && canManage()) {
-  <button actions type="button" (click)="openAssign()" [disabled]="!canAssign()" [attr.title]="canAssign() ? null : ('DOCUMENTS.DETAIL.ASSIGN_NEEDS_VERSION' | translate)" data-test-open-assign class="mk-btn-secondary">{{ 'DOCUMENTS.DETAIL.ASSIGN' | translate }}</button>
+  <div actions class="relative flex items-center gap-1.5">
+    @if (!canAssign()) {
+    <button type="button" (click)="pinHint()" (mouseenter)="showHint(true)" (mouseleave)="showHint(false)" (focus)="showHint(true)" (blur)="showHint(false)" data-test-assign-hint [attr.aria-expanded]="hintOpen()" [attr.aria-describedby]="hintOpen() ? 'document-assign-hint' : null"
+      [attr.aria-label]="'DOCUMENTS.DETAIL.ASSIGN_HINT_LABEL' | translate" class="flex size-10 shrink-0 items-center justify-center rounded-full text-ink-muted transition hover:bg-tint hover:text-ink active:translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-action/40" [class.bg-tint]="hintOpen()">
+      <span class="material-symbols-rounded text-[24px] leading-none" aria-hidden="true">info</span>
+    </button>
+    @if (hintOpen()) {
+    <p id="document-assign-hint" role="tooltip" class="mk-enter absolute bottom-full left-0 z-10 mb-2 w-max max-w-72 rounded-card border border-line bg-surface px-3 py-2 text-sm text-ink shadow-float" data-test-assign-hint-text>{{ 'DOCUMENTS.DETAIL.ASSIGN_NEEDS_VERSION' | translate }}</p>
+    }
+    }
+    <button type="button" (click)="openAssign()" [disabled]="!canAssign()" data-test-open-assign class="mk-btn-secondary">
+      <span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">person_add</span>{{ 'DOCUMENTS.DETAIL.ASSIGN' | translate }}
+    </button>
+  </div>
   }
   @if (d && canManage()) {
   <button actions type="button" (click)="openPublish()" data-test-open-publish class="mk-btn">{{ 'DOCUMENTS.DETAIL.PUBLISH' | translate }}</button>
@@ -112,12 +126,19 @@
       </dl>
     </div>
 
-    <div class="grid items-start gap-x-10 gap-y-8 lg:grid-cols-2">
+    <!-- Qué es, a todo el ancho; debajo el contenido mínimo, también a todo el ancho y, si es una lista larga, en dos columnas: sin huecos y con el mismo cuerpo (`ink`, 16 px) en las dos. -->
+    <div class="@container flex flex-col gap-8">
       <app-detail-section class="min-w-0" titleKey="DOCUMENTS.DETAIL.WHAT">
-        <p class="whitespace-pre-line text-pretty text-sm leading-relaxed text-ink-muted">{{ d.description || ('DOCUMENTS.DETAIL.NO_DESCRIPTION' | translate) }}</p>
+        <p class="max-w-prose whitespace-pre-line text-pretty text-base leading-relaxed text-ink">{{ d.description || ('DOCUMENTS.DETAIL.NO_DESCRIPTION' | translate) }}</p>
       </app-detail-section>
       <app-detail-section class="min-w-0" titleKey="DOCUMENTS.DETAIL.MINIMUM">
-        <p class="whitespace-pre-line text-pretty text-sm leading-relaxed text-ink-muted" data-test-minimum>{{ d.minimum_content || ('DOCUMENTS.DETAIL.NO_MINIMUM' | translate) }}</p>
+        @if (minimumItems(); as items) {
+        <ol class="list-decimal space-y-2 pl-6 text-base leading-relaxed text-ink marker:font-medium marker:tabular-nums marker:text-ink-muted @2xl:gap-x-10" [class]="items.length > 4 ? '@2xl:columns-2' : ''" data-test-minimum>
+          @for (item of items; track $index) {<li class="break-inside-avoid pl-1">{{ item }}</li>}
+        </ol>
+        } @else {
+        <p class="max-w-prose whitespace-pre-line text-pretty text-base leading-relaxed text-ink" data-test-minimum>{{ d.minimum_content || ('DOCUMENTS.DETAIL.NO_MINIMUM' | translate) }}</p>
+        }
       </app-detail-section>
     </div>
   </div>
