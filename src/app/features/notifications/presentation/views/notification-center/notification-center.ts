@@ -3,41 +3,41 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
+import { NavigationHistoryService } from '@core/domain/services/navigation-history.service';
 import { LanguageService } from '@core/domain/services/language.service';
 import { CatalogOption } from '@shared/domain/models/catalog.models';
 import { ClientList, includesText } from '@shared/domain/utils/client-list';
-import { Badge } from '@shared/presentation/components/badge/badge';
-import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { EmptyState } from '@shared/presentation/components/empty-state/empty-state';
+import { SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { OptionChips } from '@shared/presentation/components/option-chips/option-chips';
+import { Pagination } from '@shared/presentation/components/pagination/pagination';
 import { PageHeader } from '@shared/presentation/components/page-header/page-header';
-import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { TableFilter } from '@shared/presentation/components/table-filter/table-filter';
 import { TableToolbar } from '@shared/presentation/components/table-toolbar/table-toolbar';
-import { Tag } from '@shared/presentation/components/tag/tag';
 import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 import { Busy } from '@shared/presentation/directives/busy';
-import { LocalDatePipe } from '@shared/presentation/pipes/local-date.pipe';
 import { NOTIFICATION_READ_FILTERS, NotificationItem, NotificationReadFilter } from '@features/notifications/domain/models/notification.models';
 import { NotificationService } from '@features/notifications/domain/services/notification.service';
 import { NotificationStreamService } from '@features/notifications/domain/services/notification-stream.service';
 import { relativeTime } from '@features/notifications/domain/utils/relative-time';
+import { NotificationCard } from '@features/notifications/presentation/components/notification-card/notification-card';
+import { NotificationCardSkeleton } from '@features/notifications/presentation/components/notification-card/notification-card-skeleton';
 import { NotificationDetailPanel } from '@features/notifications/presentation/components/notification-detail/notification-detail';
 import { OPEN_PARAM } from '@shared/domain/models/route-links';
 
 type Stage = 'loading' | 'error' | 'ready';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 /** Una ráfaga de avisos por el canal en vivo se vuelve una sola lectura de la lista. */
 export const LIVE_RELOAD_DELAY_MS = 400;
 
-// El centro de notificaciones (`/notificaciones`; `/avisos` redirige): las notificaciones de los últimos 90 días de la persona, con un buscador a todo el ancho, el filtro de leídos y no leídos y el de tipo. Los dos filtros se
+// El centro de notificaciones (`/notificaciones`; `/avisos` redirige): las notificaciones de los últimos 90 días de la persona, con un buscador a todo el ancho, el filtro de leídos y no leídos y el de tipo; cada aviso es una `app-notification-card` (una columna centrada). Los dos filtros se
 // piden al servidor; el buscador y las páginas trabajan sobre lo cargado (la lista no tiene búsqueda de texto en el servidor y son 90 días de una sola persona). El detalle de un
 // aviso va en el panel lateral ancho (`?abrir=<id>`): abrirlo lo marca leído y se puede volver a dejar sin leer. Se pone al día solo cuando llega un aviso por el canal en vivo.
 @Component({
   selector: 'app-notification-center',
   imports: [
-    RouterLink, TranslatePipe, Badge, DataTable, TableCell, EmptyState, OptionChips, PageHeader, StatusIndicator, TableFilter, TableToolbar, Tag, Busy, LocalDatePipe, NotificationDetailPanel,
+    RouterLink, TranslatePipe, EmptyState, OptionChips, PageHeader, Pagination, SkeletonRegion, TableFilter, TableToolbar, Busy, NotificationCard, NotificationCardSkeleton, NotificationDetailPanel,
   ],
   templateUrl: './notification-center.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +50,7 @@ export class NotificationCenterView {
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
   private readonly toast = inject(ToastService);
+  private readonly history = inject(NavigationHistoryService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly stage = signal<Stage>('loading');
@@ -72,6 +73,15 @@ export class NotificationCenterView {
   );
 
   readonly unread = this.stream.unreadCount;
+  /** Cada tarjeta con su etiqueta de tipo y su «hace cuánto», calculados una vez por cambio (no en cada render). */
+  readonly cards = computed(() => {
+    this.language.current();
+    return this.list.rows().map((item) => ({ item, typeLabel: this.typeLabel(item.type), ago: this.ago(item) }));
+  });
+  readonly selectedTypeLabel = computed(() => {
+    const item = this.selected();
+    return item ? this.typeLabel(item.type) : '';
+  });
   readonly hasFilters = computed(() => this.status() !== 'all' || this.type() !== '' || this.list.searching());
 
   // El que se abre va en la dirección: se puede compartir y «Atrás» lo cierra.
@@ -93,17 +103,14 @@ export class NotificationCenterView {
   );
   readonly typeFilterOptions = computed(() => this.typeOptions().map((o) => ({ value: o.value, label: o.label })));
 
-  readonly columns: TableColumn<NotificationItem>[] = [
-    { key: 'state', headerKey: 'NOTIFICATIONS.TABLE.STATE', skeleton: 'badge' },
-    { key: 'title', headerKey: 'NOTIFICATIONS.TABLE.NOTICE', skeleton: 'lines' },
-    { key: 'type', headerKey: 'NOTIFICATIONS.TABLE.TYPE', skeleton: 'badge' },
-    { key: 'received', headerKey: 'NOTIFICATIONS.TABLE.RECEIVED', skeleton: 'lines' },
-  ];
-  readonly rowKey = (n: NotificationItem): string => n.id;
-  readonly rowLabel = (n: NotificationItem): string => n.title;
+  /** Las páginas de tarjetas: de a 10, 25 o 50. */
+  readonly pageSizes = [PAGE_SIZE, 25, 50];
+  readonly placeholders = [1, 2, 3, 4];
 
   constructor() {
     this.list.pageSize.set(PAGE_SIZE);
+    // Fuera del shell no hay campana que abra el canal en vivo: la página lo abre y lo cierra al salir, solo si lo abrió ella.
+    if (this.stream.start()) this.destroyRef.onDestroy(() => this.stream.stop());
     this.api.typeOptions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (options) => this.typeOptions.set(options), error: () => undefined });
     this.requests
       .pipe(
@@ -145,6 +152,11 @@ export class NotificationCenterView {
         else if (missing && this.checkedId !== id && !this.filtered()) this.load(true);
       });
     });
+  }
+
+  /** «Volver a la aplicación»: a la pantalla de la que vino la persona, o al inicio si entró directo (igual que Ajustes). */
+  back(): void {
+    void this.router.navigateByUrl(this.history.returnUrl);
   }
 
   load(silent = false): void {

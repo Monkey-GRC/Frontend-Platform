@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { SessionService } from '@core/domain/services/session.service';
@@ -42,7 +42,10 @@ describe('NotificationBell', () => {
     fixture.detectChanges();
   }
 
-  afterEach(() => backend.verify());
+  afterEach(() => {
+    backend.match(`${environment.apiUrl}/catalogs/notification_type`).forEach((r) => r.flush(envelope({ items: [] })));
+    backend.verify();
+  });
 
   it('opens the stream when it appears and closes it when it disappears (nothing left connected)', () => {
     setup(0);
@@ -77,28 +80,84 @@ describe('NotificationBell', () => {
     expect(items.length).toBe(2);
     expect(items[0].getAttribute('data-unread')).toBe('true');
     expect(items[1].getAttribute('data-unread')).toBe('false');
-    expect(items[0].textContent).toContain('IAC-12 ·');
     expect(items[0].textContent).toContain('Plataforma de pagos');
-    expect(items[0].querySelector('[data-testid="bell-item-code"]')!.textContent).toBe('IAC-12');
-    expect(items[0].querySelector('[data-testid="bell-item-brief"]')!.textContent).toContain('no tiene evidencia válida');
-    expect(q('bell-see-all')!.getAttribute('href')).toBe('/notificaciones');
-    expect(q('bell-see-all')!.getAttribute('aria-label')).toBe('NOTIFICATIONS.PANEL.OPEN_CENTER');
+    // La tarjeta: el título sin el código (va en el pie, con sus requisitos), el resumen corto y no el párrafo de «Qué ocurrió».
+    expect(items[0].querySelector('[data-testid="notice-title"]')!.textContent).toContain('La ventana trimestral cierra');
+    expect(items[0].querySelector('[data-testid="notice-title"]')!.textContent).not.toContain('IAC-12');
+    expect(items[0].querySelector('[data-testid="notice-summary"]')!.textContent).toContain('no tiene evidencia válida');
+    expect(Array.from(items[0].querySelectorAll('[data-testid="notice-codes"] app-tag')).map((t) => t.textContent!.trim())).toEqual(['IAC-12', 'CC6.1', 'CC6.2']);
+    expect(items[0].querySelector('[data-testid="notice-open"]')!.textContent).toContain('NOTIFICATIONS.CARD.VIEW_DETAILS');
+    expect(items[0].querySelector('[data-testid="bell-item-brief"]')).toBeNull();
+    expect(q('bell-group-count')!.textContent!.trim()).toBe('2');
+    expect(q('bell-footer-all')!.getAttribute('href')).toBe('/notificaciones');
+    expect(q('bell-see-all')).toBeNull();
     expect(q('bell-trigger')!.getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('every notice is a link to its control, with its service', () => {
+  it('the footer link is the only way to the notifications page: it goes there in the same tab and closes the panel', async () => {
     setup(1);
     openPanel();
-    const href = all('bell-item-link')[0].getAttribute('href')!;
+    const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);
+    q('bell-footer-all')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(navigate).toHaveBeenCalled();
+    expect(q('bell-panel')).toBeNull();
+  });
+
+  it('«Ver detalles» opens the detail over the page without navigating, and the action inside it goes to the control', () => {
+    setup(1);
+    openPanel();
+    const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl');
+    const card = all('notice-open')[0];
+    expect(card.getAttribute('href')).toBeNull();
+    card.click();
+    fixture.detectChanges();
+    backend.expectOne(`${api}/n-1`).flush(envelope({ ...unread, is_read: true }));
+    backend.expectOne(`${environment.apiUrl}/catalogs/notification_type`).flush(envelope({ items: [] }));
+    fixture.detectChanges();
+    expect(q('bell-panel')).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+    const detail = document.querySelector('[data-testid="notification-detail-dialog"]');
+    expect(detail).not.toBeNull();
+    const href = document.querySelector('[data-testid="detail-open-target"]')!.getAttribute('href')!;
     expect(href).toContain('/cumplimiento/controles');
     expect(href).toContain('abrir=ctl-1');
     expect(href).toContain('servicio=svc-1');
   });
 
+  it('a navigation (the browser «Back») with the detail open closes it', async () => {
+    setup(0);
+    openPanel();
+    all('notice-open')[0].click();
+    fixture.detectChanges();
+    backend.match(() => true).forEach((r) => r.flush(envelope({ items: [] })));
+    fixture.detectChanges();
+    expect(document.querySelector('[data-testid="notification-detail-dialog"]')).not.toBeNull();
+    await TestBed.inject(Router).navigateByUrl('/');
+    fixture.detectChanges();
+    expect(document.querySelector('[data-testid="notification-detail-dialog"]')).toBeNull();
+  });
+
+  it('closing the detail removes it and returns the focus to the bell', async () => {
+    setup(0);
+    openPanel();
+    all('notice-open')[0].click();
+    fixture.detectChanges();
+    backend.match(() => true).forEach((r) => r.flush(envelope({ items: [] })));
+    fixture.detectChanges();
+    (document.querySelector('[data-testid="notification-detail-dialog"]') as HTMLElement | null)?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.componentInstance.closeDetail();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.querySelector('[data-testid="notification-detail-dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(q('bell-trigger'));
+  });
+
   it('opening an unread notice marks it read at once, lowers the counter and closes the panel', () => {
     setup(1);
     openPanel();
-    all('bell-item-link')[0].click();
+    all('notice-open')[0].click();
     fixture.detectChanges();
     const patch: TestRequest = backend.expectOne(`${api}/n-1`);
     expect(patch.request.method).toBe('PATCH');
@@ -111,7 +170,7 @@ describe('NotificationBell', () => {
   it('gives the notice back as unread if the server does not accept the mark', () => {
     setup(1);
     openPanel();
-    all('bell-item-link')[0].click();
+    all('notice-open')[0].click();
     backend.expectOne(`${api}/n-1`).flush({ message: 'x' }, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
     expect(q('bell-count')!.textContent!.trim()).toBe('1');
@@ -120,7 +179,7 @@ describe('NotificationBell', () => {
   it('opening a read notice does not call the server', () => {
     setup(1);
     openPanel();
-    all('bell-item-link')[1].click();
+    all('notice-open')[1].click();
     backend.expectNone(`${api}/n-2`);
   });
 

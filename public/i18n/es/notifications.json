@@ -20,12 +20,17 @@
       "EMPTY_TITLE": "No tienes notificaciones",
       "EMPTY_BODY": "Cuando un control tuyo necesite atención (una ventana por cerrar, una evidencia validada o rechazada, un control asignado), lo verás aquí.",
       "UNREAD_ONLY": "Mostrar solo las no leídas",
-      "OPEN_CENTER": "Abrir las notificaciones",
       "ACTIONS": "Más acciones",
       "RECENT": "Más recientes",
       "OLDER": "Anteriores",
       "EMPTY_UNREAD_TITLE": "No tienes notificaciones sin leer",
       "EMPTY_UNREAD_BODY": "Desactiva «Mostrar solo las no leídas» para ver las que ya leíste."
+    },
+    "CARD": {
+      "VIEW_DETAILS": "Ver detalles",
+      "COMPANY": "Empresa",
+      "CODES": "Códigos del control y sus requisitos",
+      "MORE_CODES": "+{{count}} más"
     },
     "DETAIL": {
       "TITLE": "Notificación",
@@ -66,6 +71,7 @@
       "RECEIVED": "Recibido"
     },
     "CENTER": {
+      "BACK": "Volver a la aplicación",
       "TITLE": "Notificaciones",
       "INTRO": "Lo que requiere tu atención en tus controles, de los últimos 90 días. Solo tú ves tus notificaciones.",
       "PREFERENCES": "Preferencias del correo",

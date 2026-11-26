@@ -25,6 +25,15 @@ export const routes: Routes = [
     canDeactivate: [wizardLeaveGuard],
     loadComponent: () => import('@features/technical-control/presentation/views/connection-wizard/connection-wizard').then(m => m.ConnectionWizardView),
   },
+  // Notificaciones: una pantalla completa FUERA del shell (sin menú ni encabezado), con «Volver a la aplicación» como Ajustes. Mismo centro de siempre (lista, búsqueda, filtros, detalle).
+  // `/notificaciones/ventana` fue una variante anterior: redirige.
+  { path: 'notificaciones/ventana', pathMatch: 'full', redirectTo: 'notificaciones' },
+  {
+    path: 'notificaciones',
+    title: 'NOTIFICATIONS.PAGE_TITLE.CENTER',
+    canActivate: [authGuard],
+    loadComponent: () => import('@features/notifications/presentation/views/notification-center/notification-center').then(m => m.NotificationCenterView),
+  },
   {
     path: '',
     component: AppLayoutComponent,
@@ -224,14 +233,10 @@ export const routes: Routes = [
       // Las rutas viejas de Cumplimiento dentro de un servicio redirigen a las nuevas y fijan ese servicio como activo (el guard siempre devuelve una redirección).
       { path: 'services/:id/cumplimiento', pathMatch: 'full', canActivate: [roleGuard(...COMPLIANCE_ROLES), legacyComplianceRedirectGuard], children: [] },
       { path: 'services/:id/cumplimiento/:tab', canActivate: [roleGuard(...COMPLIANCE_ROLES), legacyComplianceRedirectGuard], children: [] },
-      // Notificaciones (D138, MD-515): el centro de la campana es de todos los roles con sesión; las notificaciones son de cada persona (RLS), no hay nada que restringir aquí.
+      // Notificaciones (D138, MD-515): el centro (fuera del shell, arriba) es de todos los roles con sesión; las notificaciones son de cada persona (RLS), no hay nada que restringir aquí.
       // `/avisos` era su nombre antes de unificar la terminología: redirige (con sus parámetros, como `?abrir=<id>`) para no romper enlaces ni correos ya enviados.
-      { path: 'avisos', pathMatch: 'full', redirectTo: 'notificaciones' },
-      {
-        path: 'notificaciones',
-        title: 'NOTIFICATIONS.PAGE_TITLE.CENTER',
-        loadComponent: () => import('@features/notifications/presentation/views/notification-center/notification-center').then(m => m.NotificationCenterView),
-      },
+      { path: 'avisos', pathMatch: 'full', redirectTo: '/notificaciones' },
+
       // Enlace de la pantalla anterior (el paso «control técnico» ya no existe como pantalla aparte).
       { path: 'services/:id/technical-control', redirectTo: '/services/:id' },
       {

@@ -1,5 +1,5 @@
 <div class="relative">
-  <button type="button" (click)="toggle()" data-testid="bell-trigger" aria-haspopup="dialog" [attr.aria-expanded]="open()"
+  <button #trigger type="button" (click)="toggle()" data-testid="bell-trigger" aria-haspopup="dialog" [attr.aria-expanded]="open()"
     [attr.aria-label]="labelKey() | translate: { count: count() }" [title]="'NOTIFICATIONS.BELL.TITLE' | translate"
     class="relative flex size-10 items-center justify-center rounded-full text-ink-muted transition hover:bg-tint hover:text-ink active:translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-action/40"
     [class.bg-tint]="open()">
@@ -19,10 +19,6 @@
           <label for="bell-unread-only" class="cursor-pointer text-sm text-ink-muted">{{ 'NOTIFICATIONS.PANEL.UNREAD_ONLY' | translate }}</label>
           <app-switch inputId="bell-unread-only" data-testid="bell-unread-only" [checked]="unreadOnly()" (checkedChange)="setUnreadOnly($event)" />
           <span class="mx-1 h-6 w-px bg-line" aria-hidden="true"></span>
-          <a routerLink="/notificaciones" (click)="close()" class="mk-btn-icon" data-testid="bell-see-all"
-            [attr.aria-label]="'NOTIFICATIONS.PANEL.OPEN_CENTER' | translate" [title]="'NOTIFICATIONS.PANEL.OPEN_CENTER' | translate">
-            <span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">open_in_new</span>
-          </a>
           <div class="relative" data-bell-menu>
             <button #menuTrigger type="button" class="mk-btn-icon" data-testid="bell-menu" aria-haspopup="menu" [attr.aria-expanded]="menuOpen()"
               [attr.aria-controls]="menuOpen() ? 'bell-actions' : null" [attr.aria-label]="'NOTIFICATIONS.PANEL.ACTIONS' | translate" [title]="'NOTIFICATIONS.PANEL.ACTIONS' | translate"
@@ -45,19 +41,14 @@
       <div class="min-h-0 flex-1 overflow-y-auto">
         @switch (stage()) {
           @case ('loading') {
-            <!-- D116 · La forma de la lista: el título del grupo y cada aviso con su título, su servicio y fecha y el texto breve en dos líneas. -->
+            <!-- D116 · La forma de la lista: el título del grupo y tarjetas completas, no un trozo. -->
             <app-skeleton-region data-testid="bell-loading">
-              <div class="px-5 pb-1 pt-3"><app-skeleton shape="line" width="6rem" /></div>
-              @for (n of placeholders; track n) {
-                <div class="flex gap-3 border-b border-line px-5 py-3 last:border-b-0">
-                  <div class="min-w-0 flex-1 space-y-2">
-                    <app-skeleton shape="line" width="80%" />
-                    <app-skeleton shape="line" width="35%" />
-                    <app-skeleton shape="line" [lines]="2" />
-                  </div>
-                  <app-skeleton shape="circle" [size]="8" />
-                </div>
-              }
+              <div class="flex flex-col gap-3 bg-canvas/40 p-3">
+                <div class="px-1 pt-1"><app-skeleton shape="line" width="7rem" /></div>
+                @for (n of placeholders; track n) {
+                  <app-notification-card-skeleton />
+                }
+              </div>
             </app-skeleton-region>
           }
           @case ('error') {
@@ -75,34 +66,18 @@
               </div>
             } @else {
               @let g = groups();
-              <div data-testid="bell-list">
+              <div class="flex flex-col gap-4 bg-canvas/40 p-3" data-testid="bell-list">
                 @for (group of [{ key: 'NOTIFICATIONS.PANEL.RECENT', items: g.recent, id: 'recent' }, { key: 'NOTIFICATIONS.PANEL.OLDER', items: g.older, id: 'older' }]; track group.id) {
                   @if (group.items.length) {
                     <section [attr.aria-labelledby]="'bell-group-' + group.id" [attr.data-bell-group]="group.id">
-                      <h3 [id]="'bell-group-' + group.id" class="px-5 pb-1 pt-3 text-xs font-medium text-ink-faint">{{ group.key | translate }}</h3>
-                      <ul class="divide-y divide-line">
+                      <h3 [id]="'bell-group-' + group.id" class="flex items-center gap-2 px-1 pb-2 text-sm font-semibold text-ink">
+                        {{ group.key | translate }}
+                        <span class="rounded-badge border border-line bg-surface px-1.5 text-xs font-medium tabular-nums text-ink-muted" data-testid="bell-group-count">{{ group.items.length }}</span>
+                      </h3>
+                      <ul class="flex flex-col gap-2.5" role="list">
                         @for (item of group.items; track item.id) {
-                          @let target = link(item);
-                          @let parts = titleParts(item);
                           <li [attr.data-unread]="!item.is_read" data-testid="bell-item">
-                            <a [routerLink]="target.commands" [queryParams]="target.queryParams" (click)="select(item)" data-testid="bell-item-link"
-                              class="flex items-start gap-3 px-5 py-3 transition-colors hover:bg-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-action/40">
-                              <span class="min-w-0 flex-1">
-                                @if (!item.is_read) {
-                                  <span class="sr-only">{{ 'NOTIFICATIONS.UNREAD' | translate }}.</span>
-                                }
-                                <span class="block text-pretty text-sm leading-snug text-ink" [class.font-medium]="!item.is_read">
-                                  @if (parts.code) {<strong class="font-semibold" data-testid="bell-item-code">{{ parts.code }}</strong>@if (parts.text) { · }}{{ parts.text }}
-                                </span>
-                                <span class="mt-1 block text-xs text-ink-muted">
-                                  @if (item.service) {<span>{{ item.service.name }}</span> · }<span>{{ ago(item) }}</span>
-                                </span>
-                                @if (item.detail.what_happened; as brief) {
-                                  <span class="mt-1 line-clamp-2 text-sm text-ink-muted" data-testid="bell-item-brief">{{ brief }}</span>
-                                }
-                              </span>
-                              <app-unread-dot class="mt-1.5" [unread]="!item.is_read" />
-                            </a>
+                            <app-notification-card [notification]="item" [typeLabel]="null" [ago]="ago(item)" (opened)="select(item)" />
                           </li>
                         }
                       </ul>
@@ -114,6 +89,18 @@
           }
         }
       </div>
+
+      <!-- Pie del panel: la navegación al centro de notificaciones, en un enlace subrayado. -->
+      <div class="shrink-0 border-t border-line px-5 py-3 text-center">
+        <a routerLink="/notificaciones" (click)="close()" class="mk-link inline-flex items-center gap-1 text-sm" data-testid="bell-footer-all">
+          <span class="underline underline-offset-2">{{ 'NOTIFICATIONS.PANEL.SEE_ALL' | translate }}</span><span class="material-symbols-rounded text-[16px] leading-none" aria-hidden="true">arrow_forward</span>
+        </a>
+      </div>
     </div>
+  }
+
+  @if (detail(); as item) {
+    <app-notification-detail [notification]="item" [typeLabel]="detailTypeLabel()" [working]="detailWorking()" (closed)="closeDetail()"
+      (readChange)="setRead(item, $event)" (followed)="followed(item)" />
   }
 </div>

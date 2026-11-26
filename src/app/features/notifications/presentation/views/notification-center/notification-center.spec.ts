@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { SessionService } from '@core/domain/services/session.service';
@@ -19,7 +20,8 @@ describe('NotificationCenterView', () => {
   let backend: HttpTestingController;
   let router: Router;
   const el = () => fixture.nativeElement as HTMLElement;
-  const rows = () => Array.from(el().querySelectorAll<HTMLElement>('tbody tr'));
+  const rows = () => Array.from(el().querySelectorAll<HTMLElement>('[data-testid="center-item"]'));
+  const openRow = (i: number) => rows()[i].querySelector<HTMLElement>('[data-testid="notice-open"]')!.click();
   const doc = (sel: string) => document.querySelector<HTMLElement>(sel);
 
   const due = makeNotification({ id: 'n-1', created_at: '2026-12-16T12:00:05Z' });
@@ -52,12 +54,13 @@ describe('NotificationCenterView', () => {
   }
 
   afterEach(() => {
+    backend.match(`${api}/unread-count`).forEach((r) => (r.cancelled ? undefined : r.flush(envelope({ unread_count: 0 }))));
     TestBed.inject(NotificationStreamService).stop();
     backend.verify();
     FakeEventSource.all = [];
   });
 
-  it('shows skeleton rows with the columns of the table while it loads', () => {
+  it('shows the skeleton of complete cards while it loads', () => {
     TestBed.configureTestingModule({
       imports: [NotificationCenterView],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), provideTranslateService({ fallbackLang: 'es' }), provideFakeEventSource()],
@@ -66,19 +69,84 @@ describe('NotificationCenterView', () => {
     fixture = TestBed.createComponent(NotificationCenterView);
     fixture.detectChanges();
     expect(el().querySelectorAll('[data-skeleton-block]').length).toBeGreaterThan(0);
-    expect(el().querySelectorAll('thead th').length).toBe(5);
+    expect(el().querySelectorAll('[data-testid="notice-card-skeleton"]').length).toBeGreaterThan(1);
+    expect(el().querySelector('[data-testid="center-loading"]')!.getAttribute('aria-busy')).toBe('true');
     backend.expectOne(catalog).flush(envelope({ items: [] }));
     backend.expectOne((r) => r.url === api).flush(pageOf([]));
+  });
+
+  async function setupStandalone(streamAlreadyOpen = false): Promise<RouterTestingHarness> {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(), provideHttpClientTesting(), provideTranslateService({ fallbackLang: 'es' }), provideFakeEventSource(),
+        provideRouter([{ path: 'ventana', component: NotificationCenterView }]),
+      ],
+    });
+    TestBed.inject(SessionService).set({ id: 'u', email: 'a@x.co', name: null, last_name: null, role: 'delegado' }, { id: 'c', name: 'ACME' });
+    backend = TestBed.inject(HttpTestingController);
+    if (streamAlreadyOpen) TestBed.inject(NotificationStreamService).start();
+    return RouterTestingHarness.create('/ventana');
+  }
+
+  function flushStandalone(harness: RouterTestingHarness, unreadCall = true): void {
+    if (unreadCall) backend.expectOne(`${api}/unread-count`).flush(envelope({ unread_count: 1 }));
+    backend.expectOne(catalog).flush(envelope({ items: [] }));
+    backend.expectOne((r) => r.url === api).flush(pageOf([due]));
+    harness.detectChanges();
+  }
+
+  it('opens the live channel on entering (there is no bell outside the shell) and closes it on leaving, with the preferences link and the back button', async () => {
+    const harness = await setupStandalone();
+    flushStandalone(harness);
+    const root = harness.routeNativeElement!;
+    expect(root.querySelector('[data-testid="center-preferences"]')!.getAttribute('href')).toBe('/ajustes/notificaciones');
+    expect(root.querySelector('[data-testid="center-back"]')).not.toBeNull();
+    expect(FakeEventSource.all.length).toBe(1);
+    const stop = spyOn(TestBed.inject(NotificationStreamService), 'stop').and.callThrough();
+    await harness.navigateByUrl('/');
+    expect(stop).toHaveBeenCalled();
+  });
+
+  it('does not close a channel it did not open', async () => {
+    const harness = await setupStandalone(true);
+    flushStandalone(harness);
+    const source = FakeEventSource.last;
+    await harness.navigateByUrl('/');
+    expect(source.closed).toBeFalse();
+    TestBed.inject(NotificationStreamService).stop();
+  });
+
+  it('«Volver a la aplicación» goes back to the screen the person came from (the start if they came straight in)', () => {
+    setup();
+    const navigate = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    el().querySelector<HTMLElement>('[data-testid="center-back"]')!.click();
+    expect(navigate).toHaveBeenCalledWith('/');
+  });
+
+  it('paginates the cards and changes the page size', () => {
+    const many = Array.from({ length: 30 }, (_, i) => makeNotification({ id: `n-${i}`, created_at: `2026-12-${String(20 - (i % 10)).padStart(2, '0')}T12:00:00Z` }));
+    setup(many);
+    const count = () => el().querySelectorAll('[data-testid="center-item"]').length;
+    expect(count()).toBe(10);
+    fixture.componentInstance.list.goTo(2);
+    fixture.detectChanges();
+    expect(count()).toBe(10);
+    fixture.componentInstance.list.goTo(3);
+    fixture.detectChanges();
+    expect(count()).toBe(10);
+    fixture.componentInstance.list.resize(25);
+    fixture.detectChanges();
+    expect(count()).toBe(25);
   });
 
   it('lists the notices with the search on top at full width, the codes visible and the unread ones marked', () => {
     setup();
     expect(el().querySelector('[data-toolbar-search]')).not.toBeNull();
     expect(rows().length).toBe(2);
-    expect(rows()[0].textContent).toContain('IAC-12');
-    expect(rows()[0].textContent).toContain('CC6.1');
     expect(rows()[0].textContent).toContain('Plataforma de pagos');
-    expect(rows()[0].textContent).toContain('Ventana por vencer');
+    expect(rows()[0].querySelector('[data-testid="notice-summary"]')!.textContent).toContain('no tiene evidencia válida');
+    expect(Array.from(rows()[0].querySelectorAll('app-tag')).map((t) => t.textContent!.trim())).toEqual(['IAC-12', 'CC6.1', 'CC6.2']);
+    expect(rows()[0].querySelector('[data-testid="notice-icon"]')!.getAttribute('title')).toBe('Ventana por vencer');
     expect(rows()[0].querySelector('[data-unread="true"]')).not.toBeNull();
     expect(rows()[1].querySelector('[data-unread="false"]')).not.toBeNull();
   });
@@ -137,7 +205,7 @@ describe('NotificationCenterView', () => {
 
   it('opens the detail in the side panel, marks the notice read and lets the person leave it unread again', async () => {
     setup();
-    rows()[0].click();
+    openRow(0);
     const patch = backend.expectOne(`${api}/n-1`);
     expect(patch.request.body).toEqual({ is_read: true });
     patch.flush(envelope({ ...due, is_read: true }));
@@ -160,7 +228,7 @@ describe('NotificationCenterView', () => {
     setup([due]);
     fixture.componentInstance.pickStatus('unread');
     respondList([due], (p) => p('status') === 'unread');
-    rows()[0].click();
+    openRow(0);
     backend.expectOne(`${api}/n-1`).flush(envelope({ ...due, is_read: true }));
     tick();
     FakeEventSource.last.emit('unread_count', { unread_count: 0 });

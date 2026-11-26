@@ -70,12 +70,14 @@ export class NotificationStreamService {
     inject(DestroyRef).onDestroy(() => this.stop());
   }
 
-  start(): void {
-    if (this.running) return;
+  /** Abre el canal; devuelve `true` si lo abrió esta llamada y `false` si ya estaba abierto (quien no lo abrió no debe cerrarlo). */
+  start(): boolean {
+    if (this.running) return false;
     this.running = true;
     this.attempt = 0;
     this.refresh();
     this.open();
+    return true;
   }
 
   stop(): void {

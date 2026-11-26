@@ -20,12 +20,17 @@
       "EMPTY_TITLE": "You have no notifications",
       "EMPTY_BODY": "When one of your controls needs attention (a window about to close, evidence approved or rejected, an assigned control), you will see it here.",
       "UNREAD_ONLY": "Show only unread",
-      "OPEN_CENTER": "Open notifications",
       "ACTIONS": "More actions",
       "RECENT": "Latest",
       "OLDER": "Older",
       "EMPTY_UNREAD_TITLE": "You have no unread notifications",
       "EMPTY_UNREAD_BODY": "Turn off «Show only unread» to see the ones you already read."
+    },
+    "CARD": {
+      "VIEW_DETAILS": "View details",
+      "COMPANY": "Company",
+      "CODES": "Codes of the control and its requirements",
+      "MORE_CODES": "+{{count}} more"
     },
     "DETAIL": {
       "TITLE": "Notification",
@@ -66,6 +71,7 @@
       "RECEIVED": "Received"
     },
     "CENTER": {
+      "BACK": "Back to the app",
       "TITLE": "Notifications",
       "INTRO": "What needs your attention in your controls, from the last 90 days. Only you see your notifications.",
       "PREFERENCES": "Email preferences",
