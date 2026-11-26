@@ -1,4 +1,12 @@
-<section class="w-full pb-10">
+<!-- Una columna de lectura (56 rem) centrada: cabecera, búsqueda, filtros, tarjetas y paginación al mismo ancho, en una pantalla completa fuera del shell. -->
+<div class="min-h-dvh bg-canvas">
+<div class="p-3 lg:p-4">
+  <button type="button" (click)="back()" data-testid="center-back" class="mk-btn-secondary">
+    <span class="material-symbols-rounded text-[20px]" aria-hidden="true">arrow_back</span>
+    {{ 'NOTIFICATIONS.CENTER.BACK' | translate }}
+  </button>
+</div>
+<section class="mx-auto w-full max-w-4xl px-6 pb-10 pt-2" data-testid="center-root">
   <app-page-header [title]="'NOTIFICATIONS.CENTER.TITLE' | translate" [description]="'NOTIFICATIONS.CENTER.INTRO' | translate">
     <a actions routerLink="/ajustes/notificaciones" class="mk-link text-sm underline" data-testid="center-preferences">{{ 'NOTIFICATIONS.CENTER.PREFERENCES' | translate }}</a>
   </app-page-header>
@@ -8,6 +16,7 @@
       <button action type="button" (click)="load()" class="mk-btn" data-testid="center-retry">{{ 'COMMON.RETRY' | translate }}</button>
     </app-empty-state>
   } @else {
+    <!-- Buscar arriba, a todo el ancho, con la acción a su derecha; debajo los filtros (lectura y tipo). -->
     <app-table-toolbar searchPlaceholderKey="NOTIFICATIONS.CENTER.SEARCH" [query]="list.query()" (queryChange)="list.search($event)" ariaLabelKey="NOTIFICATIONS.CENTER.TOOLBAR">
       <button actions type="button" class="mk-btn-secondary" [appBusy]="marking()" [disabled]="unread() === 0 || stage() !== 'ready'" (click)="markAll()" data-testid="center-mark-all">
         {{ 'NOTIFICATIONS.PANEL.MARK_ALL' | translate }}
@@ -16,50 +25,40 @@
       <app-table-filter filters labelKey="NOTIFICATIONS.FILTER.TYPE" [options]="typeFilterOptions()" [value]="type()" (valueChange)="pickType($event)" />
     </app-table-toolbar>
 
-    <app-data-table captionKey="NOTIFICATIONS.TABLE.CAPTION" [columns]="columns" [rows]="list.rows()" [rowKey]="rowKey" [rowLabel]="rowLabel" [page]="list.info()"
-      [loading]="stage() === 'loading'" [clickable]="true" emptyIcon="" [emptyTitleKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_TITLE' : 'NOTIFICATIONS.CENTER.EMPTY_TITLE'"
-      [emptyDescriptionKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_BODY' : 'NOTIFICATIONS.CENTER.EMPTY_BODY'"
-      (pageChange)="list.goTo($event)" (pageSizeChange)="list.resize($event)" (rowClick)="open($event)">
-
-      <ng-template appCell="state" let-row>
-        <app-status-indicator [tone]="row.is_read ? 'neutral' : 'info'" [labelKey]="row.is_read ? 'NOTIFICATIONS.READ' : 'NOTIFICATIONS.UNREAD'" [attr.data-unread]="!row.is_read" />
-      </ng-template>
-
-      <ng-template appCell="title" let-row>
-        <div class="min-w-0">
-          <p class="text-ink" [class.font-semibold]="!row.is_read">{{ row.title }}</p>
-          <p class="mt-1 flex flex-wrap items-center gap-1 text-xs text-ink-muted">
-            @if (row.control; as control) {
-              <app-tag [text]="control.code" />
-              @for (code of control.requirement_codes; track code) {
-                <app-tag [text]="code" />
-              }
+    <!-- Las tarjetas, una debajo de otra, a todo el ancho de la columna. -->
+    <div>
+      @if (stage() === 'loading') {
+        <!-- D116 · Tarjetas completas, no un trozo. -->
+        <app-skeleton-region data-testid="center-loading">
+          <div class="flex flex-col gap-3">
+            @for (n of placeholders; track n) {
+              <app-notification-card-skeleton />
             }
-            @if (row.service) {<span>{{ row.service.name }}</span>}
-          </p>
-        </div>
-      </ng-template>
-
-      <ng-template appCell="type" let-row>
-        <app-badge kind="attribute" [value]="row.type">{{ typeLabel(row.type) }}</app-badge>
-      </ng-template>
-
-      <ng-template appCell="received" let-row>
-        <p class="text-sm text-ink">{{ ago(row) }}</p>
-        <p class="text-xs text-ink-muted">{{ row.created_at | localDate: 'medium' : true }}</p>
-      </ng-template>
-
-      <app-empty-state tableEmpty icon="" [titleKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_TITLE' : 'NOTIFICATIONS.CENTER.EMPTY_TITLE'"
-        [descriptionKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_BODY' : 'NOTIFICATIONS.CENTER.EMPTY_BODY'">
-        @if (hasFilters()) {
-          <button action type="button" (click)="clearFilters()" class="mk-btn-secondary" data-testid="center-clear">{{ 'NOTIFICATIONS.CENTER.CLEAR_FILTERS' | translate }}</button>
-        }
-      </app-empty-state>
-    </app-data-table>
+          </div>
+        </app-skeleton-region>
+      } @else if (list.rows().length === 0) {
+        <app-empty-state data-testid="center-empty" icon="" [titleKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_TITLE' : 'NOTIFICATIONS.CENTER.EMPTY_TITLE'"
+          [descriptionKey]="hasFilters() ? 'NOTIFICATIONS.CENTER.EMPTY_FILTERED_BODY' : 'NOTIFICATIONS.CENTER.EMPTY_BODY'">
+          @if (hasFilters()) {
+            <button action type="button" (click)="clearFilters()" class="mk-btn-secondary" data-testid="center-clear">{{ 'NOTIFICATIONS.CENTER.CLEAR_FILTERS' | translate }}</button>
+          }
+        </app-empty-state>
+      } @else {
+        <ul class="flex flex-col gap-3" role="list" [attr.aria-label]="'NOTIFICATIONS.TABLE.CAPTION' | translate" data-testid="center-list">
+          @for (card of cards(); track card.item.id) {
+            <li [attr.data-unread]="!card.item.is_read" data-testid="center-item">
+              <app-notification-card [notification]="card.item" [typeLabel]="card.typeLabel" [ago]="card.ago" (opened)="open(card.item)" />
+            </li>
+          }
+        </ul>
+        <app-pagination class="mt-4 block border-t border-line" [page]="list.info()" [pageSizes]="pageSizes" (pageChange)="list.goTo($event)" (pageSizeChange)="list.resize($event)" />
+      }
+    </div>
   }
 </section>
+</div>
 
 @if (selected(); as item) {
-  <app-notification-detail [notification]="item" [typeLabel]="typeLabel(item.type)" [working]="toggling()" (closed)="closeDetail()"
+  <app-notification-detail [notification]="item" [typeLabel]="selectedTypeLabel()" [working]="toggling()" (closed)="closeDetail()"
     (readChange)="setRead(item, $event)" (followed)="setRead(item, true)" />
 }

@@ -1,20 +1,21 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, afterNextRender, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { NavigationStart, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Subject, catchError, debounceTime, of, switchMap } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { CountBadge } from '@shared/presentation/components/count-badge/count-badge';
 import { Switch } from '@shared/presentation/components/switch/switch';
-import { UnreadDot } from '@shared/presentation/components/unread-dot/unread-dot';
 import { NotificationItem } from '@features/notifications/domain/models/notification.models';
 import { NotificationService } from '@features/notifications/domain/services/notification.service';
 import { NotificationStreamService } from '@features/notifications/domain/services/notification-stream.service';
-import { NotificationLink, notificationLink } from '@features/notifications/domain/utils/notification-link';
-import { groupByRecency, titleParts } from '@features/notifications/domain/utils/notification-panel';
+import { NotificationDetailPanel } from '@features/notifications/presentation/components/notification-detail/notification-detail';
+import { CatalogOption } from '@shared/domain/models/catalog.models';
+import { groupByRecency } from '@features/notifications/domain/utils/notification-panel';
 import { relativeTime } from '@features/notifications/domain/utils/relative-time';
-import { OPEN_PARAM } from '@shared/domain/models/route-links';
+import { NotificationCard } from '@features/notifications/presentation/components/notification-card/notification-card';
+import { NotificationCardSkeleton } from '@features/notifications/presentation/components/notification-card/notification-card-skeleton';
 
 type Stage = 'loading' | 'ready' | 'error';
 
@@ -27,10 +28,10 @@ export const LIVE_RELOAD_DELAY_MS = 400;
 // Cada aviso es un enlace a su destino y se marca leído al abrirlo. Abrirla no marca nada: «Marcar todos como leídos» está en el menú de acciones. Al aparecer abre el canal
 // y al desaparecer (cerrar sesión, salir del shell) lo cierra. Se cierra al elegir algo, al hacer clic fuera y con Escape (si el menú está abierto, Escape cierra solo el menú).
 // Cabecera al estilo del panel de Jira (decisión de Rod): el título, «Mostrar solo las no leídas» (`status=unread`), el enlace al centro de avisos y el menú de acciones;
-// los avisos, agrupados en «Más recientes» y «Anteriores».
+// los avisos, agrupados en «Más recientes» y «Anteriores» (con su contador), cada uno una `app-notification-card`, y al pie «Ver todas las notificaciones».
 @Component({
   selector: 'app-notification-bell',
-  imports: [RouterLink, TranslatePipe, Skeleton, SkeletonRegion, CountBadge, UnreadDot, Switch],
+  imports: [RouterLink, TranslatePipe, Skeleton, SkeletonRegion, CountBadge, Switch, NotificationCard, NotificationCardSkeleton, NotificationDetailPanel],
   templateUrl: './notification-bell.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:click)': 'onDocumentClick($event)', '(document:keydown.escape)': 'onEscape()' },
@@ -40,8 +41,10 @@ export class NotificationBell {
   private readonly api = inject(NotificationService);
   private readonly stream = inject(NotificationStreamService);
   private readonly language = inject(LanguageService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
+  private readonly trigger = viewChild<ElementRef<HTMLButtonElement>>('trigger');
   private readonly menuTrigger = viewChild<ElementRef<HTMLButtonElement>>('menuTrigger');
   private readonly menuFirst = viewChild<ElementRef<HTMLButtonElement>>('menuFirst');
 
@@ -49,13 +52,21 @@ export class NotificationBell {
   /** «Mostrar solo las no leídas»: el panel pide `status=unread`. */
   readonly unreadOnly = signal(false);
   readonly menuOpen = signal(false);
+  /** El aviso abierto en el panel de detalle: va encima de la página, fuera del desplegable (que se cierra al abrirlo), sin navegar. */
+  readonly detail = signal<NotificationItem | null>(null);
+  readonly detailWorking = signal(false);
+  private readonly typeOptions = signal<CatalogOption[]>([]);
+  private typesLoaded = false;
+  readonly detailTypeLabel = computed(() => {
+    const type = this.detail()?.type;
+    return this.typeOptions().find((o) => o.value === type)?.label ?? null;
+  });
   readonly stage = signal<Stage>('loading');
   readonly items = signal<NotificationItem[]>([]);
   readonly marking = signal(false);
-  readonly placeholders = [1, 2, 3, 4, 5];
+  readonly placeholders = [1, 2, 3, 4];
   private readonly now = signal(Date.now());
   readonly groups = computed(() => groupByRecency(this.items(), this.now()));
-  protected readonly titleParts = titleParts;
   // Cada lectura del panel entra por aquí: `switchMap` cancela la anterior si llega otra.
   private readonly requests = new Subject<void>();
   private readonly liveChanges = new Subject<void>();
@@ -86,6 +97,14 @@ export class NotificationBell {
     // Llegó un aviso (o cambió el contador desde otra pestaña) con el panel abierto: se pone al día sin mostrar la carga otra vez, una vez por ráfaga.
     this.liveChanges.pipe(debounceTime(LIVE_RELOAD_DELAY_MS), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.open()) this.load();
+    });
+    // «Atrás» del navegador (o cualquier navegación) con el detalle abierto: se cierra, no se queda sobre la página nueva.
+    effect((onCleanup) => {
+      if (!this.detail()) return;
+      const sub = this.router.events.subscribe((event) => {
+        if (event instanceof NavigationStart) this.detail.set(null);
+      });
+      onCleanup(() => sub.unsubscribe());
     });
     effect(() => {
       const tick = this.stream.changes();
@@ -162,21 +181,49 @@ export class NotificationBell {
     this.requests.next();
   }
 
-  link(item: NotificationItem): NotificationLink {
-    return notificationLink(item) ?? { commands: ['/notificaciones'], queryParams: { [OPEN_PARAM]: item.id } };
-  }
-
   ago(item: NotificationItem): string {
     return relativeTime(item.created_at, this.language.current(), this.now());
   }
 
   // Marcar es una petición corta y finita: no se cancela si la campana desaparece a la mitad (se perdería la marca).
-  /** Abrir un aviso lo marca leído (sin esperar al servidor; si falla, vuelve a no leído) y cierra el panel; el enlace lleva a su destino. */
+  /** «Ver detalles» o la tarjeta: abre el detalle del aviso encima de la página (sin navegar), cierra el desplegable y lo marca leído (sin esperar al servidor; si falla, vuelve a no leído). */
   select(item: NotificationItem): void {
     this.close();
+    this.detail.set(item);
+    this.loadTypes();
     if (item.is_read) return;
     this.patch(item.id, true);
     this.api.setRead(item.id, true).subscribe({ error: () => this.patch(item.id, false) });
+  }
+
+  /** Cierra el detalle y devuelve el foco a la campana (la tarjeta que lo abrió ya no existe: el desplegable se cerró). */
+  closeDetail(): void {
+    this.detail.set(null);
+    afterNextRender(() => this.trigger()?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  setRead(item: NotificationItem, isRead: boolean): void {
+    this.patch(item.id, isRead);
+    this.detailWorking.set(true);
+    this.api.setRead(item.id, isRead).subscribe({
+      next: () => this.detailWorking.set(false),
+      error: () => {
+        this.patch(item.id, !isRead);
+        this.detailWorking.set(false);
+      },
+    });
+  }
+
+  /** Se siguió una acción del detalle hacia su destino: queda leído y el detalle se cierra. */
+  followed(item: NotificationItem): void {
+    if (!item.is_read) this.setRead(item, true);
+    this.detail.set(null);
+  }
+
+  private loadTypes(): void {
+    if (this.typesLoaded) return;
+    this.typesLoaded = true;
+    this.api.typeOptions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (o) => this.typeOptions.set(o), error: () => (this.typesLoaded = false) });
   }
 
   markAll(): void {
@@ -199,6 +246,7 @@ export class NotificationBell {
   }
 
   private patch(id: string, isRead: boolean): void {
+    this.detail.update((d) => (d && d.id === id ? { ...d, is_read: isRead } : d));
     this.items.update((list) => list.map((n) => (n.id === id ? { ...n, is_read: isRead } : n)));
     this.stream.adjust(isRead ? -1 : 1);
   }

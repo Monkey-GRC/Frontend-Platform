@@ -32,7 +32,7 @@
 
   @if (isDelegateRole()) {
   <fieldset>
-    <legend class="mb-1.5 text-xs font-medium text-ink-faint">{{ 'TEAM.INVITE.AFFILIATION' | translate }}</legend>
+    <legend class="mb-1.5 text-sm font-medium text-ink">{{ 'TEAM.INVITE.AFFILIATION' | translate }}</legend>
     <div class="flex items-center gap-6">
       <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-ink">
         <input type="radio" name="affiliation" data-test-internal [checked]="isInternal() === true" (change)="isInternal.set(true)" [disabled]="saving()" class="accent-action" />{{ 'TEAM.INVITE.INTERNAL' | translate }}

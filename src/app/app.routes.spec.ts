@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, CanActivateFn, Route, Router, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
 import { SessionService } from '@core/domain/services/session.service';
+import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layout.component';
+import { authGuard } from '@core/domain/guards/auth.guard';
 import { routes } from './app.routes';
 
 // Las rutas con su `roleGuard` (D136, SEG-85): lo que el menú oculta, el guard también lo niega, y quien no puede entrar vuelve al inicio (que lo lleva a su pantalla de entrada).
@@ -74,7 +76,16 @@ describe('the role guards of the routes', () => {
 
   it('renames the notices page to «notificaciones» and keeps `/avisos` as a redirect that preserves the query (old links and emails)', () => {
     const redirect = routes.flatMap((r) => r.children ?? []).find((r) => r.path === 'avisos');
-    expect(redirect?.redirectTo).toBe('notificaciones');
-    expect(routes.flatMap((r) => r.children ?? []).some((r) => r.path === 'notificaciones' && !!r.loadComponent)).toBeTrue();
+    expect(redirect?.redirectTo).toBe('/notificaciones');
+    expect(routes.some((r) => r.path === 'notificaciones' && !!r.loadComponent)).toBeTrue();
+  });
+
+  it('has «notificaciones» as a full page outside the shell, behind the session guard, and `ventana` redirects to it', () => {
+    const route = routes.find((r) => r.path === 'notificaciones');
+    expect(route).toBeDefined();
+    expect(route!.canActivate).toEqual([authGuard]);
+    expect(routes.indexOf(route!)).toBeLessThan(routes.findIndex((r) => r.component === AppLayoutComponent));
+    expect(routes.find((r) => r.path === 'notificaciones/ventana')?.redirectTo).toBe('notificaciones');
+    expect(all.filter((r) => r.path.endsWith('notificaciones') && !!r.route.loadComponent && r.path !== 'ajustes/notificaciones').length).toBe(1);
   });
 });
