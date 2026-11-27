@@ -150,6 +150,13 @@ export const routes: Routes = [
         canActivate: [roleGuard('admin_empresa')],
         loadComponent: () => import('@features/integrations/presentation/views/integration-add/integration-add').then(m => m.IntegrationAddView),
       },
+      // A donde Microsoft devuelve al administrador (D157). Va antes que `:code`.
+      {
+        path: 'integraciones/microsoft',
+        title: 'PAGE_TITLE.CONNECTION',
+        canActivate: [roleGuard('admin_empresa')],
+        loadComponent: () => import('@features/technical-control/presentation/views/microsoft-return/microsoft-return').then(m => m.MicrosoftReturnView),
+      },
       {
         path: 'integraciones/:code',
         title: 'PAGE_TITLE.INTEGRATION_DETAIL',

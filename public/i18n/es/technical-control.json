@@ -40,12 +40,14 @@
       "TITLE_QUEUED": "Tu evaluación está en cola",
       "TITLE_RUNNING": "Evaluando tu cuenta",
       "ESTIMATED": "avance estimado",
+      "LIVE": "avance en vivo",
       "STAGE_PREPARE": "Preparando la evaluación…",
       "STAGE_CONNECT": "Conectando con tu cuenta…",
-      "STAGE_READ": "Leyendo tus servidores y su configuración…",
+      "STAGE_READ": "Leyendo la configuración de tu cuenta…",
       "STAGE_CHECK": "Revisando la configuración contra los controles…",
       "STAGE_RESULTS": "Calculando resultados…",
       "ELAPSED": "Tiempo transcurrido: {{time}}",
+      "TYPICAL_LIVE": "Puedes salir de esta pantalla: la evaluación sigue.",
       "TYPICAL": "Suele tardar unos 6 minutos. Puedes salir de esta pantalla: la evaluación sigue.",
       "SLOW": "Está tardando más de lo habitual, pero sigue en curso. No necesitas hacer nada."
     },
@@ -220,6 +222,11 @@
       "EXPIRED": "No vimos que el servidor se conectara en las últimas 24 horas. Revisa que el comando se ejecutó sin errores y que el servidor puede salir a {{host}}:{{port}}. Si no estás seguro, genera un comando nuevo.",
       "DISCONNECTED": "El servidor dejó de reportar a Monkey. Revisa que esté encendido y que pueda salir a {{host}}:{{port}}. Cuando vuelva, se conecta solo.",
       "ERROR": "No pudimos completar este paso. Inténtalo de nuevo."
+    },
+    "REVIEW": {
+      "MAIL_INCLUDED": "La última evaluación incluyó la revisión del correo.",
+      "TITLE": "Revisión de tu cuenta",
+      "BODY": "La conexión está comprobada. Pulsa «Evaluar ahora» para revisar la configuración de tu cuenta."
     },
     "ASSETS": {
       "TITLE": "Activos de esta conexión",
@@ -416,7 +423,64 @@
           "ACCOUNT": "Cuenta"
         }
       },
-      "OPTIONS_ERROR": "No pudimos cargar las opciones. Revisa tu conexión e inténtalo de nuevo."
+      "OPTIONS_ERROR": "No pudimos cargar las opciones. Revisa tu conexión e inténtalo de nuevo.",
+      "M365": {
+        "DATA": {
+          "TITLE": "Conecta Microsoft 365",
+          "SUBTITLE": "Ponle un nombre para reconocerla. No necesitas copiar códigos, contraseñas ni identificadores.",
+          "NAME_PLACEHOLDER": "Microsoft 365 de la empresa",
+          "PROMISE_READ": "Monkey revisa la configuración de usuarios, correo y seguridad de tu organización.",
+          "PROMISE_NO_CHANGES": "El acceso es de solo lectura: Monkey no cambia ni borra nada.",
+          "PROMISE_NO_SECRETS": "Nunca vemos tu contraseña: inicias sesión en la página de Microsoft."
+        },
+        "ACCESS": {
+          "TITLE": "Autoriza el acceso",
+          "SUBTITLE": "Al continuar irás a la página de Microsoft. Cuando termines, volverás aquí automáticamente.",
+          "BUTTON": "Conectar con Microsoft",
+          "WHO_TITLE": "Quién puede hacerlo:",
+          "WHO": "un Administrador global (o Administrador de roles con privilegios) de tu organización. Con otra cuenta no se podrá continuar.",
+          "NAMES_TITLE": "Qué verás:",
+          "NAMES": "una pantalla para iniciar sesión y otra con la lista de permisos. Un permiso de correo aparece con el nombre «Manage Exchange As Application»; por sí solo no deja ver ni cambiar nada: eso depende del rol de solo lectura que decidas asignar después.",
+          "START_ERROR": "No pudimos abrir la página de Microsoft. Inténtalo de nuevo.",
+          "UNAVAILABLE": "La conexión con Microsoft 365 todavía no está disponible. Tu conexión quedó guardada; inténtalo más tarde."
+        },
+        "CHECK": {
+          "TITLE": "Comprobando la conexión",
+          "SUBTITLE": "No cierres esta pantalla. Suele tardar menos de un minuto.",
+          "AUTHORIZED": "Autorización recibida",
+          "ACCESS": "Comprobando el acceso de solo lectura",
+          "READY": "Conexión lista",
+          "WAITING": "Microsoft está aplicando los permisos. Volvemos a comprobar en unos segundos (intento {{attempt}} de {{total}}).",
+          "STATE_DONE": "completado",
+          "STATE_CURRENT": "en curso",
+          "STATE_PENDING": "pendiente",
+          "STATE_FAILED": "no se pudo"
+        },
+        "RESULT": {
+          "TITLE": "Microsoft 365 está conectado",
+          "SUBTITLE": "Monkey ya puede leer la configuración de tu organización.",
+          "ORGANIZATION": "ID de la organización"
+        },
+        "MAIL": {
+          "TITLE": "Recomendado: incluye la revisión del correo",
+          "WHY": "Microsoft no concede este permiso al autorizar. Sin él, las verificaciones de correo quedan «sin medir» (nunca como cumplidas).",
+          "STEP_1": "Abre los roles de Microsoft Entra con tu administrador y busca «Lector global» (Global Reader).",
+          "STEP_2": "Entra en el rol y elige «Agregar asignaciones».",
+          "STEP_3": "Busca la aplicación «Monkey», selecciónala y guarda. Es un rol de solo lectura.",
+          "OPEN": "Abrir los roles en Microsoft",
+          "LATER": "Puedes hacerlo después: se aplicará en la siguiente evaluación."
+        },
+        "RETURN": {
+          "TITLE": "No pudimos terminar la autorización",
+          "BACK": "Ir a Integraciones",
+          "CANCELLED": "La autorización no se completó en Microsoft. Cuando quieras, vuelve a hacer clic en «Conectar con Microsoft».",
+          "EXPIRED": "La autorización venció o se abrió en otra sesión. Vuelve a hacer clic en «Conectar con Microsoft».",
+          "NOT_ADMIN": "Esa cuenta no puede autorizar. Inicia sesión con un Administrador global de tu organización.",
+          "PERSONAL_ACCOUNT": "Iniciaste sesión con una cuenta personal. Usa la cuenta de trabajo de un administrador de tu organización.",
+          "IDENTITY_REJECTED": "No pudimos comprobar de forma segura la cuenta o la organización. Vuelve a intentarlo con la misma organización en los dos pasos.",
+          "UNAVAILABLE": "No pudimos hablar con Microsoft en este momento. Inténtalo de nuevo en unos minutos."
+        }
+      }
     }
   }
 }

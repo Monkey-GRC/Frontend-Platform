@@ -16,6 +16,7 @@ import { CloudConnectionPanel } from '../cloud-connection-panel/cloud-connection
 import { ConnectionProgress } from '../connection-progress/connection-progress';
 import { DiscoveredAssets } from '../discovered-assets/discovered-assets';
 import { ExecutionProgress } from '../execution-progress/execution-progress';
+import { M365MailAccessGuide } from '../m365-mail-access-guide/m365-mail-access-guide';
 import { StatusIndicator, StatusTone } from '@shared/presentation/components/status-indicator/status-indicator';
 import { ProviderLogo } from '@shared/presentation/components/provider-logo/provider-logo';
 import { Busy as BusyDirective } from '@shared/presentation/directives/busy';
@@ -46,7 +47,7 @@ type Busy = 'validate' | 'schedule';
 // conexión → programar (programar activa la conexión). Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-asset-card',
-  imports: [AgentInstallPanel, BusyDirective, BusyFields, Tag, AssetEditForm, CloudConnectionPanel, ConnectionProgress, DiscoveredAssets, ExecutionProgress, ProviderLogo, RouterLink, StatusIndicator, TranslatePipe],
+  imports: [AgentInstallPanel, BusyDirective, BusyFields, Tag, AssetEditForm, CloudConnectionPanel, ConnectionProgress, DiscoveredAssets, ExecutionProgress, M365MailAccessGuide, ProviderLogo, RouterLink, StatusIndicator, TranslatePipe],
   templateUrl: './asset-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -101,6 +102,12 @@ export class AssetCard implements OnInit {
   readonly connected = computed(() => ['validated', 'active', 'scheduled'].includes(this.step()));
   // El rol de solo lectura se configura en la cuenta del cliente: mientras no esté comprobado, se le guía paso a paso.
   readonly resumable = computed(() => canResumeConnection(this.asset()));
+  // Solo en AWS la conexión además lista lo que encuentra en la cuenta (D61). En las demás nubes esa lista quedaría vacía para siempre y escondería «Evaluar ahora».
+  readonly listsResources = computed(() => this.asset().platform === 'aws');
+  // Con el botón de Microsoft 365, el rol que permite revisar el correo lo asigna el cliente aparte (no se concede al autorizar).
+  readonly needsMailRole = computed(() => this.asset().connection_setup?.method === 'admin_consent');
+  // No se pregunta si el rol está puesto: se mira si la última evaluación de verdad leyó el correo. Mientras corre otra no se dice nada.
+  readonly mailIncluded = computed(() => this.execution()?.mail_reviewed === true);
   readonly resumeLink = computed(() => ['/services', this.serviceId(), 'connections', 'new', this.asset().connection_category, this.asset().platform ?? '']);
   readonly resumeParams = computed(() => ({ assetId: this.asset().id, returnTo: this.router.url }));
   readonly needsRolePanel = computed(() => this.asset().connection_setup?.method === 'readonly_role' && ['pending', 'failed'].includes(this.step()));

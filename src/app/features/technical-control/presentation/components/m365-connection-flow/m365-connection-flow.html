@@ -1,0 +1,22 @@
+<app-connection-wizard-shell titleKey="TECHNICAL_CONTROL.CONNECT.TITLE" [titleParams]="{ name: platform().name }" [steps]="steps" [current]="current()" [showBack]="showBack()"
+  [showNext]="showNext()" [nextLabelKey]="nextLabelKey()" [busy]="busy()" [leaveMode]="leaveMode()" (closed)="closed.emit()" (back)="onBack()" (next)="onNext()">
+  @switch (step()) {
+  @case ('data') {
+  <app-m365-data-step [(name)]="name" [(criticality)]="criticality" [(extraServiceIds)]="extraServiceIds" [criticalities]="criticalities()" [otherServices]="otherServices()"
+    [showHints]="showHints()" [error]="error()" />
+  }
+  @case ('access') {
+  <app-m365-access-step [steps]="steps$()" [errorKey]="returnErrorKey()" [error]="error()" />
+  }
+  @case ('check') {
+  <app-m365-check-step [state]="checkState()" [attempt]="attempt()" [attempts]="attempts" [message]="checkMessage()" />
+  }
+  @case ('result') {
+  @if (asset(); as a) {
+  <app-connection-result-step [asset]="a" [demo]="demo()" titleKey="TECHNICAL_CONTROL.WIZARD.M365.RESULT.TITLE" subtitleKey="TECHNICAL_CONTROL.WIZARD.M365.RESULT.SUBTITLE"
+    accountLabelKey="TECHNICAL_CONTROL.WIZARD.M365.RESULT.ORGANIZATION" />
+  <app-m365-mail-access-guide class="mt-6" />
+  }
+  }
+  }
+</app-connection-wizard-shell>
