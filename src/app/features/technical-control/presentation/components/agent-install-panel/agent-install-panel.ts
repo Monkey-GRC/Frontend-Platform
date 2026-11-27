@@ -1,3 +1,4 @@
+import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -21,7 +22,7 @@ const CHECK_MAX_POLLS = 60;
 // del navegador, y se descarta al salir. La API manda: aquí no se inventa ningún estado.
 @Component({
   selector: 'app-agent-install-panel',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Skeleton, SkeletonRegion],
   templateUrl: './agent-install-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

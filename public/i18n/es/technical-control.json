@@ -186,7 +186,6 @@
     "AGENT": {
       "TITLE": "Instalar la sonda de Monkey en este servidor",
       "INTRO": "La sonda es un programa que lee la configuración de tu servidor ({{version}}) y la envía a Monkey para evaluarla. Solo lee: no modifica nada.",
-      "LOADING": "Revisando el estado de la instalación…",
       "BEFORE_TITLE": "Antes de empezar",
       "BEFORE_ADMIN_LINUX": "Entra al servidor como administrador: con el usuario root o con un usuario que pueda usar sudo.",
       "BEFORE_ADMIN_WINDOWS": "Entra al servidor como administrador y abre PowerShell con «Ejecutar como administrador».",

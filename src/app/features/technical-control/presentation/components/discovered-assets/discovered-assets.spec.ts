@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { Asset, DiscoveredAsset, DiscoveredAssetsPage } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
@@ -40,6 +40,17 @@ describe('DiscoveredAssets', () => {
     fixture.detectChanges();
     return fixture.componentInstance;
   }
+
+  it('shows the loading region, with one bar only, until the first page arrives', () => {
+    const view = setup([]);
+    view.page.set(null);
+    const pending = new Subject<DiscoveredAssetsPage>();
+    api.listDiscovered.and.returnValue(pending);
+    view.load();
+    fixture.detectChanges();
+    expect(el().querySelector('app-skeleton-region[aria-busy="true"]')).not.toBeNull();
+    expect(el().querySelectorAll('[data-load-progress]').length).toBe(1);
+  });
 
   it('lists the assets in the one table, with a checkbox per row that starts checked for the ones already in the service', () => {
     setup([asset('a1', 'web-01', true), asset('a2', 'web-02', false)]);

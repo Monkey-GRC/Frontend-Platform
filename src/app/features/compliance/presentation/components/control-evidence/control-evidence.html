@@ -23,25 +23,24 @@
   }
 </ng-template>
 
-<!-- La subida de un archivo: el mismo formulario para una evidencia requerida y para una prueba. -->
+<!-- La subida de un archivo: una evidencia requerida y una prueba usan la misma zona. Elegir el archivo abre su vista previa; «Subir» lo envía (MD-505). -->
 <ng-template #uploadForm let-key>
   @if (canUpload()) {
-  @if (uploadingFor() === key) {
-  <div class="mt-3 rounded-control border border-line p-3" [appBusyFields]="sending()">
-    <app-file-upload [accept]="accept" [maxBytes]="maxBytes" [(file)]="file" [disabled]="sending()" [inputId]="'evidence-' + key" labelKey="COMPLIANCE.EVIDENCE.UPLOAD_LABEL" />
-    <div class="mt-3 flex items-center gap-3">
-      <button type="button" (click)="send()" [disabled]="!file()" [appBusy]="sending()" [busyLabel]="'COMPLIANCE.EVIDENCE.SENDING' | translate"
-        class="mk-btn-sm">{{ 'COMPLIANCE.EVIDENCE.SEND' | translate }}</button>
-      <button type="button" (click)="cancelUpload()" [disabled]="sending()" class="mk-btn-secondary-sm">{{ 'COMMON.CANCEL' | translate }}</button>
-    </div>
+  <div class="mt-3 w-full text-left" data-upload-zone>
+    @let casesLoading = key === TEST_KEY && !!occurrenceRequirementId() && occurrencesLoading();
+    @if (casesLoading) {
+    <app-skeleton-region class="mb-3" data-occurrences-loading><app-skeleton shape="field" /></app-skeleton-region>
+    } @else if (key === TEST_KEY && occurrenceRequirementId() && occurrences().length > 0) {
+    <app-field class="mb-3" labelKey="COMPLIANCE.APPROVAL.OCCURRENCE.CASE" forId="evidence-case">
+      <app-select inputId="evidence-case" data-field="occurrence" [options]="caseOptions()" [value]="occurrenceId()" placeholderKey="COMPLIANCE.APPROVAL.OCCURRENCE.CASE_PLACEHOLDER" [disabled]="sending()" (valueChange)="occurrenceId.set($event)" />
+    </app-field>
+    }
+    @let mine = uploadingFor() === key;
+    @let note = zoneMessage();
+    <app-evidence-dropzone [accept]="accept" [maxBytes]="maxBytes" [inputId]="'evidence-' + key" [replace]="hasDelivery(key)"
+      [disabled]="(sending() && !mine) || casesLoading || !!disabledKey(key)" [disabledKey]="disabledKey(key)" [busy]="mine" [percent]="mine ? progress() : null"
+      [message]="note && note.key === key ? note.text : null" [messageTone]="note?.tone ?? 'error'" (upload)="send(key, $event)" (canceled)="cancelUpload()" (chosen)="clearZoneMessage(key)" />
   </div>
-  } @else {
-  <div class="mt-3">
-    <button type="button" (click)="startUpload(key)" [disabled]="sending()" data-upload-open class="mk-btn-secondary-sm">
-      <span class="material-symbols-rounded text-[16px]" aria-hidden="true">upload_file</span>{{ (hasDelivery(key) ? 'COMPLIANCE.EVIDENCE.UPLOAD_NEW' : 'COMPLIANCE.EVIDENCE.UPLOAD') | translate }}
-    </button>
-  </div>
-  }
   }
 </ng-template>
 
@@ -193,15 +192,7 @@
     <p class="max-w-prose text-pretty text-sm text-ink-muted" data-evidence-expected>{{ 'COMPLIANCE.EVIDENCE.EXPECTED' | translate }}</p>
     }
 
-    @if (uploadingFor() === TEST_KEY) {
-    <div class="w-full text-left">
-      <ng-container [ngTemplateOutlet]="uploadForm" [ngTemplateOutletContext]="{ $implicit: TEST_KEY }" />
-    </div>
-    } @else if (canUpload()) {
-    <button type="button" (click)="startUpload(TEST_KEY)" [disabled]="sending()" data-upload-open [class]="last ? 'mk-btn-secondary-sm' : 'mk-btn-sm'">
-      <span class="material-symbols-rounded text-[16px]" aria-hidden="true">upload_file</span>{{ (last ? 'COMPLIANCE.EVIDENCE.UPLOAD_NEW' : 'COMPLIANCE.EVIDENCE.UPLOAD') | translate }}
-    </button>
-    }
+    <ng-container [ngTemplateOutlet]="uploadForm" [ngTemplateOutletContext]="{ $implicit: TEST_KEY }" />
   </div>
 
   } @else {

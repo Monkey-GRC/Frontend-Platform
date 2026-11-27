@@ -1,8 +1,16 @@
 <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-8">
+    <p class="min-w-0 max-w-prose text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.REQS.INTRO' | translate }}</p>
+    @if (rows().length) {
+    <p class="mk-stat shrink-0" data-test-req-summary>
+      <span class="mk-stat-value">{{ 'COMPLIANCE.REQS.SUMMARY_VALUE' | translate: { compliant: summary().compliant, applicable: summary().applicable } }}</span>
+      <span class="mk-stat-label">{{ 'COMPLIANCE.REQS.SUMMARY_LABEL' | translate }}</span>
+    </p>
+    }
+  </div>
   @if (rows().length === 0) {
   <p class="text-sm text-ink-muted">{{ 'COMPLIANCE.REQS.NONE' | translate }}</p>
   } @else {
-  <p class="text-sm text-ink" data-test-req-summary>{{ 'COMPLIANCE.REQS.SUMMARY' | translate: { compliant: summary().compliant, applicable: summary().applicable, missing: summary().missing } }}</p>
   <app-search-field class="block w-full" inputId="control-reqs-search" placeholderKey="COMPLIANCE.REQS.SEARCH" [value]="list.query()" (valueChange)="list.search($event)" data-reqs-search />
   @if (statusChips().length > 2) {
   <app-option-chips [compact]="true" [options]="statusChips()" [selected]="[status() ?? 'all']" labelKey="COMPLIANCE.REQS.FILTER_STATUS" (picked)="pickStatus($event)" />

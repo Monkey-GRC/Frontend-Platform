@@ -1,0 +1,94 @@
+<!-- La pestaña «Aprobación» (MD-505, MD-529): Estado y Nivel arriba; Requisitos (maestro-detalle), Excepciones, Pruebas manuales e Historial. Cada botón sale de `allowed_actions`. -->
+<div class="flex flex-col gap-8 focus:outline-none" tabindex="-1" data-approval>
+
+  @if (error(); as e) {
+  <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert" data-approval-error><span>{{ e }}</span></div>
+  }
+
+  <!-- Fila superior: Estado y Nivel en dos columnas iguales; sin nivel (el delegado no lo ve), el Estado ocupa todo el ancho. -->
+  <div class="grid gap-4 md:grid-cols-2" data-approval-top>
+    <app-card class="h-full" [class.md:col-span-2]="!detail().management.level" data-state-card>
+      <div class="flex h-full flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <h3 class="text-base font-semibold text-ink">{{ 'COMPLIANCE.APPROVAL.SECTION_STATE' | translate }}</h3>
+          @if (can(allowed(), 'approve') !== can(allowed(), 'return')) {
+          <!-- Una sola acción: va en la cabecera, a la derecha del título. -->
+          @if (can(allowed(), 'approve')) {
+          <button type="button" class="mk-btn-sm" [disabled]="locked()" (click)="open(approving, true)" data-approve>{{ 'COMPLIANCE.APPROVAL.APPROVE.OPEN' | translate }}</button>
+          } @else {
+          <button type="button" class="mk-btn-secondary-sm" [disabled]="locked()" (click)="open(returning, true)" data-return>{{ 'COMPLIANCE.APPROVAL.RETURN.OPEN' | translate }}</button>
+          }
+          }
+        </div>
+        <div class="flex flex-col items-start gap-2">
+          <app-status-indicator [tone]="managementTone(detail().management_state)" [label]="labels.state(detail().management_state)" [attr.data-management-state]="detail().management_state" />
+          <app-expandable-text class="min-w-0 max-w-prose" [text]="help().key | translate: help().params" textClass="text-pretty text-sm text-ink-muted" data-help />
+        </div>
+        @if (can(allowed(), 'approve') && can(allowed(), 'return')) {
+        <!-- Dos acciones: al pie. -->
+        <div class="mt-auto flex flex-wrap items-center gap-2 pt-1">
+          <button type="button" class="mk-btn-sm" [disabled]="locked()" (click)="open(approving, true)" data-approve>{{ 'COMPLIANCE.APPROVAL.APPROVE.OPEN' | translate }}</button>
+          <button type="button" class="mk-btn-secondary-sm" [disabled]="locked()" (click)="open(returning, true)" data-return>{{ 'COMPLIANCE.APPROVAL.RETURN.OPEN' | translate }}</button>
+        </div>
+        }
+      </div>
+    </app-card>
+    <app-control-level-section [management]="detail().management" [busy]="locked()" [acting]="activeAct()" (propose)="open(changingLevel, true)" (decide)="decide('level', $event)" />
+  </div>
+
+  <app-control-applicability-section [management]="detail().management" [owner]="detail().owner" [busy]="locked()" [acting]="activeAct()" (goEvidence)="goEvidence.emit()" (markNotApplicable)="open(notApplicableFor, $event)" (revert)="open(revertFor, $event)"
+    (decide)="decide('na', $event)" (registerOccurrence)="open(occurrenceFor, $event)" (declare)="open(declareFor, $event)" />
+
+  <app-control-exceptions-section [management]="detail().management" [busy]="locked()" [acting]="activeAct()" (registerPlan)="open(planFor, $event)" (decide)="decide('plan', $event)" />
+
+  <app-control-manual-tests [management]="detail().management" [busy]="locked()" (registerResult)="open(resultFor, $event)" />
+
+  <app-control-history [detail]="detail()" />
+</div>
+
+@if (approving()) {
+<app-confirm-dialog titleKey="COMPLIANCE.APPROVAL.APPROVE.TITLE" [titleParams]="{ code: detail().code }"
+  [messageKey]="finalStep() ? 'COMPLIANCE.APPROVAL.APPROVE.BODY_FINAL' : 'COMPLIANCE.APPROVAL.APPROVE.BODY_FIRST'"
+  confirmLabelKey="COMPLIANCE.APPROVAL.APPROVE.CONFIRM" [busy]="sending()" (confirmed)="confirmApprove()" (cancelled)="close()" />
+}
+
+@if (returning()) {
+<app-control-return-form [detail]="detail()" (returned)="onReturned()" (stale)="changed.emit()" (closed)="close()" />
+}
+
+@if (changingLevel()) {
+<app-control-level-form [code]="detail().code" [allowed]="detail().management.level?.allowed_levels ?? []" [direct]="direct()" [busy]="sending()" [banner]="banner()" (submitted)="submitLevel($event)" (closed)="close()" />
+}
+
+@if (rejecting()) {
+<app-control-reason-form titleKey="COMPLIANCE.APPROVAL.DECIDE.REJECT_TITLE" labelKey="COMPLIANCE.APPROVAL.DECIDE.REASON" errorKey="COMPLIANCE.APPROVAL.DECIDE.ERR_REASON"
+  submitKey="COMPLIANCE.APPROVAL.DECIDE.REJECT" [busy]="sending()" [banner]="banner()" (submitted)="submitReject($event)" (closed)="close()" />
+}
+
+@if (planFor(); as ex) {
+<app-control-plan-form [code]="ex.test.code" [busy]="sending()" [banner]="banner()" (submitted)="submitPlan($event)" (closed)="close()" />
+}
+
+@if (notApplicableFor(); as r) {
+<app-control-reason-form titleKey="COMPLIANCE.APPROVAL.REQUIREMENTS.NA_TITLE" [titleParams]="{ code: r.code }" labelKey="COMPLIANCE.APPROVAL.REQUIREMENTS.JUSTIFICATION"
+  hintKey="COMPLIANCE.APPROVAL.REQUIREMENTS.JUSTIFICATION_HINT" errorKey="COMPLIANCE.APPROVAL.REQUIREMENTS.ERR_JUSTIFICATION" submitKey="COMPLIANCE.APPROVAL.REQUIREMENTS.SEND"
+  [busy]="sending()" [banner]="banner()" (submitted)="submitNotApplicable($event)" (closed)="close()" />
+}
+
+@if (revertFor(); as r) {
+<app-control-reason-form titleKey="COMPLIANCE.APPROVAL.REQUIREMENTS.REVERT_TITLE" [titleParams]="{ code: r.code }" labelKey="COMPLIANCE.APPROVAL.DECIDE.REASON"
+  errorKey="COMPLIANCE.APPROVAL.DECIDE.ERR_REASON" submitKey="COMPLIANCE.APPROVAL.REQUIREMENTS.REVERT" [busy]="sending()" [banner]="banner()" (submitted)="submitRevert($event)" (closed)="close()" />
+}
+
+@if (occurrenceFor(); as r) {
+<app-control-occurrence-form [code]="r.code" [busy]="sending()" [banner]="banner()" (submitted)="submitOccurrence($event)" (closed)="close()" />
+}
+
+@if (declareFor(); as r) {
+<app-confirm-dialog titleKey="COMPLIANCE.APPROVAL.REQUIREMENTS.DECLARE_TITLE" [titleParams]="{ code: r.code }" messageKey="COMPLIANCE.APPROVAL.REQUIREMENTS.DECLARE_BODY"
+  confirmLabelKey="COMPLIANCE.APPROVAL.REQUIREMENTS.DECLARE" [busy]="sending()" (confirmed)="confirmDeclare()" (cancelled)="close()" />
+}
+
+@if (resultFor(); as t) {
+<app-control-result-form [controlId]="detail().id" [testId]="t.test.id" [testCode]="t.test.code" (saved)="onResultSaved()" (closed)="close()" />
+}

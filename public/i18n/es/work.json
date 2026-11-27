@@ -1,0 +1,17 @@
+{
+  "WORK": {
+    "REVIEW": {
+      "TITLE": "Mi trabajo",
+      "INTRO": "Por aprobar: lo que espera tu decisión.",
+      "TABLE_CAPTION": "Controles por aprobar",
+      "EMPTY": "No tienes nada por aprobar.",
+      "LOAD_ERROR_TITLE": "No se pudo cargar lo que tienes por aprobar",
+      "COLUMNS": {
+        "CODE": "Código",
+        "CONTROL": "Control",
+        "SERVICE": "Servicio",
+        "WAITING": "Espera"
+      }
+    }
+  }
+}

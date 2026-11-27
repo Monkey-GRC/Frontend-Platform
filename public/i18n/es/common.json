@@ -7,6 +7,7 @@
       "MISSING_DATA": "No recibimos los datos. Recarga la página."
     },
     "CHECK_CONNECTION": "Revisa tu conexión e inténtalo de nuevo.",
+    "SLOW_LOAD": "Esto puede tardar unos segundos.",
     "RETRY": "Reintentar",
     "DELETE": "Eliminar",
     "CANCEL": "Cancelar",

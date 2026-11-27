@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { OPEN_PARAM } from '@shared/domain/models/route-links';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { apiErrorMessage } from '@core/domain/utils/api-error';
@@ -60,6 +61,7 @@ const STATUS_FILTERS: readonly TeamStatus[] = ['active', 'pending', 'inactive'];
 export class TeamPeopleView implements OnInit {
   protected readonly targetValue = targetValue;
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly api = inject(TeamService);
   private readonly groupApi = inject(GroupService);
   private readonly translate = inject(TranslateService);
@@ -140,7 +142,15 @@ export class TeamPeopleView implements OnInit {
   workloadPercent(done: number, total: number): string {
     return total > 0 ? `${Math.round((done / total) * 100)} %` : '—';
   }
-  readonly detail = computed(() => this.members().find((m) => m.id === this.detailId()) ?? null);
+  /**
+   * La persona que llegó por enlace (`?abrir=<id>`, p. ej. desde el historial de un control) y no está en la página cargada: se buscó en todo el equipo. Mientras su detalle
+   * está abierto, el panel la muestra aunque la lista no la tenga.
+   */
+  private readonly linked = signal<TeamMember | null>(null);
+  readonly detail = computed(() => {
+    const id = this.detailId();
+    return this.members().find((m) => m.id === id) ?? (this.linked()?.id === id ? this.linked() : null);
+  });
 
   /** «Interno o externo» solo existe para un delegado: la columna aparece si la página trae alguno. */
   readonly columns = computed<TableColumn<TeamMember>[]>(() => [
@@ -157,6 +167,35 @@ export class TeamPeopleView implements OnInit {
     this.reloadGroups();
     this.load(true);
     this.loadWorkload();
+  }
+
+  /**
+   * Abre el detalle de la persona del enlace (`?abrir=<id>`): de la página cargada si está; si no, se busca en todo el equipo que quien mira puede ver. Si no está (otra persona
+   * fuera de su equipo, o ya no existe), un aviso lo dice y queda la lista.
+   */
+  private openLinked(id: string): void {
+    const here = this.members().find((m) => m.id === id);
+    if (here) return this.openDetail(here);
+    this.api.listAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (all) => {
+        const found = all.find((m) => m.id === id);
+        if (!found) return this.linkNotFound();
+        this.linked.set(found);
+        this.openDetail(found);
+      },
+      error: () => this.linkNotFound(),
+    });
+  }
+
+  private linkNotFound(): void {
+    this.clearOpenParam();
+    this.toast.showError(this.translate.instant('TEAM.LINK_NOT_FOUND'));
+  }
+
+  /** Cerrado el detalle, la dirección deja de pedir abrirlo (volver atrás o recargar no lo reabre). */
+  private clearOpenParam(): void {
+    if (!this.route.snapshot.queryParamMap.has(OPEN_PARAM)) return;
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { [OPEN_PARAM]: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   /** La carga de trabajo de todo el equipo, una sola vez y solo para el administrador; si falla, el Resumen no se muestra con datos y no hay error visible. */
@@ -188,7 +227,8 @@ export class TeamPeopleView implements OnInit {
   }
 
   /** Pide la página actual con los filtros de ahora. La primera vez (o al reintentar) ocupa la pantalla; después solo la tabla. */
-  load(initial = false): void {
+  // La carga inicial (y su «Reintentar») abre el detalle del enlace, si lo hay.
+  load(initial = false, open: string | null = initial ? this.route.snapshot.queryParamMap.get(OPEN_PARAM) : null): void {
     const seq = ++this.requestSeq;
     if (initial) this.stage.set('loading');
     else this.loadingPage.set(true);
@@ -199,6 +239,7 @@ export class TeamPeopleView implements OnInit {
         this.page.set({ page: data.page, pageSize: data.page_size, total: data.total, totalPages: data.total_pages });
         this.stage.set('ready');
         this.loadingPage.set(false);
+        if (open) this.openLinked(open);
       },
       error: () => {
         if (seq !== this.requestSeq) return;
@@ -299,6 +340,8 @@ export class TeamPeopleView implements OnInit {
   closeDetail(): void {
     this.detailId.set(null);
     this.nameEditing.set(null);
+    this.linked.set(null);
+    this.clearOpenParam();
   }
 
   /** Un delegado necesita un equipo que aún no existe: se cierra el drawer y se va a la página de grupos. */
@@ -397,6 +440,7 @@ export class TeamPeopleView implements OnInit {
       next: (result) => {
         this.saving.set(false);
         this.busyAction.set(null);
+        this.syncLinked(result);
         done(result);
         if (noticeKey) this.toast.showSuccess(this.translate.instant(noticeKey));
         this.refresh();
@@ -428,6 +472,12 @@ export class TeamPeopleView implements OnInit {
         this.loadingPage.set(false);
       },
     });
+  }
+
+  /** Un cambio hecho desde el detalle de una persona que llegó por enlace (no está en la página): el panel muestra lo que devolvió el servidor. */
+  private syncLinked(result: unknown): void {
+    const linked = this.linked();
+    if (linked && result && typeof result === 'object' && (result as Partial<TeamMember>).id === linked.id) this.linked.set(result as TeamMember);
   }
 
   private resetMessages(): void {

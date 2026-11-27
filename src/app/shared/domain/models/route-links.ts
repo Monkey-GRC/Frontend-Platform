@@ -16,16 +16,25 @@ export const ASSIGNMENT_FILTER_PARAM = 'asignacion';
 /** El valor del filtro `assignment` que deja solo los controles sin dueño (el mismo del backend). */
 export const ASSIGNMENT_UNASSIGNED = 'unassigned';
 
+/** Equipo → Personas; abre el detalle de una persona con `?abrir=<id>` (lo usa el historial de un control). */
+export const TEAM_PEOPLE_COMMANDS = ['/equipo', 'personas'];
+
 export interface RouteLink {
   commands: string[];
   queryParams: Record<string, string>;
 }
 
-/** Un control se abre en Cumplimiento → Controles con `?abrir=<id>`; con su servicio, Cumplimiento lo deja como servicio activo. */
-export function controlLink(controlId: string, serviceId?: string | null): RouteLink {
+/** Un control se abre en Cumplimiento → Controles con `?abrir=<id>` (y `&tab=` para una pestaña, p. ej. `approval`); con su servicio, Cumplimiento lo deja como servicio activo. */
+export function controlLink(controlId: string, serviceId?: string | null, tab?: string): RouteLink {
   const queryParams: Record<string, string> = { [OPEN_PARAM]: controlId };
+  if (tab) queryParams['tab'] = tab;
   if (serviceId) queryParams[COMPLIANCE_SERVICE_PARAM] = serviceId;
   return { commands: [`/${COMPLIANCE_ROUTE}`, COMPLIANCE_CONTROLS_SECTION], queryParams };
+}
+
+/** El detalle de una persona del equipo, en Equipo → Personas. */
+export function personLink(userId: string): RouteLink {
+  return { commands: [...TEAM_PEOPLE_COMMANDS], queryParams: { [OPEN_PARAM]: userId } };
 }
 
 /** Los controles sin dueño de un servicio, en Asignación. */

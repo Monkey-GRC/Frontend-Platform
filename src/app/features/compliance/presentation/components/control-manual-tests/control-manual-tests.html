@@ -1,0 +1,27 @@
+<app-detail-section titleKey="COMPLIANCE.APPROVAL.TESTS.TITLE" [count]="rows().length" data-manual-tests-section>
+  <app-data-table captionKey="COMPLIANCE.APPROVAL.TESTS.TITLE" [alignTop]="true" [columns]="columns()" [rows]="rows()" [rowKey]="rowKey" [rowLabel]="rowLabel" emptyIcon="" emptyTitleKey="COMPLIANCE.APPROVAL.TESTS.NONE" data-manual-tests>
+    <ng-template appCell="name" let-t><span class="line-clamp-3 text-pretty text-sm text-ink" [title]="t.test.code + ' · ' + t.test.display_name" data-test-name>{{ t.test.code }} · {{ t.test.display_name }}</span></ng-template>
+    <ng-template appCell="status" let-t><app-status-indicator [tone]="statusTone(t.status)" [label]="enums.of('COMPLIANCE.TEST_STATUS', t.status)" [attr.data-test-status]="t.status" />
+      @if (missingEvidence(t)) {<p class="mt-1 max-w-prose text-xs text-ink-muted" data-missing-evidence>{{ 'COMPLIANCE.APPROVAL.TESTS.MISSING_EVIDENCE' | translate }}</p>}</ng-template>
+    <ng-template appCell="result" let-t>
+      @if (t.latest_result; as r) {
+      <!-- El resultado como estado; debajo quién y cuándo en UNA línea (cortada con el texto completo en `title`); la nota en 2 líneas con «Ver más». -->
+      @let byWhen = personLabel(r.registered_by) + ' · ' + day(r.registered_at);
+      <div class="flex min-w-0 max-w-68 flex-col items-start gap-1.5 max-lg:max-w-full" data-latest-result>
+        <app-status-indicator [tone]="statusTone(r.result)" [label]="labels.label('manual_test_result_value', r.result)" [attr.data-result]="r.result" />
+        <p class="w-full truncate whitespace-nowrap text-xs tabular-nums text-ink-muted" [title]="byWhen" data-result-by>{{ byWhen }}</p>
+        @if (r.note) {
+        <app-expandable-text class="w-full" [text]="r.note" textClass="text-pretty break-words text-xs text-ink-muted" data-result-note />
+        }
+      </div>
+      } @else {
+      <span class="text-sm text-ink-muted" data-no-result>{{ 'COMPLIANCE.APPROVAL.TESTS.NO_RESULT' | translate }}</span>
+      }
+    </ng-template>
+    <ng-template appCell="actions" let-t>
+      @if (can(t.allowed_actions, 'register_result')) {
+      <button type="button" class="mk-btn-secondary-sm whitespace-nowrap" [disabled]="busy()" (click)="registerResult.emit(t)" data-register-result>{{ 'COMPLIANCE.APPROVAL.RESULT.OPEN' | translate }}</button>
+      }
+    </ng-template>
+  </app-data-table>
+</app-detail-section>

@@ -1,13 +1,16 @@
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, flush, tick } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ControlListItem } from '@features/compliance/domain/models/control.models';
 import { ControlService } from '@features/compliance/domain/services/control.service';
+import { PageInfo } from '@shared/domain/models/page-info.model';
+import { LOAD_TIMEOUT_MS } from '@shared/domain/utils/load-timeout';
 import { ControlsListView } from './controls-list';
 import { ActiveComplianceService } from '@features/compliance/domain/services/active-compliance.service';
 
@@ -24,7 +27,7 @@ const ITEM: ControlListItem = {
   readiness: 'not_measured',
   progress: { done: 0, total: 5 },
   coverage: { measured: 0, applicable: 5 },
-  owner: null, executor: null,
+  owner: null, executor: null, management_state: 'non_compliant', management: { owner_approved_by: null, owner_approved_at: null, approved_by: null, approved_at: null, returned_reason: null, returned_by: null, returned_at: null },
 };
 
 const PAGE = { page: { page: 1, pageSize: 25, total: 1, totalPages: 1 } };
@@ -78,15 +81,27 @@ describe('ControlsListView', () => {
     expect(api.list.calls.mostRecent().args[2]).toBeUndefined();
   });
 
-  it('always shows the code column, with the control code and the requirements it covers (D80)', () => {
+  it('always shows the code above the control name, with the requirements it covers (D80)', () => {
     const view = setup('admin_empresa');
     api.list.and.returnValue(of({ items: [{ ...ITEM, code: 'IAC-12', requirement_codes: ['CC6.1', 'CC6.2'] }], ...PAGE }));
     view.load();
     fixture.detectChanges();
-    expect(view.columns()[0].key).toBe('code');
+    expect(view.columns()[0].key).toBe('name');
+    expect(el().querySelector('[data-codes]')!.textContent).toContain('IAC-12');
     expect(text()).toContain('IAC-12');
     expect(text()).toContain('CC6.1');
     expect(text()).toContain('CC6.2');
+  });
+
+  it('shows a Management column with the state of each control as a chip', () => {
+    const view = setup('responsable');
+    api.list.and.returnValue(of({ items: [{ ...ITEM, management_state: 'pending_approval' }], ...PAGE }));
+    view.load();
+    fixture.detectChanges();
+    expect(view.columns().map((c) => c.key)).toContain('management');
+    const chip = el().querySelector('[data-management]')!;
+    expect(chip.getAttribute('data-management')).toBe('pending_approval');
+    expect(chip.getAttribute('data-tone')).toBe('info');
   });
 
   it('shows progress with its count and the coverage below as a percentage, without repeating the counts, truncated and never a bare number', () => {
@@ -126,6 +141,38 @@ describe('ControlsListView', () => {
     expect(view.tab()).toBe('evidence');
   });
 
+  it('refreshes the list in the background after an act in the panel: same page and filters, no loading state', () => {
+    const view = setup('admin_empresa');
+    view.pickReadiness('ready');
+    view.goTo(2);
+    api.list.calls.reset();
+    const fresh = new Subject<{ items: ControlListItem[]; page: PageInfo }>();
+    api.list.and.returnValue(fresh);
+    view.refresh();
+    expect(api.list).toHaveBeenCalledOnceWith(jasmine.any(String), jasmine.objectContaining({ page: 2, readiness: 'ready' }), jasmine.anything());
+    expect(view.stage()).toBe('ready');
+    expect(view.loadingPage()).toBeFalse();
+    fresh.next({ items: [{ ...ITEM, progress: { done: 0, total: 2 } }], ...PAGE });
+    expect(view.rows()[0].progress.total).toBe(2);
+  });
+
+  it('a failed background refresh warns with a toast; if it replaced a page change in flight it asks for the list again', () => {
+    const view = setup('admin_empresa');
+    api.list.calls.reset();
+    api.list.and.returnValue(throwError(() => new Error('down')));
+    view.refresh();
+    expect(TestBed.inject(ToastService).toasts().length).toBe(1);
+    expect(api.list).toHaveBeenCalledTimes(1);
+    const inFlight = new Subject<{ items: ControlListItem[]; page: PageInfo }>();
+    api.list.and.returnValue(inFlight);
+    view.goTo(2);
+    expect(view.loadingPage()).toBeTrue();
+    api.list.calls.reset();
+    api.list.and.returnValue(throwError(() => new Error('down')));
+    view.refresh();
+    expect(api.list).toHaveBeenCalledTimes(2);
+  });
+
   it('shows the error state with a retry when the list cannot be loaded', () => {
     const view = setup('admin_empresa');
     api.list.and.returnValue(throwError(() => new Error('down')));
@@ -134,4 +181,34 @@ describe('ControlsListView', () => {
     expect(view.stage()).toBe('error');
     expect(text()).toContain('COMPLIANCE.CONTROLS.LOAD_ERROR_TITLE');
   });
+
+  it('while it loads marks the zone busy with a progress bar and the slow text after 2 s; the busy mark goes when the list arrives', fakeAsync(() => {
+    const pending = new Subject<{ items: ControlListItem[]; page: PageInfo }>();
+    setup('admin_empresa');
+    api.list.and.returnValue(pending);
+    fixture.componentInstance.load();
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-skeleton-region')!.getAttribute('aria-busy')).toBe('true');
+    expect(el.querySelector('[data-load-progress]')).not.toBeNull();
+    expect(el.querySelector('[data-slow-load]')).toBeNull();
+    tick(2000);
+    fixture.detectChanges();
+    expect(el.querySelector('[data-slow-load]')).not.toBeNull();
+    pending.next({ items: [ITEM], ...PAGE });
+    fixture.detectChanges();
+    expect(el.querySelector('app-skeleton-region')!.hasAttribute('aria-busy')).toBeFalse();
+    flush();
+  }));
+
+  it('does not stay loading when the request never answers: after the timeout it shows the error with Retry', fakeAsync(() => {
+    setup('admin_empresa');
+    api.list.and.returnValue(new Subject());
+    fixture.componentInstance.load();
+    fixture.detectChanges();
+    tick(LOAD_TIMEOUT_MS);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.stage()).toBe('error');
+    expect(text()).toContain('COMMON.RETRY');
+  }));
 });

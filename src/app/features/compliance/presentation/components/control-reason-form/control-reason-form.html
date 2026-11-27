@@ -1,0 +1,15 @@
+<app-form-modal [titleKey]="titleKey()" [titleParams]="titleParams()" size="lg" [busy]="busy()" [guarded]="changed()" testId="reason-form" (closed)="closed.emit()">
+  <form id="reason-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
+
+    @if (banner(); as b) {
+    <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert" data-banner><span>{{ b }}</span></div>
+    }
+
+    <app-field [labelKey]="labelKey()" forId="reason-text" [hintKey]="hintKey()" [errorKey]="error()">
+      <textarea id="reason-text" rows="4" class="mk-textarea" data-field="reason" [ngModel]="text()" [ngModelOptions]="{ standalone: true }" (ngModelChange)="text.set($event)" (blur)="touched.set(true)"
+        [attr.aria-invalid]="error() ? 'true' : null" aria-describedby="reason-text-hint"></textarea>
+    </app-field>
+  </form>
+
+  <button actions type="submit" form="reason-form" [appBusy]="busy()" data-save class="mk-btn">{{ submitKey() | translate }}</button>
+</app-form-modal>

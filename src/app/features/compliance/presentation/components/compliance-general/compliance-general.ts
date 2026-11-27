@@ -1,3 +1,4 @@
+import { SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -25,7 +26,7 @@ interface Row {
 // cada fila trae el estado, el avance y la cobertura de ese servicio, y lleva a su detalle (controles, riesgos, causas, evidencias…).
 @Component({
   selector: 'app-compliance-general',
-  imports: [RouterLink, TranslatePipe, StatusIndicator, DataTable, TableCell],
+  imports: [RouterLink, TranslatePipe, StatusIndicator, DataTable, TableCell, SkeletonRegion],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="text-2xl font-semibold text-ink">{{ 'COMPLIANCE.ENTRY.GENERAL_TITLE' | translate }}</h1>
@@ -41,7 +42,7 @@ interface Row {
         </app-data-table>
       </div>
     } @else if (loading()) {
-      <div class="mt-6"><app-data-table captionKey="COMPLIANCE.ENTRY.GENERAL_TABLE" [columns]="columns" [rows]="[]" [rowKey]="rowKey" [loading]="true" /></div>
+      <app-skeleton-region class="mt-6"><app-data-table captionKey="COMPLIANCE.ENTRY.GENERAL_TABLE" [columns]="columns" [rows]="[]" [rowKey]="rowKey" [loading]="true" /></app-skeleton-region>
     } @else {
       <!-- Una sola tabla agrupada por marco: cada fila es un servicio con su propio estado, avance y cobertura (nunca uno combinado). -->
       @if (rows().length) {

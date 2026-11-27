@@ -5,7 +5,7 @@ import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
 import { PageInfo } from '@shared/domain/models/page-info.model';
-import { ControlDetail, ControlFilters, ControlListItem, ControlsPageDto, UpdateControlBody, UpdatePeriodicityBody } from '../models/control.models';
+import { ApprovalBody, ControlDetail, ControlFilters, ManualResultBody, ManualResultResponse, ControlListItem, ControlsPageDto, UpdateControlBody, UpdatePeriodicityBody } from '../models/control.models';
 
 export interface ControlsPage {
   items: ControlListItem[];
@@ -56,6 +56,17 @@ export class ControlService {
   setPeriodicity(id: string, body: UpdatePeriodicityBody, view?: 'technical'): Observable<ControlDetail> {
     const params = view ? new HttpParams().set('view', view) : undefined;
     return this.http.put<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}/periodicity`, body, { params }).pipe(unwrapData());
+  }
+
+  /** Aprueba o devuelve el control (MD-504, `aprobacion.md`): el servidor decide el paso según quién llama. Responde con el control. */
+  decide(id: string, body: ApprovalBody, view?: 'technical'): Observable<ControlDetail> {
+    const params = view ? new HttpParams().set('view', view) : undefined;
+    return this.http.post<SuccessResponse<ControlDetail>>(`${this.base}/controls/${id}/approval`, body, { params }).pipe(unwrapData());
+  }
+
+  /** Registra el resultado de una prueba manual del control (MD-504, D140). */
+  registerResult(controlId: string, testId: string, body: ManualResultBody): Observable<ManualResultResponse> {
+    return this.http.post<SuccessResponse<ManualResultResponse>>(`${this.base}/controls/${controlId}/tests/${testId}/result`, body).pipe(unwrapData());
   }
 
   /** Da de baja el control (no lo borra): deja de contar y el histórico se conserva. */

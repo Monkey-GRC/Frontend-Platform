@@ -46,10 +46,8 @@ const TONES: Record<string, StatusTone> = {
   template: `
     <section [attr.aria-label]="'COMPLIANCE.TESTS.TITLE' | translate">
       <h4 class="text-sm font-semibold text-ink">{{ 'COMPLIANCE.TESTS.TITLE' | translate }}@if (rows(); as list) { ({{ list.length }}) }</h4>
-      <!-- La instrucción de la evidencia una sola vez, no repetida en cada prueba. -->
-      @if (hasEvidence()) {
-        <p class="mt-1 max-w-prose text-pretty text-sm text-ink-muted" data-evidence-help>{{ 'COMPLIANCE.EVIDENCE.TEST_NOTE' | translate }}</p>
-      }
+      <!-- El único texto de introducción: quien puede subir lee cómo; quien no, qué verifican las pruebas. -->
+      <p class="mt-1 max-w-prose text-pretty text-sm text-ink-muted" data-evidence-help>{{ (canUpload() ? 'COMPLIANCE.EVIDENCE.TEST_NOTE' : 'COMPLIANCE.REQUIRES.INTRO') | translate }}</p>
 
       @if (rows(); as list) {
         @if (list.length === 0) {
@@ -62,7 +60,7 @@ const TONES: Record<string, StatusTone> = {
             <ng-template appCell="test" let-t>
               <!-- MD-499 · Todas las pruebas con la misma estructura: la prueba a la izquierda y, a la derecha, cómo se cumple: su evidencia (D88), lo que falló (D90)
                    o, si no se sube nada desde aquí, por qué. -->
-              <div class="grid items-stretch gap-x-8 gap-y-3 lg:grid-cols-2" [attr.data-aside]="t.aside">
+              <div class="grid items-stretch gap-x-8 gap-y-4 px-2 py-2.5 lg:grid-cols-2" [attr.data-aside]="t.aside">
                 <div class="flex min-w-0 flex-col gap-2 self-start">
                   <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
                     <div class="min-w-0 flex-1">
@@ -137,6 +135,8 @@ export class ControlTests {
   readonly dimensions = input<ControlDimensionDetail[]>([]);
   /** Cuántas pruebas cuenta el avance, para decirlo cuando no hay detalle. */
   readonly total = input(0);
+  /** ¿Puede este rol subir evidencia? Decide cuál es la introducción. */
+  readonly canUpload = input(false);
   /** La evidencia de cada prueba manual (D88): se pinta bajo CADA prueba de una dimensión manual, con el id y el código de esa prueba. */
   readonly evidenceTpl = input<TemplateRef<EvidenceSlot> | null>(null);
   /** El control al que pertenecen las pruebas: con él, una prueba técnica que no cumple puede decir qué falló y cómo corregirlo (D90). */
@@ -161,7 +161,6 @@ export class ControlTests {
   );
 
   /** ¿Alguna prueba lleva su evidencia al lado? Entonces la instrucción se dice una vez arriba. */
-  protected readonly hasEvidence = computed(() => this.items().some((t) => t.aside === 'evidence'));
 
   private readonly fromEvidenceTests = computed<ControlTest[] | null>(() => {
     const list = this.evidenceTests();

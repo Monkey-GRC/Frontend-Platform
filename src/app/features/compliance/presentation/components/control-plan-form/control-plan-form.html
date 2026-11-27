@@ -1,0 +1,29 @@
+<app-form-modal titleKey="COMPLIANCE.APPROVAL.PLAN.FORM_TITLE" [titleParams]="{ code: code() }" size="lg" [busy]="busy()" [guarded]="changed()" testId="plan-form" (closed)="closed.emit()">
+  <form id="plan-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
+
+    @if (banner(); as b) {
+    <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert" data-banner><span>{{ b }}</span></div>
+    }
+
+    <app-field labelKey="COMPLIANCE.APPROVAL.PLAN.WHAT" forId="plan-what" [errorKey]="whatError()">
+      <textarea id="plan-what" rows="3" class="mk-textarea" data-field="what" [ngModel]="what()" [ngModelOptions]="{ standalone: true }" (ngModelChange)="what.set($event)"
+        [attr.aria-invalid]="whatError() ? 'true' : null"></textarea>
+    </app-field>
+
+    <app-field labelKey="COMPLIANCE.APPROVAL.PLAN.WHO" forId="plan-who" [errorKey]="assigneeError()">
+      <app-select inputId="plan-who" data-field="assignee" [options]="options()" [value]="assignee()" placeholderKey="COMPLIANCE.APPROVAL.PLAN.WHO_PLACEHOLDER" [invalid]="!!assigneeError()" [disabled]="busy()" (valueChange)="assignee.set($event)" />
+    </app-field>
+    @if (loadFailed()) {
+    <div class="-mt-3 flex flex-wrap items-center gap-3 text-sm text-ink" role="alert" data-people-error>
+      <span>{{ 'COMPLIANCE.APPROVAL.PLAN.PEOPLE_ERROR' | translate }}</span>
+      <button type="button" (click)="loadPeople()" data-people-retry class="mk-btn-secondary-sm">{{ 'COMMON.RETRY' | translate }}</button>
+    </div>
+    }
+
+    <app-field labelKey="COMPLIANCE.APPROVAL.PLAN.WHEN" forId="plan-when" [errorKey]="dueError()">
+      <app-date-picker inputId="plan-when" data-field="due" [(value)]="due" [min]="minDate" [invalid]="!!dueError()" [disabled]="busy()" />
+    </app-field>
+  </form>
+
+  <button actions type="submit" form="plan-form" [appBusy]="busy()" data-save class="mk-btn">{{ 'COMPLIANCE.APPROVAL.PLAN.SUBMIT' | translate }}</button>
+</app-form-modal>

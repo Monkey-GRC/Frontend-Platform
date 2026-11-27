@@ -16,7 +16,7 @@ import { NotificationBell } from '@features/notifications/presentation/component
 
 // Un archivo por área en `public/i18n/{es,en}/`. Se carga con HttpBackend a propósito: así no pasa
 // por `credentialsInterceptor` y no necesita sesión (el login ya se muestra traducido).
-export const I18N_FILES = ['common', 'shell', 'home', 'auth', 'onboarding', 'services', 'technical-control', 'integrations', 'compliance', 'team', 'settings', 'documents', 'notifications', 'assignment'] as const;
+export const I18N_FILES = ['common', 'shell', 'home', 'auth', 'onboarding', 'services', 'technical-control', 'integrations', 'compliance', 'team', 'settings', 'documents', 'notifications', 'assignment', 'work'] as const;
 
 export function httpLoaderFactory(httpBackend: HttpBackend): MultiTranslateHttpLoader {
   return new MultiTranslateHttpLoader(

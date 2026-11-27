@@ -56,6 +56,11 @@ export function canSeeComplianceSummary(role: RoleLike): boolean {
   return isOneOf(COMPLIANCE_SUMMARY_ROLES, role);
 }
 
+/** ¿Ve Equipo (y el detalle de una persona)? El administrador y el responsable (`TEAM_ROLES`, la misma lista del guard de `/equipo`). */
+export function canSeeTeam(role: RoleLike): boolean {
+  return isOneOf(TEAM_ROLES, role);
+}
+
 /** La pantalla de entrada del rol (la misma que decide `workLandingGuard`): el responsable y el delegado, «Mi trabajo»; el colaborador, «Mis documentos»; el resto, el inicio. */
 export function landingPath(role: RoleLike): string {
   if (isAssignedRole(role)) return '/mi-trabajo';

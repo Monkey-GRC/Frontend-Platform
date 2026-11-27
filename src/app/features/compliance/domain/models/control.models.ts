@@ -105,6 +105,152 @@ export interface ControlTechnical {
   tests?: { test_id: string; test_code: string; display_name: string; display_description?: string | null; dimension: ControlDimension; status: TestStatus; accepts_evidence: boolean; evidence_fallback: boolean }[];
 }
 
+// MD-504 · Gestión y aprobación del control (D132). Los valores son los del catálogo `control_management_state`; la etiqueta sale de `/catalogs/control_management_state`.
+export type ControlManagementState = 'non_compliant' | 'in_progress' | 'pending_approval' | 'owner_approved' | 'approved' | 'returned';
+export type ManualTestResult = 'correct' | 'observation' | 'exception';
+
+export interface ManagementPerson {
+  id: string;
+  name: string | null;
+  last_name: string | null;
+}
+
+// Quién aprobó o devolvió y cuándo (solo lo vigente; `null` si no hay).
+export interface ControlManagement {
+  owner_approved_by: ManagementPerson | null;
+  owner_approved_at: string | null;
+  approved_by: ManagementPerson | null;
+  approved_at: string | null;
+  returned_reason: string | null;
+  returned_by: ManagementPerson | null;
+  returned_at: string | null;
+}
+
+// MD-529 · Lo que el que llama puede hacer ahora sobre el control o sobre uno de sus elementos (enum `management_action`). La pantalla pinta los botones con esto; el servidor vuelve a comprobar cada escritura.
+export type ManagementAction =
+  | 'approve' | 'return' | 'register_result' | 'propose_level' | 'decide_level' | 'register_plan' | 'decide_plan'
+  | 'request_not_applicable' | 'decide_not_applicable' | 'revert_not_applicable' | 'declare_no_occurrences' | 'register_occurrence';
+export type ChangeRequestStatus = 'pending' | 'approved' | 'rejected';
+export type RequirementApplicability = 'applicable' | 'not_applicable_pending' | 'not_applicable';
+
+export interface NamedRef {
+  id: string;
+  code: string;
+  display_name: string;
+}
+
+// La corrección del nivel (R5): el sugerido lo da el motor, el final es el que rige.
+export interface ManagementLevel {
+  suggested: ControlLevel;
+  final: ControlLevel;
+  is_corrected: boolean;
+  allowed_levels: ControlLevel[];
+}
+
+export interface LevelOverride {
+  id: string;
+  control_id: string;
+  suggested_level: ControlLevel;
+  proposed_level: ControlLevel;
+  justification: string;
+  status: ChangeRequestStatus;
+  is_valid: boolean;
+  proposed_by: ManagementPerson | null;
+  decided_by: ManagementPerson | null;
+  proposed_at: string | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  management_state?: ControlManagementState;
+}
+
+export interface RemediationPlan {
+  id: string;
+  control_id: string;
+  test: NamedRef;
+  requirement: { id: string; code: string } | null;
+  what: string;
+  owner: ManagementPerson;
+  due_date: string;
+  is_overdue: boolean;
+  status: ChangeRequestStatus;
+  is_valid: boolean;
+  proposed_by: ManagementPerson | null;
+  proposed_at: string | null;
+  decided_by: ManagementPerson | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  management_state?: ControlManagementState;
+}
+
+export interface ManagementException {
+  test: NamedRef;
+  requirement: { id: string; code: string } | null;
+  plan: RemediationPlan | null;
+  allowed_actions: ManagementAction[];
+}
+
+export interface NotApplicableRequest {
+  id: string;
+  control_id: string;
+  requirement: { id: string; code: string; text: string };
+  reason: string;
+  status: ChangeRequestStatus;
+  requested_by: ManagementPerson | null;
+  requested_at: string | null;
+  decided_by: ManagementPerson | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  reverted_by: ManagementPerson | null;
+  reverted_at: string | null;
+  management_state?: ControlManagementState;
+}
+
+// Solo en un requisito `on_demand`: el trimestre actual (DT-115).
+export interface OnDemandWindow {
+  window_start: string;
+  window_end: string;
+  occurrences_count: number;
+  occurrences_without_evidence: number;
+  has_declaration: boolean;
+}
+
+export interface ManagementRequirement {
+  id: string;
+  code: string;
+  text: string;
+  periodicity: Periodicity | null;
+  applicability: RequirementApplicability;
+  not_applicable: NotApplicableRequest | null;
+  on_demand: OnDemandWindow | null;
+  allowed_actions: ManagementAction[];
+}
+
+export interface ManualTestResultItem {
+  result: ManualTestResult;
+  note: string | null;
+  registered_by: ManagementPerson | null;
+  registered_at: string;
+}
+
+export interface ManagementManualTest {
+  test: NamedRef;
+  requirement_id: string | null;
+  status: TestStatus;
+  accepts_evidence: boolean;
+  latest_result: ManualTestResultItem | null;
+  allowed_actions: ManagementAction[];
+}
+
+// MD-529 · Lo que el detalle agrega dentro de `management` (la lista solo trae `ControlManagement`).
+export interface ControlDetailManagement extends ControlManagement {
+  allowed_actions: ManagementAction[];
+  level: ManagementLevel | null;
+  level_override: LevelOverride | null;
+  exceptions: ManagementException[];
+  requirements: ManagementRequirement[];
+  manual_tests: ManagementManualTest[];
+}
+
 export interface ControlListItem {
   id: string;
   // D80: el código se muestra siempre (`IAC-12`, o `C01` en un control propio) y los requisitos que cubre (`CC6.1`; un control propio no cubre ninguno).
@@ -121,6 +267,8 @@ export interface ControlListItem {
   coverage: Coverage;
   owner: ControlPerson | null;
   executor: ControlPerson | null;
+  management_state: ControlManagementState;
+  management: ControlManagement;
   technical?: ControlTechnical;
 }
 
@@ -152,10 +300,13 @@ export interface EvidenceTest {
   dimension: ControlDimension;
   status: TestStatus;
   evidence_fallback: boolean;
+  // El lugar de la primera entrega (`null` si no hay) y el requisito del control al que sirve la prueba (siempre llega; `null` si no tiene).
   requirement_id: string | null;
+  control_requirement_id: string | null;
 }
 
-export interface ControlDetail extends Omit<ControlListItem, 'technical'> {
+export interface ControlDetail extends Omit<ControlListItem, 'technical' | 'management'> {
+  management: ControlDetailManagement;
   service_id: string;
   interpretation: { text: string; is_customized: boolean };
   dimensions: ControlDimensionDetail[];
@@ -192,4 +343,86 @@ export interface UpdateControlBody {
 export interface UpdatePeriodicityBody {
   periodicity: Periodicity | null;
   justification: string;
+}
+
+export type ApprovalDecision = 'approve' | 'return';
+
+// POST /v1/controls/{id}/approval (aprobacion.md): `reason` es obligatorio al devolver.
+export interface ApprovalBody {
+  decision: ApprovalDecision;
+  reason?: string;
+  returned_submission_ids?: string[];
+}
+
+// POST /v1/controls/{id}/tests/{test_id}/result: `note` es obligatoria en una observación o una excepción.
+export interface ManualResultBody {
+  result: ManualTestResult;
+  note?: string;
+}
+
+export interface ManualResultResponse {
+  id: string;
+  control_id: string;
+  test_id: string;
+  result: ManualTestResult;
+  note: string | null;
+  registered_by: ManagementPerson;
+  registered_at: string;
+  management_state: ControlManagementState;
+}
+
+export type DecisionKind = 'approve' | 'reject';
+export interface DecisionBody {
+  decision: DecisionKind;
+  reason?: string;
+}
+
+export interface LevelOverrideBody {
+  proposed_level: ControlLevel;
+  justification: string;
+}
+
+export interface RemediationPlanBody {
+  test_id: string;
+  what: string;
+  owner_id: string;
+  due_date: string;
+}
+
+export interface Occurrence {
+  id: string;
+  requirement: { id: string; code: string };
+  occurred_on: string;
+  description: string;
+  has_evidence: boolean;
+  evidence_count: number;
+  registered_by: ManagementPerson;
+  registered_at: string;
+}
+
+export interface OccurrenceBody {
+  occurred_on: string;
+  description: string;
+}
+
+export type ManagementHistoryType =
+  | 'approval' | 'return' | 'approval_invalidated' | 'manual_result' | 'level_proposed' | 'level_decided' | 'plan_registered' | 'plan_decided'
+  | 'not_applicable_requested' | 'not_applicable_decided' | 'not_applicable_reverted' | 'occurrence_registered' | 'no_occurrences_declared';
+
+// El motivo o la justificación que acompaña un acto, si lo hay; el resto de `detail` depende del tipo y no se pinta.
+export interface ManagementHistoryItem {
+  id: string;
+  type: ManagementHistoryType;
+  at: string;
+  actor: ManagementPerson | null;
+  test: NamedRef | null;
+  requirement: { id: string; code: string } | null;
+  detail: Record<string, unknown>;
+}
+
+export interface AssigneeOption {
+  id: string;
+  name: string | null;
+  last_name: string | null;
+  role: string;
 }
