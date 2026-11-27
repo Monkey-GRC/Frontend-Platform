@@ -38,7 +38,7 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
   let groupApi: jasmine.SpyObj<GroupService>;
   let fixture: ComponentFixture<TeamPeopleView>;
 
-  function setup(members: TeamMember[] = [ME, OTHER_ADMIN, ANA, DELEGATE, PENDING], role = 'admin_empresa', groups: Group[] = GROUPS, groups$?: Observable<Group[]>, workload$?: Observable<TeamWorkloadResponse>): void {
+  function setup(members: TeamMember[] = [ME, OTHER_ADMIN, ANA, DELEGATE, PENDING], role = 'admin_empresa', groups: Group[] = GROUPS, groups$?: Observable<Group[]>, workload$?: Observable<TeamWorkloadResponse>, beforeCreate?: () => void): void {
     api = jasmine.createSpyObj<TeamService>('TeamService', ['list', 'listAll', 'workload', 'invite', 'update', 'resendInvitation', 'resetMfa']);
     api.list.and.returnValue(of(pageOf(members)));
     api.listAll.and.returnValue(of(members));
@@ -50,6 +50,18 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       providers: [provideTranslateService({ fallbackLang: 'es' }), provideRouter([]), { provide: TeamService, useValue: api }, { provide: GroupService, useValue: groupApi }],
     });
     TestBed.inject(SessionService).set({ id: role === 'admin_empresa' ? 'me' : 'ana', email: 'admin@acme.co', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
+    beforeCreate?.();
+    fixture = TestBed.createComponent(TeamPeopleView);
+    fixture.detectChanges();
+  }
+
+  /** Opens the page from a link with `?abrir=<id>` (e.g. the history of a control). */
+  async function setupLinked(id: string, page: TeamMember[], all: TeamMember[] | 'error', role = 'admin_empresa'): Promise<void> {
+    setup(page, role, GROUPS, undefined, undefined, () => {
+      api.listAll.and.returnValue(all === 'error' ? throwError(() => new HttpErrorResponse({ status: 500 })) : of(all));
+    });
+    fixture.destroy();
+    await TestBed.inject(Router).navigateByUrl(`/?abrir=${id}`);
     fixture = TestBed.createComponent(TeamPeopleView);
     fixture.detectChanges();
   }
@@ -201,6 +213,43 @@ describe('TeamPeopleView (MD-197, D96, D102)', () => {
       setup();
       const options = optionValues(el(), '[data-test-filter-group]', () => fixture.detectChanges());
       expect(options).toEqual(['', 'resp', 'team-ana']);
+    });
+  });
+
+  describe('opened from a link (?abrir=<id>, the history of a control)', () => {
+    it('opens the detail of a person that is on the loaded page, without asking for the whole team', async () => {
+      await setupLinked('del', [ME, ANA, DELEGATE], [ME, ANA, DELEGATE]);
+      expect(q('[role="dialog"]').textContent).toContain('Dani Lara');
+      expect(api.listAll).not.toHaveBeenCalled();
+    });
+
+    it('looks for a person that is not on the loaded page in the whole team and opens their detail', async () => {
+      const FAR = member({ id: 'far', email: 'far@acme.co', name: 'Lejos', last_name: 'Página', role: 'delegado' });
+      await setupLinked('far', [ME, ANA], [ME, ANA, FAR]);
+      expect(api.listAll).toHaveBeenCalled();
+      expect(q('[role="dialog"]').textContent).toContain('Lejos Página');
+    });
+
+    it('says so when the person is not in the team that one can see, and leaves the list', async () => {
+      await setupLinked('ghost', [ME, ANA], [ME, ANA], 'responsable');
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
+      expect(toastText()).toContain('TEAM.LINK_NOT_FOUND');
+    });
+
+    it('says so too when the search fails', async () => {
+      await setupLinked('ghost', [ME, ANA], 'error');
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
+      expect(toastText()).toContain('TEAM.LINK_NOT_FOUND');
+    });
+
+    it('closing the detail removes ?abrir= from the address', async () => {
+      await setupLinked('del', [ME, ANA, DELEGATE], [ME, ANA, DELEGATE]);
+      const router = TestBed.inject(Router);
+      expect(router.url).toContain('abrir=del');
+      const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+      click('[data-close-x]');
+      expect(el().querySelector('[role="dialog"]')).toBeNull();
+      expect(navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { abrir: null }, queryParamsHandling: 'merge', replaceUrl: true }));
     });
   });
 

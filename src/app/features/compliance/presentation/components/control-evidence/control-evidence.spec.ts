@@ -1,12 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, flush, tick } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { NEVER, Subject, of, throwError } from 'rxjs';
+import { NEVER, Observable, Subject, of, throwError } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { ControlEvidence as Summary } from '@features/compliance/domain/models/control.models';
-import { EvidenceRequirement, EvidenceSubmission } from '@features/compliance/domain/models/evidence.models';
+import { EvidenceRequirement, EvidenceSubmission, EvidenceUploadEvent } from '@features/compliance/domain/models/evidence.models';
+import { ControlManagementService } from '@features/compliance/domain/services/control-management.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
-import { ControlEvidence } from './control-evidence';
+import { ControlEvidence, UPLOAD_IDLE_MS } from './control-evidence';
 import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 const toastText = (): string => TestBed.inject(ToastService).toasts().map((t) => `${t.title} ${t.message}`).join(' | ');
@@ -22,6 +23,8 @@ const requirement = (id: string, submissions: EvidenceSubmission[] = []): Eviden
 });
 const SUMMARY: Summary[] = [{ requirement_id: 'e9', description: 'Política de accesos', responsible: null, latest_submission: { id: 's1', version: 2, evidence_state: 'pending' } }];
 
+const management: { listOccurrences: unknown } = { listOccurrences: () => of([{ id: 'oc1', requirement: { id: 'r1', code: 'IDA-11' }, occurred_on: '2026-11-20', description: 'Alta de proveedor', has_evidence: false }]) };
+
 describe('ControlEvidence', () => {
   let api: jasmine.SpyObj<EvidenceService>;
   let fixture: ComponentFixture<ControlEvidence>;
@@ -29,7 +32,7 @@ describe('ControlEvidence', () => {
   function setup(role: string, canUpload: boolean, items: EvidenceRequirement[] | 'missing' | 'down' = [requirement('e1', [submission(2), submission(1)]), requirement('e2')]): ControlEvidence {
     api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'listForTest', 'upload', 'download', 'uploadForTest']);
     api.list.and.returnValue(items === 'missing' ? throwError(() => new HttpErrorResponse({ status: 404 })) : items === 'down' ? throwError(() => new HttpErrorResponse({ status: 500 })) : of(items));
-    TestBed.configureTestingModule({ imports: [ControlEvidence], providers: [provideTranslateService(), { provide: EvidenceService, useValue: api }] });
+    TestBed.configureTestingModule({ imports: [ControlEvidence], providers: [provideTranslateService(), { provide: EvidenceService, useValue: api }, { provide: ControlManagementService, useValue: management }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(ControlEvidence);
     fixture.componentRef.setInput('controlId', 'c1');
@@ -40,6 +43,29 @@ describe('ControlEvidence', () => {
   }
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+  const done = (n: number) => of({ kind: 'done' as const, submission: submission(n) });
+  const zones = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[data-dropzone]'));
+  const fileInput = (i = 0) => (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>('input[type="file"]')[i];
+  function choose(file: File, i = 0): void {
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    const input = fileInput(i);
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+  }
+  const pdf = (name = 'acta.pdf') => new File(['x'], name, { type: 'application/pdf' });
+  const q = (selector: string) => (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(selector);
+  /** «Subir» (or «Reintentar») in the preview of the chosen file. */
+  function confirm(): void {
+    q('[data-upload-file]')!.click();
+    fixture.detectChanges();
+  }
+  /** Choose a file and upload it from its preview. */
+  function chooseAndSend(file: File, i = 0): void {
+    choose(file, i);
+    confirm();
+  }
 
   it('shows each required evidence with its code, its responsible and the delivered one with its version and status', () => {
     setup('admin_empresa', true);
@@ -75,44 +101,187 @@ describe('ControlEvidence', () => {
     expect(text()).not.toContain('COMPLIANCE.EVIDENCE.REJECT');
   });
 
-  it('offers to upload only to the roles that can, and "new version" when there is already one', () => {
+  it('shows the drop zone straight away to the roles that can upload, with the types line, and nothing to a role that cannot', () => {
     setup('admin_empresa', true);
-    expect(text()).toContain('COMPLIANCE.EVIDENCE.UPLOAD_NEW');
-    expect(text()).toContain('COMPLIANCE.EVIDENCE.UPLOAD');
+    expect(zones().length).toBe(2);
+    expect(fixture.nativeElement.querySelector('[data-upload-open]')).toBeNull();
+    const zone = zones()[1];
+    expect(zone.getAttribute('aria-describedby')).toBe('evidence-e2-types');
+    expect(fixture.nativeElement.querySelector('#evidence-e2-types').textContent).toContain('COMMON.FILE.ACCEPTED');
+    expect(zones()[0].textContent).toContain('COMPLIANCE.EVIDENCE.REPLACE_HINT');
+    expect(zone.textContent).toContain('COMMON.FILE.DROP_OR_CLICK');
     TestBed.resetTestingModule();
     setup('auditor', false);
-    expect(text()).not.toContain('COMPLIANCE.EVIDENCE.UPLOAD');
+    expect(zones().length).toBe(0);
   });
 
-  it('uploads the chosen file to the requirement, reloads the evidence and tells the drawer the control changed', () => {
+  it('opens the system file picker with a click, Enter or Space on the zone', () => {
+    setup('admin_empresa', true);
+    const click = spyOn(fileInput(1), 'click');
+    zones()[1].click();
+    zones()[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    zones()[1].dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
+    expect(click).toHaveBeenCalledTimes(3);
+  });
+
+  it('shows a preview of the chosen file (name, type, size) and sends nothing until «Subir»', () => {
+    setup('admin_empresa', true);
+    choose(pdf('Política de accesos.pdf'), 1);
+    expect(api.upload).not.toHaveBeenCalled();
+    const preview = q('[data-file-preview]')!;
+    expect(preview.querySelector('[data-file-name]')!.textContent).toContain('Política de accesos.pdf');
+    expect(preview.querySelector('[data-file-meta]')!.textContent).toContain('PDF');
+    expect(preview.querySelector('[data-file-meta]')!.textContent).toContain('1 B');
+    expect(preview.querySelector('[data-file-icon]')!.textContent).toContain('picture_as_pdf');
+    expect(preview.querySelector('[data-upload-file]')!.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD_FILE');
+    expect(preview.querySelector('[data-change-file]')).not.toBeNull();
+    // Quitar vuelve a la zona, sin subir nada.
+    (preview.querySelector('[data-remove-file]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(q('[data-file-preview]')).toBeNull();
+    expect(zones().length).toBe(2);
+    expect(api.upload).not.toHaveBeenCalled();
+  });
+
+  it('shows a thumbnail when the file is an image', () => {
+    setup('admin_empresa', true);
+    choose(new File(['x'], 'captura.png', { type: 'image/png' }), 1);
+    const thumb = q('[data-file-preview] [data-file-thumb]') as HTMLImageElement;
+    expect(thumb).not.toBeNull();
+    expect(thumb.getAttribute('src')).toMatch(/^blob:/);
+  });
+
+  it('«Cambiar archivo» opens the picker again and the new file replaces the preview', () => {
+    setup('admin_empresa', true);
+    choose(pdf('uno.pdf'), 1);
+    const click = spyOn(fileInput(1), 'click');
+    q('[data-change-file]')!.click();
+    expect(click).toHaveBeenCalled();
+    choose(pdf('dos.pdf'), 1);
+    expect(q('[data-file-preview] [data-file-name]')!.textContent).toContain('dos.pdf');
+  });
+
+  it('uploads on «Subir» with the real progress (percent), then a moving bar while the server saves, then success, reload and the drawer told', () => {
     const view = setup('admin_empresa', true);
-    api.upload.and.returnValue(of(submission(3)));
+    const upload = new Subject<EvidenceUploadEvent>();
+    api.upload.and.returnValue(upload);
     let changed = 0;
     view.changed.subscribe(() => changed++);
-    const file = new File(['x'], 'acta.pdf', { type: 'application/pdf' });
+    const file = pdf();
 
-    view.startUpload('e2');
-    view.file.set(file);
-    view.send();
+    chooseAndSend(file, 1);
+    expect(api.upload).toHaveBeenCalledOnceWith('e2', file);
+    expect(q('[data-uploading] [data-file-name]')!.textContent).toContain('acta.pdf');
+    expect(q('[data-upload-state]')!.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOADING');
+    expect(q('[data-uploading] [data-cancel]')).not.toBeNull();
+    expect(q('[data-uploading] [data-upload-file]')).toBeNull();
+    // Before the first progress event there is no figure yet: a moving bar, not a still 0 %.
+    expect(q('[data-upload-indeterminate]')).not.toBeNull();
+    upload.next({ kind: 'progress', percent: 40 });
+    fixture.detectChanges();
+    expect(q('[data-uploading] [data-value]')!.getAttribute('data-value')).toBe('40');
+    expect(q('[data-upload-percent]')!.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD_PERCENT');
+    expect(q('[data-upload-indeterminate]')).toBeNull();
+    // Bytes sent, server still saving: never a full, still bar.
+    upload.next({ kind: 'progress', percent: 100 });
+    fixture.detectChanges();
+    expect(q('[data-upload-state]')!.textContent).toContain('COMPLIANCE.EVIDENCE.PROCESSING');
+    expect(q('[data-upload-indeterminate]')).not.toBeNull();
+    expect(q('[data-upload-percent]')).toBeNull();
+    upload.next({ kind: 'done', submission: submission(3) });
+    upload.complete();
+    fixture.detectChanges();
 
-    expect(api.upload).toHaveBeenCalledWith('e2', file);
     expect(view.uploadingFor()).toBeNull();
-    expect(toastText()).toContain('COMPLIANCE.EVIDENCE.UPLOADED');
+    expect(q('[data-uploading]')).toBeNull();
+    expect(q('[data-file-preview]')).toBeNull();
+    expect(zones().length).toBe(2);
+    const ok = q('[data-message][data-tone="success"]')!;
+    expect(ok.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOADED_FILE');
+    // El éxito se dice en la propia zona, sin toast duplicado.
+    expect(toastText()).not.toContain('COMPLIANCE.EVIDENCE.UPLOADED');
     expect(api.list).toHaveBeenCalledTimes(2);
     expect(changed).toBe(1);
   });
 
-  it('does not send without a file and keeps the message of the backend when the upload fails', () => {
-    const view = setup('admin_empresa', true);
-    view.startUpload('e2');
-    view.send();
-    expect(api.upload).not.toHaveBeenCalled();
+  it('without a known total the bar is indeterminate and animated, not a full bar', () => {
+    setup('admin_empresa', true);
+    const upload = new Subject<EvidenceUploadEvent>();
+    api.upload.and.returnValue(upload);
+    chooseAndSend(pdf(), 1);
+    upload.next({ kind: 'progress', percent: null });
+    fixture.detectChanges();
+    expect(q('[data-upload-indeterminate]')).not.toBeNull();
+    expect(q('[data-uploading] app-progress-line')).toBeNull();
+    expect(q('[data-upload-state]')!.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOADING');
+  });
 
+  it('never stays in «Subiendo…»: with no news from the upload it fails with a message and «Reintentar»', fakeAsync(() => {
+    const view = setup('admin_empresa', true);
+    api.upload.and.returnValue(new Observable<EvidenceUploadEvent>(() => undefined));
+    chooseAndSend(pdf(), 1);
+    expect(q('[data-uploading]')).not.toBeNull();
+    tick(UPLOAD_IDLE_MS);
+    fixture.detectChanges();
+    expect(view.sending()).toBeFalse();
+    expect(q('[data-uploading]')).toBeNull();
+    expect(q('[data-file-preview] [data-message]')!.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD_TIMEOUT');
+    expect(q('[data-upload-file]')!.textContent).toContain('COMMON.RETRY');
+    api.upload.and.returnValue(done(1));
+    confirm();
+    expect(api.upload).toHaveBeenCalledTimes(2);
+    flush();
+  }));
+
+  it('does not send a file of a wrong type or too big, and says why in the zone', () => {
+    setup('admin_empresa', true);
+    choose(new File(['x'], 'raro.exe'), 1);
+    expect(api.upload).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('[data-problem]').textContent).toContain('COMMON.FILE.ERROR_TYPE');
+    const big = pdf('grande.pdf');
+    Object.defineProperty(big, 'size', { value: 26 * 1024 * 1024 });
+    choose(big, 1);
+    expect(api.upload).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('[data-problem]').textContent).toContain('COMMON.FILE.ERROR_SIZE');
+  });
+
+  it('cancels the upload in course: aborts the request and says so in the zone', () => {
+    const view = setup('admin_empresa', true);
+    let aborted = false;
+    api.upload.and.returnValue(new Observable<EvidenceUploadEvent>(() => () => (aborted = true)));
+    chooseAndSend(pdf(), 1);
+    (fixture.nativeElement.querySelector('[data-cancel]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(aborted).toBeTrue();
+    expect(view.sending()).toBeFalse();
+    // The file stays in its preview, ready to upload again.
+    expect(q('[data-file-preview] [data-upload-file]')!.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD_FILE');
+    const note = fixture.nativeElement.querySelector('[data-message]') as HTMLElement;
+    expect(note.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD_CANCELED');
+    expect(note.getAttribute('data-tone')).toBe('info');
+    expect(note.className).not.toContain('text-bad-ink');
+    expect(api.list).toHaveBeenCalledTimes(1);
+    api.upload.and.returnValue(done(1));
+    choose(pdf('otra.pdf'), 1);
+    expect(fixture.nativeElement.querySelector('[data-message]')).toBeNull();
+  });
+
+  it('keeps the message of the backend in the zone when the upload fails, and lets you try again', () => {
+    const view = setup('admin_empresa', true);
     api.upload.and.returnValue(throwError(() => new HttpErrorResponse({ status: 415, error: { message: 'Ese tipo de archivo no está permitido.', error: { code: 'UNSUPPORTED_MEDIA_TYPE' } } })));
-    view.file.set(new File(['x'], 'raro.exe'));
-    view.send();
-    expect(view.error()).toBe('Ese tipo de archivo no está permitido.');
-    expect(view.uploadingFor()).toBe('e2');
+    chooseAndSend(pdf(), 1);
+    expect(fixture.nativeElement.querySelector('[data-message]').textContent).toContain('Ese tipo de archivo no está permitido.');
+    expect(fixture.nativeElement.querySelector('[data-message]').getAttribute('data-tone')).toBe('error');
+    expect(view.uploadingFor()).toBeNull();
+    // Every error ends with «Reintentar» on the same file.
+    expect(q('[data-upload-file]')!.textContent).toContain('COMMON.RETRY');
+    confirm();
+    expect(api.upload).toHaveBeenCalledTimes(2);
+    api.upload.and.returnValue(done(1));
+    choose(pdf('otra.pdf'), 1);
+    expect(fixture.nativeElement.querySelector('[data-message]')).toBeNull();
+    confirm();
+    expect(api.upload).toHaveBeenCalledTimes(3);
   });
 
   it('falls back to the summary of the control, with no upload, while the backend has no evidence endpoint', () => {
@@ -257,7 +426,7 @@ describe('ControlEvidence', () => {
       fixture.componentRef.setInput('embedded', true);
       fixture.componentRef.setInput('testId', 'tid-9');
       fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('[data-test-evidence-block] [data-upload-open]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-test-evidence-block] [data-dropzone]')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('[data-shared-with]')).not.toBeNull();
       expect(view.documentary()).toBeTrue();
     });
@@ -294,7 +463,7 @@ describe('ControlEvidence', () => {
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('[data-fallback-tag]')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('[data-fallback-note]')).not.toBeNull();
-      expect(fixture.nativeElement.querySelector('[data-test-evidence-block] [data-upload-open]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-test-evidence-block] [data-dropzone]')).not.toBeNull();
     });
 
     it('with nothing delivered yet it says so and offers "upload evidence" straight away, with nothing to prepare first', () => {
@@ -302,50 +471,155 @@ describe('ControlEvidence', () => {
       // Una sola unidad: el estado «Sin subir» y la acción principal en la misma cabecera del bloque (MD-499).
       const block = fixture.nativeElement.querySelector('[data-test-evidence-block]') as HTMLElement;
       expect(block.querySelector('[data-empty]')!.textContent).toContain('COMPLIANCE.EVIDENCE.NOT_UPLOADED');
-      expect(block.querySelector('[data-upload-open]')!.className).toContain('mk-btn-sm');
-      // Centrado, a todo el alto: estado arriba, lo que se espera en medio y la acción abajo (Rod).
+      // Centrado, a todo el alto: estado arriba, lo que se espera en medio y la zona de carga abajo (Rod).
       expect(block.className).toContain('justify-center');
       expect(block.querySelector('[data-evidence-expected]')).not.toBeNull();
-      expect(block.lastElementChild!.hasAttribute('data-upload-open')).toBeTrue();
-      expect(fixture.nativeElement.querySelector('[data-upload-open]').textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD');
-      expect(fixture.nativeElement.querySelector('[data-upload-open]').textContent).not.toContain('UPLOAD_NEW');
+      expect(block.lastElementChild!.hasAttribute('data-upload-zone')).toBeTrue();
+      expect(block.querySelector('[data-dropzone]')!.textContent).toContain('COMMON.FILE.DROP_OR_CLICK');
     });
 
-    it('offers "new version" once there is something delivered, and nothing to a role that cannot upload', () => {
+    it('invites to replace once there is something delivered, and shows no zone to a role that cannot upload', () => {
       under([{ ...own('mine', T1), submissions: [submission(2), submission(1)] }]);
-      expect(fixture.nativeElement.querySelector('[data-upload-open]').textContent).toContain('COMPLIANCE.EVIDENCE.UPLOAD_NEW');
+      expect(fixture.nativeElement.querySelector('[data-dropzone]').textContent).toContain('COMPLIANCE.EVIDENCE.REPLACE_HINT');
       TestBed.resetTestingModule();
       under([own('mine', T1)], false);
-      expect(fixture.nativeElement.querySelector('[data-upload-open]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-dropzone]')).toBeNull();
+    });
+
+    it('asks for the case when the test serves an on-demand requirement: the zone is blocked until one is chosen, then sends it with the file (DT-115)', () => {
+      const view = under([]);
+      fixture.componentRef.setInput('occurrenceRequirementId', 'r1');
+      fixture.detectChanges();
+      api.uploadForTest.and.returnValue(done(1));
+      expect(fixture.nativeElement.querySelector('[data-field="occurrence"]')).not.toBeNull();
+      expect(zones()[0].getAttribute('aria-disabled')).toBe('true');
+      expect(zones()[0].textContent).toContain('COMPLIANCE.APPROVAL.OCCURRENCE.ERR_CASE');
+      const file = pdf();
+      view.send('__test__', file);
+      expect(api.uploadForTest).not.toHaveBeenCalled();
+      view.occurrenceId.set('oc1');
+      fixture.detectChanges();
+      expect(zones()[0].getAttribute('aria-disabled')).toBe('false');
+      chooseAndSend(file);
+      expect(api.uploadForTest).toHaveBeenCalledWith('c1', 'tid-1', file, 'oc1');
+    });
+
+    describe('cases of an on-demand requirement', () => {
+      const CASE = { id: 'oc1', requirement: { id: 'r1', code: 'IDA-11' }, occurred_on: '2026-11-20', description: 'Alta de proveedor', has_evidence: false };
+      const original = management.listOccurrences;
+      afterEach(() => (management.listOccurrences = original));
+
+      it('asks for the cases when the card shows, with no click needed', () => {
+        const list = jasmine.createSpy('listOccurrences').and.returnValue(of([CASE]));
+        management.listOccurrences = list;
+        const view = under([]);
+        fixture.componentRef.setInput('occurrenceRequirementId', 'r1');
+        fixture.detectChanges();
+        expect(list).toHaveBeenCalledOnceWith('c1', 'r1');
+        expect(view.occurrences().map((o) => o.id)).toEqual(['oc1']);
+      });
+
+      it('shows a skeleton region for the cases in a blocked zone while they load', () => {
+        const pending = new Subject<never[]>();
+        management.listOccurrences = () => pending;
+        under([]);
+        fixture.componentRef.setInput('occurrenceRequirementId', 'r1');
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('[data-occurrences-loading]')).not.toBeNull();
+        expect(zones()[0].getAttribute('aria-disabled')).toBe('true');
+        expect(fixture.nativeElement.querySelector('[data-field="occurrence"]')).toBeNull();
+      });
+
+      it('warns to register a case first when the list comes empty: no selector and a blocked zone', () => {
+        management.listOccurrences = () => of([]);
+        under([]);
+        fixture.componentRef.setInput('occurrenceRequirementId', 'r1');
+        fixture.detectChanges();
+        expect(zones()[0].textContent).toContain('COMPLIANCE.APPROVAL.OCCURRENCE.NONE_FIRST');
+        expect(zones()[0].getAttribute('aria-disabled')).toBe('true');
+        expect(fixture.nativeElement.querySelector('[data-field="occurrence"]')).toBeNull();
+      });
+
+      it('asks again when the detail of the control changes, so a case registered in between shows up', () => {
+        const list = jasmine.createSpy('listOccurrences').and.returnValues(of([]), of([CASE]));
+        management.listOccurrences = list;
+        const view = under([]);
+        fixture.componentRef.setInput('occurrenceRequirementId', 'r1');
+        fixture.detectChanges();
+        expect(view.occurrences()).toEqual([]);
+        fixture.componentRef.setInput('summary', [...SUMMARY]);
+        fixture.detectChanges();
+        expect(list).toHaveBeenCalledTimes(2);
+        expect(view.occurrences().map((o) => o.id)).toEqual(['oc1']);
+        expect(fixture.nativeElement.querySelector('[data-field="occurrence"]')).not.toBeNull();
+      });
+
+      it('ignores the cases of an older request that arrive after a newer one', () => {
+        const old = new Subject<never[]>();
+        const fresh = new Subject<never[]>();
+        management.listOccurrences = jasmine.createSpy('listOccurrences').and.returnValues(old, fresh) as never;
+        const view = under([]);
+        fixture.componentRef.setInput('occurrenceRequirementId', 'r1');
+        fixture.detectChanges();
+        fixture.componentRef.setInput('summary', [...SUMMARY]);
+        fixture.detectChanges();
+        fresh.next([{ id: 'new', occurred_on: '2026-11-20', description: 'n' }] as never);
+        old.next([{ id: 'old', occurred_on: '2026-11-19', description: 'o' }] as never);
+        expect(view.occurrences().map((o) => o.id)).toEqual(['new']);
+      });
+
+      it('does not ask for the cases to a role that cannot upload', () => {
+        const list = jasmine.createSpy('listOccurrences').and.returnValue(of([]));
+        management.listOccurrences = list;
+        under([], false);
+        fixture.componentRef.setInput('occurrenceRequirementId', 'r1');
+        fixture.detectChanges();
+        expect(list).not.toHaveBeenCalled();
+      });
+
+      it('shows its own message on a 422 occurrence_id.invalid instead of the generic one', () => {
+        management.listOccurrences = () => of([CASE]);
+        const view = under([]);
+        fixture.componentRef.setInput('occurrenceRequirementId', 'r1');
+        fixture.detectChanges();
+        view.occurrenceId.set('oc1');
+        api.uploadForTest.and.returnValue(throwError(() => new HttpErrorResponse({ status: 422, error: { error: { fields: [{ field: 'occurrence_id', code: 'occurrence_id.invalid', message: 'x' }] } } })));
+        fixture.detectChanges();
+        chooseAndSend(pdf());
+        expect(fixture.nativeElement.querySelector('[data-message]').textContent).toContain('COMPLIANCE.APPROVAL.OCCURRENCE.ERR_INVALID');
+      });
+    });
+
+    it('does not ask for a case when the test is not of an on-demand requirement', () => {
+      under([]);
+      expect(fixture.nativeElement.querySelector('[data-field="occurrence"]')).toBeNull();
+      expect(zones()[0].getAttribute('aria-disabled')).toBe('false');
     });
 
     it('uploads the file for THIS test of the control in one step, reloads and tells the drawer', () => {
       const view = under([]);
-      api.uploadForTest.and.returnValue(of(submission(1)));
+      api.uploadForTest.and.returnValue(done(1));
       let changed = 0;
       view.changed.subscribe(() => changed++);
-      const file = new File(['x'], 'politica.pdf', { type: 'application/pdf' });
+      const file = pdf('politica.pdf');
 
-      view.startUpload('__test__');
-      view.file.set(file);
-      view.send();
+      chooseAndSend(file);
 
-      expect(api.uploadForTest).toHaveBeenCalledWith('c1', 'tid-1', file);
+      expect(api.uploadForTest).toHaveBeenCalledWith('c1', 'tid-1', file, null);
       expect(api.upload).not.toHaveBeenCalled();
       expect(view.uploadingFor()).toBeNull();
-      expect(toastText()).toContain('COMPLIANCE.EVIDENCE.UPLOADED');
+      expect(q('[data-message][data-tone="success"]')?.textContent).toContain('COMPLIANCE.EVIDENCE.UPLOADED_FILE');
+      expect(toastText()).not.toContain('COMPLIANCE.EVIDENCE.UPLOADED');
       expect(api.listForTest).toHaveBeenCalledTimes(2); // la carga de la prueba y la recarga tras subir
       expect(changed).toBe(1);
     });
 
-    it('keeps the message of the backend when the upload fails, and the form open', () => {
+    it('keeps the message of the backend in the zone when the upload fails', () => {
       const view = under([]);
       api.uploadForTest.and.returnValue(throwError(() => new HttpErrorResponse({ status: 415, error: { message: 'Ese tipo de archivo no está permitido.', error: { code: 'UNSUPPORTED_MEDIA_TYPE' } } })));
-      view.startUpload('__test__');
-      view.file.set(new File(['x'], 'raro.exe'));
-      view.send();
-      expect(view.error()).toBe('Ese tipo de archivo no está permitido.');
-      expect(view.uploadingFor()).toBe('__test__');
+      chooseAndSend(pdf());
+      expect(fixture.nativeElement.querySelector('[data-message]').textContent).toContain('Ese tipo de archivo no está permitido.');
+      expect(view.uploadingFor()).toBeNull();
     });
   });
 
@@ -358,14 +632,14 @@ describe('ControlEvidence', () => {
       const box = fixture.nativeElement.querySelector('[data-suggested]');
       expect(box.textContent).toContain('Documento guide');
       expect(box.textContent).not.toContain('Documento mine');
-      expect(fixture.nativeElement.querySelector('[data-upload-open]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-dropzone]')).toBeNull();
     });
   });
   it('waits for the backend before showing anything while it loads', () => {
     api = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'listForTest', 'upload', 'download', 'uploadForTest']);
     api.list.and.returnValue(NEVER);
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ imports: [ControlEvidence], providers: [provideTranslateService(), { provide: EvidenceService, useValue: api }] });
+    TestBed.configureTestingModule({ imports: [ControlEvidence], providers: [provideTranslateService(), { provide: EvidenceService, useValue: api }, { provide: ControlManagementService, useValue: management }] });
     fixture = TestBed.createComponent(ControlEvidence);
     fixture.componentRef.setInput('controlId', 'c1');
     fixture.detectChanges();

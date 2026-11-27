@@ -13,7 +13,8 @@ describe('the menu of each role (permission matrix)', () => {
   it('gives the administrator everything, with the document library and «Mis documentos»', () => {
     const paths = visible('admin_empresa');
     for (const p of ['/', '/mis-documentos', '/documentos', '/services', '/cumplimiento/resumen', '/cumplimiento/controles', '/equipo/personas', '/asignacion', '/integraciones']) expect(paths).toContain(p);
-    expect(paths).not.toContain('/mi-trabajo');
+    // MD-529 · El administrador solo ve «Por aprobar» dentro de «Mi trabajo».
+    expect(paths).toContain('/mi-trabajo');
   });
 
   it('gives the owner «Mi trabajo», its compliance with the summary, its team (read) and «Mis documentos», but no library, services nor integrations', () => {

@@ -16,7 +16,7 @@ describe('AppSidebarComponent · menú por rol', () => {
   const menuFor = (role: string): string[] => items(role).map((i) => i.name);
 
   it('shows the administrator everything, including the team and the control assignment', () => {
-    expect(menuFor('admin_empresa')).toEqual(['Inicio', 'Mi empresa', 'Cumplimiento', 'Documentos', 'Equipo', 'Asignación', 'Integraciones']);
+    expect(menuFor('admin_empresa')).toEqual(['Inicio', 'Mi trabajo', 'Mi empresa', 'Cumplimiento', 'Documentos', 'Equipo', 'Asignación', 'Integraciones']);
   });
 
   it('gives the owner «Mi trabajo», Cumplimiento, the assignment (delegating) and their team, and nothing of the company', () => {

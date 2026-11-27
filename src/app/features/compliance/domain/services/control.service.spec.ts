@@ -87,4 +87,19 @@ describe('ControlService', () => {
       expect(failures[1].error.message).toBe('Este control ya fue dado de baja.');
     });
   });
+
+  it('posts the approval decision with the view and the result of a manual test without it', () => {
+    service.decide('c1', { decision: 'return', reason: 'Falta la firma', returned_submission_ids: ['s1'] }, 'technical').subscribe();
+    const approval = http.expectOne((r) => r.url.endsWith('/controls/c1/approval'));
+    expect(approval.request.method).toBe('POST');
+    expect(approval.request.params.get('view')).toBe('technical');
+    expect(approval.request.body).toEqual({ decision: 'return', reason: 'Falta la firma', returned_submission_ids: ['s1'] });
+    approval.flush({ statusCode: 200, message: 'control.approval', data: { id: 'c1' } });
+
+    service.registerResult('c1', 't1', { result: 'observation', note: 'Una firma falta' }).subscribe();
+    const result = http.expectOne((r) => r.url.endsWith('/controls/c1/tests/t1/result'));
+    expect(result.request.method).toBe('POST');
+    expect(result.request.body).toEqual({ result: 'observation', note: 'Una firma falta' });
+    result.flush({ statusCode: 201, message: 'manual_test_result.register', data: { id: 'r1', management_state: 'in_progress' } });
+  });
 });

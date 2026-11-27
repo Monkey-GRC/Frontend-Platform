@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { ComplianceServiceRef } from '@features/compliance/domain/models/compliance.models';
 import { ComplianceOverview, OverviewFramework } from '@features/compliance/domain/models/overview.models';
 import { SessionService } from '@core/domain/services/session.service';
@@ -55,6 +55,13 @@ describe('ComplianceGeneral', () => {
 
   beforeEach(() => {
     api = jasmine.createSpyObj('OverviewService', ['get']);
+  });
+
+  it('shows the loading region, with one bar only, while the summaries load', () => {
+    api.get.and.returnValue(new Subject<ComplianceOverview>());
+    setup();
+    expect(el().querySelector('app-skeleton-region[aria-busy="true"]')).not.toBeNull();
+    expect(el().querySelectorAll('[data-load-progress]').length).toBe(1);
   });
 
   it('lists every service under the framework it has, each with its own result, and links to its detail', () => {
