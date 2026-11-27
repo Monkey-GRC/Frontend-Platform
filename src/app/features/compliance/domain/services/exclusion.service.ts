@@ -4,7 +4,7 @@ import { EMPTY, Observable, expand, reduce } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
 import { unwrapData } from '@shared/domain/utils/unwrap-response';
-import { Exclusion, ExclusionStatus } from '../models/exclusion.models';
+import { Exclusion } from '../models/exclusion.models';
 import { Page } from '@shared/domain/models/risk.models';
 
 const PAGE_SIZE = 100;
@@ -16,12 +16,11 @@ export class ExclusionService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiUrl;
 
-  /** Todas las exclusiones del servicio (recorre las páginas), con el filtro de estado si se pide. */
-  listAll(serviceId: string, status?: ExclusionStatus): Observable<Exclusion[]> {
+  /** Todas las exclusiones del servicio (recorre las páginas). */
+  listAll(serviceId: string): Observable<Exclusion[]> {
     const url = `${this.base}/services/${serviceId}/exclusions`;
     const page = (n: number) => {
-      let params = new HttpParams().set('page', n).set('page_size', PAGE_SIZE);
-      if (status) params = params.set('status', status);
+      const params = new HttpParams().set('page', n).set('page_size', PAGE_SIZE);
       return this.http.get<SuccessResponse<Page<Exclusion>>>(url, { params }).pipe(unwrapData());
     };
     return page(1).pipe(

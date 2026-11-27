@@ -62,6 +62,7 @@ export type CatalogName =
   | 'previous_certification'
   // Componente 3 — el control técnico
   | 'asset_criticality'
+  | 'gap_priority'
   | 'schedule_frequency'
   // Conexión de nube (D53, D58)
   | ConnectionOptionName

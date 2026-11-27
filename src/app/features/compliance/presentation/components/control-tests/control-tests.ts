@@ -78,15 +78,11 @@ const TONES: Record<string, StatusTone> = {
                 <div class="flex min-w-0 flex-col">
                   @switch (t.aside) {
                     @case ('findings') {
-                      <!-- D90 · Una prueba técnica que no cumple dice qué falló y cómo corregirlo. -->
+                      <!-- D90 · Una prueba técnica que no cumple dice qué falló y cómo corregirlo: el enlace abre el modal de sus brechas (patrón 19) y, ya cargados, sus contadores.
+                           El estado de la prueba ya está a la izquierda: aquí no se repite. -->
                       @if (controlId(); as cid) {
-                        <div class="flex flex-1 flex-col items-center justify-center gap-2 rounded-control border border-line px-4 py-5 text-center" data-test-findings-block>
-                          <div class="flex flex-wrap items-center justify-center gap-2">
-                            <p class="text-sm font-semibold text-ink">{{ 'COMPLIANCE.TESTS.FINDINGS_TITLE' | translate }}</p>
-                            <app-status-indicator tone="bad" [label]="labels.of('COMPLIANCE.TEST_STATUS', t.status)" />
-                          </div>
-                          <p class="max-w-prose text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.TESTS.FINDINGS_TEXT' | translate }}</p>
-                          <app-test-findings class="mt-1 w-full" [controlId]="cid" [testId]="t.test_id" [dimension]="t.dimension" />
+                        <div class="flex flex-1 flex-col items-center justify-center rounded-control border border-line px-4 py-5 text-center" data-test-findings-block>
+                          <app-test-findings class="w-full" [controlId]="cid" [testId]="t.test_id" [testCode]="t.test_code" [testName]="t.display_name" />
                         </div>
                       }
                     }

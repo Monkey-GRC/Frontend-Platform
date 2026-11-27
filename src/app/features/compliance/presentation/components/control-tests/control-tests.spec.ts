@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { ControlDimensionDetail } from '@features/compliance/domain/models/control.models';
 import { FindingService } from '@features/compliance/domain/services/finding.service';
+import { CatalogService } from '@shared/domain/services/catalog.service';
 import { ControlTest, ControlTests } from './control-tests';
 
 const DIMENSIONS: ControlDimensionDetail[] = [
@@ -114,7 +115,7 @@ describe('ControlTests', () => {
     const passing: ControlTest = { ...cloud, test_id: 'id-cld-2', test_code: 'T-CLD-002', status: 'correct', accepts_evidence: false, evidence_fallback: false };
     const withControl = (id: string | null, tests: ControlTest[] = [cloud, passing, TESTS[0]]) => {
       TestBed.resetTestingModule();
-      TestBed.configureTestingModule({ imports: [ControlTests], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: FindingService, useValue: {} }] });
+      TestBed.configureTestingModule({ imports: [ControlTests], providers: [provideTranslateService({ fallbackLang: 'es' }), { provide: FindingService, useValue: {} }, { provide: CatalogService, useValue: {} }] });
       fixture = TestBed.createComponent(ControlTests);
       fixture.componentRef.setInput('tests', tests);
       fixture.componentRef.setInput('dimensions', [...DIMENSIONS, { dimension: 'cloud', applies: true, type: 'automated', reason_not_applicable: null }]);

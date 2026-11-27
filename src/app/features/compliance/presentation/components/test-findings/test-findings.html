@@ -1,85 +1,201 @@
-<div class="flex w-full flex-col items-center">
-  <button type="button" (click)="toggle()" [attr.aria-expanded]="stage() !== 'closed'" data-findings-toggle
+<!-- Patrón 19 · En la fila de la prueba: el enlace que abre el modal y, cuando ya se cargó, los contadores al lado. -->
+<div class="flex w-full flex-col items-center gap-3">
+  <button type="button" (click)="openModal()" aria-haspopup="dialog" [attr.aria-expanded]="stage() !== 'closed'" data-findings-toggle
     class="mk-link inline-flex items-center gap-1 text-sm underline">
-    <span class="material-symbols-rounded text-[16px]" aria-hidden="true">{{ stage() === 'closed' ? 'build_circle' : 'expand_less' }}</span>
-    {{ (stage() === 'closed' ? 'COMPLIANCE.FINDINGS.OPEN' : 'COMPLIANCE.FINDINGS.CLOSE') | translate }}
+    <span class="material-symbols-rounded text-[16px]" aria-hidden="true">build_circle</span>{{ 'COMPLIANCE.FINDINGS.OPEN' | translate }}
   </button>
-
-  @switch (stage()) {
-  @case ('loading') {
-  <app-skeleton-region class="py-3"><app-skeleton shape="line" [lines]="2" /></app-skeleton-region>
-  }
-  @case ('error') {
-  <p class="mt-2 text-sm text-ink-muted" role="alert" data-findings-error>
-    {{ 'COMPLIANCE.FINDINGS.LOAD_ERROR' | translate }}
-    <button type="button" (click)="load()" class="mk-btn-secondary-sm ml-2">{{ 'COMMON.RETRY' | translate }}</button>
-  </p>
-  }
-  @case ('ready') {
-  @if (items().length === 0) {
-  <p class="mt-2 text-sm text-ink-muted" data-findings-empty>{{ 'COMPLIANCE.FINDINGS.NONE' | translate }}</p>
-  } @else {
-  <p class="mt-2 text-xs text-ink-muted">{{ (ranked() ? 'COMPLIANCE.FINDINGS.SUMMARY' : 'COMPLIANCE.FINDINGS.SUMMARY_UNRANKED') | translate: { count: total() } }}</p>
-  <ul class="mt-2 flex w-full flex-col gap-3 text-left" data-findings-list>
-    @for (f of items(); track f.id) {
-    <li class="rounded-control border border-line p-3.5" data-finding>
-      <div class="flex flex-wrap items-start justify-between gap-2">
-        <p class="min-w-0 flex-1 text-sm font-semibold leading-snug text-ink">{{ f.title }}</p>
-        @if (f.severity; as severity) {
-        <app-status-indicator [tone]="tone[severity]" [label]="'COMPLIANCE.FINDINGS.SEVERITY.' + severity.toUpperCase() | translate" data-finding-severity />
-        }
-      </div>
-
-      @if (f.resources.length) {
-      <div class="mt-2">
-        <p class="text-xs font-medium text-ink-muted">{{ (dimension() === 'cloud' ? 'COMPLIANCE.FINDINGS.AFFECTED' : 'COMPLIANCE.FINDINGS.AFFECTED_ASSETS') | translate: { count: f.resources_total } }}</p>
-        <ul class="mt-1 flex flex-col gap-0.5 text-sm text-ink">
-          @for (r of shown(f); track $index) {
-          <li class="break-all"><span class="font-medium">{{ r.name || r.uid }}</span>@if (r.region) {<span class="text-ink-muted"> · {{ r.region }}</span>}</li>
-          }
-        </ul>
-        @if (!isExpanded(f.id) && f.resources.length > SHOWN) {
-        <button type="button" (click)="expand(f.id)" class="mk-link mt-1 text-xs underline">{{ 'COMPLIANCE.FINDINGS.SHOW_ALL' | translate: { count: f.resources.length } }}</button>
-        }
-        @if (isExpanded(f.id) && f.resources_total > f.resources.length) {
-        <p class="mt-1 text-xs text-ink-muted">{{ 'COMPLIANCE.FINDINGS.PARTIAL' | translate: { shown: f.resources.length, total: f.resources_total } }}</p>
-        }
-      </div>
-      }
-
-      <div class="mt-3 rounded-control bg-canvas p-3" data-finding-remediation>
-        <p class="text-xs font-semibold text-ink-muted">{{ 'COMPLIANCE.FINDINGS.HOW_TO_FIX' | translate }}</p>
-        @if (f.remediation; as rem) {
-        <div class="mt-1 flex flex-col gap-1 text-sm leading-relaxed text-ink">
-          @for (b of blocks(rem.text); track $index) {
-          @if (b.kind === 'li') {
-          <p class="flex gap-2"><span aria-hidden="true">•</span><span>{{ b.text }}</span></p>
-          } @else if (b.kind === 'code') {
-          <pre class="my-1 overflow-x-auto whitespace-pre-wrap break-all rounded-control border border-line bg-surface px-3 py-2 font-mono text-xs leading-relaxed text-ink" data-finding-code>{{ b.text }}</pre>
-          } @else {
-          <p>{{ b.text }}</p>
-          }
-          }
-        </div>
-        @if (rem.is_ai_generated) {
-        <p class="mt-2 flex items-start gap-1 text-xs text-ink-muted" data-finding-ai>{{ 'COMPLIANCE.FINDINGS.AI_NOTE' | translate }}
-        </p>
-        } @else if (rem.language === 'en') {
-        <p class="mt-2 flex items-start gap-1 text-xs text-ink-muted" data-finding-original>
-          <span class="material-symbols-rounded text-[16px]" aria-hidden="true">translate</span>{{ 'COMPLIANCE.FINDINGS.ORIGINAL_NOTE' | translate }}
-        </p>
-        }
-        } @else {
-        <p class="mt-1 text-sm text-ink-muted" data-finding-no-guide>{{ 'COMPLIANCE.FINDINGS.NO_GUIDE' | translate }}</p>
-        }
-      </div>
-    </li>
-    }
-  </ul>
-  @if (hasMore()) {
-  <button type="button" (click)="more()" [appBusy]="loadingMore()" data-findings-more class="mk-link mt-3 text-sm underline">{{ 'COMPLIANCE.FINDINGS.MORE' | translate }}</button>
-  }
-  }
-  }
+  @if (counted()) {
+  <ng-container [ngTemplateOutlet]="counters" [ngTemplateOutletContext]="{ $implicit: 'justify-center' }" />
   }
 </div>
+
+@if (stage() !== 'closed') {
+<app-detail-modal class="text-left" variant="wide" titleKey="COMPLIANCE.FINDINGS.MODAL_TITLE" testId="findings-modal" (closed)="closeModal()">
+  <div meta class="flex flex-col gap-3">
+    @if (headerCode() || headerName()) {
+    <p class="text-sm font-semibold leading-snug text-ink" data-findings-test>@if (headerCode()) {<app-tag class="mr-2 align-middle" [text]="headerCode()" />}{{ headerName() }}</p>
+    }
+    @if (stage() === 'ready' && items().length) {
+    <ng-container [ngTemplateOutlet]="counters" [ngTemplateOutletContext]="{ $implicit: 'justify-start', inModal: true }" />
+    }
+  </div>
+
+  @switch (stage()) {
+  @case ('error') {
+  <div class="py-10 text-center" role="alert" data-findings-error>
+    <p class="text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.FINDINGS.LOAD_ERROR' | translate }}</p>
+    <button type="button" (click)="load()" class="mk-btn-secondary-sm mt-4">
+      <span class="material-symbols-rounded text-[16px]" aria-hidden="true">refresh</span>{{ 'COMMON.RETRY' | translate }}
+    </button>
+  </div>
+  }
+  @default {
+  <!-- Una fila por ítem, en el orden de la API; al pulsarla se despliega solo esa con la plantilla del libro (D138). Mientras carga, la tabla con su forma (D116). -->
+  <app-data-table captionKey="COMPLIANCE.FINDINGS.MODAL_TITLE" [compact]="true" [alignTop]="true" [columns]="columns" [rows]="items()" [rowKey]="findingKey" [rowLabel]="findingLabel"
+    [loading]="stage() === 'loading'" [loadingRows]="4" [clickable]="true" [expandedKey]="openRow()" (rowClick)="toggleRow($event)"
+    emptyIcon="" emptyTitleKey="COMPLIANCE.FINDINGS.NONE" [attr.data-findings-list]="stage() === 'ready' ? '' : null">
+    <ng-template appCell="priority" let-f>
+      <span class="inline-flex" data-finding [attr.data-kind]="f.kind">
+        @if (f.priority; as priority) {
+        <app-status-indicator [tone]="priorityTone(f)" [label]="priorityLabel(priority)" data-finding-priority-chip />
+        }
+      </span>
+    </ng-template>
+    <ng-template appCell="asset" let-f><span class="break-words font-medium text-ink" data-finding-asset>{{ f.asset.name }}</span></ng-template>
+    <ng-template appCell="check" let-f>
+      <div class="flex flex-col items-start gap-1.5">
+        <app-expandable-text class="max-w-prose" [text]="f.title" [lines]="2" textClass="break-words text-pretty text-sm leading-snug text-ink" data-finding-headline />
+        @if (f.kind === 'observation') {
+        <app-status-indicator tone="neutral" [label]="'COMPLIANCE.FINDINGS.OBSERVATION' | translate" data-finding-observation />
+        } @else if (f.kind === 'excepted') {
+        <app-status-indicator tone="info" [label]="'COMPLIANCE.FINDINGS.EXCEPTED' | translate" data-finding-excepted />
+        }
+      </div>
+    </ng-template>
+    <ng-template appCell="owner" let-f>
+      @if (f.kind !== 'observation') {
+      <span class="whitespace-nowrap" [class]="ownerName(f) ? 'font-medium text-ink' : 'text-ink-muted'" data-finding-owner>{{ ownerName(f) || ('COMPLIANCE.FINDINGS.NO_OWNER' | translate) }}</span>
+      }
+    </ng-template>
+    <ng-template appCell="due" let-f>
+      @if (f.kind !== 'observation') {
+      <span class="whitespace-nowrap tabular-nums" [class]="f.due_date ? 'font-medium text-ink' : 'text-ink-muted'" data-finding-due>{{ f.due_date ? day(f.due_date) : ('COMPLIANCE.FINDINGS.NO_DUE' | translate) }}</span>
+      }
+    </ng-template>
+    <app-empty-state tableEmpty icon="" titleKey="COMPLIANCE.FINDINGS.NONE" data-findings-empty />
+    <ng-template appRowDetail let-f>
+      <ng-container [ngTemplateOutlet]="detail" [ngTemplateOutletContext]="{ $implicit: f }" />
+    </ng-template>
+  </app-data-table>
+  @if (stage() === 'ready') {
+  @if (moreFailed()) {
+  <div class="mt-4 flex flex-col items-center gap-3" role="alert" data-findings-more-error>
+    <p class="text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.FINDINGS.LOAD_ERROR' | translate }}</p>
+    <button type="button" (click)="more()" [appBusy]="loadingMore()" class="mk-btn-secondary-sm">
+      <span class="material-symbols-rounded text-[16px]" aria-hidden="true">refresh</span>{{ 'COMMON.RETRY' | translate }}
+    </button>
+  </div>
+  } @else if (hasMore()) {
+  <div class="flex justify-center"><button type="button" (click)="more()" [appBusy]="loadingMore()" data-findings-more class="mk-link mt-4 text-sm underline">{{ 'COMPLIANCE.FINDINGS.MORE' | translate }}</button></div>
+  }
+  }
+  }
+  }
+</app-detail-modal>
+}
+
+<!-- Los contadores, con el tono de lo que cuentan: brechas abiertas en alerta; lo exceptuado y lo complementario, sin alarmar. -->
+<ng-template #counters let-justify let-inModal="inModal">
+  <ul class="flex flex-wrap gap-2" [class]="justify" [attr.data-findings-summary]="inModal ? null : ''" [attr.data-findings-modal-summary]="inModal ? '' : null">
+    @if (summary().open_gaps > 0) {
+    <li data-summary-gaps><app-status-indicator tone="bad" [label]="'COMPLIANCE.FINDINGS.SUMMARY_GAPS' | translate: { count: summary().open_gaps }" /></li>
+    }
+    @if (summary().excepted > 0) {
+    <li data-summary-excepted><app-status-indicator tone="info" [label]="'COMPLIANCE.FINDINGS.SUMMARY_EXCEPTED' | translate: { count: summary().excepted }" /></li>
+    }
+    @if (summary().observations > 0) {
+    <li data-summary-observations><app-status-indicator tone="neutral" [label]="'COMPLIANCE.FINDINGS.SUMMARY_OBSERVATIONS' | translate: { count: summary().observations }" /></li>
+    }
+  </ul>
+</ng-template>
+
+<!-- La fila desplegada: a la izquierda qué se evaluó y qué corregir; a la derecha la prioridad, los recursos, cómo se cierra y desde cuándo falla. -->
+<ng-template #detail let-f>
+  <div class="grid items-start gap-x-10 gap-y-6 lg:grid-cols-2" data-finding-detail>
+    <div class="flex min-w-0 flex-col gap-5">
+      @if (f.kind === 'observation') {
+      <p class="text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.FINDINGS.OBSERVATION_NOTE' | translate }}</p>
+      }
+      @if (f.evaluated; as ev) {
+      <section data-finding-evaluated>
+        <h4 class="text-xs font-semibold text-ink-muted">{{ 'COMPLIANCE.FINDINGS.EVALUATED' | translate }}</h4>
+        <app-expandable-text class="mt-1" [text]="ev.text" [lines]="3" textClass="break-words text-pretty text-sm leading-relaxed text-ink" />
+      </section>
+      }
+      <ng-container [ngTemplateOutlet]="guide" [ngTemplateOutletContext]="{ $implicit: f, onCanvas: true }" />
+    </div>
+    <div class="flex min-w-0 flex-col gap-5">
+      @if (f.priority; as priority) {
+      <section data-finding-priority>
+        <h4 class="text-xs font-semibold text-ink-muted">{{ 'COMPLIANCE.FINDINGS.PRIORITY' | translate }}</h4>
+        @if (f.priority_basis; as basis) {
+        <p class="mt-1 text-pretty text-sm text-ink" data-finding-basis>
+          @if (basis.severity; as severity) {
+          {{ 'COMPLIANCE.FINDINGS.PRIORITY_BASIS' | translate: { severity: 'COMPLIANCE.FINDINGS.SEVERITY.' + severity.toUpperCase() | translate, criticality: criticalityLabel(basis.asset_criticality) } }}
+          } @else {
+          {{ 'COMPLIANCE.FINDINGS.PRIORITY_BASIS_PROBE' | translate: { criticality: criticalityLabel(basis.asset_criticality) } }}
+          }
+        </p>
+        }
+      </section>
+      }
+      <ng-container [ngTemplateOutlet]="resources" [ngTemplateOutletContext]="{ $implicit: f }" />
+      @if (f.kind !== 'observation') {
+      <section data-finding-closes>
+        <h4 class="text-xs font-semibold text-ink-muted">{{ 'COMPLIANCE.FINDINGS.CLOSES' | translate }}</h4>
+        <p class="mt-1 text-pretty text-sm leading-relaxed text-ink">{{ 'COMPLIANCE.FINDINGS.CLOSES_TEXT' | translate }}</p>
+      </section>
+      <dl class="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm" data-finding-follow-up>
+        <div class="flex items-baseline gap-1.5 whitespace-nowrap">
+          <dt class="text-xs font-medium text-ink-muted">{{ 'COMPLIANCE.FINDINGS.FAILING_SINCE_LABEL' | translate }}</dt>
+          <dd class="font-medium tabular-nums text-ink" data-finding-since>{{ instant(f.failing_since) }}</dd>
+        </div>
+      </dl>
+      @if (f.kind === 'excepted' && f.exception; as ex) {
+      <p class="-mt-3 text-sm font-medium tabular-nums text-ink" data-finding-excepted-until>{{ 'COMPLIANCE.FINDINGS.EXCEPTED_UNTIL' | translate: { date: day(ex.effective_until) } }}</p>
+      }
+      }
+    </div>
+  </div>
+</ng-template>
+
+<!-- Qué corregir (en la tarjeta de observación, que es gris, el comando va sobre blanco): la guía como texto plano (párrafos, viñetas y comandos en su propio bloque, que desplaza en horizontal sin partir la línea) y de dónde sale el texto. -->
+<ng-template #guide let-f let-onCanvas="onCanvas">
+  <section data-finding-remediation>
+    <h4 class="text-xs font-semibold text-ink-muted">{{ 'COMPLIANCE.FINDINGS.HOW_TO_FIX' | translate }}</h4>
+    @if (f.remediation; as rem) {
+    <div class="mt-1 flex flex-col gap-1.5 text-sm leading-relaxed text-ink">
+      @for (b of blocks(rem.text); track $index) {
+      @if (b.kind === 'li') {
+      <p class="flex gap-2 break-words text-pretty"><span class="text-ink-muted" aria-hidden="true">•</span><span class="min-w-0">{{ b.text }}</span></p>
+      } @else if (b.kind === 'code') {
+      <pre class="my-1 overflow-x-auto whitespace-pre rounded-control border border-line px-3 py-2.5 font-mono text-xs leading-relaxed text-ink" [class]="onCanvas ? 'bg-surface' : 'bg-canvas'" tabindex="0" data-finding-code>{{ b.text }}</pre>
+      } @else {
+      <p class="break-words text-pretty">{{ b.text }}</p>
+      }
+      }
+    </div>
+    @if (rem.is_ai_generated) {
+    <p class="mt-2 flex items-start gap-1.5 text-xs text-ink-muted" data-finding-ai>
+      <span class="material-symbols-rounded text-[16px]" aria-hidden="true">translate</span><span>{{ 'COMPLIANCE.FINDINGS.AI_NOTE' | translate }}</span>
+    </p>
+    } @else if (rem.language === 'en') {
+    <p class="mt-2 flex items-start gap-1.5 text-xs text-ink-muted" data-finding-original>
+      <span class="material-symbols-rounded text-[16px]" aria-hidden="true">translate</span><span>{{ 'COMPLIANCE.FINDINGS.ORIGINAL_NOTE' | translate }}</span>
+    </p>
+    }
+    } @else {
+    <p class="mt-1 text-pretty text-sm text-ink-muted" data-finding-no-guide>{{ 'COMPLIANCE.FINDINGS.NO_GUIDE' | translate }}</p>
+    }
+  </section>
+</ng-template>
+
+<!-- Recursos afectados: los primeros cinco y un enlace para ver los demás; en pantalla ancha, en dos columnas para no alargar la tarjeta. -->
+<ng-template #resources let-f>
+  @if (f.resources.length) {
+  <section data-finding-resources>
+    <h4 class="text-xs font-semibold text-ink-muted">{{ 'COMPLIANCE.FINDINGS.RESOURCES' | translate: { count: f.resources_total } }}</h4>
+    <ul class="mt-1 text-sm text-ink 2xl:columns-2 2xl:gap-x-8">
+      @for (r of shown(f); track $index) {
+      <li class="break-inside-avoid break-words py-0.5"><span class="font-medium">{{ r.name || r.uid }}</span>@if (r.region) {<span class="whitespace-nowrap text-ink-muted"> · {{ r.region }}</span>}</li>
+      }
+    </ul>
+    @if (!isExpanded(f.id) && f.resources.length > SHOWN) {
+    <button type="button" (click)="expand(f.id)" class="mk-link mt-1.5 text-xs underline" data-finding-show-all>{{ 'COMPLIANCE.FINDINGS.SHOW_ALL' | translate: { count: f.resources.length } }}</button>
+    }
+    @if (isExpanded(f.id) && f.resources_total > f.resources.length) {
+    <p class="mt-1.5 text-xs text-ink-muted">{{ 'COMPLIANCE.FINDINGS.PARTIAL' | translate: { shown: f.resources.length, total: f.resources_total } }}</p>
+    }
+  </section>
+  }
+</ng-template>
