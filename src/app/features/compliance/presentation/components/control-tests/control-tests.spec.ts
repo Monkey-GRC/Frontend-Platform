@@ -19,14 +19,31 @@ const TESTS: ControlTest[] = [
   selector: 'app-host',
   imports: [ControlTests],
   template: `
-    <app-control-tests [tests]="tests" [dimensions]="dimensions" [total]="3" [evidenceTpl]="upload" />
+    <app-control-tests [tests]="tests" [dimensions]="dimensions" [total]="3" [canUpload]="canUpload" [evidenceTpl]="upload" />
     <ng-template #upload let-dimension let-testId="testId" let-testCode="testCode"><button type="button" data-upload [attr.data-dimension]="dimension" [attr.data-test-id]="testId" [attr.data-test-code]="testCode">subir</button></ng-template>
   `,
 })
 class Host {
   tests = TESTS;
   dimensions = DIMENSIONS;
+  canUpload = true;
 }
+
+describe('ControlTests intro', () => {
+  it('shows one single intro under the title: how to upload for who can, what the tests verify for who cannot', () => {
+    TestBed.configureTestingModule({ imports: [Host], providers: [provideTranslateService()] });
+    const host = TestBed.createComponent(Host);
+    host.detectChanges();
+    const el = host.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('[data-evidence-help]').length).toBe(1);
+    expect(el.querySelector('[data-evidence-help]')!.textContent).toContain('COMPLIANCE.EVIDENCE.TEST_NOTE');
+    host.componentInstance.canUpload = false;
+    host.changeDetectorRef.markForCheck();
+    host.detectChanges();
+    expect(el.querySelectorAll('[data-evidence-help]').length).toBe(1);
+    expect(el.querySelector('[data-evidence-help]')!.textContent).toContain('COMPLIANCE.REQUIRES.INTRO');
+  });
+});
 
 describe('ControlTests', () => {
   let fixture: ComponentFixture<ControlTests>;

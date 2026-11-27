@@ -13,7 +13,7 @@ import { ActiveComplianceService } from '@features/compliance/domain/services/ac
 
 const control = (id: string, name: string, code: string | null = null): ControlListItem => ({
   id, code: code ?? id.toUpperCase(), requirement_codes: [], own_code: null, name, origin: 'catalog', type: 'hybrid', trust_criteria: ['security'], approval: 'approved', readiness: 'not_measured',
-  progress: { done: 0, total: 1 }, coverage: { measured: 0, applicable: 1 }, owner: null, executor: null,
+  progress: { done: 0, total: 1 }, coverage: { measured: 0, applicable: 1 }, owner: null, executor: null, management_state: 'non_compliant', management: { owner_approved_by: null, owner_approved_at: null, approved_by: null, approved_at: null, returned_reason: null, returned_by: null, returned_at: null },
 });
 const person = { id: 'u1', name: 'Laura', last_name: 'Gómez' };
 const submission = (version: number, state: EvidenceSubmission['evidence_state'] = 'pending'): EvidenceSubmission => ({

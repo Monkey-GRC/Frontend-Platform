@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
 import { SessionService } from '../services/session.service';
-import { roleGuard } from './role.guard';
+import { roleGuard, roleMatch } from './role.guard';
 
 describe('roleGuard', () => {
   const run = (...roles: string[]) =>
@@ -34,5 +34,27 @@ describe('roleGuard', () => {
     expect(TestBed.inject(Router).serializeUrl(denied)).toBe('/');
     TestBed.inject(SessionService).clear();
     expect(TestBed.inject(Router).serializeUrl(run('admin_empresa') as UrlTree)).toBe('/');
+  });
+
+  describe('roleMatch', () => {
+    const match = (...roles: string[]) => TestBed.runInInjectionContext(() => roleMatch(...roles)({} as never, []));
+
+    it('matches only the given roles, so the route falls through to the next one for the rest', () => {
+      signIn('admin_empresa');
+      expect(match('responsable', 'admin_empresa')).toBeTrue();
+      signIn('delegado');
+      expect(match('responsable', 'admin_empresa')).toBeFalse();
+      TestBed.inject(SessionService).clear();
+      expect(match('responsable', 'admin_empresa')).toBeFalse();
+    });
+
+    it('splits Mi trabajo: Por aprobar for the owner and the admin, the provisional screen for the delegate', async () => {
+      const { routes } = await import('../../../app.routes');
+      const shell = routes.find((r) => r.children?.some((c) => c.path === 'mi-trabajo'));
+      const screens = shell?.children?.filter((c) => c.path === 'mi-trabajo') ?? [];
+      expect(screens.length).toBe(2);
+      expect(screens[0].canMatch?.length).toBe(1);
+      expect(screens[1].canActivate?.length).toBe(1);
+    });
   });
 });

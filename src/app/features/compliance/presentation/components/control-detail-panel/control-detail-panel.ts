@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -12,6 +12,7 @@ import { TabItem } from '@shared/presentation/components/tabs/tabs';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import type { UserRole } from '@core/domain/models/auth.models';
 import { Tag } from '@shared/presentation/components/tag/tag';
+import { Card } from '@shared/presentation/components/card/card';
 import { Badge } from '@shared/presentation/components/badge/badge';
 import { readinessLook } from '@shared/domain/utils/readiness-look';
 import { CatalogService } from '@shared/domain/services/catalog.service';
@@ -20,6 +21,7 @@ import { ControlScore } from '../control-score/control-score';
 import { ControlDetail, ControlDimension, UpdateControlBody } from '@features/compliance/domain/models/control.models';
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { ControlEvidence } from '../control-evidence/control-evidence';
+import { ControlApproval } from '../control-approval/control-approval';
 import { DetailSection } from '@shared/presentation/components/detail-section/detail-section';
 import { DetailPanelBase } from '../detail-panel-base/detail-panel-base';
 import { ControlTests } from '../control-tests/control-tests';
@@ -27,9 +29,12 @@ import { ControlRequirements } from '../control-requirements/control-requirement
 import { ControlPeriodicityForm } from '../control-periodicity-form/control-periodicity-form';
 import { LanguageService } from '@core/domain/services/language.service';
 import { formatLocalDate } from '@shared/domain/utils/date-format';
+import { onDemandRequirementsByTest } from '@features/compliance/domain/utils/control-occurrence';
 import { periodicityText, summarizePeriodicity } from '@features/compliance/domain/utils/control-v2-look';
 import { ControlPeriodView } from '../control-period/control-period';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+import { timeout } from 'rxjs';
+import { LOAD_TIMEOUT_MS } from '@shared/domain/utils/load-timeout';
 import { Busy } from '@shared/presentation/directives/busy';
 import { BusyFields } from '@shared/presentation/directives/busy-fields';
 import { hasChanges } from '@shared/domain/utils/form-changes';
@@ -37,7 +42,7 @@ import { hasChanges } from '@shared/domain/utils/form-changes';
 type Mode = 'view' | 'interpretation' | 'dimensions';
 
 /** Las pestañas del detalle (MD-499). `requirements` y `period` solo en la vista técnica; `period`, además, solo si el período auditado está definido. */
-type DetailTab = 'summary' | 'requirements' | 'evidence' | 'period';
+type DetailTab = 'summary' | 'requirements' | 'evidence' | 'approval' | 'period';
 
 interface DimensionDraft {
   dimension: ControlDimension;
@@ -56,7 +61,7 @@ const UPLOADING_ROLES: readonly UserRole[] = ['admin_empresa', 'responsable', 'd
 // recalcula. Los errores 422 se muestran bajo cada campo. El dueño y el ejecutor del control (D102) llegan con MD-202, cuando el Backend los exponga.
 @Component({
   selector: 'app-control-detail-panel',
-  imports: [Badge, ControlScore, FormsModule, TranslatePipe, DetailModal, DataTable, TableCell, SearchField, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlTests, ControlRequirements, ControlPeriodView, ControlPeriodicityForm, DetailSection, Skeleton, SkeletonRegion, Busy, BusyFields],
+  imports: [Card, Badge, ControlScore, FormsModule, TranslatePipe, DetailModal, DataTable, TableCell, SearchField, StatusIndicator, Tag, ConfirmDialog, ControlEvidence, ControlApproval, ControlTests, ControlRequirements, ControlPeriodView, ControlPeriodicityForm, DetailSection, Skeleton, SkeletonRegion, Busy, BusyFields],
   templateUrl: './control-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -65,7 +70,8 @@ export class ControlDetailPanel extends DetailPanelBase<ControlDetail, DetailTab
   private readonly api = inject(ControlService);
   private readonly catalogs = inject(CatalogService);
   private readonly language = inject(LanguageService);
-  protected readonly tabIds = ['summary', 'requirements', 'evidence', 'period'] as const;
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly tabIds = ['summary', 'requirements', 'evidence', 'approval', 'period'] as const;
   protected readonly saveErrorKey = 'COMPLIANCE.DETAIL.SAVE_ERROR';
 
   readonly controlId = input.required<string>();
@@ -76,8 +82,14 @@ export class ControlDetailPanel extends DetailPanelBase<ControlDetail, DetailTab
   /** Las nueve celdas de dimensiones del esqueleto de carga. */
   protected readonly nineCells = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
+  private refreshSeq = 0;
+
   readonly mode = signal<Mode>('view');
   readonly fieldErrors = signal<Record<string, string>>({});
+  /** Se está volviendo a pedir el control tras un acto de la pestaña «Aprobación»: la zona muestra la barra de progreso y sus botones quedan quietos. */
+  readonly refreshing = signal(false);
+  /** La recarga del control falló: el aviso ofrece «Reintentar». */
+  readonly refreshFailed = signal(false);
 
   /** Las pestañas que aplican a este control y a este rol: en la vista de negocio, solo Resumen y Evidencias (sin niveles ni requisitos). */
   readonly tabs = computed<TabItem[]>(() => {
@@ -86,6 +98,7 @@ export class ControlDetailPanel extends DetailPanelBase<ControlDetail, DetailTab
     const items: TabItem[] = [{ id: 'summary', labelKey: 'COMPLIANCE.DETAIL_TABS.SUMMARY' }];
     if (d.technical) items.push({ id: 'requirements', labelKey: 'COMPLIANCE.DETAIL_TABS.REQUIREMENTS', count: d.technical.requirements?.length ?? null });
     items.push({ id: 'evidence', labelKey: 'COMPLIANCE.DETAIL_TABS.EVIDENCE' });
+    items.push({ id: 'approval', labelKey: 'COMPLIANCE.DETAIL_TABS.APPROVAL' });
     if (d.technical?.period) items.push({ id: 'period', labelKey: 'COMPLIANCE.DETAIL_TABS.PERIOD' });
     return items;
   });
@@ -144,6 +157,39 @@ export class ControlDetailPanel extends DetailPanelBase<ControlDetail, DetailTab
     this.changed.emit();
   }
 
+  /** Tras un acto (aprobar, devolver, resultado, subir evidencia…): el control se vuelve a pedir sin vaciar el panel y la lista se actualiza. */
+  reloadDetail(): void {
+    const seq = ++this.refreshSeq;
+    this.refreshing.set(true);
+    if (this.refreshFailed()) {
+      this.refreshFailed.set(false);
+      this.error.set(null);
+    }
+    const id = this.controlId();
+    const viewParam = this.view.viewParam();
+    // Una respuesta vieja (otra acción más reciente, otro control abierto u otra vista) no pisa a la nueva, ni en `next` ni en `error`.
+    const current = () => seq === this.refreshSeq && id === this.controlId() && viewParam === this.view.viewParam();
+    this.api.get(id, viewParam).pipe(timeout(LOAD_TIMEOUT_MS), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (detail) => {
+        if (!current()) return;
+        this.detail.set(detail);
+        this.refreshing.set(false);
+      },
+      error: () => {
+        if (!current()) return;
+        this.refreshing.set(false);
+        this.refreshFailed.set(true);
+        this.error.set(this.translate.instant('COMPLIANCE.APPROVAL.REFRESH_ERROR'));
+      },
+    });
+    this.changed.emit();
+  }
+
+  /** «Ir a Evidencias» desde un requisito con casos sin evidencia. */
+  goToEvidence(): void {
+    this.selectTab('evidence');
+  }
+
   /** Una marca de tiempo del backend, como fecha en el idioma de la sesión. */
   protected day(iso: string): string {
     return formatLocalDate(iso, this.language.current()) || iso;
@@ -153,6 +199,12 @@ export class ControlDetailPanel extends DetailPanelBase<ControlDetail, DetailTab
   protected evidenceUnderTests(d: ControlDetail): boolean {
     return !!d.technical?.tests?.some((t) => t.accepts_evidence) || (d.evidence_tests?.length ?? 0) > 0;
   }
+
+  /** Prueba → requisito «cuando ocurra»: el selector de caso solo sale en la prueba manual no documental de ese requisito. */
+  protected readonly onDemandByTest = computed(() => {
+    const d = this.ready();
+    return d ? onDemandRequirementsByTest(d) : new Map<string, string>();
+  });
 
   readonly canUploadEvidence = computed(() => {
     const role = this.view.role();
@@ -183,11 +235,13 @@ export class ControlDetailPanel extends DetailPanelBase<ControlDetail, DetailTab
     this.interpretationDraft.set('');
     this.dimensionsDraft.set([]);
     this.periodicityOpen.set(false);
+    this.refreshing.set(false);
+    this.refreshFailed.set(false);
     this.causeList.reset();
   }
 
   protected request() {
-    return this.api.get(this.controlId(), this.view.viewParam());
+    return this.api.get(this.controlId(), this.view.viewParam()).pipe(timeout(LOAD_TIMEOUT_MS));
   }
 
   protected remove() {

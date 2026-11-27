@@ -1,0 +1,19 @@
+<app-form-modal titleKey="COMPLIANCE.APPROVAL.LEVEL.FORM_TITLE" [titleParams]="{ code: code() }" size="lg" [busy]="busy()" [guarded]="changed()" testId="level-form" (closed)="closed.emit()">
+  <form id="level-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
+
+    @if (banner(); as b) {
+    <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert" data-banner><span>{{ b }}</span></div>
+    }
+
+    <app-field labelKey="COMPLIANCE.APPROVAL.LEVEL.FINAL" forId="level-value">
+      <app-select inputId="level-value" data-field="level" [options]="options()" [value]="level()" placeholderKey="COMPLIANCE.APPROVAL.LEVEL.PLACEHOLDER" [disabled]="busy()" (valueChange)="level.set($event)" />
+    </app-field>
+
+    <app-field labelKey="COMPLIANCE.APPROVAL.LEVEL.JUSTIFICATION" forId="level-justification" hintKey="COMPLIANCE.APPROVAL.LEVEL.JUSTIFICATION_HINT" [errorKey]="justificationError()">
+      <textarea id="level-justification" rows="4" class="mk-textarea" data-field="justification" [ngModel]="justification()" [ngModelOptions]="{ standalone: true }" (ngModelChange)="justification.set($event)" (blur)="touched.set(true)"
+        [attr.aria-invalid]="justificationError() ? 'true' : null" aria-describedby="level-justification-hint"></textarea>
+    </app-field>
+  </form>
+
+  <button actions type="submit" form="level-form" [disabled]="!canSave()" [appBusy]="busy()" data-save class="mk-btn">{{ (direct() ? 'COMPLIANCE.APPROVAL.LEVEL.SAVE' : 'COMPLIANCE.APPROVAL.LEVEL.SEND') | translate }}</button>
+</app-form-modal>

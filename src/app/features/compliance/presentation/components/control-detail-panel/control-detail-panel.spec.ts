@@ -6,6 +6,7 @@ import { CatalogService } from '@shared/domain/services/catalog.service';
 import { NEVER, of, throwError, Subject } from 'rxjs';
 import { SessionService } from '@core/domain/services/session.service';
 import { ControlDetail, ControlDimension } from '@features/compliance/domain/models/control.models';
+import { ControlManagementService } from '@features/compliance/domain/services/control-management.service';
 import { ControlService } from '@features/compliance/domain/services/control.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
 import { ControlDetailPanel } from './control-detail-panel';
@@ -29,7 +30,7 @@ const DETAIL: ControlDetail = {
   readiness: 'not_measured',
   progress: { done: 0, total: 5 },
   coverage: { measured: 0, applicable: 5 },
-  owner: null, executor: null,
+  owner: null, executor: null, management_state: 'non_compliant', management: { owner_approved_by: null, owner_approved_at: null, approved_by: null, approved_at: null, returned_reason: null, returned_by: null, returned_at: null, allowed_actions: [], level: null, level_override: null, exceptions: [], requirements: [], manual_tests: [] },
   interpretation: { text: 'Los accesos se otorgan con el formulario de TI.', is_customized: false },
   dimensions: [
     { dimension: 'policy', applies: true, type: 'manual', reason_not_applicable: null },
@@ -51,7 +52,7 @@ describe('ControlDetailPanel', () => {
     evidence = jasmine.createSpyObj<EvidenceService>('EvidenceService', ['list', 'listForTest', 'upload', 'download']);
     evidence.list.and.returnValue(NEVER);
     evidence.listForTest.and.returnValue(NEVER);
-    TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), provideRouter([]), { provide: CatalogService, useValue: { options: () => of(DIMENSIONS.map((value) => ({ value, label: `L-${value}` }))) } }, { provide: ControlService, useValue: api }, { provide: EvidenceService, useValue: evidence }] });
+    TestBed.configureTestingModule({ imports: [ControlDetailPanel], providers: [provideTranslateService(), provideRouter([]), { provide: ControlManagementService, useValue: { history: () => NEVER, listOccurrences: () => of([]), assignees: () => of([]) } }, { provide: CatalogService, useValue: { options: () => of(DIMENSIONS.map((value) => ({ value, label: `L-${value}` }))) } }, { provide: ControlService, useValue: api }, { provide: EvidenceService, useValue: evidence }] });
     TestBed.inject(SessionService).set({ id: 'u1', email: 'a@x.com', name: null, last_name: null, role }, { id: 'c', name: 'ACME' });
     fixture = TestBed.createComponent(ControlDetailPanel);
     fixture.componentRef.setInput('controlId', 'c1');
@@ -154,20 +155,105 @@ describe('ControlDetailPanel', () => {
   const tabIds = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('[role="tab"]')).map((t) => t.id.replace('detail-tab-', ''));
   const TECH = { points_of_focus: ['PF-1'], level: 'partial' as const, level_value: 3, complies: false, c_percent: 50, requirements: [] };
 
-  it('shows Summary, Requirements and tests and Evidence in the technical view, and Period only when the audited period is defined', () => {
+  it('shows Summary, Requirements and tests, Evidence and Approval in the technical view, and Period only when the audited period is defined', () => {
     setup('admin_empresa', { ...DETAIL, technical: TECH });
-    expect(tabIds()).toEqual(['summary', 'requirements', 'evidence']);
+    expect(tabIds()).toEqual(['summary', 'requirements', 'evidence', 'approval']);
     TestBed.resetTestingModule();
     setup('admin_empresa', { ...DETAIL, technical: { ...TECH, period: { level: 'weak', complies: false, windows: { total: 2, with_evidence: 1 }, missing: [] } } });
-    expect(tabIds()).toEqual(['summary', 'requirements', 'evidence', 'period']);
+    expect(tabIds()).toEqual(['summary', 'requirements', 'evidence', 'approval', 'period']);
     expect(fixture.nativeElement.querySelector('app-control-period')).not.toBeNull();
   });
 
-  it('shows only Summary and Evidence in the business view, without level or requirements', () => {
+  it('shows only Summary, Evidence and Approval in the business view, without level or requirements', () => {
     setup('responsable');
-    expect(tabIds()).toEqual(['summary', 'evidence']);
+    expect(tabIds()).toEqual(['summary', 'evidence', 'approval']);
     expect(fixture.nativeElement.querySelector('[data-test-level]')).toBeNull();
     expect(fixture.nativeElement.querySelector('app-control-requirements')).toBeNull();
+  });
+
+  it('reloads the control without emptying the panel and tells the list after an approval action', () => {
+    const panel = setup('responsable');
+    let changed = 0;
+    panel.changed.subscribe(() => changed++);
+    api.get.calls.reset();
+    api.get.and.returnValue(of({ ...DETAIL, management_state: 'owner_approved' }));
+    panel.reloadDetail();
+    expect(api.get).toHaveBeenCalledOnceWith('c1', undefined);
+    expect(panel.stage()).toBe('ready');
+    expect(panel.detail()!.management_state).toBe('owner_approved');
+    expect(changed).toBe(1);
+  });
+
+  it('shows the progress bar while the control reloads after an act, and clears it when it arrives or fails', () => {
+    const panel = setup('responsable');
+    const answer = new Subject<ControlDetail>();
+    api.get.and.returnValue(answer as never);
+    panel.selectTab('approval');
+    panel.reloadDetail();
+    fixture.detectChanges();
+    expect(panel.refreshing()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('[data-tab="approval"] app-skeleton-region')?.getAttribute('aria-busy')).toBe('true');
+    const bar = () => fixture.nativeElement.querySelector('[data-tab="approval"] > app-skeleton-region > [data-load-progress]');
+    expect(bar()).not.toBeNull();
+    answer.next({ ...DETAIL });
+    fixture.detectChanges();
+    expect(panel.refreshing()).toBeFalse();
+    expect(bar()).toBeNull();
+    api.get.and.returnValue(throwError(() => new Error('x')) as never);
+    panel.reloadDetail();
+    expect(panel.refreshing()).toBeFalse();
+  });
+
+  it('reloads the detail (and tells the list) when evidence is uploaded; a failed reload clears on retry', () => {
+    const panel = setup('responsable');
+    let changed = 0;
+    panel.changed.subscribe(() => changed++);
+    api.get.calls.reset();
+    api.get.and.returnValue(throwError(() => new Error('x')) as never);
+    panel.reloadDetail();
+    fixture.detectChanges();
+    expect(panel.refreshFailed()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('[data-refresh-retry]')).not.toBeNull();
+    api.get.and.returnValue(of({ ...DETAIL }));
+    fixture.nativeElement.querySelector('[data-refresh-retry]').click();
+    fixture.detectChanges();
+    expect(panel.refreshFailed()).toBeFalse();
+    expect(panel.error()).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-refresh-retry]')).toBeNull();
+    expect(changed).toBe(2);
+  });
+
+  it('changes to the Evidence tab from a requirement with cases without evidence', () => {
+    const panel = setup('responsable');
+    panel.selectTab('approval');
+    panel.goToEvidence();
+    expect(panel.activeTab()).toBe('evidence');
+  });
+
+  it('discards an older refresh that arrives after a newer one, and warns when the refresh fails', () => {
+    const panel = setup('responsable');
+    const old = new Subject<ControlDetail>();
+    const fresh = new Subject<ControlDetail>();
+    api.get.and.returnValues(old as never, fresh as never);
+    panel.reloadDetail();
+    panel.reloadDetail();
+    fresh.next({ ...DETAIL, code: 'NEW-1' });
+    old.next({ ...DETAIL, code: 'OLD-9' });
+    expect(panel.detail()!.code).toBe('NEW-1');
+    api.get.and.returnValue(throwError(() => new Error('x')) as never);
+    panel.reloadDetail();
+    expect(panel.error()).toContain('COMPLIANCE.APPROVAL.REFRESH_ERROR');
+  });
+
+  it('mounts the Approval tab (and its history) only when that tab is open', () => {
+    const panel = setup('responsable');
+    expect(fixture.nativeElement.querySelector('app-control-approval')).toBeNull();
+    panel.selectTab('approval');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-control-approval')).not.toBeNull();
+    panel.selectTab('summary');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-control-approval')).toBeNull();
   });
 
   it('shows one tab at a time and keeps a half-written interpretation when switching tabs', () => {
@@ -227,7 +313,7 @@ describe('ControlDetailPanel', () => {
       },
     });
     expect(text()).toContain('COMPLIANCE.DETAIL_TABS.EVIDENCE');
-    expect(text()).toContain('COMPLIANCE.REQUIRES.INTRO');
+    expect(fixture.nativeElement.querySelectorAll('[data-evidence-help]').length).toBe(1);
     expect(text()).toContain('T-DOC-001');
     expect(text()).toContain('Configuración de servidores');
     expect(fixture.nativeElement.querySelector('app-control-evidence')).not.toBeNull();

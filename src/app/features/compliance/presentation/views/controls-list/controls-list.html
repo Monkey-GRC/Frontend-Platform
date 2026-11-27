@@ -16,49 +16,54 @@
       (picked)="pickReadiness($event)" />
   </app-table-toolbar>
 
+  <app-skeleton-region [busy]="stage() === 'loading' || loadingPage()">
   <app-data-table captionKey="COMPLIANCE.CONTROLS.TABLE_CAPTION" [columns]="columns()" [rows]="rows()" [rowKey]="rowKey" [page]="page()"
     [loading]="stage() === 'loading' || loadingPage()" [clickable]="true" emptyIcon=""
     [emptyTitleKey]="hasFilters() ? 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_TITLE' : 'COMPLIANCE.CONTROLS.EMPTY_TITLE'"
     [emptyDescriptionKey]="hasFilters() ? 'COMPLIANCE.CONTROLS.EMPTY_FILTERED_BODY' : 'COMPLIANCE.CONTROLS.EMPTY_BODY'"
     (pageChange)="goTo($event)" (pageSizeChange)="resize($event)" (rowClick)="open($event)">
 
-    <!-- D80: el código se muestra siempre; debajo, los requisitos del marco que el control cubre. -->
-    <ng-template appCell="code" let-row>
-      <div class="flex flex-wrap items-center gap-1">
-        <app-tag [text]="row.code" />
-        @for (r of row.requirement_codes; track r) {
-        <app-tag [text]="r" />
-        }
-      </div>
-    </ng-template>
-
+    <!-- D80: el código se muestra siempre, encima del nombre, con los requisitos del marco que el control cubre (una columna propia empujaba la tabla fuera a 1440 px). -->
     <ng-template appCell="name" let-row>
-      <div class="min-w-0">
-        <p class="font-medium text-ink">{{ row.name }}</p>
+      <div class="flex min-w-40 flex-col items-start gap-1.5">
+        <div class="flex flex-wrap items-center gap-1" data-codes>
+          <app-tag [text]="row.code" />
+          @for (r of row.requirement_codes; track r) {
+          <app-tag [text]="r" />
+          }
+        </div>
+        <p class="text-pretty font-medium text-ink">{{ row.name }}</p>
         @if (row.origin === 'own' || row.approval === 'pending') {
-        <p class="mt-1 flex flex-wrap items-center gap-1">
-          @if (row.origin === 'own') {<app-badge kind="attribute" value="own">{{ 'COMPLIANCE.CONTROLS.OWN' | translate }}</app-badge>}
+        <p class="flex flex-wrap items-center gap-1">
+          @if (row.origin === 'own') {<app-badge kind="attribute" size="sm" value="own">{{ 'COMPLIANCE.CONTROLS.OWN' | translate }}</app-badge>}
           @if (row.approval === 'pending') {<app-status-indicator tone="warn" labelKey="COMPLIANCE.CONTROLS.AWAITING_APPROVAL" />}
         </p>
         }
       </div>
     </ng-template>
 
+    <!-- Las categorías se envuelven en un ancho acotado; una muy larga se corta con su texto completo en el tooltip del badge. -->
     <ng-template appCell="topics" let-row>
-      <div class="flex flex-wrap gap-1">@for (t of topics(row); track t.value) {<app-badge kind="attribute" [value]="t.value">{{ t.label }}</app-badge>}</div>
+      <div class="flex max-w-48 flex-wrap gap-1">@for (t of topics(row); track t.value) {<app-badge kind="attribute" size="sm" [value]="t.value">{{ t.label }}</app-badge>}</div>
     </ng-template>
 
     <ng-template appCell="status" let-row>
       @let look = readinessLook(row.readiness);
+      <div class="flex flex-col items-start gap-1">
       <app-status-indicator [tone]="look.tone" [labelKey]="look.labelKey" [hintKey]="look.hintKey" [attr.data-status]="look.level" />
       @if (row.technical?.level; as level) {
-      <app-status-indicator class="ml-1" [tone]="levelTone(level)" [label]="('COMPLIANCE.DETAIL.LEVEL' | translate: { value: row.technical?.level_value ?? 0, label: labels.of('COMPLIANCE.CONTROL_LEVEL', level) })" data-test-level />
+      <app-status-indicator [tone]="levelTone(level)" [label]="('COMPLIANCE.DETAIL.LEVEL' | translate: { value: row.technical?.level_value ?? 0, label: labels.of('COMPLIANCE.CONTROL_LEVEL', level) })" data-test-level />
       }
+      </div>
+    </ng-template>
+
+    <ng-template appCell="management" let-row>
+      <app-status-indicator [tone]="managementTone(row.management_state)" [label]="managementLabels.state(row.management_state)" [attr.data-management]="row.management_state" />
     </ng-template>
 
     <!-- Avance y cobertura, siempre juntos y junto al estado (D80): el avance con su conteo y su barra; debajo, la cobertura en porcentaje, sin repetir conteos. El avance informa, no decide. -->
     <ng-template appCell="counts" let-row>
-      <div class="min-w-[11rem] text-sm text-ink">
+      <div class="min-w-28 text-sm text-ink">
         <p class="font-medium tabular-nums text-ink" data-progress>{{ 'COMPLIANCE.CONTROLS.PROGRESS_VALUE' | translate: { percent: pct(row.progress.done, row.progress.total), done: row.progress.done, total: row.progress.total } }}</p>
         <div class="mt-1 h-1 w-full overflow-hidden rounded-full bg-tint-strong" aria-hidden="true">
           <div class="h-full rounded-full bg-action" [style.width.%]="percentOf(row.progress.done, row.progress.total) ?? 0"></div>
@@ -73,10 +78,11 @@
     </app-empty-state>
     }
   </app-data-table>
+  </app-skeleton-region>
 </div>
 
 @if (selected(); as id) {
-<app-control-detail-panel [controlId]="id" [requestedTab]="tab()" (tabChange)="setTab($event)" (closed)="closeDetail()" (openCause)="openCause($event)" (changed)="load()" />
+<app-control-detail-panel [controlId]="id" [requestedTab]="tab()" (tabChange)="setTab($event)" (closed)="closeDetail()" (openCause)="openCause($event)" (changed)="refresh()" />
 }
 }
 

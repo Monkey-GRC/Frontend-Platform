@@ -184,7 +184,6 @@
     "AGENT": {
       "TITLE": "Install the Monkey probe on this server",
       "INTRO": "The probe is a program that reads your server's configuration ({{version}}) and sends it to Monkey to be assessed. It only reads: it changes nothing.",
-      "LOADING": "Checking the installation status…",
       "BEFORE_TITLE": "Before you start",
       "BEFORE_ADMIN_LINUX": "Sign in to the server as an administrator: as root, or as a user who can use sudo.",
       "BEFORE_ADMIN_WINDOWS": "Sign in to the server as an administrator and open PowerShell with “Run as administrator”.",

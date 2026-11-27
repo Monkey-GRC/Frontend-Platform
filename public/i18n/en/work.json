@@ -1,0 +1,17 @@
+{
+  "WORK": {
+    "REVIEW": {
+      "TITLE": "My work",
+      "INTRO": "To approve: what is waiting for your decision.",
+      "TABLE_CAPTION": "Controls to approve",
+      "EMPTY": "You have nothing to approve.",
+      "LOAD_ERROR_TITLE": "What you have to approve could not be loaded",
+      "COLUMNS": {
+        "CODE": "Code",
+        "CONTROL": "Control",
+        "SERVICE": "Service",
+        "WAITING": "Waiting for"
+      }
+    }
+  }
+}

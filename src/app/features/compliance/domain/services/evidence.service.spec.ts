@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpEventType, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { EvidenceService } from './evidence.service';
@@ -43,14 +43,18 @@ describe('EvidenceService', () => {
 
   it('uploads the file as multipart in the "file" field of the requirement', () => {
     const file = new File(['contenido'], 'politica.pdf', { type: 'application/pdf' });
-    service.upload('e1', file).subscribe();
+    const events: unknown[] = [];
+    service.upload('e1', file).subscribe((e) => events.push(e));
     const req = http.expectOne((r) => r.url.endsWith('/evidence-requirements/e1/submissions'));
     expect(req.request.method).toBe('POST');
     expect(req.request.body instanceof FormData).toBeTrue();
     const sent = (req.request.body as FormData).get('file') as File;
     expect(sent.name).toBe('politica.pdf');
     expect(sent.size).toBe(file.size);
+    expect(req.request.reportProgress).toBeTrue();
+    req.event({ type: HttpEventType.UploadProgress, loaded: 5, total: 20 });
     req.flush({ statusCode: 201, message: '', data: { id: 's1', version: 1 } });
+    expect(events).toEqual([{ kind: 'progress', percent: 25 }, { kind: 'done', submission: { id: 's1', version: 1 } as never }]);
   });
 
   it('asks for a temporary download link of a delivered evidence', () => {

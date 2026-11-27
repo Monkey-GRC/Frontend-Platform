@@ -19,7 +19,7 @@ const OWN: Cause = { ...DETAIL, id: 'c9', origin: 'own' };
 
 const control = (id: string, code: string, name: string): ControlListItem => ({
   id, code, requirement_codes: [], own_code: null, name, origin: 'catalog', type: 'manual', trust_criteria: ['security'], approval: 'approved', readiness: 'not_measured',
-  progress: { done: 0, total: 1 }, coverage: { measured: 0, applicable: 1 }, owner: null, executor: null,
+  progress: { done: 0, total: 1 }, coverage: { measured: 0, applicable: 1 }, owner: null, executor: null, management_state: 'non_compliant', management: { owner_approved_by: null, owner_approved_at: null, approved_by: null, approved_at: null, returned_reason: null, returned_by: null, returned_at: null },
 });
 
 describe('CauseDetailPanel', () => {

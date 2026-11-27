@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed, discardPeriodicTasks, fakeAsync, tick } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { AgentInstallReveal, AgentInstallState, Asset, Execution } from '@shared/domain/models/technical-control.models';
 import { TechnicalControlService } from '@shared/domain/services/technical-control.service';
 import { AgentInstallPanel } from './agent-install-panel';
@@ -41,6 +41,15 @@ describe('AgentInstallPanel', () => {
     fixture.componentRef.setInput('asset', asset);
     fixture.detectChanges();
   }
+
+  it('shows the loading region while it reads the installation state', () => {
+    open(state({ status: 'not_started' }));
+    api.agentInstall.and.returnValue(new Subject<AgentInstallState>());
+    fixture.componentInstance.load();
+    fixture.detectChanges();
+    expect(el().querySelector('[data-agent-loading][aria-busy="true"]')).not.toBeNull();
+    expect(el().querySelectorAll('[data-load-progress]').length).toBe(1);
+  });
 
   it('tells the client what to have at hand and offers to prepare the key', () => {
     open(state({ status: 'not_started' }));

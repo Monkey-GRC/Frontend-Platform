@@ -1,0 +1,58 @@
+@if (exceptions().length) {
+<app-detail-section titleKey="COMPLIANCE.APPROVAL.EXCEPTIONS.TITLE" [count]="exceptions().length" data-exceptions-section>
+  <p class="mb-4 max-w-prose text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.APPROVAL.EXCEPTIONS.HELP' | translate }}</p>
+  <!-- Una fila por prueba en excepción: la prueba y su estado · su plan (estado, qué, responsable y fecha límite) · las acciones, arriba a la derecha. Sin clic ni hover. -->
+  <app-data-table captionKey="COMPLIANCE.APPROVAL.EXCEPTIONS.TITLE" [columns]="columns()" [rows]="exceptions()" [rowKey]="rowKey" [alignTop]="true" data-exceptions>
+    <ng-template appCell="test" let-e>
+      <div class="flex min-w-0 flex-col items-start gap-1.5" data-exception>
+        <div class="flex flex-wrap items-center gap-1">
+          @if (e.requirement; as r) {<app-tag [text]="r.code" />}
+          <app-tag [text]="e.test.code" />
+        </div>
+        <p class="line-clamp-2 text-pretty text-sm font-medium text-ink" [title]="e.test.display_name">{{ e.test.display_name }}</p>
+        <app-status-indicator tone="bad" [label]="exceptionLabel()" data-exception-status />
+      </div>
+    </ng-template>
+    <ng-template appCell="plan" let-e>
+      @if (e.plan; as p) {
+      <div class="flex min-w-0 flex-col items-start gap-3" data-plan>
+        <div class="flex flex-wrap items-center gap-2">
+          <app-status-indicator [tone]="requestTone(p.status)" [label]="labels.label('change_request_status', p.status)" [attr.data-plan-status]="p.status" />
+          @if (p.is_overdue) {<app-status-indicator tone="bad" labelKey="COMPLIANCE.APPROVAL.EXCEPTIONS.OVERDUE" data-plan-overdue />}
+        </div>
+        <div class="w-full">
+          <p class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.APPROVAL.EXCEPTIONS.WHAT' | translate }}</p>
+          <app-expandable-text class="mt-0.5 max-w-prose" [text]="p.what" textClass="text-pretty break-words text-sm text-ink" data-plan-what />
+        </div>
+        <dl class="flex w-full flex-wrap gap-x-8 gap-y-2" data-plan-meta>
+          <div class="min-w-0">
+            <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.APPROVAL.EXCEPTIONS.OWNER' | translate }}</dt>
+            <dd class="truncate whitespace-nowrap text-sm text-ink" [title]="personLabel(p.owner)" data-plan-owner>{{ personLabel(p.owner) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.APPROVAL.EXCEPTIONS.DUE' | translate }}</dt>
+            <dd class="whitespace-nowrap text-sm tabular-nums text-ink" data-plan-due>{{ day(p.due_date) }}</dd>
+          </div>
+        </dl>
+        @if (p.status === 'rejected') {
+        <p class="max-w-prose text-pretty text-sm text-ink-muted" data-rejected>{{ 'COMPLIANCE.APPROVAL.DECIDE.REJECTED_BY' | translate: { name: personLabel(p.decided_by), reason: p.decision_reason ?? '' } }}</p>
+        }
+      </div>
+      } @else {
+      <p class="text-sm text-ink-muted" data-no-plan>{{ 'COMPLIANCE.APPROVAL.EXCEPTIONS.NO_PLAN' | translate }}</p>
+      }
+    </ng-template>
+    <ng-template appCell="actions" let-e>
+      <div class="flex flex-nowrap items-center justify-end gap-2">
+        @if (can(e.allowed_actions, 'register_plan')) {
+        <button type="button" class="mk-btn-secondary-sm whitespace-nowrap" [disabled]="busy()" (click)="registerPlan.emit(e)" data-register-plan>{{ 'COMPLIANCE.APPROVAL.EXCEPTIONS.REGISTER' | translate }}</button>
+        }
+        @if (can(e.allowed_actions, 'decide_plan') && e.plan; as p) {
+        <button type="button" class="mk-btn-sm whitespace-nowrap" [disabled]="busy() && acting() !== 'plan:' + p.id" [appBusy]="acting() === 'plan:' + p.id" (click)="decide.emit({ id: p.id, decision: 'approve' })" data-plan-approve>{{ 'COMPLIANCE.APPROVAL.DECIDE.APPROVE' | translate }}</button>
+        <button type="button" class="mk-btn-secondary-sm whitespace-nowrap" [disabled]="busy()" (click)="decide.emit({ id: p.id, decision: 'reject' })" data-plan-reject>{{ 'COMPLIANCE.APPROVAL.DECIDE.REJECT' | translate }}</button>
+        }
+      </div>
+    </ng-template>
+  </app-data-table>
+</app-detail-section>
+}

@@ -38,9 +38,18 @@ describe('the role guards of the routes', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter([])] }));
 
   it('never lets the collaborator into compliance, services, team, assignment, integrations, responsibles or the library', () => {
-    for (const path of ['services', 'services/:id', 'services/new', 'cumplimiento', 'cumplimiento/controles', 'cumplimiento/riesgos', 'cumplimiento/evidencias', 'equipo', 'asignacion', 'integraciones', 'integraciones/agregar', 'integraciones/:code', 'responsables', 'documentos', 'mi-trabajo', 'onboarding']) {
+    for (const path of ['services', 'services/:id', 'services/new', 'cumplimiento', 'cumplimiento/controles', 'cumplimiento/riesgos', 'cumplimiento/evidencias', 'equipo', 'asignacion', 'integraciones', 'integraciones/agregar', 'integraciones/:code', 'responsables', 'documentos', 'onboarding']) {
       expect(canEnter(path, 'colaborador')).withContext(path).toBeFalse();
     }
+  });
+
+  it('never lets the collaborator into «Mi trabajo»: not the screen of Por aprobar (canMatch) nor the delegate one (guard)', () => {
+    TestBed.inject(SessionService).set({ id: 'u', email: 'a@x.co', name: null, last_name: null, role: 'colaborador' }, { id: 'c', name: 'ACME' });
+    const [review, provisional] = all.filter((r) => r.path === 'mi-trabajo' && r.route.loadComponent);
+    expect(TestBed.runInInjectionContext(() => (review.route.canMatch![0] as (...a: unknown[]) => boolean)({}, []))).toBeFalse();
+    expect((provisional.route.canActivate ?? []).length).toBe(1);
+    const denied = TestBed.runInInjectionContext(() => (provisional.route.canActivate![0] as CanActivateFn)({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
+    expect(denied instanceof UrlTree).toBeTrue();
   });
 
   it('lets the delegate into compliance but not into its summary', () => {

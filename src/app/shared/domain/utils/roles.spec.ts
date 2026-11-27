@@ -1,4 +1,4 @@
-import { COMPLIANCE_ROLES, DOCUMENT_LIBRARY_ROLES, MY_DOCUMENTS_ROLES, canSeeComplianceSummary, isAssignedRole, isCollaborator, isCompanyAdmin, landingPath } from './roles';
+import { COMPLIANCE_ROLES, DOCUMENT_LIBRARY_ROLES, MY_DOCUMENTS_ROLES, canSeeComplianceSummary, canSeeTeam, isAssignedRole, isCollaborator, isCompanyAdmin, landingPath } from './roles';
 
 const ALL = ['admin_empresa', 'responsable', 'delegado', 'auditor', 'colaborador', 'admin_monkey'] as const;
 const NOBODY = ['', null, undefined];
@@ -25,6 +25,11 @@ describe('roles (preguntas puras sobre el rol)', () => {
     expect([...COMPLIANCE_ROLES]).toEqual(['admin_empresa', 'responsable', 'delegado', 'auditor']);
     expect(only(canSeeComplianceSummary)).toEqual(['admin_empresa', 'responsable', 'auditor']);
     for (const r of NOBODY) expect(canSeeComplianceSummary(r)).toBe(false);
+  });
+
+  it('shows Team (and the detail of a person) to the administrator and the responsible only, as the /equipo guard', () => {
+    expect(only(canSeeTeam)).toEqual(['admin_empresa', 'responsable']);
+    for (const r of NOBODY) expect(canSeeTeam(r)).toBe(false);
   });
 
   it('gives the document library to the administrator and the auditor, and «Mis documentos» to whoever can accept (never the auditor)', () => {
