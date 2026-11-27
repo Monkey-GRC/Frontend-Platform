@@ -239,6 +239,7 @@
       "SHOW": "Mostrar su equipo",
       "COLLABORATORS": "Colaboradores",
       "COLLABORATORS_HELP": "Fuera de la cadena: solo leen y aceptan los documentos que se les asignan, y no reciben controles."
-    }
+    },
+    "LINK_NOT_FOUND": "No encontramos a esa persona en tu equipo."
   }
 }
