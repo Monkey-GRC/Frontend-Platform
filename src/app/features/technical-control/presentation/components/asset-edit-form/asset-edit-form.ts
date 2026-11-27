@@ -54,7 +54,8 @@ export class AssetEditForm implements OnInit {
   private readonly regionOptions = signal<CatalogOption[]>([]);
 
   readonly method = computed(() => this.asset().provisioning.connection_method ?? null);
-  readonly isCloud = computed(() => this.asset().connection_category === 'ac_01' && !!this.method() && this.method() !== 'agent');
+  // Con el botón de Microsoft (D157) no hay cuenta, regiones ni rol que editar: para otra organización se crea otra conexión.
+  readonly isCloud = computed(() => this.asset().connection_category === 'ac_01' && !!this.method() && this.method() !== 'agent' && this.method() !== 'admin_consent');
   readonly isGcp = computed(() => this.isCloud() && this.method() === 'identity_federation');
   readonly hasRegions = computed(() => this.isCloud() && !this.isGcp());
   readonly usesRole = computed(() => this.method() === 'readonly_role');

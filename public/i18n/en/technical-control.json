@@ -40,12 +40,14 @@
       "TITLE_QUEUED": "Your assessment is queued",
       "TITLE_RUNNING": "Assessing your account",
       "ESTIMATED": "estimated progress",
+      "LIVE": "live progress",
       "STAGE_PREPARE": "Preparing the assessment…",
       "STAGE_CONNECT": "Connecting to your account…",
-      "STAGE_READ": "Reading your servers and their configuration…",
+      "STAGE_READ": "Reading your account configuration…",
       "STAGE_CHECK": "Checking the configuration against the controls…",
       "STAGE_RESULTS": "Calculating results…",
       "ELAPSED": "Time elapsed: {{time}}",
+      "TYPICAL_LIVE": "You can leave this screen: the assessment keeps running.",
       "TYPICAL": "It usually takes about 6 minutes. You can leave this screen: the assessment keeps running.",
       "SLOW": "It is taking longer than usual, but it is still running. You don't need to do anything."
     },
@@ -219,6 +221,11 @@
       "EXPIRED": "We didn't see the server connect in the last 24 hours. Check that the command ran without errors and that the server can reach {{host}}:{{port}}. If you're not sure, generate a new command.",
       "DISCONNECTED": "The server stopped reporting to Monkey. Check that it is on and that it can reach {{host}}:{{port}}. When it's back, it connects by itself.",
       "ERROR": "We couldn't complete this step. Try again."
+    },
+    "REVIEW": {
+      "MAIL_INCLUDED": "The last assessment included the email review.",
+      "TITLE": "Review of your account",
+      "BODY": "The connection is verified. Select “Assess now” to review your account configuration."
     },
     "ASSETS": {
       "TITLE": "Assets of this connection",
@@ -415,7 +422,64 @@
           "ACCOUNT": "Account"
         }
       },
-      "OPTIONS_ERROR": "We couldn't load the options. Check your connection and try again."
+      "OPTIONS_ERROR": "We couldn't load the options. Check your connection and try again.",
+      "M365": {
+        "DATA": {
+          "TITLE": "Connect Microsoft 365",
+          "SUBTITLE": "Give it a name you will recognize. There are no codes, passwords or IDs to copy.",
+          "NAME_PLACEHOLDER": "Company Microsoft 365",
+          "PROMISE_READ": "Monkey reviews the user, mail and security settings of your organization.",
+          "PROMISE_NO_CHANGES": "Access is read-only: Monkey does not change or delete anything.",
+          "PROMISE_NO_SECRETS": "We never see your password: you sign in on the Microsoft page."
+        },
+        "ACCESS": {
+          "TITLE": "Authorize access",
+          "SUBTITLE": "You will go to the Microsoft page. When you finish, you will come back here automatically.",
+          "BUTTON": "Sign in with Microsoft",
+          "WHO_TITLE": "Who can do it:",
+          "WHO": "a Global Administrator (or Privileged Role Administrator) of your organization. Other accounts cannot continue.",
+          "NAMES_TITLE": "What you will see:",
+          "NAMES": "a sign-in screen and then the list of permissions. A mail permission is named “Manage Exchange As Application”; on its own it cannot see or change anything: that depends on the read-only role you may assign afterwards.",
+          "START_ERROR": "We could not open the Microsoft page. Try again.",
+          "UNAVAILABLE": "The Microsoft 365 connection is not available yet. Your connection was saved; try again later."
+        },
+        "CHECK": {
+          "TITLE": "Checking the connection",
+          "SUBTITLE": "Keep this screen open. It usually takes less than a minute.",
+          "AUTHORIZED": "Authorization received",
+          "ACCESS": "Checking read-only access",
+          "READY": "Connection ready",
+          "WAITING": "Microsoft is applying the permissions. We will check again in a few seconds (attempt {{attempt}} of {{total}}).",
+          "STATE_DONE": "done",
+          "STATE_CURRENT": "in progress",
+          "STATE_PENDING": "pending",
+          "STATE_FAILED": "failed"
+        },
+        "RESULT": {
+          "TITLE": "Microsoft 365 is connected",
+          "SUBTITLE": "Monkey can now read the settings of your organization.",
+          "ORGANIZATION": "Organization ID"
+        },
+        "MAIL": {
+          "TITLE": "Recommended: include the mail review",
+          "WHY": "Microsoft does not grant this permission when you authorize. Without it, mail checks stay “not measured” (never as met).",
+          "STEP_1": "Open Microsoft Entra roles with your administrator and search for “Global Reader”.",
+          "STEP_2": "Open the role and choose “Add assignments”.",
+          "STEP_3": "Search for the “Monkey” application, select it and save. It is a read-only role.",
+          "OPEN": "Open roles in Microsoft",
+          "LATER": "You can do it later: it applies on the next evaluation."
+        },
+        "RETURN": {
+          "TITLE": "We could not finish the authorization",
+          "BACK": "Go to Integrations",
+          "CANCELLED": "The authorization was not completed on Microsoft. Whenever you want, select “Sign in with Microsoft” again.",
+          "EXPIRED": "The authorization expired or was opened in another session. Select “Sign in with Microsoft” again.",
+          "NOT_ADMIN": "That account cannot authorize. Sign in with a Global Administrator of your organization.",
+          "PERSONAL_ACCOUNT": "You signed in with a personal account. Use the work account of an administrator of your organization.",
+          "IDENTITY_REJECTED": "We could not safely verify the account or the organization. Try again using the same organization in both steps.",
+          "UNAVAILABLE": "We could not reach Microsoft right now. Try again in a few minutes."
+        }
+      }
     }
   }
 }

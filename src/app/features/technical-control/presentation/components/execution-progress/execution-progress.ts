@@ -18,7 +18,7 @@ export function estimateProgress(elapsedSeconds: number, status: Execution['stat
 }
 
 // Lo que se ve mientras una cuenta se evalúa (en cola o en curso): un porcentaje grande, una barra, en qué paso va y cuánto lleva, para que quien espera sepa que avanza y no que
-// se cayó. El porcentaje es una ESTIMACIÓN por tiempo y así se dice; el 100 % solo aparece cuando el servidor confirma que terminó (entonces esta pieza desaparece).
+// se cayó. Si el servidor informa el avance REAL, se muestra ese; si no, el porcentaje es una ESTIMACIÓN por tiempo. En los dos casos se dice cuál es, y el 100 % solo lo confirma el servidor al terminar (entonces esta pieza desaparece).
 // Habla de «evaluación automática», nunca de proveedores.
 @Component({
   selector: 'app-execution-progress',
@@ -40,10 +40,15 @@ export class ExecutionProgress {
     const start = from ? Date.parse(from) : this.seenAt;
     return Math.max(0, Math.floor((this.now() - (Number.isFinite(start) ? start : this.seenAt)) / 1000));
   });
-  readonly percent = computed(() => estimateProgress(this.elapsed(), this.execution().status));
+  /** El avance que informa el servidor; `null` si esta evaluación no lo informa. */
+  private readonly reported = computed(() => (this.queued() ? null : (this.execution().progress_percent ?? null)));
+  readonly live = computed(() => this.reported() !== null);
+  readonly percent = computed(() => this.reported() ?? estimateProgress(this.elapsed(), this.execution().status));
   readonly stage = computed(() => {
     if (this.queued()) return 'PREPARE';
     const p = this.percent();
+    // Con avance real, los tramos son los del trabajador: acceso comprobado (10), verificación por verificación y guardado (95).
+    if (this.live()) return p <= 10 ? 'READ' : p < 95 ? 'CHECK' : 'RESULTS';
     return p < 12 ? 'CONNECT' : p < 45 ? 'READ' : p < 80 ? 'CHECK' : 'RESULTS';
   });
   readonly slow = computed(() => this.elapsed() >= SLOW_AFTER_SECONDS);

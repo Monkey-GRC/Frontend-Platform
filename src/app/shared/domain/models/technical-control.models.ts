@@ -26,7 +26,7 @@ export interface Capability {
 // `runner`: la conexión se comprueba DE VERDAD contra la cuenta del cliente (D58). `simulated` es demostración; `unavailable`, aún sin evaluación automática.
 export type ProbeMode = 'simulated' | 'unavailable' | 'runner';
 
-export type ConnectionMethod = 'readonly_role' | 'access_keys' | 'agent' | 'identity_federation';
+export type ConnectionMethod = 'readonly_role' | 'access_keys' | 'agent' | 'identity_federation' | 'app_certificate' | 'admin_consent';
 
 // Lo que el cliente necesita para completar la conexión. Sin secretos: el identificador externo lo genera Monkey y las llaves nunca vuelven.
 // Los pasos ya llegan traducidos (la plataforma no tiene i18n propio).
@@ -41,6 +41,12 @@ export interface ConnectionSetup {
   project_id?: string;
   project_number?: string | null;
   setup_command?: string | null;
+  // `app_certificate` (Microsoft 365, D154): el tenant declarado, el ID de la aplicación (nulo hasta que el cliente lo entrega) y la huella y el vencimiento del certificado público que
+  // se sube a la aplicación (el certificado y su clave los genera Monkey; el comando de alta ya lleva la parte pública).
+  tenant_id?: string;
+  client_id?: string | null;
+  certificate?: { thumbprint: string; expires_at: string };
+  // `admin_consent` (Microsoft 365 con el botón, D157): `tenant_id` es nulo hasta que el administrador autoriza.
   warning?: string;
   steps: string[];
 }
@@ -205,6 +211,10 @@ export interface Execution {
   failure_reason: string | null;
   // El mismo motivo, ya en el idioma del cliente.
   failure_message: string | null;
+  // Avance real (0 a 99) mientras corre, si esa evaluación lo informa; si no, la pantalla lo estima por tiempo y lo dice.
+  progress_percent?: number | null;
+  // Solo en una evaluación completada de Microsoft 365: si de verdad se leyó el correo; si no aplica, null.
+  mail_reviewed?: boolean | null;
 }
 
 export interface ExecutionPage {

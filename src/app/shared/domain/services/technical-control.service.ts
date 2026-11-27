@@ -36,6 +36,15 @@ export class TechnicalControlService {
     return this.http.get<SuccessResponse<AssetPage>>(this.assets, { params }).pipe(unwrapData());
   }
 
+  // «Conectar Microsoft 365» (D157): a dónde mandar al administrador y, al volver, terminar con el recibo.
+  startMicrosoftConsent(assetId: string): Observable<{ authorize_url: string }> {
+    return this.http.post<SuccessResponse<{ authorize_url: string }>>(`${this.assets}/${assetId}/connection/microsoft/start`, {}).pipe(unwrapData());
+  }
+
+  completeMicrosoftConsent(assetId: string, handle: string): Observable<Asset> {
+    return this.http.post<SuccessResponse<Asset>>(`${this.assets}/${assetId}/connection/microsoft/complete`, { handle }).pipe(unwrapData());
+  }
+
   createAsset(input: NewAssetInput): Observable<Asset> {
     return this.http.post<SuccessResponse<Asset>>(this.assets, input).pipe(unwrapData());
   }
@@ -92,6 +101,11 @@ export class TechnicalControlService {
   // GCP: el cliente entrega el número de proyecto que imprime el script de alta (no es un secreto). La conexión vuelve a «pendiente».
   setProjectNumber(assetId: string, projectNumber: string): Observable<Asset> {
     return this.http.patch<SuccessResponse<Asset>>(`${this.assets}/${assetId}/connection`, { project_number: projectNumber }).pipe(unwrapData());
+  }
+
+  // Microsoft 365 (D154): el cliente entrega el ID de la aplicación que imprime el script de alta (no es un secreto). La conexión vuelve a «pendiente».
+  setClientId(assetId: string, clientId: string): Observable<Asset> {
+    return this.http.patch<SuccessResponse<Asset>>(`${this.assets}/${assetId}/connection`, { client_id: clientId }).pipe(unwrapData());
   }
 
   // La plantilla que el cliente crea en su cuenta (rol de solo lectura). Se descarga como archivo.

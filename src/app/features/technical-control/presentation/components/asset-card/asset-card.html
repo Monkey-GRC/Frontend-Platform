@@ -144,8 +144,31 @@
   <!-- Lo que la conexión reconoció: es la prueba de que Monkey ve los activos del cliente -->
   @if (isCloud() && connected()) {
   <div class="mt-4 border-t border-line pt-5">
+    @if (listsResources()) {
     <app-discovered-assets [asset]="asset()" [serviceId]="serviceId()" [probeMode]="probeMode()" [refreshing]="busy() === 'validate'" [canEvaluate]="isCloud() && connected()" [evaluating]="evaluating() || executionOpen()" (refreshRequested)="validate()" (evaluate)="evaluate()" />
+    } @else {
+    <section class="flex flex-wrap items-center justify-between gap-3" data-account-review>
+      <div class="min-w-0 flex-1">
+        <h4 class="text-base font-semibold text-ink">{{ 'TECHNICAL_CONTROL.REVIEW.TITLE' | translate }}</h4>
+        <p class="mt-0.5 text-sm text-ink-muted">{{ 'TECHNICAL_CONTROL.REVIEW.BODY' | translate }}</p>
+      </div>
+      <button type="button" (click)="evaluate()" [appBusy]="evaluating() || executionOpen()" class="mk-btn" data-evaluate-now>
+        {{ 'TECHNICAL_CONTROL.CARD.EVALUATE_NOW' | translate }}
+      </button>
+      @if (needsMailRole() && mailIncluded()) {
+      <p class="flex w-full items-center gap-2 text-sm text-ink-muted" data-mail-included>
+        <span class="material-symbols-rounded text-[20px] text-ok-ink" aria-hidden="true">check_circle</span>
+        {{ 'TECHNICAL_CONTROL.REVIEW.MAIL_INCLUDED' | translate }}
+      </p>
+      } @else if (needsMailRole() && !executionOpen()) {
+      <!-- D157 · La guía dice «puedes hacerlo después»: tiene que poder abrirse también fuera del asistente. -->
+      <details class="w-full" data-mail-later>
+        <summary class="cursor-pointer text-sm font-medium text-action">{{ 'TECHNICAL_CONTROL.WIZARD.M365.MAIL.TITLE' | translate }}</summary>
+        <app-m365-mail-access-guide class="mt-3" />
+      </details>
+      }
+    </section>
+    }
   </div>
-
   }
 </article>

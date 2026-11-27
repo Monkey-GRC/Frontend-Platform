@@ -1,6 +1,7 @@
 import { Type } from '@angular/core';
 import { AwsConnectionFlow } from './aws-connection-flow/aws-connection-flow';
 import { GcpConnectionFlow } from './gcp-connection-flow/gcp-connection-flow';
+import { M365ConnectionFlow } from './m365-connection-flow/m365-connection-flow';
 import { ServerConnectionFlow } from './server-connection-flow/server-connection-flow';
 
 // La única lista de plataformas con asistente de conexión: código de la plataforma → su recorrido. Añadir una es tocar este sitio.
@@ -8,6 +9,8 @@ import { ServerConnectionFlow } from './server-connection-flow/server-connection
 export const CONNECTION_FLOWS: Readonly<Record<string, Type<unknown>>> = {
   gcp: GcpConnectionFlow,
   aws: AwsConnectionFlow,
+  // Microsoft 365 con el botón (D157): autorizar en Microsoft y volver; nada que copiar.
+  microsoft_365: M365ConnectionFlow,
   // Servidores con la sonda instalada (D113): el mismo recorrido para cada sistema operativo que ofrece el catálogo.
   linux: ServerConnectionFlow,
   windows: ServerConnectionFlow,

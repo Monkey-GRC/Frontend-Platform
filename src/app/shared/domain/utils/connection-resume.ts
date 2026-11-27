@@ -8,6 +8,9 @@ export function resumeStep(asset: Pick<Asset, 'provisioning' | 'connection_setup
   if (!['pending', 'failed'].includes(asset.provisioning.connection_status)) return null;
   const setup = asset.connection_setup;
   switch (asset.provisioning.connection_method ?? setup?.method) {
+    // Con el botón: sin organización todavía falta autorizar; con ella, solo comprobar.
+    case 'admin_consent':
+      return setup?.tenant_id ? 'check' : 'access';
     case 'identity_federation':
       return setup?.project_number ? 'check' : 'access';
     case 'readonly_role':

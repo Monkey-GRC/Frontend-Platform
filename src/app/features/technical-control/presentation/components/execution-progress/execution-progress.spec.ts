@@ -57,6 +57,20 @@ describe('ExecutionProgress', () => {
     expect(fixture.nativeElement.textContent).toContain('PROGRESS.ESTIMATED');
   });
 
+  it('shows the real progress the server reports, says it is live, and never calls it an estimate', () => {
+    show({ ...execution('running', 600), progress_percent: 42 });
+    expect(q('[data-percent]')!.textContent).toContain('42');
+    expect(q<HTMLElement>('[data-bar]')!.style.width).toBe('42%');
+    expect(q('[data-stage]')!.textContent).toContain('STAGE_CHECK');
+    expect(fixture.nativeElement.textContent).toContain('PROGRESS.LIVE');
+    expect(fixture.nativeElement.textContent).not.toContain('PROGRESS.ESTIMATED');
+  });
+
+  it('names the saving step when the real progress reaches it', () => {
+    show({ ...execution('running', 60), progress_percent: 95 });
+    expect(q('[data-stage]')!.textContent).toContain('STAGE_RESULTS');
+  });
+
   it('says what step it is in and how long it has been', () => {
     show(execution('running', 125));
     expect(q('[data-stage]')!.textContent).toContain('PROGRESS.STAGE_');
