@@ -13,7 +13,7 @@ describe('FindingService', () => {
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('page')).toBe('2');
     expect(req.request.params.get('page_size')).toBe('10');
-    req.flush({ statusCode: 200, message: '', data: { test_id: 't1', measured_at: null, items: [], page: 2, page_size: 10, total: 7, total_pages: 1 } });
+    req.flush({ statusCode: 200, message: '', data: { control: { id: 'c1', code: 'IAC-4', name: 'x' }, test: { id: 't1', code: 'T-1', display_name: 'x' }, measured_at: null, summary: { open_gaps: 0, excepted: 0, observations: 0 }, items: [], page: 2, page_size: 10, total: 7, total_pages: 1 } });
     expect(total).toBe(7);
     http.verify();
   });
