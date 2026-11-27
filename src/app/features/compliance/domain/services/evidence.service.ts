@@ -1,10 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, filter, map } from 'rxjs';
 import { environment } from '@environments/environment';
 import { SuccessResponse } from '@shared/domain/models/api-response.model';
-import { unwrapData } from '@shared/domain/utils/unwrap-response';
-import { EvidenceDisposition, EvidenceDownload, EvidenceRequirement, EvidenceSubmission, EvidenceTestList, ServiceEvidenceRequirement } from '../models/evidence.models';
+import { requireData, unwrapData } from '@shared/domain/utils/unwrap-response';
+import { EvidenceDisposition, EvidenceDownload, EvidenceRequirement, EvidenceSubmission, EvidenceTestList, EvidenceUploadEvent, ServiceEvidenceRequirement } from '../models/evidence.models';
 
 // Evidencias de un control. Los endpoints son los del contrato (MD-126, MD-127); mientras el backend no los tenga, `list` falla con 404 y quien lo usa
 // cae al resumen que ya trae el detalle del control.
@@ -29,18 +29,31 @@ export class EvidenceService {
       .pipe(map((r) => r.data?.items ?? []));
   }
 
+  /** Los dos POST emiten el avance de la subida y, al final, la entrega; cancelar la suscripción aborta la petición. */
+  private post(url: string, body: FormData): Observable<EvidenceUploadEvent> {
+    return this.http.post<SuccessResponse<EvidenceSubmission>>(url, body, { observe: 'events', reportProgress: true }).pipe(
+      filter((e: HttpEvent<SuccessResponse<EvidenceSubmission>>) => e.type === HttpEventType.UploadProgress || e.type === HttpEventType.Response),
+      map((e): EvidenceUploadEvent => {
+        if (e.type === HttpEventType.UploadProgress) return { kind: 'progress', percent: e.total ? Math.round((e.loaded / e.total) * 100) : null };
+        return { kind: 'done', submission: requireData((e as { body: SuccessResponse<EvidenceSubmission> }).body) };
+      }),
+    );
+  }
+
   /** Sube el archivo como la evidencia de UNA prueba documental en este control (D88). La primera vez crea el lugar de esa prueba; las siguientes son versiones nuevas. */
-  uploadForTest(controlId: string, testId: string, file: File): Observable<EvidenceSubmission> {
+  uploadForTest(controlId: string, testId: string, file: File, occurrenceId?: string | null): Observable<EvidenceUploadEvent> {
     const body = new FormData();
     body.append('file', file, file.name);
-    return this.http.post<SuccessResponse<EvidenceSubmission>>(`${this.base}/controls/${controlId}/tests/${testId}/evidence`, body).pipe(unwrapData());
+    // DT-115 · La evidencia de un requisito «cuando ocurra» se entrega por caso.
+    if (occurrenceId) body.append('occurrence_id', occurrenceId);
+    return this.post(`${this.base}/controls/${controlId}/tests/${testId}/evidence`, body);
   }
 
   /** Sube el archivo como una evidencia entregada nueva (una versión más) del requerimiento. */
-  upload(requirementId: string, file: File): Observable<EvidenceSubmission> {
+  upload(requirementId: string, file: File): Observable<EvidenceUploadEvent> {
     const body = new FormData();
     body.append('file', file, file.name);
-    return this.http.post<SuccessResponse<EvidenceSubmission>>(`${this.base}/evidence-requirements/${requirementId}/submissions`, body).pipe(unwrapData());
+    return this.post(`${this.base}/evidence-requirements/${requirementId}/submissions`, body);
   }
 
   /** La evidencia de UNA prueba manual y los otros controles a los que también aplica (D85). */

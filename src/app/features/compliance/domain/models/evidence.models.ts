@@ -133,3 +133,6 @@ export function evidenceStateTone(state: string | null | undefined): 'ok' | 'bad
   if (!state) return 'neutral';
   return 'warn';
 }
+
+/** Lo que emite una subida: el avance (`percent` es `null` si el navegador no sabe el total) y, al terminar, la entrega creada. */
+export type EvidenceUploadEvent = { kind: 'progress'; percent: number | null } | { kind: 'done'; submission: EvidenceSubmission };

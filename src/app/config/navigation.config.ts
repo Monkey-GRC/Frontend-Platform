@@ -28,7 +28,7 @@ export type SectionIcon = Record<string, string>;
 export const NAV_ITEMS: NavItem[] = [
     // Qué ve cada rol (D102, MD-196). El responsable y el delegado entran por «Mi trabajo»; el inicio de la empresa es del administrador y del auditor.
     { icon: 'home', name: 'Inicio', labelKey: 'SHELL.NAV.HOME', path: '/', section: 'Start', roles: ['admin_empresa', 'auditor'] },
-    { icon: 'assignment_ind', name: 'Mi trabajo', labelKey: 'SHELL.NAV.MY_WORK', path: '/mi-trabajo', section: 'Start', roles: ['responsable', 'delegado'] },
+    { icon: 'assignment_ind', name: 'Mi trabajo', labelKey: 'SHELL.NAV.MY_WORK', path: '/mi-trabajo', section: 'Start', roles: ['responsable', 'delegado', 'admin_empresa'] },
     // Groups (design system): the title only opens or closes; every page is a child (so «Mi empresa» and «Equipo» list their own page first).
     {
         icon: 'apartment', name: 'Mi empresa', labelKey: 'SHELL.NAV.MY_COMPANY', section: 'Work', roles: ['admin_empresa'],

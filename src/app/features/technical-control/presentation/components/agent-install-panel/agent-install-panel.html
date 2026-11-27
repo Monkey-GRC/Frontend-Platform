@@ -5,10 +5,9 @@
   </p>
 
   @if (loading()) {
-  <p class="mt-4 flex items-center gap-2 text-sm text-ink-muted" role="status">
-    <span class="material-symbols-rounded animate-spin text-[20px]" aria-hidden="true">progress_activity</span>
-    {{ 'TECHNICAL_CONTROL.AGENT.LOADING' | translate }}
-  </p>
+  <app-skeleton-region class="mt-4" data-agent-loading>
+    <div class="space-y-3"><app-skeleton shape="line" width="60%" /><app-skeleton shape="block" height="3rem" /></div>
+  </app-skeleton-region>
   }
 
   @if (message(); as m) {

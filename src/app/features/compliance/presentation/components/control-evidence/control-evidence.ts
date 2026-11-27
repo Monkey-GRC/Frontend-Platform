@@ -1,28 +1,29 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { map } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription, TimeoutError, map, timeout } from 'rxjs';
 import { LanguageService } from '@core/domain/services/language.service';
 import { formatLocalDate } from '@shared/domain/utils/date-format';
 import { apiErrorMessage, apiFieldErrors } from '@core/domain/utils/api-error';
 import { formatBytes } from '@shared/domain/utils/file-validation';
 import { DataTable, TableCell, TableColumn } from '@shared/presentation/components/data-table/data-table';
 import { Tag } from '@shared/presentation/components/tag/tag';
-import { FileUpload } from '@shared/presentation/components/file-upload/file-upload';
+import { Field } from '@shared/presentation/components/field/field';
 import { FormModal } from '@shared/presentation/components/form-modal/form-modal';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Badge } from '@shared/presentation/components/badge/badge';
-import { ControlEvidence as EvidenceSummary } from '@features/compliance/domain/models/control.models';
+import { ControlEvidence as EvidenceSummary, Occurrence } from '@features/compliance/domain/models/control.models';
 import { EVIDENCE_FILE_ACCEPT, EVIDENCE_MAX_BYTES, EvidencePerson, EvidenceRequirement, EvidenceSubmission, canPreviewEvidence, evidenceStateTone, suggestedEvidence } from '@features/compliance/domain/models/evidence.models';
 import { ComplianceViewService } from '@shared/domain/services/compliance-view.service';
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { EvidenceService } from '@features/compliance/domain/services/evidence.service';
+import { ControlManagementService } from '@features/compliance/domain/services/control-management.service';
+import { DropzoneMessageTone, EvidenceDropzone } from '@features/compliance/presentation/components/evidence-dropzone/evidence-dropzone';
+import { Select, SelectOption } from '@shared/presentation/components/select/select';
 import { Skeleton, SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
-import { Busy } from '@shared/presentation/directives/busy';
-import { BusyFields } from '@shared/presentation/directives/busy-fields';
-import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
 
 // 'full' = las evidencias del contrato; 'summary' = el resumen que trae el detalle del control, porque el endpoint de evidencias aún no existe en el backend.
 type Stage = 'loading' | 'full' | 'summary' | 'error';
@@ -48,9 +49,12 @@ const TEST_KEY = '__test__';
 //  · `testId` en una prueba manual que NO es documental (D85): los requerimientos de todos los controles del servicio que llevan la prueba, cada uno con su control, y el aviso de a cuáles más aplica.
 // En cualquier forma, un PDF o una imagen entregados se pueden VER en un visor (MD-178); DOCX y XLSX solo se descargan.
 // Si el backend aún no tiene el endpoint (MD-126), muestra el resumen del detalle sin la subida, y se enciende solo cuando exista.
+/** Una subida sin avance ni respuesta durante este tiempo se da por fallida (con «Reintentar»): cubre el servidor que no responde tras recibir los bytes. */
+export const UPLOAD_IDLE_MS = 60_000;
+
 @Component({
   selector: 'app-control-evidence',
-  imports: [Badge, TranslatePipe, FileUpload, NgTemplateOutlet, FormModal, StatusIndicator, DataTable, TableCell, Tag, Skeleton, SkeletonRegion, Busy, BusyFields],
+  imports: [Badge, TranslatePipe, NgTemplateOutlet, FormModal, StatusIndicator, DataTable, TableCell, Tag, Skeleton, SkeletonRegion, Select, Field, EvidenceDropzone],
   templateUrl: './control-evidence.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // Bajo una prueba, el bloque ocupa el alto de la tarjeta (MD-499).
@@ -58,8 +62,8 @@ const TEST_KEY = '__test__';
 })
 export class ControlEvidence {
   private readonly api = inject(EvidenceService);
+  private readonly management = inject(ControlManagementService);
   private readonly translate = inject(TranslateService);
-  private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
   private readonly view = inject(ComplianceViewService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -86,6 +90,8 @@ export class ControlEvidence {
   readonly testId = input<string | null>(null);
   /** MD-499 · La prueba se cumple con evidencia solo mientras no hay integración conectada. */
   readonly fallback = input(false);
+  /** DT-115 · El requisito «cuando ocurra» al que sirve la prueba: la entrega se vincula a un caso de ese requisito, que se elige al subir. */
+  readonly occurrenceRequirementId = input<string | null>(null);
   /** Solo los documentos que el catálogo sugiere para el control (sin prueba asignada). */
   readonly suggested = input(false);
   // Se subió algo: el control cambió de estado (la evidencia alimenta sus pruebas documentales).
@@ -114,12 +120,19 @@ export class ControlEvidence {
   readonly olderDeliveries = computed(() => this.deliveries().slice(1));
   readonly suggestions = computed(() => suggestedEvidence(this.items(), this.dimension() ?? 'policy'));
 
-  // Una subida abierta a la vez: sobre qué requerimiento (o la prueba), con qué archivo.
+  // Una subida a la vez: sobre qué requerimiento (o la prueba) y cómo va. El archivo lo tiene la zona (su vista previa).
   readonly uploadingFor = signal<string | null>(null);
-  readonly file = signal<File | null>(null);
   readonly sending = signal(false);
+  readonly progress = signal<number | null>(null);
   readonly error = signal<string | null>(null);
+  /** Lo que se dice en la zona de carga tras un fallo o una cancelación, y de cuál zona es. */
+  readonly zoneMessage = signal<{ key: string; text: string; tone: DropzoneMessageTone } | null>(null);
   readonly expanded = signal<ReadonlySet<string>>(new Set());
+  readonly occurrences = signal<Occurrence[]>([]);
+  readonly occurrenceId = signal('');
+  readonly occurrencesLoading = signal(false);
+  protected readonly caseOptions = computed<SelectOption[]>(() => this.occurrences().map((o) => ({ value: o.id, label: `${this.date(o.occurred_on)} · ${o.description}` })));
+  private upload$: Subscription | null = null;
 
   // El visor: qué entrega se mira, su enlace temporal (en texto para las imágenes, como recurso de confianza para el iframe del PDF) y en qué punto está.
   readonly previewOf = signal<EvidenceSubmission | null>(null);
@@ -131,6 +144,8 @@ export class ControlEvidence {
 
   // Para ignorar la respuesta de una carga vieja que llega después de una más nueva (cambio de control, de prueba o de vista).
   private requestSeq = 0;
+  private occurrenceSeq = 0;
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
@@ -138,6 +153,40 @@ export class ControlEvidence {
       this.testId();
       this.view.viewParam();
       untracked(() => this.load());
+    });
+    // Los casos se piden al mostrar la tarjeta y de nuevo cuando cambia el detalle del control (`summary`), así un caso recién registrado ya está.
+    effect(() => {
+      this.controlId();
+      this.occurrenceRequirementId();
+      this.canUpload();
+      this.summary();
+      untracked(() => this.loadOccurrences());
+    });
+  }
+
+  /** Los casos del requisito, para elegir a cuál pertenece lo que se sube. */
+  private loadOccurrences(): void {
+    const seq = ++this.occurrenceSeq;
+    const requirementId = this.occurrenceRequirementId();
+    this.occurrencesLoading.set(false);
+    if (!requirementId || !this.canUpload()) {
+      this.occurrences.set([]);
+      this.occurrenceId.set('');
+      return;
+    }
+    this.occurrencesLoading.set(true);
+    this.management.listOccurrences(this.controlId(), requirementId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (list) => {
+        if (seq !== this.occurrenceSeq) return;
+        this.occurrences.set(list);
+        if (!list.some((o) => o.id === this.occurrenceId())) this.occurrenceId.set('');
+        this.occurrencesLoading.set(false);
+      },
+      error: () => {
+        if (seq !== this.occurrenceSeq) return;
+        this.occurrences.set([]);
+        this.occurrencesLoading.set(false);
+      },
     });
   }
 
@@ -225,43 +274,72 @@ export class ControlEvidence {
     return key === TEST_KEY ? this.deliveries().length > 0 : (this.items().find((r) => r.id === key)?.submissions.length ?? 0) > 0;
   }
 
-  startUpload(key: string): void {
-    this.reset();
-    this.file.set(null);
-    this.uploadingFor.set(key);
+  /** Por qué la zona de una prueba «cuando ocurra» está bloqueada (clave i18n), o `null` si se puede subir. */
+  disabledKey(key: string): string | null {
+    if (this.sending()) return null;
+    if (key !== TEST_KEY || !this.occurrenceRequirementId()) return null;
+    if (this.occurrencesLoading()) return null;
+    if (this.occurrences().length === 0) return 'COMPLIANCE.APPROVAL.OCCURRENCE.NONE_FIRST';
+    return this.occurrenceId() ? null : 'COMPLIANCE.APPROVAL.OCCURRENCE.ERR_CASE';
   }
 
+  /** Aborta la subida en curso: cancelar la suscripción cancela la petición. */
   cancelUpload(): void {
-    this.reset();
+    const key = this.uploadingFor();
+    this.upload$?.unsubscribe();
+    this.upload$ = null;
+    this.sending.set(false);
     this.uploadingFor.set(null);
-    this.file.set(null);
+    this.progress.set(null);
+    if (key) this.zoneMessage.set({ key, text: this.translate.instant('COMPLIANCE.EVIDENCE.UPLOAD_CANCELED'), tone: 'info' });
   }
 
-  send(): void {
-    if (this.sending()) return;
-    const key = this.uploadingFor();
-    const file = this.file();
-    if (!key || !file) return;
+  /** Otro archivo elegido (o quitado) en una zona: el aviso anterior de esa zona (éxito, error o cancelación) ya no aplica. */
+  clearZoneMessage(key: string): void {
+    if (this.zoneMessage()?.key === key) this.zoneMessage.set(null);
+  }
+
+  /** «Subir» (o «Reintentar») en la vista previa de una zona. */
+  send(key: string, file: File): void {
+    if (this.sending() || this.disabledKey(key)) return;
     // Bajo una prueba, el archivo es de esa prueba en este control (D88); en una evidencia requerida, es una versión de ella.
     const testId = this.testId();
-    const request = key === TEST_KEY && testId ? this.api.uploadForTest(this.controlId(), testId, file) : this.api.upload(key, file);
+    const needsCase = !!this.occurrenceRequirementId() && key === TEST_KEY;
+    const request = key === TEST_KEY && testId ? this.api.uploadForTest(this.controlId(), testId, file, needsCase ? this.occurrenceId() : null) : this.api.upload(key, file);
     this.sending.set(true);
+    this.uploadingFor.set(key);
+    // Hasta el primer evento de avance con total no se sabe cuánto va: barra indeterminada animada (nunca un 0 % quieto).
+    this.progress.set(null);
+    this.zoneMessage.set(null);
     this.reset();
-    request.subscribe({
-      next: () => {
-        this.sending.set(false);
-        this.uploadingFor.set(null);
-        this.file.set(null);
-        this.toast.showSuccess(this.translate.instant('COMPLIANCE.EVIDENCE.UPLOADED'));
+    // Sin noticias de la subida en UPLOAD_IDLE_MS (ni avance ni respuesta) se da por fallida: nunca queda «Subiendo…» para siempre.
+    this.upload$ = request.pipe(timeout({ each: UPLOAD_IDLE_MS }), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (event) => {
+        if (event.kind === 'progress') return this.progress.set(event.percent);
+        this.finish();
+        this.zoneMessage.set({ key, text: this.translate.instant('COMPLIANCE.EVIDENCE.UPLOADED_FILE', { name: file.name }), tone: 'success' });
         this.load();
         this.changed.emit();
       },
       // `message` ya viene traducido por el backend (413 tamaño, 415 tipo, 422 sin archivo, 503 almacenamiento).
       error: (e) => {
-        this.sending.set(false);
-        this.error.set(apiErrorMessage(e, this.translate.instant('COMPLIANCE.EVIDENCE.UPLOAD_ERROR')));
+        this.finish();
+        // 422 occurrence_id.*: el caso no es de esta prueba (o no se admite): se dice con un texto propio, no con el genérico.
+        const text = e instanceof TimeoutError
+          ? this.translate.instant('COMPLIANCE.EVIDENCE.UPLOAD_TIMEOUT')
+          : e instanceof HttpErrorResponse && e.status === 422 && apiFieldErrors(e).some((f) => f.code.startsWith('occurrence_id.'))
+            ? this.translate.instant('COMPLIANCE.APPROVAL.OCCURRENCE.ERR_INVALID')
+            : apiErrorMessage(e, this.translate.instant('COMPLIANCE.EVIDENCE.UPLOAD_ERROR'));
+        this.zoneMessage.set({ key, text, tone: 'error' });
       },
     });
+  }
+
+  private finish(): void {
+    this.upload$ = null;
+    this.sending.set(false);
+    this.uploadingFor.set(null);
+    this.progress.set(null);
   }
 
   download(submission: EvidenceSubmission): void {

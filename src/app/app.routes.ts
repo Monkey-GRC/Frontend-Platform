@@ -8,7 +8,7 @@ import { NotFoundLayout } from '@core/presentation/pages/not-found-layout/not-fo
 import { AppLayoutComponent } from '@core/presentation/pages/app-layout/app-layout.component';
 import { authGuard } from '@core/domain/guards/auth.guard';
 import { guestGuard } from '@core/domain/guards/guest.guard';
-import { roleGuard } from '@core/domain/guards/role.guard';
+import { roleGuard, roleMatch } from '@core/domain/guards/role.guard';
 import { COMPLIANCE_ROLES, COMPLIANCE_SUMMARY_ROLES, DOCUMENT_LIBRARY_ROLES, MY_DOCUMENTS_ROLES, ONBOARDING_ROLE, TEAM_ROLES, TECHNICAL_VIEW_ROLES } from '@shared/domain/utils/roles';
 import { workLandingGuard } from '@core/domain/guards/work-landing.guard';
 import { legacyComplianceRedirectGuard } from '@features/compliance/domain/guards/legacy-compliance-redirect.guard';
@@ -49,11 +49,17 @@ export const routes: Routes = [
         loadComponent: () => import('@features/home/presentation/views/home/home').then(m => m.Home),
         pathMatch: 'full',
       },
-      // Pantalla provisional de D102: se reemplaza al cambiar su `loadComponent` cuando el Backend lo permita («Mi trabajo»: MD-201 con MD-195).
+      // «Mi trabajo» (D102): por ahora solo «Por aprobar» para el responsable y el administrador (MD-505, MD-529). El delegado sigue con la pantalla provisional hasta MD-201.
       {
         path: 'mi-trabajo',
         title: 'PAGE_TITLE.MY_WORK',
-        canActivate: [roleGuard('responsable', 'delegado')],
+        canMatch: [roleMatch('responsable', 'admin_empresa')],
+        loadComponent: () => import('@features/work/presentation/views/my-work/my-work').then(m => m.MyWorkView),
+      },
+      {
+        path: 'mi-trabajo',
+        title: 'PAGE_TITLE.MY_WORK',
+        canActivate: [roleGuard('delegado')],
         data: { titleKey: 'SHELL.NAV.MY_WORK', icon: 'assignment_ind' },
         loadComponent: () => import('@core/presentation/pages/coming-soon/coming-soon').then(m => m.ComingSoonView),
       },

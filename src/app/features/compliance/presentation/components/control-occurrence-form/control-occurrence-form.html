@@ -1,0 +1,19 @@
+<app-form-modal titleKey="COMPLIANCE.APPROVAL.OCCURRENCE.TITLE" [titleParams]="{ code: code() }" size="lg" [busy]="busy()" [guarded]="changed()" testId="occurrence-form" (closed)="closed.emit()">
+  <form id="occurrence-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
+
+    @if (banner(); as b) {
+    <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert" data-banner><span>{{ b }}</span></div>
+    }
+
+    <app-field labelKey="COMPLIANCE.APPROVAL.OCCURRENCE.DATE" forId="occurrence-date" [errorKey]="dateError()">
+      <app-date-picker inputId="occurrence-date" data-field="date" [(value)]="date" [max]="maxDate" [invalid]="!!dateError()" [disabled]="busy()" />
+    </app-field>
+
+    <app-field labelKey="COMPLIANCE.APPROVAL.OCCURRENCE.DESCRIPTION" forId="occurrence-description" [errorKey]="descriptionError()">
+      <textarea id="occurrence-description" rows="3" class="mk-textarea" data-field="description" [ngModel]="description()" [ngModelOptions]="{ standalone: true }" (ngModelChange)="description.set($event)"
+        [attr.aria-invalid]="descriptionError() ? 'true' : null"></textarea>
+    </app-field>
+  </form>
+
+  <button actions type="submit" form="occurrence-form" [appBusy]="busy()" data-save class="mk-btn">{{ 'COMPLIANCE.APPROVAL.OCCURRENCE.SUBMIT' | translate }}</button>
+</app-form-modal>

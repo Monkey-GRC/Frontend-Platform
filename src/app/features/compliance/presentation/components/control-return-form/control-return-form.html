@@ -1,0 +1,28 @@
+<app-form-modal titleKey="COMPLIANCE.APPROVAL.RETURN.TITLE" [titleParams]="{ code: detail().code }" size="lg" [busy]="sending()" [guarded]="changed()" testId="return-form" (closed)="closed.emit()">
+  <form id="return-form" class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" data-form novalidate>
+
+    @if (banner(); as b) {
+    <div class="flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert" data-banner><span>{{ b }}</span></div>
+    }
+
+    <app-field labelKey="COMPLIANCE.APPROVAL.RETURN.REASON" forId="return-reason" hintKey="COMPLIANCE.APPROVAL.RETURN.REASON_HINT" [errorKey]="reasonError()">
+      <textarea id="return-reason" rows="4" class="mk-textarea" data-field="reason" [ngModel]="reason()" [ngModelOptions]="{ standalone: true }" (ngModelChange)="reason.set($event)" (blur)="touched.set(true)"
+        [attr.aria-invalid]="reasonError() || serverReason() ? 'true' : null" aria-describedby="return-reason-hint"></textarea>
+      @if (serverReason(); as e) {<p class="mt-1.5 text-xs text-bad-ink" role="alert" data-error="reason">{{ e }}</p>}
+    </app-field>
+
+    @if (submissions().length) {
+    <fieldset class="flex flex-col gap-2" data-submissions>
+      <legend class="mb-1.5 text-sm font-medium text-ink">{{ 'COMPLIANCE.APPROVAL.RETURN.SUBMISSIONS' | translate }}</legend>
+      @for (s of submissions(); track s.id) {
+      <label class="flex items-start gap-2 text-sm text-ink">
+        <input #box type="checkbox" class="mk-checkbox mt-0.5" [name]="'submission-' + s.id" [checked]="picked().includes(s.id)" (change)="toggle(s.id, box.checked)" />
+        <span>{{ s.label }} <span class="text-ink-muted">· {{ 'COMPLIANCE.APPROVAL.RETURN.VERSION' | translate: { version: s.version } }}</span></span>
+      </label>
+      }
+    </fieldset>
+    }
+  </form>
+
+  <button actions type="submit" form="return-form" [appBusy]="sending()" [busyLabel]="'COMPLIANCE.APPROVAL.RETURN.SENDING' | translate" data-save class="mk-btn">{{ 'COMPLIANCE.APPROVAL.RETURN.SUBMIT' | translate }}</button>
+</app-form-modal>

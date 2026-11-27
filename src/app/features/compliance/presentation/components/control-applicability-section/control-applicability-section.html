@@ -1,0 +1,89 @@
+@if (rows().length) {
+<app-detail-section titleKey="COMPLIANCE.APPROVAL.REQUIREMENTS.TITLE" [count]="rows().length" data-requirements-section>
+  <p class="mb-3 max-w-prose text-pretty text-sm text-ink-muted" data-requirements-help>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.SEL_HELP' | translate }}</p>
+  <div class="grid items-stretch gap-4 md:grid-cols-2">
+
+    <!-- Maestro: una lista para elegir el requisito (flechas y Enter) -->
+    <div role="listbox" [attr.aria-label]="'COMPLIANCE.APPROVAL.REQUIREMENTS.TITLE' | translate" class="flex max-h-[20rem] min-w-0 flex-col gap-1.5 overflow-y-auto p-1 md:max-h-[28rem]" data-requirements-list>
+      @for (r of rows(); track r.id) {
+      @let on = selected().id === r.id;
+      <button type="button" role="option" class="flex min-w-0 flex-col items-start gap-1.5 rounded-control border p-3 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/25"
+        [class]="on ? 'border-action bg-tint' : 'border-line bg-surface hover:bg-canvas'" [attr.aria-selected]="on" [attr.aria-current]="on ? 'true' : null" [tabindex]="on ? 0 : -1" (click)="select(r)" (keydown)="onKey($event)" [attr.data-requirement]="r.id">
+        <span class="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1">
+          <app-tag [text]="r.code" />
+          <app-status-indicator [tone]="tone(r.applicability)" [label]="labels.label('requirement_applicability', r.applicability)" [attr.data-applicability]="r.applicability" />
+        </span>
+        <span class="line-clamp-2 w-full text-sm text-ink">{{ r.text }}</span>
+        @if (r.on_demand; as w) {
+        <span class="text-xs tabular-nums text-ink-muted" data-demand-mark>{{ (w.has_declaration ? 'COMPLIANCE.APPROVAL.REQUIREMENTS.DECLARED' : 'COMPLIANCE.APPROVAL.REQUIREMENTS.CASES') | translate: { total: w.occurrences_count } }}</span>
+        }
+      </button>
+      }
+    </div>
+
+    <!-- Detalle del requisito elegido; se anuncia al cambiar -->
+    <!-- El detalle crece con su contenido (nunca se recorta ni desplaza por dentro) y se estira hasta el alto de la lista: las dos columnas quedan iguales. -->
+    <div class="flex min-w-0 flex-col" data-requirement-detail>
+      @if (selected(); as r) {
+      <app-card class="flex-1" data-requirement-card>
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col items-start gap-2">
+            <app-tag [text]="r.code" />
+            <p class="text-sm text-ink">{{ r.text }}</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-muted" aria-live="polite" data-detail-state>
+            <app-status-indicator [tone]="tone(r.applicability)" [label]="labels.label('requirement_applicability', r.applicability)" [attr.data-detail-applicability]="r.applicability" />
+            @if (r.on_demand; as w) {
+            <span class="tabular-nums" data-demand-cases>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.CASES' | translate: { total: w.occurrences_count } }}@if (w.occurrences_without_evidence > 0) {<span>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.CASES_WITHOUT' | translate: { n: w.occurrences_without_evidence } }}</span>}</span>
+            @if (w.has_declaration) {
+            <span data-demand-declared>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.DECLARED' | translate }}</span>
+            }
+            }
+          </div>
+          @if (r.on_demand; as w) {
+          @if (w.occurrences_without_evidence > 0) {
+          <!-- Una frase con el enlace a la pestaña Evidencias dentro, al final: es navegación (cambia de pestaña), no una acción. -->
+          <p class="max-w-prose text-pretty text-sm text-ink" data-cases-without-evidence data-cases-help>
+            {{ (w.occurrences_without_evidence === 1 ? 'COMPLIANCE.APPROVAL.REQUIREMENTS.CASES_NO_EVIDENCE_ONE' : 'COMPLIANCE.APPROVAL.REQUIREMENTS.CASES_NO_EVIDENCE') | translate: { n: w.occurrences_without_evidence } }}
+            <button type="button" class="mk-link underline" (click)="goEvidence.emit()" data-go-evidence>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.GO_EVIDENCE' | translate }}</button>
+            {{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.CASES_NO_EVIDENCE_TAIL' | translate }}
+          </p>
+          }
+          }
+          @if (r.not_applicable; as na) {
+          @if (na.status === 'rejected') {
+          <p class="max-w-prose text-pretty text-sm text-ink-muted" data-rejected>{{ 'COMPLIANCE.APPROVAL.DECIDE.REJECTED_BY' | translate: { name: personLabel(na.decided_by), reason: na.decision_reason ?? '' } }}</p>
+          }
+          }
+          @if (hasActions(r)) {
+          <div class="flex flex-col gap-2 border-t border-line pt-4" data-requirement-actions>
+            @if (can(r.allowed_actions, 'register_occurrence')) {
+            <button type="button" class="mk-btn-secondary-sm w-full" [disabled]="busy()" (click)="registerOccurrence.emit(r)" data-register-occurrence>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.REGISTER_CASE' | translate }}</button>
+            }
+            @if (can(r.allowed_actions, 'declare_no_occurrences')) {
+            <button type="button" class="mk-btn-secondary-sm w-full" [disabled]="busy()" (click)="declare.emit(r)" data-declare>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.DECLARE' | translate }}</button>
+            }
+            @if (can(r.allowed_actions, 'request_not_applicable')) {
+            <button type="button" class="mk-btn-secondary-sm w-full" [disabled]="busy()" (click)="markNotApplicable.emit(r)" data-mark-na>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.MARK_NA' | translate }}</button>
+            }
+            @if (can(r.allowed_actions, 'revert_not_applicable')) {
+            <button type="button" class="mk-btn-secondary-sm w-full" [disabled]="busy()" (click)="revert.emit(r)" data-revert-na>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.REVERT' | translate }}</button>
+            }
+            @if (can(r.allowed_actions, 'decide_not_applicable') && r.not_applicable; as na) {
+            <button type="button" class="mk-btn-sm w-full" [disabled]="busy() && acting() !== 'na:' + na.id" [appBusy]="acting() === 'na:' + na.id" (click)="decide.emit({ id: na.id, decision: 'approve' })" data-na-approve>{{ 'COMPLIANCE.APPROVAL.DECIDE.APPROVE' | translate }}</button>
+            <button type="button" class="mk-btn-secondary-sm w-full" [disabled]="busy()" (click)="decide.emit({ id: na.id, decision: 'reject' })" data-na-reject>{{ 'COMPLIANCE.APPROVAL.DECIDE.REJECT' | translate }}</button>
+            }
+          </div>
+          } @else {
+          @let why = noActions(r);
+          <p class="border-t border-line pt-4 text-sm text-ink-muted" data-no-actions>{{ why.key | translate: why.params }}</p>
+          }
+        </div>
+      </app-card>
+      } @else {
+      <p class="text-sm text-ink-muted" data-select-hint>{{ 'COMPLIANCE.APPROVAL.REQUIREMENTS.SELECT' | translate }}</p>
+      }
+    </div>
+  </div>
+</app-detail-section>
+}

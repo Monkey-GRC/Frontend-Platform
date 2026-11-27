@@ -1,0 +1,38 @@
+@if (level(); as l) {
+<app-card class="h-full" data-level-section>
+  <div class="flex h-full flex-col gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <h3 class="text-base font-semibold text-ink">{{ 'COMPLIANCE.APPROVAL.LEVEL.TITLE' | translate }}</h3>
+      @if (canPropose() && !canDecide()) {
+      <button type="button" class="mk-btn-secondary-sm" [disabled]="busy()" (click)="propose.emit()" data-change-level>{{ 'COMPLIANCE.APPROVAL.LEVEL.CHANGE' | translate }}</button>
+      }
+    </div>
+    <div>
+      @if (corrected()) {
+      <app-status-indicator [tone]="levelTone(l.final)" [label]="('COMPLIANCE.APPROVAL.LEVEL.CORRECTED' | translate: { final: labels.label('control_level', l.final), suggested: labels.label('control_level', l.suggested) })" data-level-chip />
+      } @else {
+      <app-status-indicator [tone]="levelTone(l.final)" [label]="labels.label('control_level', l.final)" data-level-chip />
+      }
+    </div>
+    @if (rejected(); as r) {
+    <app-expandable-text class="max-w-prose" [text]="'COMPLIANCE.APPROVAL.DECIDE.REJECTED_BY' | translate: { name: personLabel(r.decided_by), reason: r.decision_reason ?? '' }" textClass="text-pretty text-sm text-ink-muted" data-rejected />
+    }
+    @if (pending(); as p) {
+    <app-expandable-text class="min-w-0 max-w-prose" [text]="'COMPLIANCE.APPROVAL.LEVEL.PENDING' | translate: { name: personLabel(p.proposed_by), level: labels.label('control_level', p.proposed_level), justification: p.justification }" textClass="text-pretty text-sm text-ink-muted" data-level-pending />
+    }
+    @if (pending() && canDecide()) {
+    <div class="mt-auto flex flex-wrap items-center gap-2 pt-1">
+      @if (pending(); as p) {
+      @if (canDecide()) {
+      <button type="button" class="mk-btn-sm" [disabled]="busy() && acting() !== 'level:' + p.id" [appBusy]="acting() === 'level:' + p.id" (click)="decide.emit({ id: p.id, decision: 'approve' })" data-level-approve>{{ 'COMPLIANCE.APPROVAL.DECIDE.APPROVE' | translate }}</button>
+      <button type="button" class="mk-btn-secondary-sm" [disabled]="busy()" (click)="decide.emit({ id: p.id, decision: 'reject' })" data-level-reject>{{ 'COMPLIANCE.APPROVAL.DECIDE.REJECT' | translate }}</button>
+      }
+      }
+      @if (canPropose()) {
+      <button type="button" class="mk-btn-secondary-sm" [disabled]="busy()" (click)="propose.emit()" data-change-level>{{ 'COMPLIANCE.APPROVAL.LEVEL.CHANGE' | translate }}</button>
+      }
+    </div>
+    }
+  </div>
+</app-card>
+}

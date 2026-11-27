@@ -15,6 +15,8 @@ import { TableToolbar } from '@shared/presentation/components/table-toolbar/tabl
 import { readinessLook } from '@shared/domain/utils/readiness-look';
 import { EnumLabelService } from '@shared/domain/services/enum-label.service';
 import { levelTone } from '@features/compliance/domain/utils/control-v2-look';
+import { managementTone } from '@features/compliance/domain/utils/control-approval';
+import { ManagementLabelsService } from '@shared/domain/services/management-labels.service';
 import { StatusIndicator } from '@shared/presentation/components/status-indicator/status-indicator';
 import { Tag } from '@shared/presentation/components/tag/tag';
 import { Badge } from '@shared/presentation/components/badge/badge';
@@ -28,6 +30,11 @@ import { COMPLIANCE_ROUTE } from '@features/compliance/domain/models/compliance.
 import { ControlDetailPanel } from '../../components/control-detail-panel/control-detail-panel';
 import { OPEN_PARAM } from '@shared/domain/models/route-links';
 
+import { timeout } from 'rxjs';
+import { LOAD_TIMEOUT_MS } from '@shared/domain/utils/load-timeout';
+import { ToastService } from '@shared/presentation/components/toast-container/toast.service';
+import { SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
+
 type Stage = 'loading' | 'error' | 'ready';
 
 const ALL = 'all';
@@ -38,13 +45,15 @@ const PAGE_SIZE = 25;
 // porcentaje de cumplimiento y su cobertura, con los conteos entre paréntesis (D80); nunca un porcentaje solo. «Sin medir» no es un fallo.
 @Component({
   selector: 'app-controls-list',
-  imports: [Badge, Tag, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, EmptyState, ControlDetailPanel],
+  imports: [Badge, Tag, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, EmptyState, ControlDetailPanel, SkeletonRegion],
   templateUrl: './controls-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ControlsListView {
   protected readonly readinessLook = readinessLook;
   protected readonly levelTone = levelTone;
+  protected readonly managementTone = managementTone;
+  protected readonly managementLabels = inject(ManagementLabelsService);
   protected readonly labels = inject(EnumLabelService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -52,6 +61,7 @@ export class ControlsListView {
   private readonly catalogs = inject(CatalogService);
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
+  private readonly toast = inject(ToastService);
   readonly view = inject(ComplianceViewService);
 
   // El servicio activo lo elige el encabezado de Cumplimiento y se recuerda entre secciones (`ActiveComplianceService`).
@@ -91,11 +101,13 @@ export class ControlsListView {
   ]);
 
   readonly columns = computed<TableColumn<ControlListItem>[]>(() => [
-    { key: 'code', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TECHNICAL', skeleton: 'badges' },
+    // Ninguna columna empuja la tabla fuera a 1440 px: el código va encima del nombre (que se queda con el resto), las categorías se envuelven en un ancho acotado
+    // y el avance tiene ancho fijo.
     { key: 'name', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_NAME', skeleton: 'lines' },
     { key: 'topics', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_TOPIC', skeleton: 'badge' },
     { key: 'status', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_STATUS', skeleton: 'badges' },
-    { key: 'counts', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_PROGRESS', skeleton: 'progress' },
+    { key: 'management', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_MANAGEMENT', skeleton: 'badge' },
+    { key: 'counts', headerKey: 'COMPLIANCE.CONTROLS.COLUMN_PROGRESS', class: 'lg:w-40', skeleton: 'progress' },
   ]);
 
   readonly percentOf = percentOf;
@@ -142,6 +154,7 @@ export class ControlsListView {
 
     this.api
       .list(this.serviceId(), { page: this.pageNumber(), pageSize: this.pageSize(), trustCriterion: this.trust(), readiness: this.readiness() }, this.view.viewParam())
+      .pipe(timeout(LOAD_TIMEOUT_MS), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ items, page }) => {
           if (seq !== this.requestSeq) return;
@@ -154,6 +167,31 @@ export class ControlsListView {
           if (seq !== this.requestSeq) return;
           this.loadingPage.set(false);
           this.stage.set('error');
+        },
+      });
+  }
+
+  /** Tras un acto en el panel: se vuelve a pedir la página actual en segundo plano, con los mismos filtros y sin tapar la tabla ni mover el scroll. */
+  refresh(): void {
+    if (this.stage() !== 'ready') return this.load();
+    // Si reemplaza un `load()` de cambio de página en vuelo y falla, la tabla quedaría desincronizada del paginador: en ese caso se relanza `load()`.
+    const replacedLoad = this.loadingPage();
+    const seq = ++this.requestSeq;
+    this.api
+      .list(this.serviceId(), { page: this.pageNumber(), pageSize: this.pageSize(), trustCriterion: this.trust(), readiness: this.readiness() }, this.view.viewParam())
+      .pipe(timeout(LOAD_TIMEOUT_MS), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ items, page }) => {
+          if (seq !== this.requestSeq) return;
+          this.rows.set(items);
+          this.page.set(page);
+          this.loadingPage.set(false);
+        },
+        error: () => {
+          if (seq !== this.requestSeq) return;
+          this.loadingPage.set(false);
+          if (replacedLoad) this.load();
+          else this.toast.showError(this.translate.instant('COMPLIANCE.CONTROLS.REFRESH_ERROR'));
         },
       });
   }

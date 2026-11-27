@@ -1,3 +1,4 @@
+import { SkeletonRegion } from '@shared/presentation/components/skeleton/skeleton';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -55,7 +56,7 @@ const ATTRIBUTE_LABEL: Record<string, string> = {
 // cliente marca cuáles son de ESTE servicio; los demás quedan fuera de lo que se mide.
 @Component({
   selector: 'app-discovered-assets',
-  imports: [Badge, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, DetailModal, Tag, Busy],
+  imports: [Badge, TranslatePipe, DataTable, TableCell, TableToolbar, OptionChips, StatusIndicator, DetailModal, Tag, Busy, SkeletonRegion],
   templateUrl: './discovered-assets.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -1,0 +1,25 @@
+<section class="w-full pb-10">
+  <app-page-header [title]="'WORK.REVIEW.TITLE' | translate" [description]="'WORK.REVIEW.INTRO' | translate" />
+
+  @if (stage() === 'error') {
+  <app-empty-state icon="" titleKey="WORK.REVIEW.LOAD_ERROR_TITLE" descriptionKey="COMMON.CHECK_CONNECTION" data-test-error>
+    <button action type="button" (click)="load()" class="mk-btn">{{ 'COMMON.RETRY' | translate }}</button>
+  </app-empty-state>
+  } @else {
+  <app-skeleton-region [busy]="stage() === 'loading' || refreshing()">
+  <div [class.opacity-60]="refreshing()" [attr.inert]="refreshing() ? '' : null" data-table-wrap>
+  <app-data-table captionKey="WORK.REVIEW.TABLE_CAPTION" [columns]="columns" [rows]="items()" [rowKey]="rowKey" [rowLabel]="rowLabel" [page]="page()" [loading]="stage() === 'loading'"
+    [clickable]="true" emptyIcon="" emptyTitleKey="WORK.REVIEW.EMPTY" (rowClick)="open($event)" (pageChange)="goTo($event)" (pageSizeChange)="resize($event)">
+    <ng-template appCell="code" let-row><app-tag [text]="row.code" /></ng-template>
+    <ng-template appCell="title" let-row><span class="font-medium text-ink">{{ row.title }}</span></ng-template>
+    <ng-template appCell="service" let-row><span class="text-sm text-ink-muted">{{ row.service.name }}</span></ng-template>
+    <ng-template appCell="waiting" let-row>
+      <div class="flex flex-wrap gap-1" data-waiting>
+        @for (k of row.pending_decisions; track k) {<app-badge kind="attribute" [value]="k">{{ kindLabel(k) }}</app-badge>}
+      </div>
+    </ng-template>
+  </app-data-table>
+  </div>
+  </app-skeleton-region>
+  }
+</section>

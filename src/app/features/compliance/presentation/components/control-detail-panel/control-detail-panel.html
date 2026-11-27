@@ -1,7 +1,7 @@
 <!-- El detalle de un control en el panel lateral ancho (MD-499, `drawer`): cabecera fija con el nombre, los códigos y el estado; debajo, una pestaña por tema. Las pestañas se
      ocultan, no se destruyen: una edición a medias no se pierde al cambiar de pestaña y el aviso de cambios sin guardar sigue valiendo. La pestaña abierta va en la dirección (`?tab=`). -->
 <app-detail-modal titleKey="COMPLIANCE.GLOSSARY.CONTROL" [heading]="ready()?.name ?? null" [tabs]="tabs()" [activeTab]="activeTab()"
-  tabsLabelKey="COMPLIANCE.DETAIL_TABS.ARIA" [loading]="stage() === 'loading'" [loadingTabs]="view.viewParam() ? 3 : 2" [guarded]="editing()" testId="control-detail"
+  tabsLabelKey="COMPLIANCE.DETAIL_TABS.ARIA" [loading]="stage() === 'loading'" [loadingTabs]="view.viewParam() ? 4 : 3" [guarded]="editing()" testId="control-detail"
   (activeTabChange)="selectTab($event)" (closed)="closed.emit()">
 
   <!-- Cada bloque proyectado va en su propio @if con un solo elemento raíz: así Angular lo lleva a su lugar de la cabecera. -->
@@ -49,6 +49,20 @@
   @case ('loading') {
   <!-- La forma del Resumen: interpretación a la izquierda y las nueve dimensiones en grilla a la derecha; debajo, las causas a todo el ancho. -->
   <app-skeleton-region>
+    @if (requestedTab() === 'approval') {
+    <!-- La forma de Aprobación: Estado y Nivel arriba, requisitos (lista y detalle) y las secciones a todo el ancho. -->
+    <div class="flex flex-col gap-8" data-approval-skeleton>
+      <div class="grid gap-4 md:grid-cols-2"><app-skeleton shape="block" height="8rem" /><app-skeleton shape="block" height="8rem" /></div>
+      <div>
+        <app-skeleton shape="section" [lines]="0" width="25%" />
+        <div class="mt-3 grid gap-4 md:grid-cols-2">
+          <div class="flex flex-col gap-1.5"><app-skeleton shape="block" height="4.5rem" /><app-skeleton shape="block" height="4.5rem" /><app-skeleton shape="block" height="4.5rem" /></div>
+          <app-skeleton shape="block" height="14rem" />
+        </div>
+      </div>
+      <app-skeleton shape="section" [lines]="3" width="15%" />
+    </div>
+    } @else {
     <div class="flex flex-col gap-10">
       <div class="grid items-start gap-x-10 gap-y-8 lg:grid-cols-2">
         <app-skeleton shape="section" [lines]="4" />
@@ -61,6 +75,7 @@
       </div>
       <app-skeleton shape="section" [lines]="3" width="15%" />
     </div>
+    }
   </app-skeleton-region>
   }
 
@@ -80,6 +95,7 @@
 
   @if (error(); as e) {
   <div class="mb-5 flex items-start gap-2 p-3.5 text-sm mk-surface-state-bad text-ink" role="alert"><span>{{ e }}</span>
+    @if (refreshFailed()) {<button type="button" class="mk-btn-secondary-sm ml-auto whitespace-nowrap" (click)="reloadDetail()" data-refresh-retry>{{ 'COMMON.RETRY' | translate }}</button>}
   </div>
   }
 
@@ -219,40 +235,54 @@
   <!-- Requisitos y pruebas (vista técnica: auditor y administrador de la empresa): el estado del motor, los puntos de enfoque y cada requisito con sus pruebas
        y sus checks por rol. Nunca el texto ni el nombre de una prueba del comité (P11). -->
   @if (d.technical; as tech) {
-  <div [hidden]="activeTab() !== 'requirements'" data-tab="requirements" class="flex flex-col gap-6">
-    <dl class="flex flex-wrap gap-x-10 gap-y-3">
-      <div class="flex min-w-0 flex-col gap-1">
-        <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.DETAIL.TECH_FOCUS' | translate }}</dt>
-        <dd class="flex flex-wrap gap-1.5">@for (p of tech.points_of_focus; track p) {<app-tag [text]="p" />} @empty {<span class="text-sm text-ink-muted">—</span>}</dd>
-      </div>
-    </dl>
-    @if (tech.requirements?.length) {
-    <app-detail-section titleKey="COMPLIANCE.PERIODICITY_CHANGE.SECTION" data-periodicity>
-      @if (canChangePeriodicity()) {
-      <button actions type="button" (click)="periodicityOpen.set(true)" class="mk-btn-secondary-sm" data-change-periodicity>{{ 'COMPLIANCE.PERIODICITY_CHANGE.OPEN' | translate }}</button>
+  <div [hidden]="activeTab() !== 'requirements'" data-tab="requirements" class="flex flex-col gap-8">
+    @let hasPeriodicity = !!tech.requirements?.length;
+    @let hasFocus = tech.points_of_focus.length > 0;
+    @if (hasPeriodicity || hasFocus) {
+    <!-- Periodicidad y Puntos de enfoque: dos tarjetas iguales, como Estado y Nivel de Aprobación; una sola ocupa todo el ancho. -->
+    <div class="grid items-stretch gap-4 md:grid-cols-2" data-tech-top>
+      @if (hasPeriodicity) {
+      <app-card class="h-full" [class.md:col-span-2]="!hasFocus" data-periodicity>
+        <div class="flex h-full flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <h3 class="text-base font-semibold text-ink">{{ 'COMPLIANCE.PERIODICITY_CHANGE.SECTION' | translate }}</h3>
+            @if (canChangePeriodicity()) {
+            <button type="button" (click)="periodicityOpen.set(true)" class="mk-btn-secondary-sm" data-change-periodicity>{{ 'COMPLIANCE.PERIODICITY_CHANGE.OPEN' | translate }}</button>
+            }
+          </div>
+          <dl class="flex flex-wrap gap-x-10 gap-y-3">
+            <div class="flex flex-col gap-1">
+              <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.PERIODICITY_CHANGE.CURRENT' | translate }}</dt>
+              <dd class="text-sm font-medium text-ink" data-periodicity-current>{{ periodicity().current }}</dd>
+            </div>
+            <div class="flex flex-col gap-1">
+              <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.PERIODICITY_CHANGE.SUGGESTED' | translate }}</dt>
+              <dd class="text-sm text-ink" data-periodicity-suggested>{{ periodicity().suggested }}</dd>
+            </div>
+            @if (tech.periodicity_change; as change) {
+            <div class="flex min-w-0 flex-1 flex-col gap-1" data-periodicity-change>
+              <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.PERIODICITY_CHANGE.LAST' | translate }}</dt>
+              <dd class="text-sm text-ink">{{ 'COMPLIANCE.PERIODICITY_CHANGE.LAST_VALUE' | translate: { value: labels.of('COMPLIANCE.PERIODICITY', change.periodicity), date: day(change.changed_at) } }}
+                <span class="block text-xs text-ink-muted">{{ 'COMPLIANCE.PERIODICITY_CHANGE.LAST_REASON' | translate: { reason: change.justification } }}</span></dd>
+            </div>
+            }
+          </dl>
+        </div>
+      </app-card>
       }
-      <dl class="flex flex-wrap gap-x-10 gap-y-3">
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.PERIODICITY_CHANGE.CURRENT' | translate }}</dt>
-          <dd class="text-sm font-medium text-ink" data-periodicity-current>{{ periodicity().current }}</dd>
+      @if (hasFocus) {
+      <app-card class="h-full" [class.md:col-span-2]="!hasPeriodicity" data-focus>
+        <div class="flex h-full flex-col gap-3">
+          <h3 class="text-base font-semibold text-ink">{{ 'COMPLIANCE.DETAIL.TECH_FOCUS' | translate }}</h3>
+          <p class="max-w-prose text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.DETAIL.TECH_FOCUS_HELP' | translate }}</p>
+          <div class="flex flex-wrap gap-1.5" data-focus-points>@for (p of tech.points_of_focus; track p) {<app-tag [text]="p" />}</div>
         </div>
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.PERIODICITY_CHANGE.SUGGESTED' | translate }}</dt>
-          <dd class="text-sm text-ink" data-periodicity-suggested>{{ periodicity().suggested }}</dd>
-        </div>
-        @if (tech.periodicity_change; as change) {
-        <div class="flex min-w-0 flex-1 flex-col gap-1" data-periodicity-change>
-          <dt class="text-xs font-medium text-ink-faint">{{ 'COMPLIANCE.PERIODICITY_CHANGE.LAST' | translate }}</dt>
-          <dd class="text-sm text-ink">{{ 'COMPLIANCE.PERIODICITY_CHANGE.LAST_VALUE' | translate: { value: labels.of('COMPLIANCE.PERIODICITY', change.periodicity), date: day(change.changed_at) } }}
-            <span class="block text-xs text-ink-muted">{{ 'COMPLIANCE.PERIODICITY_CHANGE.LAST_REASON' | translate: { reason: change.justification } }}</span></dd>
-        </div>
-        }
-      </dl>
-    </app-detail-section>
+      </app-card>
+      }
+    </div>
     }
     @if (tech.requirements) {
     <app-detail-section titleKey="COMPLIANCE.REQS.TITLE">
-      <p class="mb-4 max-w-prose text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.REQS.INTRO' | translate }}</p>
       <app-control-requirements [technical]="tech" />
     </app-detail-section>
     }
@@ -262,21 +292,29 @@
   <!-- Evidencias: las pruebas que verifican el control (documentales y las que valida la sonda), con su estado, y la evidencia que pide cada una, que se sube
        desde aquí mismo (D80). La evidencia de una prueba manual va bajo ELLA (D88); sin el detalle de las pruebas (otros roles) o sin pruebas manuales, va aparte. -->
   <div [hidden]="activeTab() !== 'evidence'" data-tab="evidence" class="flex flex-col gap-5">
-    <p class="max-w-prose text-pretty text-sm text-ink-muted">{{ 'COMPLIANCE.REQUIRES.INTRO' | translate }}</p>
     <div class="flex flex-col gap-8">
-      <app-control-tests class="min-w-0" [controlId]="d.id" [tests]="d.technical?.tests" [evidenceTests]="d.evidence_tests" [dimensions]="d.dimensions" [total]="d.progress.total" [evidenceTpl]="evidenceUnderTests(d) ? manualEvidence : null" />
+      <app-control-tests class="min-w-0" [controlId]="d.id" [tests]="d.technical?.tests" [evidenceTests]="d.evidence_tests" [dimensions]="d.dimensions" [total]="d.progress.total" [canUpload]="canUploadEvidence()" [evidenceTpl]="evidenceUnderTests(d) ? manualEvidence : null" />
       <ng-template #manualEvidence let-dimension let-testId="testId" let-fallback="fallback">
-        <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" [dimension]="dimension" [testId]="testId" [fallback]="fallback" [embedded]="true" (changed)="changed.emit()" />
+        <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" [dimension]="dimension" [testId]="testId" [fallback]="fallback" [embedded]="true" [occurrenceRequirementId]="onDemandByTest().get(testId) ?? null" (changed)="reloadDetail()" />
       </ng-template>
       <div class="min-w-0 empty:hidden">
         @if (evidenceUnderTests(d)) {
         <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [dimension]="'policy'" [suggested]="true" />
         } @else {
-        <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" (changed)="changed.emit()" />
+        <app-control-evidence [controlId]="d.id" [summary]="d.evidence" [canUpload]="canUploadEvidence()" (changed)="reloadDetail()" />
         }
       </div>
     </div>
   </div>
+
+  <!-- Aprobación (MD-505): el estado de gestión, aprobar o devolver y el resultado de las pruebas manuales -->
+  @if (activeTab() === 'approval') {
+  <div data-tab="approval">
+    <app-skeleton-region [busy]="refreshing()">
+      <app-control-approval [detail]="d" [refreshing]="refreshing()" (changed)="reloadDetail()" (goEvidence)="goToEvidence()" />
+    </app-skeleton-region>
+  </div>
+  }
 
   <!-- Período: la vista del período auditado abierto, solo si está definido (R6) -->
   @if (d.technical?.period; as period) {
